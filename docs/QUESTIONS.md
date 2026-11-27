@@ -986,6 +986,29 @@ Ouverts ; chacun a sa recommandation.
    Proposition : le champ « Type » n'apparaît que si l'organisation a plusieurs types. **Tranché le
    26/11 par Julien : « Oui, si plusieurs ».**
 
+### Q50 — Lot 73 : réaliser le volet 4 des maquettes (« Prestataires »), trois écarts avec le cahier des charges (27 novembre 2026)
+
+Numéro choisi pour ne pas croiser les spécifications écrites en même temps : Q48 est au lot 71, Q49
+est laissé au lot 72, Q51 au lot 74. Relevés en écrivant `docs/lots/lot-73-prestataires.md` (§ 7 et
+§ 8), à partir des maquettes du volet 4 (`docs/audits/2026-11-ux-parcours/10-maquettes-prestataires.md`),
+dont les choix V1 à V14 sont retenus par défaut et pas encore confirmés par Julien (décision P1 du
+lot). Ouverts ; chacun a sa recommandation.
+
+1. **« Pressenti » remplacé à l'écran par « en comparaison » (PRE-02, choix V7, décision P2 du lot)**.
+   Le cahier des charges nomme les statuts « Pressenti, Consulté, Devis reçu, Retenu, Contrat signé,
+   Soldé » ; la maquette dit « en comparaison » (avec « devis reçu » en détail) et le bouton « Mettre
+   en comparaison ». Les valeurs en base ne changent pas. Proposition : suivre la maquette, noter
+   l'écart dans `gap.csv` et un court ADR.
+2. **« Catégorie » (PRE-01, PRE-11) contre « famille » puis « métier »**. L'app et la maquette disent
+   « famille » et « métier ». Proposition : garder les mots de l'app, comme le recommande S13 du Design
+   System (porte 4) ; noté dans `gap.csv`, sans ADR.
+3. **« Engagé » hors de la ligne du budget (BUD-01, cinq montants ; SC-04 « la ligne passe à
+   engagé »)**. La maquette retire la pastille « Engagé » et le sous-total « dont engagé », gardés par
+   Julien le 21/11 (Q42, point 1) : la maquette contredit cette décision (décision P14 du lot).
+   Proposition : écrire « engagé » sous le montant réel de la ligne et en tête (« Réel, tout engagé »),
+   sans pastille verte ; les cinq montants restent dans la fenêtre du poste ; noté dans `gap.csv`, sans
+   ADR.
+
 ## Remarques sur le nouveau document lui-même
 
 - Les tableaux PRE, INV, POR, DOC, MSG, JRJ, RPT et TPS sont placés en annexe (§ 20), alors que
