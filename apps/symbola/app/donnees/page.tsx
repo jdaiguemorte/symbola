@@ -6,8 +6,8 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { appDatabase } from "@symbola/db/client";
+import { listOrganizations } from "@symbola/auth";
 import { ScreenHelp } from "@/app/screen-help";
-import { getOrganizationContact } from "@/modules/hub/service";
 import { requirePlanner } from "@/lib/guards";
 import { CLOSURE_PATH, IMPORT_PATH, showsClosure, showsImport, yourDataLines } from "../settings-menu";
 import { loadPrivacyAlerts, loadSettingsFlags } from "../settings-flags";
@@ -20,7 +20,8 @@ export default async function YourDataPage() {
   const flags = await loadSettingsFlags(organizationId, auth.user.role);
   const alerts = await loadPrivacyAlerts(organizationId, flags.isOwner);
   const lines = yourDataLines(flags);
-  const organization = showsClosure(flags) ? (await getOrganizationContact(appDatabase(), organizationId)).name : "";
+  // Le nom de l'organisation ouverte, comme dans le menu du compte.
+  const organization = showsClosure(flags) ? ((await listOrganizations(appDatabase(), auth.user.id)).find((candidate) => candidate.organizationId === organizationId)?.name ?? "") : "";
 
   return (
     <main>

@@ -53,7 +53,7 @@ export default async function EventsSettingsPage({ searchParams }: { searchParam
       <h1>{title}</h1>
       {/* Avec le module Budget, la visite guidée de la répartition (lot 63f) porte aussi l'aide de l'écran. */}
       {budget ? (
-        <PageTour {...await loadPageTour(auth.user.id, "budget", visite)} helpTitle={tHelp("eventsSettings.title")} helpBody={`${tHelp("eventsSettings.body")} ${tHelp("budgetSettings.body")}`} />
+        <PageTour {...await loadPageTour(auth.user.id, "budget", visite)} helpTitle={title} helpBody={`${tHelp("eventsSettings.body")} ${tHelp("budgetSettings.body")}`} />
       ) : (
         <ScreenHelp title={tHelp("eventsSettings.title")} body={tHelp("eventsSettings.body")} />
       )}

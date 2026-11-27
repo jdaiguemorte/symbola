@@ -88,14 +88,14 @@ export function SettingsNav({ groups, data, labels }: { groups: SettingsGroup[];
 }
 
 // « ‹ Paramètres · {groupe} » : sous 1 100 px et sur téléphone, à la place du menu du groupe ; partout
-// quand l'écran n'a pas de menu de groupe (`wide`).
+// quand l'écran n'a pas de menu de groupe (`wide`). Un repère de navigation, hors du contenu de l'écran.
 function BackLink({ href, label, wide = false }: { href: string; label: string; wide?: boolean }) {
   return (
-    <p className={wide ? "settings-back" : "settings-back settings-back-narrow"}>
+    <nav aria-label={label} className={wide ? "settings-back" : "settings-back settings-back-narrow"}>
       <Link href={href}>
         <ChevronLeft aria-hidden="true" />
         {label}
       </Link>
-    </p>
+    </nav>
   );
 }

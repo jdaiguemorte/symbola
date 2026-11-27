@@ -7735,8 +7735,10 @@
   .settings-back {
     @apply m-0 mb-1;
   }
+  /* 44 px au doigt ; 32 px à la souris (au-dessus des 24 px de WCAG 2.5.8), pour que le premier réglage
+     reste dans le premier écran à 911 × 512. */
   .settings-back a {
-    @apply inline-flex min-h-11 items-center gap-1 text-label font-medium no-underline;
+    @apply inline-flex min-h-11 items-center gap-1 text-label font-medium no-underline md:min-h-8;
   }
   .settings-back a svg {
     @apply size-4;
