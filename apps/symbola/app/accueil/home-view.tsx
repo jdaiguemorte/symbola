@@ -35,17 +35,17 @@ function dayText(now: Date, locale: Locale, withYear: boolean): string {
 export async function TodayHeader({ now, locale, activeEvents, ranked, state }: { now: Date; locale: Locale; activeEvents: number | null; ranked: RankedToday; state: HomeState }) {
   const t = await getTranslations("Today");
   const days = TODAY_HORIZON_DAYS;
-  const events = activeEvents === null ? null : t("eventsInProgress", { count: activeEvents });
+  const events = activeEvents === null ? null : t.rich("eventsInProgress", { count: activeEvents, long: (chunks) => <span className="today-events-long">{chunks}</span> });
   return (
     <div className="page-header today-header">
       <h1>{t("title")}</h1>
       <p className="today-summary">
         <span className="today-date-long">{dayText(now, locale, true)}</span>
         <span className="today-date-short">{dayText(now, locale, false)}</span>
-        {events ? ` · ${events}` : null}
+        {events ? <> · {events}</> : null}
       </p>
       {state.kind === "empty" ? null : (
-        <p className="today-count">
+        <p className="today-count" data-tour="home-count">
           {state.kind === "quiet"
             ? t("countQuiet", { days, count: state.withoutTasks.length })
             : ranked.points === 0

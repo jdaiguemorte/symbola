@@ -33,7 +33,7 @@ export function FirstStepsHideButton({ labels }: { labels: { hide: string; hidde
       router.refresh();
     });
   return (
-    <button type="button" className="button-ghost first-steps-hide" onClick={hide} disabled={pending}>
+    <button type="button" className="button-ghost" onClick={hide} disabled={pending}>
       {labels.hide}
     </button>
   );

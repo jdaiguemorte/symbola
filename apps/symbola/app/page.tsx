@@ -22,6 +22,7 @@ import { loadPageTour } from "@/lib/help/page-tour";
 import { todayWords, UnavailableNotice } from "./accueil/today-view";
 import { EmptyHome, FirstStepsView, MyEventsView, TodayCardView, TodayHeader } from "./accueil/home-view";
 import { UndoTaskNotice } from "./accueil/today-client";
+import { TodayScrollKeeper } from "./accueil/today-card-client";
 import { NamesPrompt } from "./accueil/names-prompt";
 import { loadOnboardingChecklist } from "@/lib/onboarding/checklist";
 import { firstStepsLine } from "@/lib/onboarding/first-steps";
@@ -162,7 +163,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   const expanded = query.tout === "1" || (openTask !== null && card.parts.some((part) => part.lines.some((line) => line.rest && line.item.task?.id === openTask)));
   const closeHref = expanded ? "/?tout=1" : "/";
   return (
-    <main className="today-screen" data-state={state.kind}>
+    <main data-state={state.kind}>
       <TodayHeader now={now} locale={locale} activeEvents={state.kind === "empty" ? null : activeEvents} ranked={ranked} state={state} />
       {/* Lot 72b (C-18) : seules les alertes qui bloquent un envoi ou une obligation passent avant la liste ;
           puis « Reprendre le questionnaire », le message de retour et « Une partie des urgences ne répond pas ». */}
@@ -243,6 +244,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
           screenHref={(params) => `/taches?${new URLSearchParams(params).toString()}`}
         />
       ) : null}
+      {state.kind === "empty" ? null : <TodayScrollKeeper panelOpen={openTask !== null} />}
       <PageTour {...tour} helpTitle={tHelp("home.title")} helpBody={tHelp("home.body")} />
     </main>
   );

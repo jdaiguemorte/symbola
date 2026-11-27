@@ -23,7 +23,8 @@ export function TodayCardFrame({ initiallyExpanded, rest, labelledBy, children, 
     setExpanded(true);
     const url = new URL(window.location.href);
     url.searchParams.set("tout", "1");
-    window.history.replaceState(window.history.state, "", `${url.pathname}${url.search}${url.hash}`);
+    // `null` : Next.js reprend l'adresse dans son routeur (un rafraîchissement garde « ?tout=1 »).
+    window.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
   };
   return (
     <Expanded.Provider value={expanded}>
@@ -45,4 +46,33 @@ export function TodayCardFrame({ initiallyExpanded, rest, labelledBy, children, 
 // Un texte qui dépend de la carte : courte (« 4 sur 7 ») ou entière (« 7 »).
 export function WhenExpanded({ collapsed, expanded }: { collapsed: string; expanded: string }) {
   return <>{useContext(Expanded) ? expanded : collapsed}</>;
+}
+
+// Critère 3 : « Fermer » rend la même ligne au même défilement. Sur téléphone, le panneau de la tâche prend la
+// page entière (« ← Aujourd'hui ») et l'accueil perd sa position : elle est notée au clic sur un titre, et rendue
+// quand le panneau se ferme. Rien n'est gardé au-delà de l'onglet (sessionStorage).
+const SCROLL_KEY = "symbola:aujourdhui:defilement";
+
+export function TodayScrollKeeper({ panelOpen }: { panelOpen: boolean }) {
+  const wasOpen = useRef(panelOpen);
+  useEffect(() => {
+    const remember = (event: MouseEvent) => {
+      const target = event.target instanceof Element ? event.target.closest(".today-first .task-title-link") : null;
+      if (target) window.sessionStorage.setItem(SCROLL_KEY, String(window.scrollY));
+    };
+    document.addEventListener("click", remember, true);
+    return () => document.removeEventListener("click", remember, true);
+  }, []);
+  useEffect(() => {
+    // Seulement quand le panneau vient de se fermer : une position notée puis abandonnée ne déplace pas l'écran.
+    const closed = wasOpen.current && !panelOpen;
+    wasOpen.current = panelOpen;
+    if (!closed) return;
+    const saved = window.sessionStorage.getItem(SCROLL_KEY);
+    if (saved === null) return;
+    window.sessionStorage.removeItem(SCROLL_KEY);
+    const top = Number(saved);
+    if (Number.isFinite(top) && Math.abs(window.scrollY - top) > 1) window.scrollTo({ top, behavior: "instant" });
+  }, [panelOpen]);
+  return null;
 }

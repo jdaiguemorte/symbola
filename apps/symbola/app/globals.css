@@ -7508,6 +7508,12 @@
   .today-show-all {
     @apply min-h-10;
   }
+  /* « Attend Maison Haddad » se lit en entier : le nom d'un prestataire passe à la ligne plutôt que d'être coupé. */
+  .home-line .task-who-name {
+    @apply whitespace-normal;
+    overflow: visible;
+    text-overflow: clip;
+  }
   .home-line-detail {
     @apply basis-full text-label text-ink-muted;
   }
@@ -7517,7 +7523,7 @@
     grid-row: 2;
   }
   .line-contact {
-    @apply flex min-w-0 flex-wrap items-baseline text-label text-ink-muted;
+    @apply flex min-w-0 flex-wrap items-baseline gap-x-1 text-label text-ink-muted;
   }
   .line-contact-phone-link {
     @apply hidden;
@@ -7541,7 +7547,7 @@
     @apply mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 py-3;
   }
   .first-steps-summary {
-    @apply m-0 flex flex-wrap items-baseline text-body text-ink-muted;
+    @apply m-0 text-body text-ink-muted;
   }
   .first-steps-summary > strong {
     @apply text-ink;
@@ -7550,7 +7556,7 @@
     @apply ml-auto flex items-center gap-2;
   }
   .first-steps-list {
-    @apply m-0 flex basis-full flex-col gap-2 pl-5;
+    @apply m-0 flex basis-full flex-col gap-2 pl-4;
   }
 
   @media (max-width: 639px) {
@@ -7585,14 +7591,40 @@
       content: "·";
       @apply text-ink-muted;
     }
-    .line-contact-phone-text {
+    .line-contact-phone-text,
+    .today-events-long {
       @apply hidden;
     }
     .line-contact-phone-link {
       @apply inline-flex min-h-11 items-center;
     }
+    /* Toute commande de l'écran fait 44 px de haut (critère 7) : le titre d'une ligne, les liens d'une partie, de
+       « Mes évènements » et des étapes. */
+    .task-line[data-form="today"] .task-title-link,
+    .today-part-link,
+    .today-event > .today-item-title,
+    .first-steps-list a {
+      @apply flex min-h-11 items-center;
+    }
+    .today-part-link {
+      @apply inline-flex;
+    }
     .first-steps-actions {
       @apply ml-0;
+    }
+    /* Une ligne dont l'action est longue (« Noter une relance ») : l'action passe sous la ligne, sous le pouce,
+       pour laisser « Attend Maison Haddad » entier. */
+    .home-line:has(.task-line-actions > *) {
+      grid-template-columns: auto minmax(0, 1fr);
+      grid-template-areas:
+        "title title"
+        "event who"
+        "due due"
+        "contact contact"
+        "actions actions";
+    }
+    .home-line .task-line-actions {
+      @apply justify-start;
     }
   }
 }

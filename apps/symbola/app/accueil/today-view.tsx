@@ -1,15 +1,11 @@
-// Lot 32a (HUB-08, UX-01, UX-06 ; décisions D2 à D4) — l'écran « Aujourd'hui » : « À traiter en
-// premier », le reste par groupe (replié au-delà de quatre lignes), puis « Mes évènements ». Lot 65c :
-// sept lignes en premier, par nature. Chaque ligne dit ce qu'il faut faire, pour quel évènement, quand, qui doit agir,
-// et propose l'action en un clic.
+// Lot 32a (HUB-08, UX-01, UX-06 ; décisions D2 à D4) — les mots des lignes d'urgence et la ligne de la
+// « Prochaine action » de la fiche (cockpit). Lot 72b : l'écran « Aujourd'hui » lui-même est dans
+// home-view.tsx ; cette ligne reste celle de la fiche jusqu'au paquet 72e.
 import { TaskLine } from "@/app/ui/task-line";
 import type { TaskLineView } from "@/lib/tasks/task-line";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { formatCalendarDate, type Locale } from "@symbola/i18n";
-import type { EventSummary } from "@symbola/contracts";
-import { eventNames } from "@/modules/events/service";
-import { EVENT_STATUS_CLASSES, STATUS_LABEL_KEYS } from "@/app/events/event-status";
 import type { RankedItem, TodayGroup } from "@/lib/today/rank";
 import type { TodaySource, TodayWords } from "@/lib/today/load";
 import { completeTaskAction } from "./actions";
@@ -55,14 +51,7 @@ export function todayWords(t: TodayTranslator): TodayWords {
   };
 }
 
-// « Vendredi 13 novembre 2026 » : la date du jour, à Paris.
-export function longDate(now: Date, locale: Locale): string {
-  const text = new Intl.DateTimeFormat(locale === "fr" ? "fr-FR" : "en-GB", { weekday: "long", day: "numeric", month: "long", year: "numeric", timeZone: "Europe/Paris" }).format(now);
-  return text.charAt(0).toLocaleUpperCase(locale) + text.slice(1);
-}
-
 const GROUP_BADGE: Record<TodayGroup, string> = { overdue: "badge badge-terracotta", today: "badge badge-sauge", waiting: "badge badge-ambre", upcoming: "badge" };
-const GROUP_VISIBLE = 4;
 
 function whenLabel(item: RankedItem, t: TodayTranslator, locale: Locale): string {
   if (item.group === "overdue") return t("due.overdue", { days: item.daysLate });
