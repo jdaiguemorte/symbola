@@ -173,6 +173,13 @@ function Gesture(props: StatusTimelineProps) {
         </Link>
       </div>
     );
+  // Clôturé, pas encore archivé : la liste de clôture reste à portée (lot 58).
+  if (props.view.current === "closed")
+    return (
+      <div className="event-gesture">
+        <Link href={props.closingHref}>{t("openClosing")}</Link>
+      </div>
+    );
   return null;
 }
 
