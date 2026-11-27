@@ -2,8 +2,8 @@
 
 **Statut** : **spécification à valider par Julien**. Elle change les schémas `hub` et `events`
 (migrations 0244 à 0246) et le parcours P0 PAR-01 (le premier quart d'heure, SC-01). Aucun code n'est
-écrit avant sa validation. Décisions S1 à S12 à trancher (§ 9), **S1 d'abord** : il dit si les choix
-G1 à G16 du volet 6 sont acquis.
+écrit avant sa validation. Décisions L74-D1 à L74-D12 (§ 9) : L74-D1, L74-D2, L74-D4 et L74-D5 tranchées le 27/11 ;
+les autres restent à trancher.
 **Branche de la spécification** : `lot-74-premiers-pas-aide-parametres` (une PR vers `main`, ce
 fichier et `docs/QUESTIONS.md` seulement). Chaque paquet aura ensuite sa branche `lot-74<x>-…` et sa PR.
 **Date** : 27/11/2026, par Claude Code.
@@ -21,7 +21,7 @@ Sources, dans l'ordre où elles font foi :
    ces deux volets (visite proposée, panneau d'aide de 420 px, assistant à un seul « Continuer »,
    barre d'enregistrement, section « Réglages » du menu « ⋯ », menu latéral à pied tenu) ; ce lot les
    applique, il ne le réécrit pas. Les points S1 à S15 de la note 13 (porte 4) sont cités ici
-   « DS-S1 » à « DS-S15 » pour ne pas les confondre avec les décisions S de ce lot ;
+   « DS-S1 » à « DS-S15 » pour ne pas les confondre avec les décisions L74-D de ce lot ;
 6. `docs/lots/lot-70-taches-et-transverse.md` et `docs/lots/lot-71-reprise-et-import.md` (lu sur
    `origin/lot-71-reprise-et-import`, pas encore dans `main`) pour ce qu'ils laissent à ce lot ;
 7. `docs/CAHIER_DES_CHARGES.md` pour les exigences.
@@ -51,7 +51,8 @@ Fichiers sous `apps/symbola/` sauf mention ; `fr` = `packages/i18n/src/messages/
 
 **Conclusion** : G1 à G16 sont retenus **par la règle générale** du 26/11 (« les propositions des
 nouvelles maquettes sont retenues par défaut »), pas par une décision de Julien sur chacun. C'est la
-**décision S1** (§ 9), posée en premier. Dans cette spécification, chaque critère d'acceptation qui
+**décision L74-D1** (§ 9), posée en premier. **Tranché le 27/11 par Julien : « je confirme S1 tes 16
+recommandations »** ; G1 à G16 sont acquis tels que proposés. Dans cette spécification, chaque critère d'acceptation qui
 repose sur un choix G est marqué **(G…)** ; si Julien en renverse un, les critères marqués de ce
 numéro sont réécrits avant le code, et la maquette corrigée.
 
@@ -255,9 +256,9 @@ schémas `hub` et `events` (règle du § 8 de `CLAUDE.md`).
 
 | N° | Fichier | Ce qu'elle fait | Pourquoi |
 | --- | --- | --- | --- |
-| 0244 | `0244_lot74a_hub_onboarding_answers.sql` | `hub.organization_profiles` : ajoute `has_ongoing_events text` nullable (`yes`, `no`) et `vat_answer_pending boolean not null default false`. Aucune valeur par défaut sur les réponses de fait. **Étape de données** : aucune (les espaces déjà préparés gardent leurs réponses ; `has_ongoing_events` nul y vaut « parcours non choisi », voir S8) | B3 (la question nouvelle choisit la fin de l'assistant et le parcours de D6) ; B5 (« Je ne sais pas encore » garde la franchise en base, comme aujourd'hui, et pose un drapeau relu par l'étape « Devis et factures » et par « L'essentiel ») |
-| 0245 | `0245_lot74b_events_task_due_date_known.sql` | `events.event_tasks.due_date_known boolean not null default true`. Une tâche « à dater » garde une date technique (la date de l'évènement) pour ne casser ni les tris, ni la contrainte `NOT NULL`, ni les lectures existantes ; la marque dit qu'elle n'est pas une échéance | B7 : « une tâche sans réponse est créée « à dater », comptée à part et jamais en retard ». Même choix que `done_date_known` du lot 71a (0220) ; l'autre voie (rendre `due_date` nullable) est à la décision S3 |
-| 0246 | `0246_lot74h_hub_automations_paused.sql` | `hub.automations` : ajoute `paused_at timestamptz` et `paused_by uuid` (nullables ; les deux nuls quand l'automatisme est en marche). **Étape de données** : rien de deviné (voir S6) | G10 et A6 : « Coupé depuis le 12 novembre par Camille · aucune alerte n'arrive dans « À traiter en premier » » |
+| 0244 | `0244_lot74a_hub_onboarding_answers.sql` | `hub.organization_profiles` : ajoute `has_ongoing_events text` nullable (`yes`, `no`) et `vat_answer_pending boolean not null default false`. Aucune valeur par défaut sur les réponses de fait. **Étape de données** : aucune (les espaces déjà préparés gardent leurs réponses ; `has_ongoing_events` nul y vaut « parcours non choisi », voir L74-D8) | B3 (la question nouvelle choisit la fin de l'assistant et le parcours de D6) ; B5 (« Je ne sais pas encore » garde la franchise en base, comme aujourd'hui, et pose un drapeau relu par l'étape « Devis et factures » et par « L'essentiel ») |
+| 0245 | `0245_lot74b_events_task_due_date_known.sql` | `events.event_tasks.due_date_known boolean not null default true`. Une tâche « à dater » garde une date technique (la date de l'évènement) pour ne casser ni les tris, ni la contrainte `NOT NULL`, ni les lectures existantes ; la marque dit qu'elle n'est pas une échéance | B7 : « une tâche sans réponse est créée « à dater », comptée à part et jamais en retard ». Même choix que `done_date_known` du lot 71a (0220) ; l'autre voie (rendre `due_date` nullable) est à la décision L74-D3 |
+| 0246 | `0246_lot74h_hub_automations_paused.sql` | `hub.automations` : ajoute `paused_at timestamptz` et `paused_by uuid` (nullables ; les deux nuls quand l'automatisme est en marche). **Étape de données** : rien de deviné (voir L74-D6) | G10 et A6 : « Coupé depuis le 12 novembre par Camille · aucune alerte n'arrive dans « À traiter en premier » » |
 
 **Pas de migration** pour :
 
@@ -338,7 +339,7 @@ Douze paquets, les deux volets dans des paquets distincts (74a à 74f pour « Pr
 | --- | --- | --- | --- |
 | **74a** L'assistant et sa fin | Assistant d'abord, cinq questions, « Continuer » seul, question des mariages en cours, TVA en mots des devis ; « Votre espace est prêt » à trois issues ; ligne de l'accueil « Votre espace n'est pas tout à fait prêt » | **71b** fusionné (fin de l'assistant, R3, I5 : mêmes fichiers `app/demarrage/pret/*`) | 0244 |
 | **74b** Le premier mariage, à l'heure | Rétroplanning annoncé dans « Nouvel évènement », étape 2 des échéances passées, « à dater », « Avec les mariés » | **70e** fusionné (fenêtre « Nouvel évènement ») ; **71a** (`done_date_known`) et **71c** (composant des échéances passées, I3) fusionnés ; 74a | 0245 |
-| **74c** États vides et mariage d'exemple | Gabarit généralisé, trois textes vides, commandes de l'en-tête au menu « ⋯ », « Compléter votre fiche entreprise » dans « Devis et factures », un seul mariage d'exemple | **70d** (état vide de « Tâches ») ; les paquets des lots 72 et 73 qui refont la liste des évènements et le carnet (S10) | — |
+| **74c** États vides et mariage d'exemple | Gabarit généralisé, trois textes vides, commandes de l'en-tête au menu « ⋯ », « Compléter votre fiche entreprise » dans « Devis et factures », un seul mariage d'exemple | **70d** (état vide de « Tâches ») ; les paquets des lots 72 et 73 qui refont la liste des évènements et le carnet (L74-D10) | — |
 | **74d** Les visites proposées | Accueil automatique une fois, ligne « Découvrir cet écran », bulles à trois ou quatre, croix, visite de « Tâches », « Revoir la visite » en tête du « ? » | 74a (la visite attend la fin de l'assistant) ; **70c** et **70d** (cibles de la visite de « Tâches ») | — |
 | **74e** L'aide de l'écran | Panneau de 420 px rangé à droite, posé par-dessus sous 1 100 px, plein écran sur téléphone ; blocs ; questions fréquentes ; « Une autre question ? » ; aide des fenêtres | 74f pour la recherche intégrée (ou une recherche simple d'abord, voir § 6.5) | — |
 | **74f** Centre d'aide et tutoriels | Recherche par phrase et synonymes, meilleure réponse ; sujets ; deux parcours (D6) ; « Pour bien démarrer » fondu ; pastille retirée ; « Tutoriels » sous « Aide » | 74a (la réponse qui choisit le parcours) | — |
@@ -347,7 +348,7 @@ Douze paquets, les deux volets dans des paquets distincts (74a à 74f pour « Pr
 | **74i** Deuxième vague | Groupes « Évènements », « Tâches, programme et jour J », « Budget et prestataires », dont les quatre fusions | 74h | — |
 | **74j** Troisième vague | Groupes « Devis et factures », « Messages et automatismes » (hors automatismes, faits en 74h), « Rendez-vous » ; sous-écrans | 74h (peut avancer en parallèle de 74i : autres fichiers) | — |
 | **74k** La recherche des réglages | Index des rubriques, contenu et synonymes dans la recherche du haut ; ouverture à la ligne trouvée | **70e** fusionné (recherche typée, premier temps) ; 74g (noms des rubriques) | — |
-| **74l** Le bouton « Réglages » des écrans | Section « Réglages » du menu « ⋯ », panneau « Pour cet écran », portée, retour | 74g ; le menu « ⋯ » de chaque écran (volets 3 et 4 : lots 72 et 73, voir S10) | — |
+| **74l** Le bouton « Réglages » des écrans | Section « Réglages » du menu « ⋯ », panneau « Pour cet écran », portée, retour | 74g ; le menu « ⋯ » de chaque écran (volets 3 et 4 : lots 72 et 73, voir L74-D10) | — |
 
 **Conduite proposée** (règle « aller plus vite ») : 74g dès que 70e et 70f sont fusionnés, puis 74h,
 puis 74i et 74j en parallèle, 74k et 74l à la suite ; en même temps, côté aide, 74f et 74e (qui ne
@@ -370,13 +371,13 @@ branche locale non poussée** (note du dossier partagé, `lot-70e-etat.md`).
 | 70g Lexique | Le contrôle en cliquet : ce lot retire les exceptions « Réglages », « vos modules », « JSON », « ZIP », « PUSH », « Apps » restants, « fiche » pour un article d'aide, « Essai guidé » | `packages/i18n/src/lexique.test.ts`, `lexique-exceptions.json`, `fr.json` |
 | 71a Socle de la reprise | `done_date_known` pour « Déjà fait » sans date de fin (74b) | `modules/events/*` |
 | 71b Page de reprise et ses portes | La fin de l'assistant (R3, I5) que 74a complète ; « Reprendre et importer » (I6) que 74g sort des Paramètres | `app/demarrage/pret/page.tsx`, `pret/actions.ts`, `app/settings-menu.ts`, `app/import/page.tsx` |
-| 71c L'assistant qui demande | Le composant « échéances déjà passées » (I3) que 74b reprend ou complète (S2) | `modules/events/template-rules.ts`, composant de la question |
-| 71f Fiche d'un mariage repris | Le tutoriel « Compléter un mariage repris » (74f, S8) joue sur une fiche reprise | — |
+| 71c L'assistant qui demande | Le composant « échéances déjà passées » (I3) que 74b reprend ou complète (L74-D2) | `modules/events/template-rules.ts`, composant de la question |
+| 71f Fiche d'un mariage repris | Le tutoriel « Compléter un mariage repris » (74f, L74-D8) joue sur une fiche reprise | — |
 
 ### 5.2 Ce qui dépend des lots 72 et 73 (spécifications en cours)
 
 - **Le menu « ⋯ » des écrans** (volets 3 et 4) porte la section « Réglages » de 74l ; tant qu'un écran
-  n'a pas son menu, sa roue reste (S10).
+  n'a pas son menu, sa roue reste (L74-D10).
 - **L'accueil refait** (volet 3, page 13) porte la ligne « Votre espace n'est pas tout à fait prêt »
   (74a) et la ligne « Pour bien démarrer » du parcours (74f) ; sans lui, elles se posent sur l'accueil
   actuel.
@@ -402,7 +403,7 @@ l'exigence (`describe('HUB-09 — Questionnaire d'accueil : la question des mari
 | `app/auth/callback/route.ts:36`, `middleware.ts`, `app/page.tsx:83, 132-136` | Compte neuf vers `/demarrage` ; ensuite rien ne le ramène ; bandeau « Terminez la préparation… Reprendre le questionnaire » sur l'accueil, même avant de commencer | Tant que `setup_completed_at` est nul, la **titulaire** qui ouvre l'accueil est menée à la question où elle s'est arrêtée, une fois par session ; si elle revient à l'accueil depuis l'assistant, une ligne : « Votre espace n'est pas tout à fait prêt · {n} questions sur 5 restent, environ 1 minute · Continuer les questions ». Le bandeau disparaît. Une collègue voit le message actuel (« La titulaire prépare votre espace ») |
 | `packages/starter-templates/src/onboarding.json` | Valeurs proposées : `franchise`, `11_to_25` | Métier et types gardés ; plus aucune valeur pour la TVA, le volume, les mariages en cours, les outils |
 | `app/demarrage/question-forms.tsx`, `page.tsx`, `actions.ts` | Cinq questions dont TVA et volume ; « Continuer » et « Passer » | Q1 métier (inchangée) ; Q2 types (inchangée) ; **Q3 « Avez-vous déjà des mariages en cours ? »** (« Oui », « Non, je pars de zéro ») ; Q4 « Où les suivez-vous aujourd'hui ? » (les cinq cases, la même colonne `replaced_tools`), **seulement après « Oui »** ; Q5 « Vos devis portent-ils la TVA ? » (« Non », « Oui », « Je ne sais pas encore ») ; le volume sort. « Question n sur 5 » (ou « sur 4 » après « Non ») et sa barre ; « Question précédente » ; un seul « Continuer », collé en bas sur téléphone et sous 640 px de haut ; sans réponse, « Choisissez une réponse » sous la question (forme du lot 70b) |
-| `app/demarrage/actions.ts:104` (`changeVatRegime`) | `franchise` ou `assujetti` daté | « Non » → franchise ; « Oui » → assujetti ; « Je ne sais pas encore » → franchise, `vat_answer_pending = true` (le régime réel est la question S4) |
+| `app/demarrage/actions.ts:104` (`changeVatRegime`) | `franchise` ou `assujetti` daté | « Non » → franchise ; « Oui » → assujetti ; « Je ne sais pas encore » → franchise, `vat_answer_pending = true` (tranché L74-D4 : aucun devis envoyé tant qu'elle n'a pas choisi) |
 | `app/demarrage/pret/page.tsx`, `first-event-form.tsx`, `pret/actions.ts` | Récapitulatif ; formulaire « Créer mon premier évènement » ; « Explorer avec un exemple » ; après 71b : R3 | **Un seul bouton plein** selon Q3 et Q4 : « Non » → « Créer votre premier mariage » (ouvre « Nouvel évènement », 74b) ; « Oui » + tableur ou logiciel → « Reprendre un mariage en cours » (page de reprise, 71b) ; « Oui » + papier, traitement de texte ou agenda seulement → « Entrer un mariage en cours » (« Nouvel évènement » réglé sur « Signé, en préparation »). Dessous, « Préparé pour vous » : chaque réponse et ce qu'elle a fait, avec son lien (« Voir les tâches », « Voir les postes », « Voir les types ») ; « Ouvrir un mariage d'exemple » (ou « Revoir l'exemple ») en second ; « Modifier mes réponses » ; « Voir l'accueil ». `first-event-form.tsx` est retiré |
 | Sans le module Évènements | « … liste de prise en main de l'accueil », « Aller à l'accueil » | Gardé |
 
@@ -422,10 +423,14 @@ l'exigence (`describe('HUB-09 — Questionnaire d'accueil : la question des mari
 8. « Préparé pour vous » liste chaque effet avec un lien qui ouvre le bon écran.
 9. « Je ne sais pas encore » pose la franchise et le drapeau ; l'étape « Devis et factures » du
    parcours et « L'essentiel » redemandent la TVA tant que le drapeau est posé.
+   Tant que le drapeau est posé, **aucun devis ne s'envoie** (L74-D4) : le brouillon se crée et
+   s'enregistre ; « Envoyer » ouvre la question de la TVA (« Non » ou « Oui », sans « Je ne sais pas
+   encore ») et l'envoi reprend une fois la réponse donnée. Le contrôle est côté serveur, à côté de
+   celui des mentions (`modules/quotes/service.ts:1470, 1498`), par le `service.ts` du hub.
 10. Une collègue (rôle membre) n'est jamais menée à l'assistant.
 
 **Tests** : Vitest (enchaînement des questions selon les réponses ; issues de la fin ; aucune valeur
-par défaut de fait) ; intégration (réponses en base, drapeau de TVA, `replaced_tools` après « Oui »
+par défaut de fait) ; intégration (réponses en base, drapeau de TVA, envoi d'un devis refusé tant que le drapeau est posé, accepté après la réponse, `replaced_tools` après « Oui »
 seulement) ; Playwright `lot-74a-assistant.spec.ts` à 1 440, 375 et 911 × 512 (« Continuer » dans la
 fenêtre), axe-core à chaque question ; mis à jour : `hub-09-10-demarrage`, `onb-01-02-onboarding`,
 `lot-12-demarrage`, `sc-01-sc-10-demarrage` (SC-01 chronométré, moins de dix minutes) ; abus : une
@@ -438,7 +443,7 @@ collègue qui poste une réponse à la main est refusée ; une titulaire de A ne
 | Fichier | Aujourd'hui | Après |
 | --- | --- | --- |
 | Fenêtre « Nouvel évènement » (70e : `app/events/new-event-menu.tsx`, `new/*`) | « Où en est-il ? », nom, date, client, type ; le rétroplanning s'applique selon le statut | Pour « Signé, en préparation » avec une date : une ligne « Avec le rétroplanning « Mariage » · 18 tâches, dont 8 tombent avant aujourd'hui · Changer » (autre modèle ou aucun ; « Voir les tâches » dans « Changer »). « Créer » mène à l'étape 2 s'il y a des échéances passées, sinon crée |
-| Étape 2 (nouvelle, dans la même fenêtre) | — | « 8 tâches tombent avant aujourd'hui » ; chaque tâche avec sa date prévue et deux bascules « Déjà fait » / « À faire » (encre, M8), rien de coché ; « Tout est déjà fait », « Tout reste à faire » ; « Répartir les tâches à faire : d'ici 2 semaines / 4 semaines / 8 semaines / Laisser à dater » (4 semaines proposé, voir S2) ; « Une tâche sans réponse sera créée à dater » ; « Créer l'évènement » |
+| Étape 2 (nouvelle, dans la même fenêtre) | — | « 8 tâches tombent avant aujourd'hui » ; chaque tâche avec sa date prévue et deux bascules « Déjà fait » / « À faire » (encre, M8), rien de coché ; « Tout est déjà fait », « Tout reste à faire » ; « Répartir les tâches à faire : d'ici 2 semaines / 4 semaines / 8 semaines / Laisser à dater » (4 semaines proposé, voir L74-D2) ; « Une tâche sans réponse sera créée à dater » ; « Créer l'évènement » |
 | `modules/events/template-rules.ts`, `service.ts` (application d'un modèle) | Échéance = date de l'évènement + décalage, même passée | Pour chaque tâche dont l'échéance tombe avant aujourd'hui (`Europe/Paris`) : « Déjà fait » → faite, `done_date_known = false` (71a) ; « À faire » → date redistribuée sur la période, jours ouvrés, dans l'ordre du modèle, jamais après la tâche suivante du modèle ; sans réponse → `due_date_known = false` (0245). La tâche garde sa date relative pour la suite (DAT-07), sauf si elle est redatée à la main |
 | États d'échéance (lot 70a, `due-state.ts`) | `late`, `today`, `tomorrow`, `soon`, `later` | Plus `undated` : « À dater », neutre, jamais en retard, comptée à part (« 3 à dater »), hors filtre « En retard », hors radar et hors santé du planning |
 | Tâches des mariés (`Today.words.clientTask`, état « Attend le client ») | « Tâche confiée au client » dès la création, « Attend le client » | « Avec les mariés » tant que l'espace des mariés n'est pas ouvert (aucun lien des mariés actif, `events.event_links` audience clients) ; « Attend les mariés » ensuite |
@@ -501,7 +506,7 @@ A n'apparaît jamais chez B ; aucun envoi vers un tiers réel depuis l'exemple.
 | Fichier | Aujourd'hui | Après |
 | --- | --- | --- |
 | `packages/starter-templates/src/tours.json`, `tours.ts` | Six visites de 3 à 5 bulles, toutes automatiques | Sept visites : accueil 3 (automatique, une fois, après l'assistant ; textes « vide » et « rempli »), liste des évènements 3, fiche 4, **« Tâches » 3** (la ligne et « Fait », les filtres, « Sélectionner »), carnet 3, catalogue 3, paramètres du budget 3 ; un drapeau `automatic` (accueil seul) ; des textes par appareil (« Touchez » sur téléphone) |
-| `lib/help/page-tour.ts`, `app/page-tour.tsx`, `app/help-context.tsx` | Ouverture automatique si jamais vue | Accueil : automatique une fois, si l'assistant est fini. Ailleurs : **la ligne « Découvrir cet écran en 1 minute · 3 bulles · Lancer · Fermer »** sous l'en-tête, aux trois premières venues (S9) ou jusqu'à « Lancer » ou « Fermer » ; jamais sur un écran vide ; aucun bouton plein. `?visite=revoir` gardé |
+| `lib/help/page-tour.ts`, `app/page-tour.tsx`, `app/help-context.tsx` | Ouverture automatique si jamais vue | Accueil : automatique une fois, si l'assistant est fini. Ailleurs : **la ligne « Découvrir cet écran en 1 minute · 3 bulles · Lancer · Fermer »** sous l'en-tête, aux trois premières venues (L74-D9) ou jusqu'à « Lancer » ou « Fermer » ; jamais sur un écran vide ; aucun bouton plein. `?visite=revoir` gardé |
 | `packages/ui/src/guided-tour.tsx` | Précédent, Suivant, Terminer, « Passer la visite » | Une croix « Fermer la visite » à chaque bulle ; « Précédent », « Suivant », « Terminer » ; chaque bulle encadre un élément visible (sinon la bulle est sautée) ; sur téléphone, la bulle se colle en bas et l'élément encadré reste visible |
 | `app/help-bar.tsx` | Carte « Découvrir en N minutes », « Commencer le tutoriel », « Plus tard » | Carte retirée ; la pastille « Reprendre » d'un tutoriel en cours reste sur `/tutoriels*` |
 | `app/aide/auto-tours-toggle.tsx`, `lib/help/preferences.ts` | « Visites automatiques » (cookie) | « Proposer la visite d'un écran à sa première ouverture » (même cookie) : coupée, plus de ligne ; l'accueil n'est plus automatique non plus |
@@ -532,7 +537,7 @@ bulle) ; mis à jour : `lot-10-aide`, `aide-01-*` ; abus : la progression de A n
 | `packages/ui/src/help-drawer.tsx`, `app/help-button.tsx`, `app/screen-help.tsx` | Titre, un paragraphe, « Revoir la visite », bloc propre | Titre « Aide · {écran} » ; dans cet ordre : « Revoir la visite de cet écran » (si visite) ; « Sur cet écran » (ou « Pour commencer » à l'écran vide), en lignes courtes ; les questions fréquentes, qui s'ouvrent en place ; « Une autre question ? », champ qui cherche dans le centre d'aide et montre la meilleure réponse dans le panneau ; « Liens » (l'article, le tutoriel). Le bloc « Essai guidé » de `/events` devient « Ouvrir un mariage d'exemple » |
 | `app/globals.css:96, 1923-1931` | 380 px à droite à partir de 1 024 px ; sous 1 024 px, feuille en bas de 60 % | 420 px rangé à droite, l'écran resserré à côté, à partir de 1 100 px ; **sous 1 100 px, posé par-dessus à droite, de toute la hauteur, avec son défilement** (jamais coupé) ; sur téléphone, plein écran défilable, « Fermer » en haut |
 | Fenêtres (`app/ui/form-dialog.tsx` et fenêtres d'objet) | Pas de « ? » | Un « ? » dans l'en-tête de la fenêtre ; une question par champ difficile (`Help.<fenêtre>.fields`) ; la saisie reste intacte à la fermeture de l'aide |
-| `lib/help/screens.ts`, `Help.*` (fr, en) | 125 fiches, 40 avec questions fréquentes | Chaque fiche gagne `onScreen` (lignes) et `start` (écran vide) ; questions fréquentes selon S11 |
+| `lib/help/screens.ts`, `Help.*` (fr, en) | 125 fiches, 40 avec questions fréquentes | Chaque fiche gagne `onScreen` (lignes) et `start` (écran vide) ; questions fréquentes selon L74-D11 |
 
 **Critères d'acceptation**
 
@@ -560,7 +565,7 @@ sur le panneau ; mis à jour : `l16-hub-19-aide-meme-endroit`, `ux-08-13-*`, `nf
 | `lib/help/journey.ts`, `catalog.ts`, `app/tutoriels/page.tsx` | Un parcours en six étapes, devis d'abord, import en dernier | Deux parcours choisis par `has_ongoing_events` : « Je reprends mes mariages en cours » (reprendre un mariage, compléter un mariage repris, vos prestataires, le rétroplanning et le programme, devis et factures) ; « Je pars de zéro » (créer votre premier mariage, son rétroplanning, ses prestataires, devis et factures) ; les onze tutoriels tous rangés, les autres sous « Autres tutoriels » ; « Ensuite » ; « Changer de parcours » dans un panneau ; minutes restantes gardées |
 | `app/accueil/onboarding-checklist.tsx`, `lib/onboarding/checklist.ts` | Deux éléments | Une seule liste, celle du parcours (accueil, « Aide », « Tutoriels »), cochée par le geste fait dans l'espace ; « Régler l'essentiel » et « Ajouter un premier prestataire » en deviennent des marches ; elle disparaît une fois finie |
 | `app/app-shell.tsx:609-626` | « Tutoriels » au menu, pastille « n/11 » | Pastille retirée ; « Tutoriels » quitte le menu latéral avec 74g (G11) et s'ouvre depuis « Aide » |
-| `lib/help/tutorials.ts` | Onze scénarios | Un scénario « Compléter un mariage repris » à écrire (S8) |
+| `lib/help/tutorials.ts` | Onze scénarios | Un scénario « Compléter un mariage repris » à écrire (L74-D8) |
 
 **Critères d'acceptation**
 
@@ -586,7 +591,7 @@ recherche ni par son adresse.
 | `app/settings-menu.ts`, `settings-paths.ts`, `SettingsMenu.*` (fr, en) | 53 entrées, cinq groupes | Un registre des rubriques (§ 7.1) : huit groupes, 38 rubriques, chacune avec son libellé, sa phrase, son module, son drapeau « titulaire », sa forme (§ 7), ses mots de recherche ; `SETTINGS_MENU_HREFS` et `isSettingsPath` en dérivent. (G1, G2, G16) |
 | `app/parametres/page.tsx`, `company-tabs.tsx` | « Paramètres » ouvre « Entreprise et TVA » à deux onglets | `/parametres` devient l'accueil ; la fiche passe à `/parametres/entreprise` et les mentions à `/parametres/mentions` ; les ancres `#profil-entreprise`, `#coordonnees-documents`, `#informations-professionnel`, `#tva-debits` (citées par `app/devis/missing-mentions.tsx` et `compliance-checks.json`) redirigent au bon bloc |
 | `app/settings-nav.tsx`, `settings-search.ts` | Groupes repliables, « Chercher un réglage » | À 1 100 px et plus : le menu du groupe ouvert (sept lignes au plus), les autres groupes en une ligne, « Tous les paramètres », tenu dans l'écran sans défiler avec la page ; en dessous et sur téléphone : la rubrique seule, « ‹ Paramètres · {groupe} ». « Chercher un réglage » retiré (74k). (G7, G12) |
-| Page « Vos données » (nouvelle, adresse S7) | Rubriques dispersées dans « Mon entreprise » et « Prestataires et données » | Copie de toutes vos données, Reprendre une copie Symbola, Corbeille, Historique des actions, Historique des e-mails envoyés, Demandes sur les données personnelles (avec le repère « n demandes en alerte »), Stockage, Comptabilité (e-reporting, exports, archive) ; « Fermer l'espace » seul, en bas, en danger de niveau 3 (lot 70b). Ouverte par une ligne à part en bas de l'accueil et par le menu du compte. Chaque ligne garde son écran et ses droits d'aujourd'hui. (G5) |
+| Page « Vos données » (nouvelle, adresse L74-D7) | Rubriques dispersées dans « Mon entreprise » et « Prestataires et données » | Copie de toutes vos données, Reprendre une copie Symbola, Corbeille, Historique des actions, Historique des e-mails envoyés, Demandes sur les données personnelles (avec le repère « n demandes en alerte »), Stockage, Comptabilité (e-reporting, exports, archive) ; « Fermer l'espace » seul, en bas, en danger de niveau 3 (lot 70b). Ouverte par une ligne à part en bas de l'accueil et par le menu du compte. Chaque ligne garde son écran et ses droits d'aujourd'hui. (G5) |
 | `app/import/page.tsx` | Dans les Paramètres (« Reprendre et importer » depuis 71b) | Hors des Paramètres : ouvert par « Vos données », les menus « ⋯ » des listes, la recherche, la palette. (G6) |
 | Redirections | — | Chaque adresse d'aujourd'hui reste valable : elle redirige vers sa rubrique, à son bloc pour les rubriques fondues (§ 7.1) |
 | `app/app-shell.tsx:583-630`, `app-sidebar.tsx`, `globals.css:351, 826` | « Apps », « Paramètres » (pastille RGPD), « Tutoriels » (pastille), « Aide » ; menu qui défile entier | Les modules souscrits, un filet, puis « Paramètres » et « Aide » **tenus en bas** ; la liste des modules défile seule si besoin ; sous 640 px de haut, lignes de 44 px sans espace ; « Tous les modules » dans « Abonnement et modules » et le menu du compte ; « Tutoriels » dans « Aide » ; le repère RGPD passe sur « Vos données » (accueil des Paramètres et menu du compte). (G11) |
@@ -662,7 +667,7 @@ n'a pas les Paramètres ; une rubrique d'un module non souscrit répond comme un
 5. Le seuil de « Bientôt » se règle de 1 à 30 ; hors de cet intervalle, l'erreur sous le champ ; la
    valeur change l'état « Bientôt » de « Tâches » au rechargement. (G9)
 6. Couper le radar le dit avec la date et la personne dans « Automatismes » et en tête de ses règles ;
-   un automatisme coupé avant ce lot dit « Coupé » sans date (S6). (G10)
+   un automatisme coupé avant ce lot dit « Coupé » sans date (L74-D6). (G10)
 7. Un membre voit les rubriques titulaires en lecture et le texte « Seule la titulaire la change ».
 
 **Tests** : Vitest (composants : `saved-indicator`, `settings-save-bar` — liste des champs modifiés,
@@ -744,7 +749,7 @@ une clé inconnue ou un retour forgé répondent comme une page inexistante.
 Formes : **R** liste de réglages (chaque réglage seul, « ✓ Enregistré ») ; **E** liste éditable
 (ligne par ligne) ; **L** formulaire à champs liés (barre d'enregistrement) ; **M** modèles (liste et
 fenêtre, règle du lot 63). « T » = titulaire. Mode actuel : relevé dans le code (§ 3). Les choix de
-groupe et de nom sont ceux de G2 à G4 (S1).
+groupe et de nom sont ceux de G2 à G4 (L74-D1).
 
 | Rubrique (groupe) | Écrans d'aujourd'hui | Mode actuel | Forme | T | Vague |
 | --- | --- | --- | --- | --- | --- |
@@ -804,7 +809,7 @@ comptant les écrans de « Vos données » (C-75), qui reçoivent l'en-tête com
 - **Vague 1 (74h)** : les composants, puis « Votre entreprise », « Vous », le seuil, les
   automatismes et le radar (douze écrans). C'est là que le patron se juge : Julien regarde ces
   écrans dans le rejeu avant que les vagues 2 et 3 partent (la règle « pas de recette
-  intermédiaire » vaut pour la planner ; ce regard sur le patron est un rejeu local, voir S12).
+  intermédiaire » vaut pour la planner ; ce regard sur le patron est un rejeu local, voir L74-D12).
 - **Vague 2 (74i)** : « Évènements », « Tâches, programme et jour J », « Budget et prestataires »,
   les quatre fusions (une vingtaine d'écrans).
 - **Vague 3 (74j)** : « Devis et factures », « Messages et automatismes », « Rendez-vous » (une
@@ -864,7 +869,7 @@ Le **lexique** (lot 70g) : ce lot retire de `lexique-exceptions.json` les except
 
 - **SC-01 « Le premier quart d'heure »** (PAR-01, P0) à 74a et 74b : chronométré, sur téléphone, avec
   les nouvelles questions ; compte rendu `docs/recette/SC-01.md`. Écart à noter : l'étape 2 du
-  scénario cite « douze par an » (S5).
+  scénario cite « douze par an » (L74-D5).
 - **SC-10 « Quinze ans de contacts »** à 150 % (NFR-19) à 74e, 74f et 74g : « elle ouvre l'aide
   guidée et la suit jusqu'au bout », menu entier dans la fenêtre ; compte rendu `docs/recette/SC-10.md`.
 - **PC-07** (les quinze demandes de réglage du panel) à 74k ; **PC-08** (aide et premiers pas) à 74f.
@@ -883,23 +888,27 @@ nouvelle page « Vos données », redirections, recherche, panneau « Réglages 
 
 ## 9. Ambiguïtés et décisions à prendre par Julien
 
-Numérotées S1 à S12 (propres à ce lot, distinctes des DS-S1 à DS-S15 du Design System). Celles qui
+Numérotées L74-D1 à L74-D12 (« L74 » pour ce lot, « D » pour décision ; d'abord appelées S1 à S12,
+renommées le 27/11 pour ne pas les confondre avec les DS-S1 à DS-S15 du Design System ni avec les
+choix des autres lots). **Règle donnée par Julien le 27/11 : une divergence se tranche en faveur de
+la décision la plus récente** (maquettes validées et décisions du 26/11 contre le cahier des
+charges ou un lot plus ancien). Celles qui
 touchent le cahier des charges sont aussi dans `docs/QUESTIONS.md` (Q51).
 
 | # | Question | Où regarder | Proposition (ma recommandation) | L'autre voie |
 | --- | --- | --- | --- | --- |
-| S1 | **Confirmez-vous G1 à G16 ?** Ils sont retenus par la règle du 26/11, sans parole de votre part sur chacun (§ 0). | Note 12, § 3 ; pages 29 à 33 | **Les confirmer tous**, tels que proposés : ce lot les réalise mot pour mot. Si vous en renversez un, citez son numéro ; je corrige la maquette et les critères marqués de ce numéro avant le code | Les reprendre un par un, comme B1 à B17 |
-| S2 | **Les échéances passées d'un mariage créé : tâche par tâche (B7) ou une réponse pour toutes (I3 du lot 71) ?** Le lot 71 a décidé, pour « Partir d'un modèle » sur un mariage repris, « la même question que pour la liste reprise » (garder en retard, redater, tout est fait) et dit que le volet 5 reprendrait ce composant ; la maquette 23, validée, dessine une réponse par tâche, « rien de coché », et « à dater » sans réponse. | Page 23, « Les échéances passées » ; lot 71, I3 | **B7 tel que dessiné pour un mariage créé** (tâche par tâche, « Tout est déjà fait » et « Tout reste à faire » en raccourcis, 4 semaines proposé) ; I3 reste pour un mariage repris. Les deux partagent le calcul des échéances passées et la répartition des dates | Un seul composant partout, celui de I3 (plus simple, mais « rien de coché » et « à dater » se perdent) |
-| S3 | **« À dater » : une marque à côté d'une date technique, ou une échéance vide ?** | § 4.1, 0245 | **Une marque** (`due_date_known`, comme `done_date_known` du lot 71) : rien ne casse dans les tris ni les lectures, et le lot 71 a fait ce choix | `due_date` facultatif : plus juste, mais chaque lecture d'échéance de l'app est à revoir |
-| S4 | **« Je ne sais pas encore » pour la TVA : quel régime en attendant ?** C'est un point fiscal : un devis envoyé sous franchise porte la mention « TVA non applicable, art. 293 B du CGI ». | Page 22, Q5 ; B5 | La note 11 propose de garder la franchise et de redemander avant le premier devis. **Je ne tranche pas** : je recommande que l'envoi du premier devis (pas son brouillon) soit impossible tant que la réponse manque, et de faire confirmer par l'expert-comptable | Garder la franchise sans blocage, avec un rappel seulement |
-| S5 | **Le volume annuel quitte l'assistant** (B2), alors que HUB-09 le cite parmi les questions et que SC-01 dit « douze par an ». | HUB-09, SC-01 ; B2, G15 | **Accepter l'écart** : la réponse reste modifiable dans la fiche de l'entreprise (HUB-09 : « tout reste modifiable dans les réglages ») ; noté dans `gap.csv` et Q51 ; un ADR court, puisque c'est une divergence acceptée | Garder la question (six questions), contre B2 |
-| S6 | **Un automatisme coupé avant ce lot** : la base n'a ni la date ni l'auteur. | § 4.1, 0246 ; page 30 | **« Coupé », sans date ni nom**, et la conséquence ; la prochaine coupure les gardera (règle « le sûr », comme A9) | Prendre `updated_at` et `updated_by`, au risque d'une date qui n'est pas celle de la coupure |
-| S7 | **L'adresse de « Vos données ».** | § 6.7 | **`/donnees`** (page à part, comme `/aide`), les anciennes adresses gardées par redirection | `/parametres/donnees` (reste « dans » les Paramètres pour le menu et la recherche) |
-| S8 | **Le tutoriel « Compléter un mariage repris »** du parcours « Je reprends » n'existe pas ; et un espace préparé avant ce lot n'a pas répondu à la question des mariages en cours. | Page 28 ; note 11, § 4 | **L'écrire** (un scénario joué sur un mariage d'exemple repris, après 71f) ; pour un espace déjà préparé, le parcours « Je pars de zéro » par défaut, avec « Changer de parcours » en tête | Le remplacer par la visite de la fiche ; demander la question à la prochaine connexion |
-| S9 | **Qu'est-ce qu'une « venue » pour la ligne « Découvrir » (trois venues) ?** | Page 25 ; B11 | **Une ouverture de l'écran un jour différent** : recharger ou revenir dans la journée ne compte pas | Chaque ouverture |
-| S10 | **L'ordre avec les lots 72 et 73.** La section « Réglages » vit dans le menu « ⋯ » de chaque écran, que les volets 3 et 4 créent ; les états vides de la liste des évènements et du carnet aussi. | § 5.2 | **74l et 74c après les paquets des lots 72 et 73 qui créent ces menus et ces écrans** ; d'ici là, la roue reste sur les écrans qui n'ont pas de menu « ⋯ » | 74l ajoute lui-même un menu « ⋯ » minimal aux écrans qui n'en ont pas, quitte à le refaire |
-| S11 | **Les questions fréquentes du « ? »** : 85 fiches sur 125 n'en ont pas ; en écrire pour toutes est un gros travail de textes (FR et EN). | Page 26 ; § 6.5 | **Obligatoires pour les écrans à visite, les écrans vides, les fenêtres à champs difficiles et les rubriques de réglage** (une soixantaine) ; les autres montrent « Sur cet écran » et la recherche | Toutes les 125 dans ce lot |
-| S12 | **Regarder le patron avant de l'étendre.** La règle du 27/11 écarte toute recette avant la fin des lots de réalisation. | § 7.2 | **Un rejeu local par Claude Code de la vague 1, captures dans la PR 74h**, que vous regardez avant que 74i et 74j partent ; ce n'est pas une recette de la planner | Basculer les trois vagues sans arrêt |
+| L74-D1 | **Tranché le 27/11 : G1 à G16 confirmés tels que proposés** (« je confirme S1 tes 16 recommandations »). **Confirmez-vous G1 à G16 ?** Ils sont retenus par la règle du 26/11, sans parole de votre part sur chacun (§ 0). | Note 12, § 3 ; pages 29 à 33 | **Les confirmer tous**, tels que proposés : ce lot les réalise mot pour mot. Si vous en renversez un, citez son numéro ; je corrige la maquette et les critères marqués de ce numéro avant le code | Les reprendre un par un, comme B1 à B17 |
+| L74-D2 | **Tranché le 27/11 : les deux gardés** (« garde les 2 options ») : B7 tâche par tâche pour un mariage créé, I3 pour un mariage repris. **Les échéances passées d'un mariage créé : tâche par tâche (B7) ou une réponse pour toutes (I3 du lot 71) ?** Le lot 71 a décidé, pour « Partir d'un modèle » sur un mariage repris, « la même question que pour la liste reprise » (garder en retard, redater, tout est fait) et dit que le volet 5 reprendrait ce composant ; la maquette 23, validée, dessine une réponse par tâche, « rien de coché », et « à dater » sans réponse. | Page 23, « Les échéances passées » ; lot 71, I3 | **B7 tel que dessiné pour un mariage créé** (tâche par tâche, « Tout est déjà fait » et « Tout reste à faire » en raccourcis, 4 semaines proposé) ; I3 reste pour un mariage repris. Les deux partagent le calcul des échéances passées et la répartition des dates | Un seul composant partout, celui de I3 (plus simple, mais « rien de coché » et « à dater » se perdent) |
+| L74-D3 | **« À dater » : une marque à côté d'une date technique, ou une échéance vide ?** | § 4.1, 0245 | **Une marque** (`due_date_known`, comme `done_date_known` du lot 71) : rien ne casse dans les tris ni les lectures, et le lot 71 a fait ce choix | `due_date` facultatif : plus juste, mais chaque lecture d'échéance de l'app est à revoir |
+| L74-D4 | **Tranché le 27/11 : la planner doit choisir** (« il faut qu'elle choisisse ») : aucun devis envoyé tant que la réponse manque, le brouillon reste possible ; l'étape « Devis et factures » et « L'essentiel » le lui rappellent. **« Je ne sais pas encore » pour la TVA : quel régime en attendant ?** C'est un point fiscal : un devis envoyé sous franchise porte la mention « TVA non applicable, art. 293 B du CGI ». | Page 22, Q5 ; B5 | La note 11 propose de garder la franchise et de redemander avant le premier devis. **Je ne tranche pas** : je recommande que l'envoi du premier devis (pas son brouillon) soit impossible tant que la réponse manque, et de faire confirmer par l'expert-comptable | Garder la franchise sans blocage, avec un rappel seulement |
+| L74-D5 | **Tranché le 27/11 par la règle de la décision récente : l'écart est accepté** (B2 l'emporte sur HUB-09 et SC-01). **Le volume annuel quitte l'assistant** (B2), alors que HUB-09 le cite parmi les questions et que SC-01 dit « douze par an ». | HUB-09, SC-01 ; B2, G15 | **Accepter l'écart** : la réponse reste modifiable dans la fiche de l'entreprise (HUB-09 : « tout reste modifiable dans les réglages ») ; noté dans `gap.csv` et Q51 ; un ADR court, puisque c'est une divergence acceptée | Garder la question (six questions), contre B2 |
+| L74-D6 | **Un automatisme coupé avant ce lot** : la base n'a ni la date ni l'auteur. | § 4.1, 0246 ; page 30 | **« Coupé », sans date ni nom**, et la conséquence ; la prochaine coupure les gardera (règle « le sûr », comme A9) | Prendre `updated_at` et `updated_by`, au risque d'une date qui n'est pas celle de la coupure |
+| L74-D7 | **L'adresse de « Vos données ».** | § 6.7 | **`/donnees`** (page à part, comme `/aide`), les anciennes adresses gardées par redirection | `/parametres/donnees` (reste « dans » les Paramètres pour le menu et la recherche) |
+| L74-D8 | **Le tutoriel « Compléter un mariage repris »** du parcours « Je reprends » n'existe pas ; et un espace préparé avant ce lot n'a pas répondu à la question des mariages en cours. | Page 28 ; note 11, § 4 | **L'écrire** (un scénario joué sur un mariage d'exemple repris, après 71f) ; pour un espace déjà préparé, le parcours « Je pars de zéro » par défaut, avec « Changer de parcours » en tête | Le remplacer par la visite de la fiche ; demander la question à la prochaine connexion |
+| L74-D9 | **Qu'est-ce qu'une « venue » pour la ligne « Découvrir » (trois venues) ?** | Page 25 ; B11 | **Une ouverture de l'écran un jour différent** : recharger ou revenir dans la journée ne compte pas | Chaque ouverture |
+| L74-D10 | **L'ordre avec les lots 72 et 73.** La section « Réglages » vit dans le menu « ⋯ » de chaque écran, que les volets 3 et 4 créent ; les états vides de la liste des évènements et du carnet aussi. | § 5.2 | **74l et 74c après les paquets des lots 72 et 73 qui créent ces menus et ces écrans** ; d'ici là, la roue reste sur les écrans qui n'ont pas de menu « ⋯ » | 74l ajoute lui-même un menu « ⋯ » minimal aux écrans qui n'en ont pas, quitte à le refaire |
+| L74-D11 | **Les questions fréquentes du « ? »** : 85 fiches sur 125 n'en ont pas ; en écrire pour toutes est un gros travail de textes (FR et EN). | Page 26 ; § 6.5 | **Obligatoires pour les écrans à visite, les écrans vides, les fenêtres à champs difficiles et les rubriques de réglage** (une soixantaine) ; les autres montrent « Sur cet écran » et la recherche | Toutes les 125 dans ce lot |
+| L74-D12 | **Regarder le patron avant de l'étendre.** La règle du 27/11 écarte toute recette avant la fin des lots de réalisation. | § 7.2 | **Un rejeu local par Claude Code de la vague 1, captures dans la PR 74h**, que vous regardez avant que 74i et 74j partent ; ce n'est pas une recette de la planner | Basculer les trois vagues sans arrêt |
 
 **Points qui ne demandent pas de décision mais méritent d'être sus**
 
@@ -923,9 +932,10 @@ si Julien confirme.
 1. **La barre d'enregistrement des formulaires liés (D7)** contre UX-09 (« Enregistrement
    automatique ») et l'anti-patron du bouton « Enregistrer » oublié : même écart que M1 (lot 70,
    § 9 point 1), protégé de même (question à la sortie, brouillon, barre jamais grisée). → **avenant à
-   l'ADR de M1** (paquet 74h).
-2. **Le volume annuel hors du questionnaire** (B2) contre HUB-09 et l'étape 2 de SC-01 (S5). →
-   **ADR court** si Julien accepte l'écart (paquet 74a) ; `gap.csv` (HUB-09) et Q51.
+   l'ADR de M1** (paquet 74h). **Tranché le 27/11 par la règle de la décision récente :
+   D7 l'emporte.**
+2. **Le volume annuel hors du questionnaire** (B2) contre HUB-09 et l'étape 2 de SC-01 (L74-D5). →
+   **ADR court** (paquet 74a), l'écart étant accepté le 27/11 (L74-D5) ; `gap.csv` (HUB-09) et Q51.
 3. **Les visites proposées et non automatiques (D2)** : HUB-11 demande une visite « rejouable » et
    relancée « depuis le menu d'aide » ; D2 le respecte. Pas d'ADR ; `gap.csv` (HUB-11).
 4. **Le mariage d'exemple unique (B13)** : HUB-10 ne parle que de données de démonstration ; la
