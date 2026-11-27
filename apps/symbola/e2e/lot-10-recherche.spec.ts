@@ -7,7 +7,7 @@ import { createAppConnection } from "@symbola/db/client";
 import { createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
 import { createProspect, createProspectSource } from "../modules/events/service";
-import { readyOrganization, signIn as signInByLink } from "./helpers";
+import { openSearch, readyOrganization, signIn as signInByLink } from "./helpers";
 
 async function expectNoAxeViolation(page: Page, within?: string) {
   const builder = new AxeBuilder({ page });
@@ -43,6 +43,8 @@ test("AIDE-08 — rechercher un évènement par le nom du client, et une aide pa
   await expect(page).toHaveURL("/");
 
   // Résultats instantanés : le premier résultat est surligné (lot 70e, M9), Entrée l'ouvre.
+  // Lot 70f : sur téléphone, la loupe ouvre la recherche en page entière.
+  await openSearch(page);
   const box = page.getByRole("combobox", { name: "Rechercher" });
   await box.fill(firstName.toLowerCase());
   const options = page.getByRole("option");

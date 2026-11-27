@@ -61,6 +61,13 @@ export async function clickMenuLink(page: Page, name: string): Promise<void> {
   await mainMenu(page).getByRole("link", { name, exact: true }).click();
 }
 
+// Lot 70f : sur téléphone, la recherche du haut s'ouvre en page entière par la loupe ; sur ordinateur, le
+// champ est déjà là.
+export async function openSearch(page: Page): Promise<void> {
+  const opener = page.locator(".app-topbar .search-box-open");
+  if ((await opener.count()) > 0 && (await opener.isVisible())) await opener.click();
+}
+
 // Ouvre le menu du compte : sous le prénom dans la barre du haut (lot 70e) ; sur téléphone, le compte est
 // en bas de « Plus » (lot 70f), déjà visible une fois « Plus » ouvert.
 export async function openAccountMenu(page: Page): Promise<void> {

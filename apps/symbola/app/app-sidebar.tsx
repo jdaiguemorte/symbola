@@ -174,7 +174,7 @@ export function AppSidebar({
   const aside = (
     <aside
       ref={asideRef}
-      className={`app-sidebar${admin ? " app-sidebar-admin" : ""}${sheet ? " has-tabbar" : ""}${open ? " is-open" : ""}${collapsed ? " is-collapsed" : ""}`}
+      className={`app-sidebar${admin ? " app-sidebar-admin" : ""}${open ? " is-open" : ""}${collapsed ? " is-collapsed" : ""}${sheet ? " has-tabbar" : ""}`}
       onClickCapture={onNavigateCapture}
       onPointerDown={onSheetPointerDown}
       onPointerMove={onSheetPointerMove}

@@ -8,7 +8,7 @@ import { createUser } from "@symbola/auth";
 import { createAppConnection } from "@symbola/db/client";
 import { addEventTask, createProspect, createProspectSource } from "../modules/events/service";
 import { createContact } from "../modules/hub/service";
-import { feedback, readyOrganization, signIn } from "./helpers";
+import { feedback, openSearch, readyOrganization, signIn } from "./helpers";
 
 async function expectNoAxeViolation(page: Page) {
   const result = await new AxeBuilder({ page }).analyze();
@@ -125,6 +125,8 @@ test("HUB-12 — ⌘K propose aussi des actions, filtrées par les modules sousc
   test.setTimeout(120_000);
   const setup = await atelierVide();
   await signIn(page, setup.email, /\/$/);
+  // Lot 70f : sur téléphone, la loupe ouvre la recherche en page entière.
+  await openSearch(page);
   const search = page.getByRole("search", { name: "Recherche dans Symbola" }).getByRole("combobox", { name: "Rechercher" });
   await search.click();
   await search.fill("corbeille");

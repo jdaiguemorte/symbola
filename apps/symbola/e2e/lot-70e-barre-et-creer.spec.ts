@@ -9,7 +9,7 @@ import { createUser, setUserNames } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
 import { addEventTask, addEventVendorSlot, changeEventStatus, createProspect, createProspectSource, listEvents } from "../modules/events/service";
 import { saveOnboardingStep, setModuleEnabled } from "../modules/hub/service";
-import { feedback, openMenu, readyOrganization, signIn as signInByLink } from "./helpers";
+import { feedback, openMenu, openSearch, readyOrganization, signIn as signInByLink } from "./helpers";
 
 // `within` : un menu ouvert se contrôle seul ; les petites cibles de la page qu'il recouvre en partie ne
 // sont pas les siennes (la page se contrôle menu fermé).
@@ -83,7 +83,8 @@ test.describe("lot 70e — la barre du haut", () => {
     const measure = await page.evaluate(() => {
       const bar = document.querySelector<HTMLElement>(".app-topbar")!;
       const side = document.querySelector<HTMLElement>(".app-sidebar")!;
-      const children = [...bar.children].map((child) => child.getBoundingClientRect());
+      // Lot 70f : les commandes du téléphone (nom de l'écran, loupe) sont dans la barre, masquées ici.
+      const children = [...bar.children].map((child) => child.getBoundingClientRect()).filter((box) => box.width > 0 && box.height > 0);
       return {
         barHeight: bar.getBoundingClientRect().height,
         barOverflow: bar.scrollWidth - bar.clientWidth,
@@ -173,7 +174,8 @@ test.describe("lot 70e — « + Créer »", () => {
     await expect(createMenu(page).locator("strong")).toHaveText(["Nouvel évènement", "Tâche pour Léa & Maxime", "Prestataire", "Contact", "Devis pour Léa & Maxime", "Dépense pour Léa & Maxime"]);
     await expect(createMenu(page).getByText("Une demande, un mariage signé, ou un mariage que vous reprenez")).toBeVisible();
     await expectNoAxeViolation(page, ".quick-create");
-    await page.mouse.click(2, 300);
+    // Un clic ailleurs : sous la barre du haut, hors du menu (en panneau du bas sur téléphone).
+    await page.mouse.click(2, 76);
     await expect(createMenu(page)).toBeHidden();
     // La touche N ouvre le menu hors d'un champ.
     await page.keyboard.press("n");
@@ -275,6 +277,8 @@ test.describe("lot 70e — la recherche typée", () => {
       await sql.end();
     }
     await signInByLink(page, setup.email);
+    // Lot 70f : sur téléphone, la loupe ouvre la recherche en page entière.
+    await openSearch(page);
     const box = page.getByRole("combobox", { name: "Rechercher" });
     // Un nom de client : un groupe « Évènements · 1 », le premier résultat surligné.
     await box.fill("Léa");

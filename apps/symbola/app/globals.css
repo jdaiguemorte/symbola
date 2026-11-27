@@ -2178,10 +2178,12 @@
       @apply absolute top-1 left-[calc(50%+6px)] h-5 min-w-5 rounded-full bg-critical px-1 text-center text-label leading-5 font-semibold text-on-primary;
     }
     /* Clavier ouvert (un champ de saisie a le focus), recherche en page entière, panneau d'une tâche ouvert,
-       mode sélection (sa barre la remplace) : la barre du bas s'efface. */
+       petit panneau du bas ouvert (`popover` : menu d'une ligne, « Changer la date »…), mode sélection (sa
+       barre la remplace) : la barre du bas s'efface. */
     body:has(.search-box[data-full-screen]) .app-tabbar,
     body:has(:is(input:not([type="checkbox"], [type="radio"], [type="button"], [type="submit"], [type="reset"], [type="range"], [type="color"], [type="file"], [type="image"]), textarea, [contenteditable="true"]):focus) .app-tabbar,
     body:has(.task-panel[open]) .app-tabbar,
+    body:has(:popover-open) .app-tabbar,
     body:has(.task-board[data-selecting="true"]) .app-tabbar {
       @apply hidden;
     }

@@ -104,7 +104,7 @@ test("HUB-02 — plusieurs organisations : passer de l'une à l'autre, en créer
   const phone = (page.viewportSize()?.width ?? 1280) < 768;
   await openAccountMenu(page);
   if (phone) await page.locator("#app-menu").getByText("Changer d'organisation").click();
-  const select = page.getByLabel("Organisation");
+  const select = page.getByLabel("Organisation").filter({ visible: true });
   await expect(select.locator("option")).toHaveText([first, second].sort());
   await select.selectOption({ label: second });
   await page.getByRole("button", { name: "Ouvrir" }).click();
@@ -125,7 +125,7 @@ test("HUB-02 — plusieurs organisations : passer de l'une à l'autre, en créer
     await expect(account).toBeFocused();
     await account.click();
   }
-  await expect(page.getByLabel("Organisation").locator("option:checked")).toHaveText(second);
+  await expect(page.getByLabel("Organisation").filter({ visible: true }).locator("option:checked")).toHaveText(second);
   await expect(page).toHaveURL(/\/$/);
   // Envoi du formulaire puis redirection : deux navigations ; analyser une fois la page posée.
   await page.waitForLoadState("networkidle");
