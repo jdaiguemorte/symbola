@@ -72,6 +72,10 @@
   .stepper li[data-state="current"] {
     @apply border-ink;
   }
+  /* Sur téléphone, le lien d'une étape faite a 44 px, comme toute commande. */
+  .stepper-text > a {
+    @apply max-md:inline-flex max-md:min-h-11 max-md:items-center;
+  }
   /* Sur téléphone, la frise se lit en une ligne : « Étape 3 sur 5 · Questions ». */
   .stepper-compact {
     @apply m-0 mt-2 text-label font-semibold md:hidden;

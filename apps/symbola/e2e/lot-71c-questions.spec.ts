@@ -14,7 +14,7 @@ import { defaultVendorSlots, events as eventsTable } from "@symbola/db/schema/ev
 import { withOrganization } from "@symbola/db/with-organization";
 import { createProspect, createProspectSource } from "../modules/events/service";
 import { enterTakeoverEvent, type TakeoverActor } from "../lib/takeover/flow";
-import { readyOrganization, signIn } from "./helpers";
+import { feedback, readyOrganization, signIn } from "./helpers";
 
 // Une action serveur suivie d'une redirection : le premier passage compile l'écran en développement.
 const expect = baseExpect.configure({ timeout: 20_000 });
@@ -101,8 +101,8 @@ test.describe("HUB-14 — L'assistant qui demande (lot 71c)", () => {
     // R5 : aucune réponse cochée d'avance.
     await expect(page.locator("main input[type=radio]:checked")).toHaveCount(0);
     const deposits = page.getByRole("group", { name: "Les montants de « Acompte versé » ont-ils été payés ?" });
-    await expect(deposits.getByRole("radio", { name: /Oui, payés aux dates du fichier/ })).toHaveAccessibleName(/Réglé 8 727,00 € · reste à payer 18 775,00 €/);
-    await expect(deposits.getByRole("radio", { name: /Non, ils restent à payer/ })).toHaveAccessibleName(/Réglé 0,00 € · reste à payer 27 502,00 € · 6 échéances en retard/);
+    await expect(deposits.getByRole("radio", { name: /Oui, payés aux dates du fichier/ })).toHaveAccessibleName(/Réglé 8\s727,00\s€ · reste à payer 18\s775,00\s€ · aucune échéance en retard/);
+    await expect(deposits.getByRole("radio", { name: /Non, ils restent à payer/ })).toHaveAccessibleName(/Réglé 0,00\s€ · reste à payer 27\s502,00\s€ · 6 échéances en retard/);
     await expect(page.getByRole("complementary", { name: "Ce que Symbola a compris" })).toContainText("Non renseigné (8 lignes), pas 0 €");
     await expectNoAxeViolation(page);
     await expectPhoneRules(page);
@@ -130,9 +130,13 @@ test.describe("HUB-14 — L'assistant qui demande (lot 71c)", () => {
     await actions(page).getByRole("button", { name: "Continuer" }).click();
 
     await expect(page).toHaveURL(/\/confirmation$/, { timeout: 30_000 });
-    await expect(page.getByText("Ligne 2 : Lieu", { exact: false })).toHaveCount(0);
+    // Aucune ligne rejetée faute de mariage.
+    await expect(page.getByRole("region", { name: "Ce que va faire l'import" }).getByRole("definition").last()).toHaveText("0");
     await page.getByRole("button", { name: "Importer 14 lignes de budget" }).click();
-    await expect(page).toHaveURL(/\/journal$/, { timeout: 30_000 });
+    // Le mariage est créé avec sa reprise : la confirmation ramène à sa page, le budget fait.
+    await expect(page).toHaveURL(/\/reprise\/[0-9a-f-]{36}\?importe=/, { timeout: 30_000 });
+    await expect(page.getByRole("heading", { level: 1, name: "Reprendre « Clara & Yanis »" })).toBeVisible();
+    await expect(page.locator("#ligne-budget")).toContainText("budget.csv");
 
     const { sql, db } = createAppConnection();
     try {
@@ -223,6 +227,6 @@ test.describe("HUB-14 — L'assistant qui demande (lot 71c)", () => {
     await page.getByRole("button", { name: "Abandonner cet import…" }).click();
     await dialog.getByRole("button", { name: "Abandonner l'import" }).click();
     await expect(page).toHaveURL(new RegExp(`/reprise/${takeoverId}\\?abandonne=1`), { timeout: 30_000 });
-    await expect(page.getByRole("status").filter({ hasText: "Import abandonné : rien n'a été importé." })).toBeVisible();
+    await expect(feedback(page)).toContainText("Import abandonné : rien n'a été importé.");
   });
 });
