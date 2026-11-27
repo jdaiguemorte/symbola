@@ -13405,6 +13405,7 @@
     "doneBody": "What your files did not give: {list}. They are to complete on the wedding's page.",
     "point": {
       "amounts": "the amounts to allocate to the items",
+      "contracts": "{count, plural, one {# unsigned contract} other {# unsigned contracts}}",
       "tasks": "the tasks",
       "endTimes": "{count, plural, one {# end time in the schedule} other {# end times in the schedule}}",
       "clientLink": "the couple's personal link",

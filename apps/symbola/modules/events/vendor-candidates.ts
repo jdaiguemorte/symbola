@@ -118,7 +118,9 @@ export async function retainedVendorsBySlot(organizationId: string, eventIds: st
   );
   for (const row of rows) {
     const list = bySlot.get(row.vendorSlotId) ?? [];
-    list.push({ candidateId: row.id, vendorName: row.vendorName, quoteAmountCents: row.quoteAmountCents });
+    // Lot 71f (C-53) : le contrat dit en mots ; un statut « contrat signé » ou « soldé » vaut signé.
+    const signed = row.status === "contract_signed" || row.status === "paid_off";
+    list.push({ candidateId: row.id, vendorName: row.vendorName, quoteAmountCents: row.quoteAmountCents, takeoverContract: signed ? "signed" : (row.takeoverContract ?? null) });
     bySlot.set(row.vendorSlotId, list);
   }
   return bySlot;

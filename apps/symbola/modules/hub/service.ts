@@ -318,6 +318,7 @@ export {
   type StartImportResult,
   type StartEventSheetsImportResult,
   listImportedEvents,
+  listElementProvenance,
   listImportSummaries,
   countBudgetVendorNames,
   coverTakeoverFromBudgetProposal,
@@ -1650,3 +1651,4 @@ export {
 } from "./module-requests";
 export { FEATURE_FLAG_KEYS, isFeatureEnabled, isFeatureFlagKey, listFeatureFlags, setFeatureFlagForOrganization, setFeatureFlagOpenToAll, UnknownFeatureFlagError, type FeatureFlagKey, type FeatureFlagView } from "./feature-flags";
 export { getStorageQuota, isUploadBlocked, recordStorageMeasure, refreshStorageQuota, storageMeasureIsStale, type StorageQuotaView } from "./storage-quota";
+export type { ElementProvenance } from "./import-repository";

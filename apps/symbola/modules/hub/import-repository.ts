@@ -126,7 +126,8 @@ export async function markImportApplied(
     if (updated.length === 0) return false;
     if (input.items.length > 0) {
       await tx.insert(importItems).values(
-        input.items.map((item, position) => ({ ...item, organizationId: input.organizationId, importId: input.importId, position })),
+        // Lot 71f (R7, I9) : les noms des champs écrits, sans valeur, pour « D'où viennent ces valeurs ? ».
+        input.items.map((item, position) => ({ ...item, fields: item.fields ?? Object.keys(item.written ?? {}), organizationId: input.organizationId, importId: input.importId, position })),
       );
     }
     return true;
@@ -195,4 +196,21 @@ export async function findImportedEvents(db: AppDatabase, organizationId: string
     seen.add(row.eventId);
     return [{ eventId: row.eventId, importedAt: row.appliedAt.toISOString() }];
   });
+}
+
+// Lot 71f (R7, décision I9) : les imports appliqués (et non retirés) qui ont écrit sur un élément, avec
+// le nom de leur fichier et les champs écrits ; les valeurs écrites tant qu'elles sont gardées (90 jours),
+// pour reconnaître une valeur modifiée depuis à la main.
+export type ElementProvenance = { importId: string; fileName: string; appliedAt: Date; takeoverId: string | null; fields: string[]; written: Record<string, unknown> | null };
+
+export async function findElementProvenance(db: AppDatabase, organizationId: string, element: { module: string; kind: string; elementId: string }): Promise<ElementProvenance[]> {
+  const rows = await withOrganization(db, organizationId, (tx) =>
+    tx
+      .select({ importId: imports.id, fileName: imports.fileName, appliedAt: imports.appliedAt, takeoverId: imports.takeoverId, fields: importItems.fields, written: importItems.written })
+      .from(importItems)
+      .innerJoin(imports, eq(imports.id, importItems.importId))
+      .where(and(eq(importItems.module, element.module), eq(importItems.kind, element.kind), eq(importItems.elementId, element.elementId), eq(imports.status, "applied")))
+      .orderBy(asc(imports.appliedAt), asc(importItems.position)),
+  );
+  return rows.flatMap((row) => (row.appliedAt ? [{ importId: row.importId, fileName: row.fileName, appliedAt: row.appliedAt, takeoverId: row.takeoverId, fields: row.fields ?? Object.keys(row.written ?? {}), written: row.written }] : []));
 }

@@ -6,15 +6,11 @@
 // (lot 52) : une reprise hors de vue répond comme une reprise inexistante (SEC-13).
 import type { TakeoverStepKind, TakeoverView } from "@symbola/contracts";
 import { appDatabase } from "@symbola/db/client";
-import { getUnallocatedTotals } from "@/modules/budget/service";
 import {
   createProspect,
   createTypedDocumentFolders,
   eventNames,
   getEvent,
-  getEventProgram,
-  listEventLinks,
-  listEventTasks,
   makeCreatorLead,
 } from "@/modules/events/service";
 import type { EventClientInput } from "@symbola/contracts";
@@ -46,11 +42,11 @@ import {
   takeoverImportEntityType,
   takeoverPageState,
   takeoverRows,
-  toCompletePoints,
   withdrawDeadline,
   type TakeoverRow,
-  type ToCompletePoint,
 } from "./page-rules";
+import { remainingTakeoverPoints } from "./checklist";
+import type { ChecklistPoint } from "./checklist-rules";
 
 export type TakeoverActor = { organizationId: string; userId: string; viewer: TakeoverViewer };
 
@@ -79,7 +75,7 @@ export type TakeoverPageModel = {
   withdrawUntil: Date | null;
   undoRetentionDays: number;
   // La page terminée : ce qui reste à compléter à la main (jamais « tout est à jour »).
-  toComplete: ToCompletePoint[];
+  toComplete: ChecklistPoint[];
   // La page neuve : les reprises de l'agence restées en plan, pour ne pas les perdre.
   openTakeovers: { id: string; eventName: string | null; progress: { settled: number; total: number } }[];
 };
@@ -90,25 +86,6 @@ async function eventFacts(organizationId: string, eventId: string | null): Promi
   if (!eventId) return { name: null, date: null };
   const event = await getEvent(organizationId, eventId);
   return event ? { name: eventNames(event.clients, event.name), date: event.eventDate } : { name: null, date: null };
-}
-
-// Les points qui restent à compléter, lus dans les modules (provisoire : le paquet 71f les calcule dans
-// le hub pour la fiche, avec les contrats non signés).
-async function remainingPoints(organizationId: string, eventId: string): Promise<ToCompletePoint[]> {
-  const [event, totals, tasks, program, links] = await Promise.all([
-    getEvent(organizationId, eventId),
-    getUnallocatedTotals(organizationId, eventId).catch(() => null),
-    listEventTasks(organizationId, eventId),
-    getEventProgram(organizationId, eventId).catch(() => null),
-    listEventLinks(organizationId, eventId),
-  ]);
-  return toCompletePoints({
-    remainingCents: totals?.remainingCents ?? null,
-    taskCount: tasks.length,
-    missingEndTimes: program ? program.items.filter((item) => item.endTime === null).length : 0,
-    hasClientLink: links.some((link) => link.audience === "client" && link.status === "active"),
-    guestsKnown: event?.guestsEstimated !== null && event?.guestsEstimated !== undefined,
-  });
 }
 
 async function buildModel(actor: TakeoverActor, view: Omit<TakeoverView, "id"> & { id: string | null }): Promise<TakeoverPageModel> {
@@ -143,7 +120,8 @@ async function buildModel(actor: TakeoverActor, view: Omit<TakeoverView, "id"> &
     rows: models,
     withdrawUntil: withdrawDeadline(applied, limits.undoRetentionDays),
     undoRetentionDays: limits.undoRetentionDays,
-    toComplete: state === "done" && view.eventId ? await remainingPoints(actor.organizationId, view.eventId) : [],
+    // Lot 71f : le même calcul que la fiche, contrats non signés compris.
+    toComplete: state === "done" && view.eventId ? await remainingTakeoverPoints(actor.organizationId, view.eventId) : [],
     openTakeovers: [],
   };
 }

@@ -52,6 +52,8 @@ import {
   type ImportRow,
   type NewImportItem,
   findImportedEvents,
+  findElementProvenance,
+  type ElementProvenance,
 } from "./import-repository";
 import { cancelImportJobs, createImportJob, isReadingSheets, listImportJobs, type ImportJobView } from "./import-jobs";
 import { findPlatformSettings, insertDefaultPlatformSettings } from "./repository";
@@ -855,6 +857,11 @@ export async function purgeExpiredImportUndoValues(db: AppDatabase, organization
   let cleared = 0;
   for (const organizationId of organizationIds) cleared += await clearExpiredUndoValues(db, organizationId, appliedBefore);
   return cleared;
+}
+
+// Lot 71f (R7) : d'où viennent les valeurs d'un élément (fichier, champs écrits).
+export async function listElementProvenance(organizationId: string, element: { module: string; kind: string; elementId: string }): Promise<ElementProvenance[]> {
+  return findElementProvenance(appDatabase(), organizationId, element);
 }
 
 // Lot 70d (UX-08, C-55) : les évènements créés par un import encore appliqué, et sa date (mariage repris).

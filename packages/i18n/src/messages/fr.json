@@ -13405,6 +13405,7 @@
     "doneBody": "Ce que vos fichiers ne donnaient pas : {list}. Ils sont à compléter sur la fiche du mariage.",
     "point": {
       "amounts": "les montants à répartir sur les postes",
+      "contracts": "{count, plural, one {# contrat non signé} other {# contrats non signés}}",
       "tasks": "les tâches",
       "endTimes": "{count, plural, one {# heure de fin du programme} other {# heures de fin du programme}}",
       "clientLink": "le lien personnel des mariés",
