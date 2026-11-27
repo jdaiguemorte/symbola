@@ -117,13 +117,16 @@ export function AppSidebar({
 
   // Une entrée choisie dans « Plus » ou dans la barre, « Plus » ouvert : son entrée d'historique perd sa
   // marque avant que l'écran ne s'ouvre ; le retour arrière depuis cet écran ramène à celui d'avant, sans
-  // rouvrir « Plus ».
+  // rouvrir « Plus ». « Plus » se ferme aussi quand l'entrée est l'écran ouvert (l'adresse ne change pas).
   function onNavigateCapture(event: React.MouseEvent) {
-    if (!sheet || !open || !sheetEntryOnTop()) return;
+    if (!sheet || !open) return;
     if (!(event.target as Element).closest("a[href]")) return;
-    const state = { ...(window.history.state as Record<string, unknown>) };
-    delete state[SHEET_STATE];
-    window.history.replaceState(state, "");
+    if (sheetEntryOnTop()) {
+      const state = { ...(window.history.state as Record<string, unknown>) };
+      delete state[SHEET_STATE];
+      window.history.replaceState(state, "");
+    }
+    setOpen(false);
   }
 
   // Le glissé vers le bas, au doigt, quand le panneau n'a pas défilé.

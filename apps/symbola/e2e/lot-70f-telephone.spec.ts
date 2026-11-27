@@ -355,6 +355,10 @@ test.describe("UX-05 — La barre du bas et la barre du haut du téléphone (lot
     await expect(page).toHaveURL(/\/prestataires$/, { timeout: 30_000 });
     await clickMenuLink(page, "Paramètres");
     await expect(page).toHaveURL(/\/parametres$/, { timeout: 30_000 });
+    // L'écran déjà ouvert, choisi dans « Plus » : l'adresse ne change pas, « Plus » se ferme quand même.
+    await clickMenuLink(page, "Paramètres");
+    await expect(page.locator("#app-menu")).toBeHidden();
+    await expect(page.locator('button[aria-controls="app-menu"]')).toHaveAttribute("aria-expanded", "false");
   });
 });
 
