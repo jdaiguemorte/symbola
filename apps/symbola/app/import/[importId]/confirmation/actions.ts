@@ -6,6 +6,7 @@ import { getLocale, getTranslations } from "next-intl/server";
 import { getPlannerAuthContext } from "@/lib/auth-context";
 import { confirmImport } from "@/lib/import/apply";
 import { setEventSheetStatuses } from "@/lib/import/matching";
+import { takeoverBackLink } from "@/lib/takeover/flow";
 import { isValidId } from "../../access";
 
 export type ConfirmFormState = { error?: string };
@@ -37,6 +38,12 @@ export async function confirmImportAction(_prevState: ConfirmFormState, formData
   if (result.status === "invalid_default_source") return { error: t("defaultSourceRequired") };
   if (result.status === "blocked") return { error: t("confirmBlocked") };
   revalidatePath("/import");
+  // Lot 71b (HUB-14) : l'import d'une reprise y revient, avec le message de retour du lot 70b.
+  const back = await takeoverBackLink(auth.user.organizationId, importId);
+  if (back) {
+    revalidatePath(back.href);
+    redirect(`${back.href}?importe=${importId}`);
+  }
   redirect(`/import/${importId}/journal`);
 }
 

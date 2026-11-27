@@ -14,7 +14,9 @@ import { createFirstEventAction, type FirstEventFormState } from "./actions";
 
 type ProposedTemplate = { id: string; name: string; eventTypeId: string; count: number };
 
-export function FirstEventForm({ eventTypes, clientLabels, templates = [] }: { eventTypes: Pick<EventType, "id" | "label" | "audience">[]; clientLabels: Record<Audience, ClientFieldLabels>; templates?: ProposedTemplate[] }) {
+// Lot 71b (PAR-01 ; I5, R3) : en bouton plein quand la planner part de zéro ; en second quand elle reprend
+// d'abord un mariage en cours.
+export function FirstEventForm({ eventTypes, clientLabels, templates = [], primary = false }: { eventTypes: Pick<EventType, "id" | "label" | "audience">[]; clientLabels: Record<Audience, ClientFieldLabels>; templates?: ProposedTemplate[]; primary?: boolean }) {
   const t = useTranslations("Onboarding");
   const tEvents = useTranslations("Events");
   const [state, action, pending] = useActionState<FirstEventFormState, FormData>(createFirstEventAction, {});
@@ -62,7 +64,7 @@ export function FirstEventForm({ eventTypes, clientLabels, templates = [] }: { e
         </label>
       ) : null}
       {state.error ? <p role="alert">{state.error}</p> : null}
-      <button type="submit" disabled={pending}>
+      <button type="submit" className={primary ? "button-primary" : undefined} disabled={pending}>
         {t("ready.firstEventSubmit")}
       </button>
     </form>

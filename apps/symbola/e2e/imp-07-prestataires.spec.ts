@@ -42,9 +42,10 @@ test("IMP-07 — reprendre ses prestataires depuis l'export Excel de l'outil act
   }
   await loginAndSetupMfa(page, email, password);
 
-  await openSettingsTab(page, "Importer");
-  // Lot 16 (IMP-11) : « Que voulez-vous reprendre ? » en trois tuiles.
-  await page.getByRole("navigation", { name: "Que voulez-vous reprendre ?" }).getByRole("link", { name: /Reprendre mes prestataires/ }).click();
+  await openSettingsTab(page, "Reprendre et importer");
+  // Lot 16 (IMP-11) : « Que voulez-vous reprendre ? » en trois tuiles. Lot 71b (I6) : « Reprendre et
+  // importer », trois boutons de même rang.
+  await page.getByRole("navigation", { name: "Que voulez-vous importer ?" }).getByRole("link", { name: /Un carnet de prestataires/ }).click();
   // Corpus de test (Playwright est lancé depuis apps/symbola).
   await page
     .getByLabel("Fichier (CSV, Excel .xlsx ou JSON)")

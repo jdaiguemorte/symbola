@@ -709,11 +709,13 @@ export async function createProspect(input: CreateProspectInput): Promise<Create
     eventDate: input.eventDate,
     venueName: input.venueName,
     venueCity: input.venueCity,
+    takeover: input.takeover === true,
   });
   // Lot 63c (EVT-01, CHR-01 ; ADR 0106, qui remplace D8 du lot 34a) : aucun rétroplanning d'office.
   // Le modèle choisi à la création s'applique, daté depuis la date de l'évènement ; un modèle d'une
   // autre organisation n'est pas lu (RLS) et refuse la création.
-  if (input.taskTemplateId && event.eventDate) {
+  // Lot 71b (C-67) : un mariage repris ne reçoit aucun modèle d'office.
+  if (input.taskTemplateId && event.eventDate && !input.takeover) {
     const applied = await applyTaskTemplateRows(input.organizationId, event.id, input.taskTemplateId);
     if (applied.status === "template_not_found") throw new TaskTemplateNotFoundError();
   }

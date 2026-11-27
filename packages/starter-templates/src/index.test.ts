@@ -23,6 +23,7 @@ import {
   isOnboardingTool,
   isOnboardingVolume,
   onboardingChecklistOrder,
+  onboardingSuggestsTakeover,
   onboardingDefaultEventTypes,
   starterOnboarding,
   starterExampleEvent,
@@ -639,6 +640,16 @@ describe("HUB-09 — Questionnaire d'accueil : réponses de départ (lot 33b, D9
     expect(onboardingChecklistOrder(["email_calendar", "word_processor"])).toEqual(["essentials", "first_vendor"]);
     expect(onboardingChecklistOrder(["inconnu"])).toEqual(onboardingChecklistOrder([]));
     expect(ONBOARDING_CHECKLIST_KEYS).toHaveLength(2);
+  });
+
+  // Lot 71b (PAR-01, HUB-09 ; décision I5, R3) : un tableur ou un autre logiciel met « Reprendre un
+  // mariage en cours » en bouton plein à la fin de l'assistant ; la règle est dans les données.
+  it("I5 — un tableur ou un autre logiciel de gestion appelle d'abord la reprise ; les autres outils, non", () => {
+    expect(onboardingSuggestsTakeover(["spreadsheet"])).toBe(true);
+    expect(onboardingSuggestsTakeover(["paper", "other_software"])).toBe(true);
+    expect(onboardingSuggestsTakeover(["email_calendar", "word_processor", "paper"])).toBe(false);
+    expect(onboardingSuggestsTakeover([])).toBe(false);
+    expect(onboardingSuggestsTakeover(["inconnu"])).toBe(false);
   });
 
   it("reconnaît les clés de volume et d'outil, et refuse les autres", () => {

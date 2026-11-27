@@ -1421,7 +1421,9 @@ const onboardingSchema = z.object({
     autre: z.array(z.string().min(1)).min(1),
   }),
   volumes: z.array(z.object({ key: z.string().min(1).max(40), label: translatedLabelSchema })).min(1),
-  tools: z.array(z.object({ key: z.string().min(1).max(40), label: translatedLabelSchema, first: z.array(checklistKeySchema) })).min(1).max(10),
+  // Lot 71b (PAR-01 ; décision I5, R3) : un outil qui suit des mariages (tableur, autre logiciel) met
+  // « Reprendre un mariage en cours » en bouton plein à la fin de l'assistant.
+  tools: z.array(z.object({ key: z.string().min(1).max(40), label: translatedLabelSchema, first: z.array(checklistKeySchema), takeover: z.boolean().optional() })).min(1).max(10),
   checklist: z.array(checklistKeySchema).length(ONBOARDING_CHECKLIST_KEYS.length),
 });
 const onboarding = onboardingSchema.parse(onboardingFile);
@@ -1451,6 +1453,11 @@ export function onboardingDefaultEventTypes(metier: StarterMetier): string[] {
 export function onboardingChecklistOrder(tools: readonly string[]): OnboardingChecklistKey[] {
   const promoted = new Set(onboarding.tools.filter((tool) => tools.includes(tool.key)).flatMap((tool) => tool.first));
   return [...onboarding.checklist.filter((key) => promoted.has(key)), ...onboarding.checklist.filter((key) => !promoted.has(key))];
+}
+
+// Lot 71b (PAR-01, HUB-09 ; I5, R3) : la planner suit ses mariages dans un outil d'où ils se reprennent.
+export function onboardingSuggestsTakeover(tools: readonly string[]): boolean {
+  return onboarding.tools.some((tool) => tool.takeover === true && tools.includes(tool.key));
 }
 
 export function isOnboardingVolume(key: string): boolean {

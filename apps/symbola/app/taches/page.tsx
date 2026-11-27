@@ -225,7 +225,8 @@ export default async function TasksPage({ searchParams }: { searchParams: Promis
             <strong>{t("toCheck", { event: eventNames(event.clients, event.name), date: doneMoment(importedById.get(event.id)!, locale).date })}</strong> {t("toCheckBody")}
           </p>
           <p className="row-wrap">
-            <Link href={`/import?type=tasks&evenement=${event.id}#import-form`} className="button-link">
+            {/* Lot 71b (HUB-14) : la ligne 5 de la reprise du mariage (créée à son premier geste). */}
+            <Link href={`/reprise?evenement=${event.id}&ligne=tasks`} className="button-link">
               {t("toCheckImport")}
             </Link>
             <Link href={eventTaskHref(event.id)} className="button-link">

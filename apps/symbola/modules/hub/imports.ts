@@ -55,7 +55,7 @@ import {
 } from "./import-repository";
 import { cancelImportJobs, createImportJob, isReadingSheets, listImportJobs, type ImportJobView } from "./import-jobs";
 import { findPlatformSettings, insertDefaultPlatformSettings } from "./repository";
-import { clearExpiredImportLeftovers } from "./takeovers";
+import { BUDGET_VENDOR_FIELD, clearExpiredImportLeftovers, countImportVendorNames, coverTakeoverFromBudgetImport } from "./takeovers";
 
 export { IMPORT_ENTITY_TYPES, IMPORT_FILE_ENTITY_TYPES, type ImportEntityType } from "@symbola/contracts";
 export type { ImportColumnChoice, ImportMatch, ImportMatching, ImportResult, ImportRowEvent, ImportVendorTypeChoice, ImportVendorTypeTarget } from "@symbola/db/schema/hub";
@@ -281,6 +281,9 @@ export type ImportSummary = {
   createdByUserId: string;
   createdAt: Date;
   expiresAt: Date;
+  // Lot 71b : la reprise de l'import, et le mariage qu'il vise (« Pour » du journal).
+  takeoverId: string | null;
+  targetEventId: string | null;
 };
 
 export type ImportDraft = ImportSummary & {
@@ -316,6 +319,8 @@ function toSummary(row: ImportRow): ImportSummary {
     result: row.result,
     createdAt: row.createdAt,
     expiresAt: row.expiresAt,
+    takeoverId: row.takeoverId ?? null,
+    targetEventId: row.targetEventId ?? null,
   };
 }
 
@@ -489,11 +494,39 @@ export async function saveImportMapping(
   if (errors.length > 0) return { status: "invalid", errors };
 
   const saved = await updateDraftMapping(db, input.organizationId, input.importId, mapping, now);
-  return saved ? { status: "saved" } : { status: "not_found" };
+  if (!saved) return { status: "not_found" };
+  // Lot 71b (critère 4) : un budget de reprise qui nomme ses prestataires couvre leur ligne.
+  await coverTakeoverFromBudgetImport(db, input.organizationId, input.importId, now);
+  return { status: "saved" };
 }
 
 export async function listImports(db: AppDatabase, organizationId: string): Promise<ImportSummary[]> {
   return (await findImports(db, organizationId)).map(toSummary);
+}
+
+// Lot 71b (critère 4) : la colonne proposée pour le prestataire d'un budget, tant que ses colonnes ne
+// sont pas enregistrées ; null sinon.
+async function proposedBudgetVendorColumn(db: AppDatabase, organizationId: string, importId: string): Promise<number | null> {
+  const view = await getImportColumns(db, organizationId, importId);
+  if (!view || view.entityType !== "budget_lines") return null;
+  return view.columns.find((column) => column.proposedFieldKey === BUDGET_VENDOR_FIELD)?.columnIndex ?? null;
+}
+
+// Un budget de reprise déposé : s'il nomme ses prestataires, leur ligne est couverte dès maintenant.
+export async function coverTakeoverFromBudgetProposal(db: AppDatabase, organizationId: string, importId: string, now: Date = new Date()): Promise<boolean> {
+  return coverTakeoverFromBudgetImport(db, organizationId, importId, now, await proposedBudgetVendorColumn(db, organizationId, importId));
+}
+
+// « Votre budget nomme 7 prestataires » : par la colonne choisie, sinon par la colonne proposée.
+export async function countBudgetVendorNames(db: AppDatabase, organizationId: string, importId: string): Promise<number> {
+  return countImportVendorNames(db, organizationId, importId, await proposedBudgetVendorColumn(db, organizationId, importId));
+}
+
+// Lot 71b : les imports des lignes d'une reprise (le carnet peut venir d'une autre reprise).
+export async function listImportSummaries(db: AppDatabase, organizationId: string, importIds: readonly string[]): Promise<ImportSummary[]> {
+  if (importIds.length === 0) return [];
+  const wanted = new Set(importIds);
+  return (await findImports(db, organizationId)).filter((row) => wanted.has(row.id)).map(toSummary);
 }
 
 export async function cancelImport(db: AppDatabase, organizationId: string, importId: string, now: Date = new Date()): Promise<boolean> {

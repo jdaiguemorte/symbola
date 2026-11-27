@@ -323,14 +323,14 @@ test.describe("lot 69 — mises en page mesurées", () => {
     await expect(row).not.toHaveText(/^Dernière relance\s*—\s*$/);
   });
 
-  test("C-59 — sur /import?type=X, seule la tuile de X est marquée, et aucune quand X n'est pas une tuile", async ({ page }) => {
-    const borders = async () => page.locator(".import-tile").evaluateAll((tiles) => tiles.map((tile) => getComputedStyle(tile).borderTopColor));
+  test("C-59 — sur /import?type=X, seul le bouton de X est marqué, et aucun quand X n'est pas un bouton (lot 71b : « Reprendre et importer »)", async ({ page }) => {
+    const borders = async () => page.locator(".import-choice").evaluateAll((tiles) => tiles.map((tile) => getComputedStyle(tile).borderTopColor));
     await page.goto("/import?type=budget_lines");
-    await expect(page.locator(".import-tile")).not.toHaveCount(0);
-    await expect(page.locator('.import-tile[aria-current="true"]')).toHaveCount(0);
+    await expect(page.locator(".import-choice")).not.toHaveCount(0);
+    await expect(page.locator('.import-choice[aria-current="true"]')).toHaveCount(0);
     expect(new Set(await borders()).size).toBe(1);
     await page.goto("/import?type=contacts");
-    await expect(page.locator('.import-tile[aria-current="true"]')).toHaveCount(1);
-    await expect(page.locator('.import-tile[aria-current="true"]')).toContainText("contacts");
+    await expect(page.locator('.import-choice[aria-current="true"]')).toHaveCount(1);
+    await expect(page.locator('.import-choice[aria-current="true"]')).toContainText("contacts");
   });
 });

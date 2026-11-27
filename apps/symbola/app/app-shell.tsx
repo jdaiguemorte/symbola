@@ -248,6 +248,8 @@ export async function AppShell({ children }: { children: ReactNode }) {
   const tPalette = await getTranslations("Palette");
   const paletteActions = [
     ...(events ? [{ label: tPalette("actions.newEvent"), href: "/events/new" }, { label: tPalette("actions.tasks"), href: "/taches" }] : []),
+    // Lot 71b (HUB-14, PAR-01) : « Reprendre un mariage en cours », par la recherche.
+    ...(events ? [{ label: tPalette("actions.takeover"), href: "/reprise" }] : []),
     { label: tPalette("actions.contacts"), href: "/contacts?nouveau=1" },
     ...(appointments ? [{ label: tPalette("actions.appointments"), href: "/rendez-vous" }] : []),
     ...(vendors ? [{ label: tPalette("actions.newVendor"), href: "/prestataires/nouveau" }] : []),

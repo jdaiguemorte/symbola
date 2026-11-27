@@ -78,7 +78,7 @@
     "quoteSettings": "Quote settings",
     "quotePayments": "Payments",
     "eReporting": "E-reporting",
-    "importData": "Import data",
+    "importData": "Import and take over",
     "privacy": "Personal data (GDPR)",
     "home": "Home",
     "navLabel": "Main menu",
@@ -155,7 +155,8 @@
     "settingsAppointments": "Types and booking page",
     "appointmentAvailability": "My availability",
     "tabBarLabel": "Main navigation",
-    "more": "More"
+    "more": "More",
+    "takeover": "Take over an ongoing wedding"
   },
   "Admin": {
     "createOrganizationTitle": "Create an organization",
@@ -790,8 +791,8 @@
       ]
     },
     "importFile": {
-      "title": "Importing data",
-      "body": "Choose what you are bringing over: your contacts (CSV or Excel), your vendors or your event sheets from your current tool, or another file. Each screen (vendors, events, contacts, budget, programme, guests) also has its own “Import” button, set to the right type. As soon as you click, a window shows how the reading is going. Nothing is saved before you confirm, and an import can be undone from its summary.",
+      "title": "Import and take over",
+      "body": "What belongs to no wedding: your contacts, your vendor book, the lists of your workspace (client sources, catalogue, loss reasons). An ongoing wedding is taken over from its takeover page, which says which files to drop and in which order. An import left halfway is shown at the top of the screen, with \"Continue\". As soon as you click, a window shows how the reading is going. Nothing is saved before you confirm, and an import can be removed from its summary.",
       "faq": [
         {
           "q": "What happens to my file?",
@@ -1526,6 +1527,20 @@
     "mySignature": {
       "title": "My signature",
       "body": "Your signature is added at the end of the e-mails you send from Symbola: display name, job title, phone, website, up to four links and an optional small photo. The preview shows the result live; save to apply it. Your organisation chooses the elements shown. An automatic e-mail carries the signature chosen by the account holder. In the “Prepare the e-mail” window, “Add my signature” adds it as text at the end of the message. Your signature is erased if your access to the organisation is removed."
+    },
+    "takeover": {
+      "title": "Take over an ongoing wedding",
+      "body": "One page per wedding tracked in another tool: six files, in the order to drop them (the vendor book, once for the whole business; the wedding, by its PDF sheet or its name and date; the budget; the booked vendors; the to-do list; the day-of schedule). The next line holds the main button. \"I don't have this file\" settles a line without leaving it pending, and is undone by \"Drop a file\". An import left halfway shows on its line, with \"Continue\". Nothing is written without your approval, and each import can be removed from its summary for 90 days: the deadline is written at the end of the page.",
+      "faq": [
+        {
+          "q": "My budget already names the vendors: should I drop their list?",
+          "a": "No. As soon as the budget's columns are chosen, the \"Booked vendors\" line turns \"With the budget\". \"Drop a file anyway\" remains possible."
+        },
+        {
+          "q": "Does the wedding I type in get a schedule of tasks?",
+          "a": "No: it is \"Signed, in preparation\", and its tasks come from your list. Without a list, you can start from a template on its page."
+        }
+      ]
     }
   },
   "Aide": {
@@ -2444,7 +2459,8 @@
     "addClientTitle": "Add a client",
     "addClientSubmit": "Add this client",
     "clientAdded": "Client added.",
-    "clientsFull": "This event already has two clients."
+    "clientsFull": "This event already has two clients.",
+    "importAndTakeOver": "Import and take over"
   },
   "Budget": {
     "title": "Budget",
@@ -3335,8 +3351,8 @@
     "backToQuote": "Back to the quote"
   },
   "Import": {
-    "title": "Import data",
-    "intro": "Bring your data over from another tool or a spreadsheet, in 5 steps. Nothing is saved in your modules before you confirm, and a confirmed import can still be undone.",
+    "title": "Import and take over",
+    "intro": "Contacts, vendor book, lists of your workspace. Nothing is written without your approval.",
     "unauthenticated": "Session expired: please sign in again.",
     "noModuleAvailable": "None of your subscribed modules accepts imports yet.",
     "entityTypeLegend": "What does the file contain?",
@@ -3415,12 +3431,10 @@
     "unnamedColumn": "Column {number}",
     "cancelImport": "Discard the import",
     "backToImports": "Back to imports",
-    "journalTitle": "Import log",
+    "journalTitle": "Your imports",
     "journalEmpty": "No imports yet.",
     "journalDate": "Date",
     "journalFile": "File",
-    "journalEntityType": "Content",
-    "journalRows": "Rows",
     "journalStatus": "Status",
     "status": {
       "draft": "in progress",
@@ -3685,29 +3699,7 @@
       "not_event_sheet": "not an event sheet from the current tool",
       "infected": "file rejected by the antivirus"
     },
-    "takeoverTitle": "Bring your data over from your current tool",
-    "takeoverIntro": "Already using planning software? Bring over your vendor book first, then your events: Symbola recognises its exports and fixes their usual flaws (swapped columns, garbled characters, truncated postal codes).",
     "takeoverExampleSheet": "Download an example sheet (fictitious PDF) to try it",
-    "takeover": {
-      "contacts": {
-        "title": "Bring over my contacts",
-        "how": "In your spreadsheet or current tool, save your contact list as CSV or Excel: one row per person, with their name (or “LAST First” in a single column), email, phone and notes.",
-        "what": "Each row becomes a contact: name, details and notes. An email address you already know completes the contact who has it; your vendors' rows can be set aside.",
-        "start": "Import my contacts"
-      },
-      "vendors": {
-        "title": "Bring over my vendors",
-        "how": "In your current tool, open your vendor list and export it as Excel (.xlsx), without editing the file.",
-        "what": "Each row becomes a vendor book entry: contact details, website and social links, SIRET; criteria become tags, services go to the note. Types are matched with yours or created.",
-        "start": "Import my vendors"
-      },
-      "event_sheets": {
-        "title": "Bring over my events",
-        "how": "In your current tool, open each event and download its sheet as a PDF. Then upload them all at once.",
-        "what": "Each sheet becomes an event: the couple and their contact details, date, places and times, wished budget. The status is suggested from the date; you can change it in the preview.",
-        "start": "Import my event sheets"
-      }
-    },
     "jobReadSheetsTitle": "Reading the sheets",
     "jobReadSheets": "Reading the sheets",
     "jobPlaceVendorsTitle": "Placing on the map",
@@ -3843,14 +3835,9 @@
     "effectsTags": "Tags created",
     "effectsFreeColumns": "Columns kept as notes on the record",
     "effectsRejected": "Rows rejected",
-    "startQuestion": "What do you want to bring in?",
-    "otherFileTitle": "Another file",
-    "otherFileBody": "Events, tasks, budget lines, catalogue, lists… from a spreadsheet (CSV, Excel) or a JSON file.",
     "screenGroup": {
       "evenements": "Import events"
     },
-    "resumeImport": "Resume",
-    "resumeImportFor": "Resume the import of {file}",
     "importButton": {
       "events": "Import {count, plural, one {# event} other {# events}}",
       "event_sheets": "Import {count, plural, one {# event} other {# events}}",
@@ -3937,7 +3924,60 @@
       "close": "Close"
     },
     "typesCombinedFrom": "From {labels}: several trades on the same record",
-    "targetEvent": "The lines will go into the “{names}” event: your file needs no column to name it."
+    "targetEvent": "The lines will go into the “{names}” event: your file needs no column to name it.",
+    "weddingTitle": "An ongoing wedding?",
+    "weddingBody": "Use its takeover page: it says which files to drop, in which order, and links them to the right wedding.",
+    "weddingLink": "Take over an ongoing wedding",
+    "draftFor": "Import in progress: {file}, for \"{event}\". Stopped at \"{step}\".",
+    "draftAlone": "Import in progress: {file}. Stopped at \"{step}\".",
+    "draftContinue": "Continue",
+    "draftContinueFor": "Continue the import of {file}",
+    "chooseTitle": "What do you want to import?",
+    "choice": {
+      "contacts": {
+        "title": "Contacts",
+        "body": "Clients, prospects, guests. Spreadsheet."
+      },
+      "vendors": {
+        "title": "A vendor book",
+        "body": "For all your weddings. Spreadsheet."
+      },
+      "autre": {
+        "title": "Another list",
+        "body": "Client sources, catalogue, loss reasons, events… Spreadsheet or JSON."
+      }
+    },
+    "journalFor": "For",
+    "journalLink": "Next",
+    "journalSeeSummary": "See the summary",
+    "journalSeeSummaryFor": "See the summary of {file}",
+    "forKind": {
+      "events": "Events",
+      "tasks": "Tasks",
+      "budget_lines": "Budget",
+      "catalog_items": "Catalogue",
+      "vendor_slots": "Starting items",
+      "prospect_sources": "Sources",
+      "loss_reasons": "Loss reasons",
+      "payment_methods": "Payment methods",
+      "vendors": "Vendor book",
+      "event_sheets": "Event sheets",
+      "contacts": "Contacts",
+      "event_vendors": "Booked vendors",
+      "program": "Schedule"
+    },
+    "journalState": {
+      "draft": "In progress",
+      "applied": "Imported",
+      "undone": "Removed",
+      "cancelled": "Abandoned"
+    },
+    "journalEntityType": "Content",
+    "how": {
+      "contacts": "In your spreadsheet or current tool, save your contact list as CSV or Excel: one row per person, with their name (or “LAST First” in a single column), email, phone and notes.",
+      "vendors": "In your current tool, open your vendor list and export it as Excel (.xlsx), without editing the file.",
+      "event_sheets": "In your current tool, open each event and download its sheet as a PDF. Then upload them all at once."
+    }
   },
   "Privacy": {
     "title": "Personal data",
@@ -5335,7 +5375,7 @@
       "max": "{field}: at most {value}",
       "eq": "{field}: {value}"
     },
-    "importVendors": "Import",
+    "importVendors": "Import and take over",
     "importFilterPill": "Import of {date}",
     "importFilterCreated": "Import of {date}: created",
     "importFilterUpdated": "Import of {date}: updated",
@@ -5523,7 +5563,14 @@
       "noEventsModule": "The Events module is not subscribed: your first steps start with the checklist on the home page.",
       "goHome": "Go to the home page",
       "noSource": "First add a lead source in the event settings.",
-      "dateRequired": "Enter the event date: the planning is calculated from it."
+      "dateRequired": "Enter the event date: the planning is calculated from it.",
+      "takeoverTitle": "Take over an ongoing wedding",
+      "takeoverIntro": "You track your weddings in {tools} today. To avoid retyping, take over an ongoing wedding first: Symbola tells you which files to drop, in which order.",
+      "takeoverBody": "Six files at most: vendor book, sheet, budget, vendors, to-do list, schedule. About 30 minutes per wedding. Nothing is written without your approval.",
+      "takeoverStart": "Take over an ongoing wedding",
+      "takeoverCreate": "Create a new wedding",
+      "takeoverElsewhere": "Already tracking weddings elsewhere?",
+      "toolsAnd": "{first} and {last}"
     },
     "vatRegime": {
       "franchise": "VAT exemption (small business)",
@@ -5708,7 +5755,7 @@
     "vendorTypes": "Vendor types",
     "vendorTags": "Tags",
     "vendorTravel": "Travel estimates",
-    "import": "Import",
+    "import": "Import and take over",
     "privacy": "Personal data",
     "eventTypes": "Event types",
     "documents": "Documents",
@@ -9087,8 +9134,9 @@
       "settings": "Go to Settings",
       "trash": "Open the trash",
       "help": "Open the help",
-      "import": "Import a file",
-      "appointments": "See appointments"
+      "import": "Import and take over",
+      "appointments": "See appointments",
+      "takeover": "Take over an ongoing wedding"
     }
   },
   "Shortcuts": {
@@ -13251,5 +13299,141 @@
     "switch": "Switch organization",
     "switchHint": "Or create another",
     "phoneIdentity": "{name} · {organization}"
+  },
+  "Takeover": {
+    "title": "Take over an ongoing wedding",
+    "titleEvent": "Take over \"{event}\"",
+    "intro": "Drop the files from your previous tool, in this order. Nothing is written without your approval; each import can be removed for {days} days.",
+    "nothingWritten": "nothing is written without your approval",
+    "eventDate": "Wedding on {date}",
+    "eventNoDate": "Wedding without a date",
+    "startedToday": "takeover started today at {time}",
+    "startedOn": "takeover started on {date} at {time}",
+    "progress": "{settled} of {total} {total, plural, one {file} other {files}}",
+    "stepsLabel": "The files to take over, in order",
+    "step": {
+      "vendor_book": {
+        "title": "Vendor book",
+        "body": "The spreadsheet or export of your vendor book. It serves all your weddings: it is taken over once, first.",
+        "format": "Spreadsheet (CSV, Excel)"
+      },
+      "event": {
+        "title": "The wedding",
+        "body": "The sheet exported from your software, or the names and the date if you track it in a spreadsheet.",
+        "format": "PDF, or typed in"
+      },
+      "budget": {
+        "title": "Budget",
+        "body": "Items, planned, actual, deposits paid, balances.",
+        "format": "Spreadsheet (CSV, Excel)"
+      },
+      "event_vendors": {
+        "title": "Booked vendors",
+        "body": "The \"Vendors\" export of your software. If your budget already names them, nothing to do.",
+        "format": "PDF"
+      },
+      "tasks": {
+        "title": "To-do list",
+        "body": "Your tasks: done or not, due date, who handles them.",
+        "format": "Spreadsheet (CSV, Excel)"
+      },
+      "program": {
+        "title": "Day-of schedule",
+        "body": "The schedule exported from your software, or your spreadsheet.",
+        "format": "PDF"
+      }
+    },
+    "state": {
+      "todo": "To do",
+      "in_progress": "In progress",
+      "no_file": "No file",
+      "covered": "With the budget",
+      "waiting": "After the wedding",
+      "importedAt": "Imported at {time}",
+      "importedOn": "Imported on {date}",
+      "createdAt": "Created at {time}",
+      "createdOn": "Created on {date}"
+    },
+    "shape": {
+      "done": "Done",
+      "running": "In progress",
+      "todo": "To do",
+      "none": "Settled without a file"
+    },
+    "detail": {
+      "forAllWeddings": "{file} · for all your weddings",
+      "droppedAt": "{file} · dropped at {time}",
+      "droppedOn": "{file} · dropped on {date}",
+      "entered": "Typed in: {event}",
+      "enteredWithDate": "Typed in: {event}, {date}",
+      "signed": "Signed, in preparation",
+      "chosenOn": "Chosen on {date}",
+      "stoppedAt": "Stopped at \"{step}\"",
+      "covered": "{count, plural, =0 {Your budget names its vendors: they will be booked with it.} one {Your budget names # vendor: they will be booked with it.} other {Your budget names # vendors: they will be booked with it.}}",
+      "coveredNoFile": "No file to drop",
+      "doneByHand": "Imported from the wedding's page"
+    },
+    "figure": {
+      "vendors": "{count, plural, =0 {no record} one {# record} other {# records}}",
+      "budgetLines": "{count, plural, =0 {no line} one {# line} other {# lines}}",
+      "tasks": "{count, plural, =0 {no task} one {# task} other {# tasks}}",
+      "events": "{count, plural, =0 {no event} one {# event} other {# events}}",
+      "rows": "{count, plural, =0 {no line} one {# line} other {# lines}}"
+    },
+    "action": {
+      "drop": "Drop the file",
+      "dropSheet": "Drop the sheet",
+      "enterNames": "Enter names and date",
+      "noFile": "I don't have this file",
+      "continue": "Continue",
+      "abandon": "Abandon this import…",
+      "seeSummary": "See the summary",
+      "openEvent": "Open the event",
+      "dropAgain": "Drop a file",
+      "dropAnyway": "Drop a file anyway"
+    },
+    "actionFor": "{action}: {step}",
+    "abandonTitle": "Abandon the import \"{file}\"?",
+    "abandonBody": "The file and your choices are erased; nothing has been imported yet. The line goes back to to do.",
+    "abandonConfirm": "Abandon the import",
+    "abandonKeep": "Keep the import",
+    "several": "A file that holds several things (a budget that names the vendors, for example) ticks every line it fills.",
+    "howToExport": "How do I export from my software?",
+    "laterOnEvent": "What is left to complete by hand (missing amounts, the couple's links, guests…) will show on the wedding's page.",
+    "doneSummary": "Takeover finished on {date} at {time}",
+    "doneTitle": "{count, plural, =0 {Takeover done. Your files gave everything Symbola can check; read through the wedding's page.} one {Takeover done. # item is left to complete by hand.} other {Takeover done. # items are left to complete by hand.}}",
+    "doneBody": "What your files did not give: {list}. They are to complete on the wedding's page.",
+    "point": {
+      "amounts": "the amounts to allocate to the items",
+      "tasks": "the tasks",
+      "endTimes": "{count, plural, one {# end time in the schedule} other {# end times in the schedule}}",
+      "clientLink": "the couple's personal link",
+      "guests": "the number of guests"
+    },
+    "openToComplete": "Open \"To complete\"",
+    "withdrawUntil": "Each import can be removed from its summary until {date} ({days} days).",
+    "another": "Take over another wedding",
+    "openTitle": "Takeovers in progress",
+    "openUnnamed": "Wedding not entered yet",
+    "openLine": "\"{event}\" · {progress}",
+    "openContinue": "Continue the takeover of \"{event}\"",
+    "formBack": "Take over a wedding",
+    "formTitle": "The wedding you are taking over",
+    "formIntro": "The rest will come from your files. It will be \"Signed, in preparation\"; its tasks will come from your list, not from a template.",
+    "formName": "Event name",
+    "formNamePlaceholder": "Juliette & Romain",
+    "formDate": "Date",
+    "formType": "Event type",
+    "formSubmit": "Continue the takeover",
+    "formSaving": "Saving…",
+    "backTo": "Take over \"{event}\"",
+    "backToNew": "Take over an ongoing wedding",
+    "feedbackImported": "{step} imported: {figure}",
+    "feedbackSeeSummary": "See the summary",
+    "feedbackEvent": "Wedding saved: {event}",
+    "feedbackEventDetail": "Signed, in preparation; its tasks will come from your list.",
+    "notFound": "This takeover cannot be found.",
+    "oneSheet": "One sheet only for this wedding: drop its PDF on its own.",
+    "backToTakeover": "Back to the takeover"
   }
 }

@@ -318,6 +318,9 @@ export {
   type StartImportResult,
   type StartEventSheetsImportResult,
   listImportedEvents,
+  listImportSummaries,
+  countBudgetVendorNames,
+  coverTakeoverFromBudgetProposal,
 } from "./imports";
 export {
   allStepsSettled,
@@ -332,6 +335,8 @@ export {
   getTakeover,
   listTakeovers,
   markTakeoverCompleted,
+  markTakeoverStepImported,
+  previewTakeover,
   settleTakeoverStep,
   TakeoverDemoEventError,
   TakeoverEventTakenError,

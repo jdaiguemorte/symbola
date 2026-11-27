@@ -92,13 +92,6 @@
     "signingLinksHint": "Un client n'a pas reçu l'e-mail ? Envoyez-lui son lien ci-dessus (clic droit, « Copier le lien »). Chaque lien est personnel.",
     "quoteEventColumn": "Évènement"
   },
-  "Import": {
-    "takeover": {
-      "event_sheets": {
-        "what": "Chaque fiche devient un évènement : clients et leurs coordonnées, date, lieux et horaires, budget souhaité. Le statut est proposé d'après la date ; vous le changez dans l'aperçu."
-      }
-    }
-  },
   "Privacy": {
     "setting": {
       "clientRetentionMonths": "Client : conservation après la fin de la relation (mois)",
