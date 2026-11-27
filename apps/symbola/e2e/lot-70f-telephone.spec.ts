@@ -240,11 +240,26 @@ test.describe("UX-05 — La barre du bas et la barre du haut du téléphone (lot
       await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
       const measure = await page.evaluate(() => {
         const bar = document.querySelector<HTMLElement>(".app-tabbar")!.getBoundingClientRect();
+        // Ce qui se voit : une boîte de plus d'un pixel (pas un texte réservé aux lecteurs d'écran), bornée par
+        // ses conteneurs qui rognent (défilement de côté, calendrier), hors des éléments fixes.
+        const visibleBottom = (element: HTMLElement): number | null => {
+          const rect = element.getBoundingClientRect();
+          if (rect.width <= 1 || rect.height <= 1) return null;
+          let bottom = rect.bottom;
+          for (let parent = element.parentElement; parent && parent !== document.body; parent = parent.parentElement) {
+            const style = getComputedStyle(parent);
+            if (style.position === "fixed") return null;
+            if (style.overflowX !== "visible" || style.overflowY !== "visible" || style.clip !== "auto") bottom = Math.min(bottom, parent.getBoundingClientRect().bottom);
+          }
+          return bottom;
+        };
         const items = [...document.querySelectorAll<HTMLElement>("main *")].filter((element) => element.children.length === 0 && element.getClientRects().length > 0 && getComputedStyle(element).visibility !== "hidden");
-        const lowest = Math.max(...items.map((element) => element.getBoundingClientRect().bottom));
-        return { barTop: bar.top, lowest };
+        const measured = items.map((element) => ({ element, bottom: visibleBottom(element) })).filter((entry): entry is { element: HTMLElement; bottom: number } => entry.bottom !== null);
+        const last = measured.reduce((low, entry) => (entry.bottom > low.bottom ? entry : low), measured[0]!);
+        const name = `${last.element.tagName.toLowerCase()}.${String(last.element.className).split(" ")[0]} « ${(last.element.textContent ?? "").trim().slice(0, 40)} »`;
+        return { barTop: bar.top, lowest: last.bottom, name };
       });
-      expect(measure.lowest, `${path} : la dernière ligne finit à ${Math.round(measure.lowest)} px, la barre commence à ${Math.round(measure.barTop)} px`).toBeLessThanOrEqual(measure.barTop + 1);
+      expect(measure.lowest, `${path} : ${measure.name} finit à ${Math.round(measure.lowest)} px, la barre commence à ${Math.round(measure.barTop)} px`).toBeLessThanOrEqual(measure.barTop + 1);
     }
     // L'action flottante de « Tâches » (« Nouvelle tâche », lot 70d) se pose au-dessus de la barre du bas.
     await page.goto("/taches");
