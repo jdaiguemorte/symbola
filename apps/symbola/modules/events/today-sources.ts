@@ -3,7 +3,7 @@
 // retenus sans contrat signé, relance d'un prestataire inscrite dans l'activité. Jamais importé hors
 // de modules/events/ (ADR 0011) ; tout se lit et s'écrit sous RLS, dans l'organisation. Les essais
 // et les évènements clos (faits ou perdus) ne demandent rien.
-import { and, asc, desc, eq, gt, gte, isNull, notExists, notInArray, or } from "drizzle-orm";
+import { and, asc, desc, eq, exists, gt, gte, isNull, lte, notExists, notInArray, or } from "drizzle-orm";
 import { appDatabase } from "@symbola/db/client";
 import { eventActivities, eventDecisions, events, eventVendorCandidateNotes, eventVendorCandidates, eventVendorSlots, vendorReminders } from "@symbola/db/schema/events";
 import { withOrganization } from "@symbola/db/with-organization";
@@ -28,7 +28,9 @@ export async function findPendingDecisions(organizationId: string): Promise<Pend
 
 export type UncontractedVendorRow = { candidate: typeof eventVendorCandidates.$inferSelect; slotLabel: string };
 
-// Retenu, sans contrat signé, sur un évènement en cours dont la date n'est pas passée.
+// Retenu, sans contrat signé, sur un évènement en cours dont la date n'est pas passée. Lot 71a (I2) : un
+// prestataire retenu par une reprise n'y paraît qu'au rappel d'une relance notée ; même règle que
+// needsContractReminder (today-rules.ts), écrite en SQL.
 export async function findUncontractedVendors(organizationId: string, today: string): Promise<UncontractedVendorRow[]> {
   return await withOrganization(appDatabase(), organizationId, (tx) =>
     tx
@@ -44,6 +46,11 @@ export async function findUncontractedVendors(organizationId: string, today: str
           or(isNull(events.eventDate), gte(events.eventDate, today)),
           // Lot 65d (M16) : une relance notée le retire jusqu'à son rappel ; il revient le jour du rappel.
           notExists(tx.select({ id: vendorReminders.id }).from(vendorReminders).where(and(eq(vendorReminders.candidateId, eventVendorCandidates.id), gt(vendorReminders.recallOn, today)))),
+          // Lot 71a (I2) : jamais d'office pour un prestataire retenu par une reprise.
+          or(
+            isNull(eventVendorCandidates.takeoverContract),
+            exists(tx.select({ id: vendorReminders.id }).from(vendorReminders).where(and(eq(vendorReminders.candidateId, eventVendorCandidates.id), lte(vendorReminders.recallOn, today)))),
+          ),
         ),
       )
       .orderBy(asc(eventVendorCandidates.updatedAt)),

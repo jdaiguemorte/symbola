@@ -20,6 +20,7 @@ import {
   eventPayers,
   budgetLinePayerShares,
   plannerInstalmentPayers,
+  unallocatedTotals,
 } from "@symbola/db/schema/budget";
 
 const ofEvent = { eventField: "eventId" } as const;
@@ -39,6 +40,8 @@ export const BUDGET_EXPORT_ENTITIES: readonly ExportEntitySpec[] = [
   { table: budgetLineHistory, parents: { lineId: "budget_lines" } },
   { table: budgetLineAttachments, parents: { lineId: "budget_lines" }, files: ["fileKey"] },
   { table: vendorPayments, ...ofEvent, parents: { lineId: "budget_lines", payerId: "event_payers" } },
+  // Lot 71a (C-56) : le total « à répartir » d'un mariage repris suit son budget.
+  { table: unallocatedTotals, ...ofEvent },
 ];
 
 // Toutes les tables du module sont exportées.

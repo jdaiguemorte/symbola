@@ -22,3 +22,23 @@ export function neutralizeCell(value: string): { value: string; neutralized: boo
   if (!needsNeutralization(value)) return { value, neutralized: false };
   return { value: `'${value}`, neutralized: true };
 }
+
+// Lot 71a (SEC-21) : un objet lu d'un PDF (programme, prestataires retenus) dont chaque texte passe
+// par neutralizeCell avant d'être gardé, comme les cellules d'un tableur. Les autres valeurs
+// (nombres, booléens, null) restent telles quelles ; le nombre de textes neutralisés est rendu.
+// `keep` : clés dont la valeur n'est jamais gardée telle quelle (un identifiant Instagram « @… »,
+// validé puis réécrit en adresse par l'appelant).
+export function neutralizeTexts<T>(value: T, keep: ReadonlySet<string> = new Set()): { value: T; neutralized: number } {
+  let neutralized = 0;
+  const walk = (item: unknown): unknown => {
+    if (typeof item === "string") {
+      const cell = neutralizeCell(item);
+      if (cell.neutralized) neutralized += 1;
+      return cell.value;
+    }
+    if (Array.isArray(item)) return item.map(walk);
+    if (item !== null && typeof item === "object") return Object.fromEntries(Object.entries(item).map(([key, entry]) => [key, keep.has(key) ? entry : walk(entry)]));
+    return item;
+  };
+  return { value: walk(value) as T, neutralized };
+}

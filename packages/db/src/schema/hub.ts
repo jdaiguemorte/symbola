@@ -5,7 +5,7 @@
 // ces tables est assurée exclusivement par packages/auth (seule porte
 // d'entrée, ADR 0013) : aucun autre code n'y accède directement.
 import { sql } from "drizzle-orm";
-import { bigint, boolean, check, date, index, integer, jsonb, pgSchema, primaryKey, text, time, timestamp, unique, uniqueIndex, uuid } from "drizzle-orm/pg-core";
+import { bigint, boolean, check, date, index, integer, jsonb, pgSchema, primaryKey, text, time, timestamp, unique, uniqueIndex, uuid, type AnyPgColumn } from "drizzle-orm/pg-core";
 
 export const hubSchema = pgSchema("hub");
 
@@ -442,6 +442,9 @@ export const platformSettings = hubSchema.table("platform_settings", {
   // validés par Julien) ; ensuite les valeurs gardées pour l'annulation sont
   // effacées, le journal reste.
   importUndoRetentionDays: integer("import_undo_retention_days").notNull().default(90),
+  // Lot 71a (décision I4 de Julien, 27/11/2026 ; à confirmer par le DPO) : durée pendant laquelle ce
+  // qu'un import n'a pas repris (l'annuaire d'un programme) reste proposé au carnet, puis effacé.
+  importLeftoversRetentionDays: integer("import_leftovers_retention_days").notNull().default(90),
   // Lot 14c (IMP-08) : nombre de fiches événement PDF déposées à la fois.
   importMaxSheets: integer("import_max_sheets").notNull().default(50),
   // Lot 31a (FAC-07, JUR-01, décision D4) : mentions requises sur les devis, factures et
@@ -516,6 +519,10 @@ export const importEntityTypeEnum = hubSchema.enum("import_entity_type", [
   "event_sheets",
   // Lot 36b (HUB-14, D11) : contacts du hub.
   "contacts",
+  // Lot 71a (HUB-14, C-66 ; migration 0219) : les PDF des prestataires retenus et du programme entrent
+  // dans le journal commun des imports (bilan, retrait d'ensemble ; écrans du paquet 71e).
+  "event_vendors",
+  "program",
 ]);
 
 export type ImportColumnChoice = {
@@ -595,6 +602,9 @@ export type ImportMatching = {
   // Lot 36b (D11, SC-10) : lignes écartées selon la valeur d'une colonne (« Catégorie » vaut
   // « prestataire ») ; valeurs comparées sans casse, accents ni espaces autour.
   rowFilter?: { columnIndex: number; excluded: string[] };
+  // Lot 71a (HUB-14 ; ADR 0119) : réponses de l'étape « Questions » (contrat ImportAnswers de
+  // packages/contracts) ; gardées quand les rapprochements sont recalculés.
+  answers?: Record<string, unknown>;
 };
 
 export const importStatusEnum = hubSchema.enum("import_status", ["draft", "applied", "undone", "cancelled"]);
@@ -634,12 +644,23 @@ export const imports = hubSchema.table("imports", {
   // lignes de budget) : toutes les lignes vont dans cet évènement, sans colonne pour le désigner.
   // Identifiant opaque (pas de clé étrangère entre schémas).
   targetEventId: uuid("target_event_id"),
+  // Lot 71a (HUB-14 ; migration 0219, ADR 0119) : la reprise à laquelle l'import appartient ; nul pour un
+  // import d'avant le lot (décision I8) ou hors reprise (contacts, carnet, listes).
+  takeoverId: uuid("takeover_id").references((): AnyPgColumn => takeovers.id, { onDelete: "set null" }),
+  // Lot 71a (R14, décision I4) : ce que le fichier contenait et qui peut être repris plus tard (l'annuaire
+  // d'un programme : noms, rôles, téléphones). Effacé au plus tard après la durée réglée par l'Admin
+  // (platform_settings.import_leftovers_retention_days, 90 jours, à confirmer par le DPO), au retrait de
+  // l'import et dès que la planner l'a ajouté au carnet ou écarté. Jamais exporté.
+  leftovers: jsonb("leftovers").$type<ImportLeftovers | null>(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
   createdBy: uuid("created_by"),
   updatedBy: uuid("updated_by"),
-}, (table) => [index("imports_organization_idx").on(table.organizationId)]);
+}, (table) => [index("imports_organization_idx").on(table.organizationId), index("imports_takeover_idx").on(table.takeoverId)]);
+
+// Lot 71a (R14) : l'annuaire d'un programme repris d'un PDF, proposé au carnet depuis le bilan.
+export type ImportLeftovers = { directory?: { role: string; company: string | null; contact: string | null; phone: string | null }[] };
 
 export type ImportResult = { created: number; updated: number; unchanged: number; rejected: number };
 
@@ -663,6 +684,9 @@ export const importItems = hubSchema.table("import_items", {
   previous: jsonb("previous").$type<Record<string, unknown> | null>(),
   written: jsonb("written").$type<Record<string, unknown> | null>(),
   undoOutcome: text("undo_outcome").$type<"undone" | "kept_modified" | "kept_in_use" | "missing" | null>(),
+  // Lot 71a (R7, décision I9 ; migration 0219) : noms des champs que l'import a écrits sur l'élément, sans
+  // aucune valeur, pour « D'où viennent ces valeurs ? » ; gardés tant que l'élément existe.
+  fields: text("fields").array(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
   createdBy: uuid("created_by"),
@@ -704,6 +728,71 @@ export const importJobs = hubSchema.table("import_jobs", {
   createdBy: uuid("created_by"),
   updatedBy: uuid("updated_by"),
 }, (table) => [index("import_jobs_organization_idx").on(table.organizationId)]);
+
+// Lot 71a (HUB-14, PAR-01, UX-02 ; spécification du lot 71, § 4.1 ; ADR 0119) — la reprise d'un
+// mariage en cours : une page par mariage, qui regroupe ses imports. Sortes et états : mêmes listes
+// que packages/contracts (takeover/takeover.ts), vérifiées par modules/hub/takeovers.test.ts. Le mariage peut ne pas exister
+// encore (ligne 2 de la page) ; son identifiant est contrôlé par le service des évènements (pas de clé
+// étrangère entre schémas). Aucune donnée personnelle : des identifiants, des dates, des états.
+export const TAKEOVER_STEP_KINDS = ["vendor_book", "event", "budget", "event_vendors", "tasks", "program"] as const;
+export const TAKEOVER_STEP_STATES = ["todo", "in_progress", "done", "no_file", "covered"] as const;
+
+export const takeovers = hubSchema.table(
+  "takeovers",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    eventId: uuid("event_id"),
+    // Première fois que la liste « À compléter » s'est vidée (lot 71f) ; nul tant qu'un point reste.
+    completedAt: timestamp("completed_at", { withTimezone: true }),
+    // La planner a fermé la liste « À compléter » (R9, sept jours après completed_at au plus tard).
+    checklistClosedAt: timestamp("checklist_closed_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row) ; created_by est la personne qui a
+    // commencé la reprise.
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    index("takeovers_organization_event_idx").on(table.organizationId, table.eventId),
+    // R1 : une seule page de reprise par mariage.
+    uniqueIndex("takeovers_event_idx").on(table.organizationId, table.eventId).where(sql`event_id is not null`),
+  ],
+);
+
+export const takeoverSteps = hubSchema.table(
+  "takeover_steps",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    takeoverId: uuid("takeover_id")
+      .notNull()
+      .references(() => takeovers.id, { onDelete: "cascade" }),
+    kind: text("kind", { enum: TAKEOVER_STEP_KINDS }).notNull(),
+    state: text("state", { enum: TAKEOVER_STEP_STATES }).notNull().default("todo"),
+    // L'import de la ligne (en cours ou appliqué) ; nul pour « à faire », « pas de fichier », ou la ligne
+    // du mariage saisi à la main.
+    importId: uuid("import_id").references((): AnyPgColumn => imports.id, { onDelete: "set null" }),
+    // « Avec le budget » : la ligne des prestataires retenus couverte par la ligne du budget.
+    coveredByStepId: uuid("covered_by_step_id").references((): AnyPgColumn => takeoverSteps.id),
+    decidedAt: timestamp("decided_at", { withTimezone: true }),
+    decidedBy: uuid("decided_by"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    index("takeover_steps_organization_idx").on(table.organizationId),
+    index("takeover_steps_import_idx").on(table.importId),
+    uniqueIndex("takeover_steps_kind_idx").on(table.takeoverId, table.kind),
+    check("takeover_steps_kind_check", sql`${table.kind} in ('vendor_book', 'event', 'budget', 'event_vendors', 'tasks', 'program')`),
+    check("takeover_steps_state_check", sql`${table.state} in ('todo', 'in_progress', 'done', 'no_file', 'covered')`),
+    check("takeover_steps_covered_check", sql`(${table.state} = 'covered') = (${table.coveredByStepId} is not null)`),
+    check("takeover_steps_decided_check", sql`(${table.state} = 'todo') or ${table.decidedAt} is not null`),
+  ],
+);
 
 // Lot 6 (RGPD-04) — demandes d'exercice de droits reçues par la titulaire :
 // type, personne concernée (libellé saisi), réception, échéance légale

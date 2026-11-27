@@ -155,10 +155,14 @@ function withoutStoredFiles(payload: ImportJobPayload): ImportJobPayload {
 }
 
 // Import abandonné, expiré ou annulé : ses traitements en cours s'arrêtent,
-// les fiches encore gardées sont supprimées.
+// les fiches encore gardées sont supprimées. Lot 71a (SEC-21) : une lecture
+// arrêtée en échec garde ses fiches pour être relancée ; à l'abandon ou à
+// l'expiration, elles partent aussi.
+const HOLDING_FILES: ImportJobStatus[] = [...ACTIVE, "failed"];
+
 export async function cancelImportJobs(db: AppDatabase, organizationId: string, importId: string, now: Date = new Date()): Promise<number> {
   const active = await withOrganization(db, organizationId, (tx) =>
-    tx.select().from(importJobs).where(and(eq(importJobs.importId, importId), inArray(importJobs.status, ACTIVE))),
+    tx.select().from(importJobs).where(and(eq(importJobs.importId, importId), inArray(importJobs.status, HOLDING_FILES))),
   );
   for (const job of active) {
     await deleteStoredSheets(job.payload);

@@ -3496,7 +3496,10 @@
       "phone": "Téléphone",
       "country": "Pays",
       "notes": "Notes (deviennent une note de la fiche)",
-      "contactName": "Nom ou prénom"
+      "contactName": "Nom ou prénom",
+      "note": "Note",
+      "total": "Total engagé",
+      "paid": "Déjà réglé"
     },
     "requiredField": "{field} (obligatoire)",
     "columnsStepTitle": "Colonnes",
@@ -6330,7 +6333,10 @@
       "hub_member_signatures": "Signature d'un membre",
       "events_day_reminder_overrides": "réglage du rappel du jour J d'un évènement",
       "hub_sending_settings": "l'heure d'envoi par défaut",
-      "hub_day_reminder_targets": "réglage du rappel du jour J"
+      "hub_day_reminder_targets": "réglage du rappel du jour J",
+      "hub_takeovers": "une reprise de mariage",
+      "hub_takeover_steps": "une ligne d'une reprise de mariage",
+      "budget_unallocated_totals": "le total à répartir d'un mariage repris"
     },
     "modules": {
       "events": "Évènements",
