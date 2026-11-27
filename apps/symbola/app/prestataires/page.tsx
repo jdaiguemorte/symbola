@@ -86,7 +86,16 @@ export default async function VendorBookPage({ searchParams }: { searchParams: P
   await ensureVendorFamilies(organizationId, locale);
   const query = await searchParams;
   const view = query.vue === "carte" ? "carte" : "liste";
-  const [selection, counts, familyCounts, bookImport] = await Promise.all([loadBookSelection(organizationId, query), countVendorsByType(organizationId), countVendorsByFamily(organizationId), latestBookImport(organizationId)]);
+  // NFR-02 : le compte par métier ne sert qu'au second rang (une famille choisie), le dernier import qu'à la
+  // phrase « à classer » ; ils ne sont lus que si l'écran les montre.
+  const familyChosen = typeof query.famille === "string" && query.famille !== "";
+  const [selection, counts, familyCounts, tour] = await Promise.all([
+    loadBookSelection(organizationId, query),
+    familyChosen ? countVendorsByType(organizationId) : Promise.resolve([]),
+    countVendorsByFamily(organizationId),
+    loadPageTour(auth.user.id, "vendors", typeof query.visite === "string" ? query.visite : undefined),
+  ]);
+  const bookImport = (familyCounts.families.find((entry) => entry.familyId === null)?.count ?? 0) > 0 ? await latestBookImport(organizationId) : null;
   const { families, types, tags, tagGroups, filters, center, centerNotFound, results, target, importFilter } = selection;
   const typeById = new Map(types.map((type) => [type.id, type]));
   const familyById = new Map(families.map((family) => [family.id, family]));
@@ -130,7 +139,6 @@ export default async function VendorBookPage({ searchParams }: { searchParams: P
     documents: (filter) => t("activeFilterDocuments", { documents: documentLabel(filter).toLocaleLowerCase(locale) }),
   });
   const clearHref = chips.length > 0 ? clearFiltersHref("/prestataires", query, filters) : null;
-  const tour = await loadPageTour(auth.user.id, "vendors", typeof query.visite === "string" ? query.visite : undefined);
   const sort = effectiveSort(filters, center !== null);
   const notice = unclassifiedNotice({ count: unclassifiedCount, importWithoutTradeColumn: bookImport?.withoutTradeColumn ?? false });
   const exportHref = (format: "csv" | "pdf") => `/prestataires/export${queryString(query, { format })}`;

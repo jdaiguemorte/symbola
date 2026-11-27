@@ -283,6 +283,9 @@
     .vendor-board .vendor-row-add {
       @apply hidden;
     }
+    .vendor-board .vendor-name-link {
+      @apply inline-flex min-h-11 items-center;
+    }
     .vendor-board .vendor-phone-summary {
       @apply block text-label text-ink-muted;
     }
@@ -307,6 +310,10 @@
     }
     .book-filters .filter-bar .vendor-filter-search {
       @apply w-full min-w-0;
+    }
+    .book-filters .filter-bar input,
+    .book-filters .filter-bar select {
+      @apply !h-11;
     }
     .book-filters .filter-bar > label,
     .book-filters .filter-bar > label select,
@@ -352,6 +359,9 @@
     }
     .vendor-classify-table td {
       @apply border-0 px-0 py-1;
+    }
+    .vendor-classify-table .vendor-name-link {
+      @apply inline-flex min-h-11 items-center;
     }
     .vendor-classify-bar {
       @apply fixed inset-x-0 bottom-0 m-0 rounded-none rounded-t-lg border-x-0 border-b-0;

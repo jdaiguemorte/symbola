@@ -13,12 +13,31 @@ import { expect, test, type Page } from "@playwright/test";
 import AxeBuilder from "./axe";
 import { vendorCatalogInput } from "../lib/vendors/catalog";
 import { createVendor, createVendorTag, getVendor, listVendorDocumentKinds, listVendorTypes, requestVendorDocument, seedStarterVendorCatalog } from "../modules/vendors/service";
-import { expectTouchTargets, feedback, readyOrganization, signIn } from "./helpers";
+import { feedback, readyOrganization, signIn } from "./helpers";
 import { bookFilters, bookResults, closeBookFilters, isPhone } from "./vendor-book";
 
 async function expectNoAxeViolation(page: Page) {
   const result = await new AxeBuilder({ page }).analyze();
   expect(result.violations, JSON.stringify(result.violations, null, 2)).toEqual([]);
+}
+
+// Critère 11 : aucune commande de l'écran sous 44 px (le lien d'évitement et le bouton « Filtrer » réservé
+// aux lecteurs d'écran, communs à l'app, ne sont pas de l'écran).
+async function expectMainTouchTargets(page: Page) {
+  const small = await page.evaluate(() =>
+    [...document.querySelectorAll<HTMLElement>("main button, main a[href], main select, main input:not([type=hidden])")]
+      .filter((element) => !element.closest(".sr-only") && !element.classList.contains("sr-only"))
+      .filter((element) => {
+        const style = getComputedStyle(element);
+        const box = element.getBoundingClientRect();
+        if (box.width === 0 || box.height === 0 || style.visibility === "hidden") return false;
+        // Un lien dans une phrase n'est pas une commande isolée.
+        if (element.tagName === "A" && style.display === "inline" && (element.parentElement?.textContent ?? "").trim().length > (element.textContent ?? "").trim().length) return false;
+        return box.height < 44;
+      })
+      .map((element) => `${element.tagName} « ${(element.textContent ?? "").trim().slice(0, 30)} » ${Math.round(element.getBoundingClientRect().height)}`),
+  );
+  expect(small).toEqual([]);
 }
 
 async function expectNoHorizontalScroll(page: Page) {
@@ -83,7 +102,7 @@ test.describe("PRE-01, PRE-05 — La ligne du carnet (lot 73b, critères 1, 2 et
     await signIn(page, book.email, /\/$/);
     await page.goto("/prestataires");
     const row = page.locator(`tr[data-vendor-id="${book.haddad.id}"]`);
-    await expect(row.getByRole("link", { name: "Maison Haddad" })).toBeVisible();
+    await expect(row.getByRole("link", { name: "Maison Haddad", exact: true })).toBeVisible();
     // Contact, téléphone, métier, ville, mariages faits ensemble, évaluation, pièces.
     await expect(row).toContainText("Traiteur");
     await expect(row).toContainText("Lille");
@@ -117,7 +136,7 @@ test.describe("PRE-01, PRE-05 — La ligne du carnet (lot 73b, critères 1, 2 et
     await expect(menu).toBeHidden();
 
     // Le nom ouvre la fiche, en un clic (V3 : plus d'aperçu latéral).
-    await row.getByRole("link", { name: "Maison Haddad" }).click();
+    await row.getByRole("link", { name: "Maison Haddad", exact: true }).click();
     await expect(page).toHaveURL(new RegExp(`/prestataires/${book.haddad.id}$`));
   });
 
@@ -135,7 +154,7 @@ test.describe("PRE-01, PRE-05 — La ligne du carnet (lot 73b, critères 1, 2 et
       expect(await state(other).evaluate((element) => getComputedStyle(element).color)).not.toBe(red);
     }
     await expectNoHorizontalScroll(page);
-    if (isPhone(page)) await expectTouchTargets(page, 44);
+    if (isPhone(page)) await expectMainTouchTargets(page);
   });
 });
 
