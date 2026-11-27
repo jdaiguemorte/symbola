@@ -93,12 +93,19 @@ const planningHealthSchema = z.object({
   milestoneWeight: z.number().int().min(1).max(10),
   // Lot 70a (M10) : seuil de « Bientôt », en jours.
   soonDays: z.number().int().min(1).max(30),
+  // Lot 72d (J9) : « Ouvrir le Jour J » dans l'en-tête de la fiche, en jours avant le jour J.
+  dayOfLeadDays: z.number().int().min(1).max(30),
 });
 const planningHealth = planningHealthSchema.parse(planningHealthFile);
 
 // Lot 70a (UX-06, CHR-05 ; M10) : seuil de départ de l'état « Bientôt » d'une tâche.
 export function starterTaskSoonDays(): number {
   return planningHealth.soonDays;
+}
+
+// Lot 72d (EVT-02 ; J9) : délai de départ de « Ouvrir le Jour J » dans l'en-tête de la fiche.
+export function starterDayOfLeadDays(): number {
+  return planningHealth.dayOfLeadDays;
 }
 
 export function starterPlanningHealth(): { watchPoints: number; latePoints: number; milestoneWeight: number } {

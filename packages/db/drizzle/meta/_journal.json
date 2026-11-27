@@ -1587,12 +1587,19 @@
     {
       "idx": 226,
       "version": "7",
+      "when": 1795794582364,
+      "tag": "0226_lot72d_events_day_of_lead_days",
+      "breakpoints": true
+    },
+    {
+      "idx": 227,
+      "version": "7",
       "when": 1795801445107,
       "tag": "0234_lot73a_vendors_document_kind_usage",
       "breakpoints": true
     },
     {
-      "idx": 227,
+      "idx": 228,
       "version": "7",
       "when": 1795801447750,
       "tag": "0235_lot73a_events_candidate_retained_at",

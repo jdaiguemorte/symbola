@@ -64,6 +64,10 @@ export type TaskDueState =
 // Seuil de « Bientôt », en jours (M10) ; réglable par organisation, 7 au départ (planning-health.json).
 export const taskSoonDaysSchema = z.number().int().min(1).max(30);
 
+// Lot 72d (EVT-02 ; J9) : « Ouvrir le Jour J » devient l'action de l'en-tête de la fiche ce nombre de jours
+// avant le jour J ; réglable par organisation, 7 au départ (planning-health.json).
+export const dayOfLeadDaysSchema = z.number().int().min(1).max(30);
+
 // Une tâche confiée à un membre de l'équipe (A19). Aucun libellé ni nom (SEC-20) : des identifiants.
 // batch : la tâche fait partie d'une action en lot (« Confier à… » sur plusieurs tâches) ; le consommateur
 // en fait une seule notification par destinataire (« 3 tâches vous ont été confiées »).

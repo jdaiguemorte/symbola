@@ -12,8 +12,8 @@ import { appDatabase } from "@symbola/db/client";
 import { inTrash, markDeleted } from "@symbola/db/soft-delete";
 import { withOrganization } from "@symbola/db/with-organization";
 import { events, eventTasks, eventTypes, eventTypeVocabulary, planningHealthSettings } from "@symbola/db/schema/events";
-import { clientTermSchema, planningHealthThresholdsSchema, standaloneTaskInputSchema, taskSoonDaysSchema, type ClientTerm, type EventTypeVocabularyView, type PlanningHealthView, type StandaloneTask } from "@symbola/contracts";
-import { starterClientTerms, starterPlanningHealth, starterTaskSoonDays } from "@symbola/starter-templates";
+import { clientTermSchema, dayOfLeadDaysSchema, planningHealthThresholdsSchema, standaloneTaskInputSchema, taskSoonDaysSchema, type ClientTerm, type EventTypeVocabularyView, type PlanningHealthView, type StandaloneTask } from "@symbola/contracts";
+import { starterClientTerms, starterDayOfLeadDays, starterPlanningHealth, starterTaskSoonDays } from "@symbola/starter-templates";
 import { actingMemberId, assertAssignable, emitTaskAssignments, stillAssignable } from "./task-assignment";
 import { IN_PROGRESS_STATUSES } from "./lifecycle";
 import { nextOccurrence, planningHealth, shouldSpawnNext, type HealthThresholds } from "./planning-rules";
@@ -179,6 +179,26 @@ export async function setTaskSoonDays(organizationId: string, days: number): Pro
       .insert(planningHealthSettings)
       .values({ organizationId, ...health, soonDays: days })
       .onConflictDoUpdate({ target: planningHealthSettings.organizationId, set: { soonDays: days, updatedAt: new Date() } }),
+  );
+  return days;
+}
+
+// Lot 72d (EVT-02 ; J9) — combien de jours avant le jour J « Ouvrir le Jour J » devient l'action de l'en-tête
+// de la fiche : le réglage de l'organisation, sinon la valeur de départ (planning-health.json). Réglé dans
+// Paramètres › Évènements › Listes du jour J. Même table que le seuil « Bientôt » ; RLS par organisation.
+export async function getDayOfLeadDays(organizationId: string): Promise<number> {
+  const [row] = await inOrganization(organizationId, (tx) => tx.select({ days: planningHealthSettings.dayOfLeadDays }).from(planningHealthSettings).where(eq(planningHealthSettings.organizationId, organizationId)));
+  return row?.days ?? starterDayOfLeadDays();
+}
+
+export async function setDayOfLeadDays(organizationId: string, days: number): Promise<number> {
+  if (!dayOfLeadDaysSchema.safeParse(days).success) throw new RangeError("délai « Ouvrir le Jour J » hors de 1 à 30 jours");
+  const health = starterPlanningHealth();
+  await inOrganization(organizationId, (tx) =>
+    tx
+      .insert(planningHealthSettings)
+      .values({ organizationId, ...health, dayOfLeadDays: days })
+      .onConflictDoUpdate({ target: planningHealthSettings.organizationId, set: { dayOfLeadDays: days, updatedAt: new Date() } }),
   );
   return days;
 }
