@@ -3,6 +3,7 @@ import retroplanningFile from "./retroplanning.json";
 import vendorSlotsFile from "./vendor-slots.json";
 import programFile from "./program.json";
 import {
+  starterVendorDocumentKinds,
   starterDietaryOptions,
   starterMealTypes,
   starterFloorplanElements,
@@ -865,5 +866,20 @@ describe("CHR-03, HUB-20 — Catégories de départ des tâches (lot 63d)", () =
     for (const category of starterTaskCategories("fr")) expect(palette.map((entry) => entry.color)).toContain(category.color);
     expect(palette.map((entry) => entry.color)).toContain(paymentsCalendarColor());
     expect(starterTaskCategories("fr").map((category) => category.color)).not.toContain(paymentsCalendarColor());
+  });
+});
+
+// Lot 73a (PRE-05 ; P3, P4) : chaque nature de pièce de départ a son nom court en français et en anglais ;
+// l'assurance et le Kbis sont « demandés d'habitude », le plan et l'autre pièce non.
+describe("PRE-05 — Les natures de pièces de départ (lot 73a)", () => {
+  it("nom court par langue et natures demandées d'habitude", () => {
+    expect(starterVendorDocumentKinds("fr").map((kind) => [kind.key, kind.shortLabel, kind.requestedByDefault])).toEqual([
+      ["insurance", "Assurance", true],
+      ["registration", "Kbis", true],
+      ["venue_plan", "Plan", false],
+      ["other", "Autre", false],
+    ]);
+    expect(starterVendorDocumentKinds("en").map((kind) => kind.shortLabel)).toEqual(["Insurance", "Registration", "Plan", "Other"]);
+    for (const kind of starterVendorDocumentKinds("fr")) expect(kind.shortLabel.length).toBeLessThanOrEqual(40);
   });
 });

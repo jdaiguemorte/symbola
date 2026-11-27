@@ -10,7 +10,7 @@ import { createHash, randomUUID } from "node:crypto";
 import { afterAll, describe, expect, it } from "vitest";
 import { createAppConnection } from "./client";
 import { alertThresholds, budgetLineAttachments, budgetLines, vendorPayments } from "./schema/budget";
-import { vendors, vendorTypeLinks, vendorTypes } from "./schema/vendors";
+import { vendorDocumentKinds, vendors, vendorTypeLinks, vendorTypes } from "./schema/vendors";
 import { calendarFeeds, contactMembers, contactNotes, contacts, emailTemplates, formDrafts, importItems, imports, messageTemplates, messageTemplateVersions, privacyRequests, storageSnapshots, users } from "./schema/hub";
 import {
   catalogItems,
@@ -47,6 +47,7 @@ import {
   eventDocumentVersions,
   eventDocuments,
   programVersions,
+  taskChangeSnapshots,
 } from "./schema/events";
 import { withOrganization } from "./with-organization";
 
@@ -440,6 +441,27 @@ describe("PRD-HUB-03 — L'Admin ne lit jamais de donnée métier", () => {
       await tx.insert(contactMembers).values({ organizationId, groupContactId: household!.id, memberContactId: contact!.id });
     });
     for (const table of [contacts, contactNotes, contactMembers]) {
+      try {
+        const rows = await db.select().from(table);
+        expect(rows).toHaveLength(0);
+      } catch (error) {
+        expect(error).toBeTruthy();
+      }
+    }
+  });
+
+  // Lot 73a (PRE-02, PRE-05 ; SEC-09) : date de rétention, natures de pièces et leur nom court, état d'avant
+  // d'un ajout à un mariage : rien pour l'Admin.
+  it("vaut aussi pour la date de rétention, les natures de pièces et l'état d'avant d'un ajout (lot 73a, PostgreSQL réel)", async () => {
+    const organizationId = randomUUID();
+    await withOrganization(db, organizationId, async (tx) => {
+      const [event] = await tx.insert(events).values({ organizationId }).returning();
+      const [slot] = await tx.insert(eventVendorSlots).values({ organizationId, eventId: event!.id, label: "Traiteur" }).returning();
+      await tx.insert(eventVendorCandidates).values({ organizationId, eventId: event!.id, vendorSlotId: slot!.id, vendorName: "Maison Exemple", status: "retained" });
+      await tx.insert(vendorDocumentKinds).values({ organizationId, label: "Assurance RC", shortLabel: "Assurance", requestedByDefault: true });
+      await tx.insert(taskChangeSnapshots).values({ organizationId, userId: randomUUID(), payload: { kind: "vendor_addition", eventId: event!.id, slotId: slot!.id, slotCreated: false, created: [], changed: [] }, expiresAt: new Date(Date.now() + 60_000) });
+    });
+    for (const table of [eventVendorCandidates, vendorDocumentKinds, taskChangeSnapshots]) {
       try {
         const rows = await db.select().from(table);
         expect(rows).toHaveLength(0);

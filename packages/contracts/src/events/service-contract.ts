@@ -354,6 +354,9 @@ export type VendorCandidate = {
   shareRibWithClients: boolean;
   // Déduit du statut (lot 28b) : retenu (ou au-delà), écarté, ou en lice (null).
   outcome: "selected" | "not_selected" | null;
+  // Lot 73a (migration 0235) : depuis quand il est retenu (« retenu le … ») ; null hors des statuts retenus,
+  // et pour un prestataire retenu avant ce lot (rien n'est reconstruit, P6).
+  retainedAt: string | null;
   notes: VendorCandidateNote[];
 };
 export type AddVendorCandidateInput = {
@@ -383,6 +386,9 @@ export type VendorConsultation = {
   slotLabel: string;
   outcome: "selected" | "not_selected" | "pending";
   quotedCents: number | null;
+  // Lot 73a (P9) : le prestataire rattaché et son statut (« Soldé » : le montant est le total réglé).
+  candidateId: string;
+  status: VendorCandidateStatus;
 };
 // L11-EVT-11 — options montrées aux clients, par poste.
 export type ClientVendorOption = { candidateId: string; vendorName: string; quoteAmountCents: number | null; hasQuoteFile: boolean; notes: string[]; ribShared: boolean };
@@ -951,7 +957,58 @@ export type EventActivityKind =
 export type PendingDecision = { id: string; eventId: string; kind: DecisionKind; title: string; dueOn: string | null; requestedAt: string };
 
 // Lot 32a (UX-06, D6) — prestataire retenu sans contrat signé, sur un évènement en cours.
-export type UncontractedVendor = { candidateId: string; eventId: string; vendorId: string | null; vendorName: string; slotLabel: string; since: string };
+// Lot 73a (P5, P6 ; migration 0235) : « Retenu, contrat non signé », daté du jour où il a été retenu
+// (retained_at) ; null pour un prestataire retenu avant ce lot : rien n'est écrit.
+export type UncontractedVendor = { candidateId: string; eventId: string; vendorId: string | null; vendorName: string; slotLabel: string; since: string | null };
+
+// Lot 73a (PRE-02, BUD-01 ; spécification du lot 73, § 4.2, P12) — « Ajouter à un mariage… » et « Créer et
+// ajouter » : « compare » met en comparaison (sans doublon), « retain » retient sur un poste libre,
+// « replace » retient à la place du retenu (qui repasse en comparaison), « retain_also » retient un second
+// prestataire sur le même poste. Le poste existe (slotId) ou se crée dans la même opération (newSlotLabel).
+export const VENDOR_ADDITION_MODES = ["compare", "retain", "replace", "retain_also"] as const;
+export type VendorAdditionMode = (typeof VENDOR_ADDITION_MODES)[number];
+export type AddVendorToEventSlotInput = {
+  organizationId: string;
+  userId: string;
+  eventId: string;
+  slotId?: string;
+  newSlotLabel?: string;
+  // Les fiches du carnet, déjà vérifiées dans l'organisation par l'appelant (module vendors) ; le nom reste
+  // en clair sur le poste, comme aujourd'hui.
+  vendors: { vendorId: string; vendorName: string }[];
+  mode: VendorAdditionMode;
+  // Lot 52 (EVT-06) : une Planner qui ne voit que les évènements de son équipe.
+  viewer?: { userId: string; role: "owner" | "member"; allPlannersSeeAll: boolean };
+  now?: Date;
+};
+export type VendorAdditionResult =
+  // Poste déjà pourvu et « retain » sans choix : rien n'est écrit, la fenêtre propose « Remplacer {nom} »
+  // ou « Retenir aussi ».
+  | { status: "choice_required"; retained: { candidateId: string; vendorName: string }[] }
+  | {
+      status: "added";
+      eventId: string;
+      slotId: string;
+      slotLabel: string;
+      slotCreated: boolean;
+      mode: VendorAdditionMode;
+      candidateIds: string[];
+      // Les prestataires en comparaison sur le poste après l'ajout (« 3 en comparaison »).
+      comparingCount: number;
+      // « Remplacer » : celui qui repasse en comparaison.
+      replaced: { candidateId: string; vendorName: string } | null;
+      // Pour « Annuler » : valable dix secondes, par la même personne, dans la même organisation.
+      undoId: string;
+    };
+// « Ajouter à un mariage… » : les évènements à venir (demandes comprises), le plus proche d'abord, avec
+// leurs postes ; le nombre en comparaison et les retenus de chaque poste.
+export type VendorAdditionEvent = {
+  eventId: string;
+  eventDate: string | null;
+  status: EventStatus;
+  isDemo: boolean;
+  slots: { id: string; label: string; comparingCount: number; retained: { candidateId: string; vendorName: string; vendorId: string | null }[] }[];
+};
 
 // Lot 27b (POR-03, BUD-07, EVT-09 ; décisions D9 et D10) — décision demandée au
 // client : choisir entre des options d'un poste, valider une dépense, approuver

@@ -2,9 +2,9 @@
   "version": 1,
   "alertDaysBefore": 30,
   "items": [
-    { "key": "insurance", "label": { "fr": "Attestation d'assurance responsabilité civile", "en": "Liability insurance certificate" }, "expires": true },
-    { "key": "registration", "label": { "fr": "Extrait Kbis ou avis de situation Insee", "en": "Company registration extract" }, "expires": true },
-    { "key": "venue_plan", "label": { "fr": "Plan du lieu", "en": "Venue plan" }, "expires": false },
-    { "key": "other", "label": { "fr": "Autre pièce", "en": "Other document" }, "expires": false }
+    {"key": "insurance", "label": {"fr": "Attestation d'assurance responsabilité civile", "en": "Liability insurance certificate"}, "shortLabel": {"fr": "Assurance", "en": "Insurance"}, "expires": true, "requestedByDefault": true},
+    {"key": "registration", "label": {"fr": "Extrait Kbis ou avis de situation Insee", "en": "Company registration extract"}, "shortLabel": {"fr": "Kbis", "en": "Registration"}, "expires": true, "requestedByDefault": true},
+    {"key": "venue_plan", "label": {"fr": "Plan du lieu", "en": "Venue plan"}, "shortLabel": {"fr": "Plan", "en": "Plan"}, "expires": false, "requestedByDefault": false},
+    {"key": "other", "label": {"fr": "Autre pièce", "en": "Other document"}, "shortLabel": {"fr": "Autre", "en": "Other"}, "expires": false, "requestedByDefault": false}
   ]
 }

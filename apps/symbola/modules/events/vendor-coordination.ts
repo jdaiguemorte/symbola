@@ -1009,7 +1009,7 @@ async function insertFollowUpTasks(tx: Tx, organizationId: string, candidate: Ca
 
 // Un prestataire cesse d'être retenu : ses tâches de suivi non commencées sont retirées (celles
 // faites restent) ; le module Budget libère son engagé (événement interne).
-async function releaseRetained(tx: Tx, organizationId: string, candidate: CandidateRow, next: { status: VendorCandidateStatus; dismissalReason: VendorDismissalReason | null }, userId: string, now: Date): Promise<void> {
+export async function releaseRetained(tx: Tx, organizationId: string, candidate: CandidateRow, next: { status: VendorCandidateStatus; dismissalReason: VendorDismissalReason | null }, userId: string, now: Date): Promise<void> {
   await tx.update(eventVendorCandidates).set({ status: next.status, dismissalReason: next.dismissalReason, updatedAt: now }).where(eq(eventVendorCandidates.id, candidate.id));
   await tx.delete(eventTasks).where(and(eq(eventTasks.followUpCandidateId, candidate.id), isNull(eventTasks.doneAt)));
   const [event] = await tx.select({ isDemo: events.isDemo }).from(events).where(eq(events.id, candidate.eventId));
@@ -1023,7 +1023,7 @@ async function releaseRetained(tx: Tx, organizationId: string, candidate: Candid
 }
 
 // De nouveau en lice : « Devis reçu » s'il a un devis, « Consulté » s'il a reçu le brief, sinon « Pressenti ».
-function backInTheRunning(candidate: CandidateRow): VendorCandidateStatus {
+export function backInTheRunning(candidate: CandidateRow): VendorCandidateStatus {
   if (candidate.quoteAmountCents !== null || candidate.quoteFileKey !== null) return "quote_received";
   return candidate.briefId ? "contacted" : "shortlisted";
 }

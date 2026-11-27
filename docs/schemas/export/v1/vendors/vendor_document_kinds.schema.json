@@ -21,6 +21,15 @@
         "null"
       ]
     },
+    "shortLabel": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "requestedByDefault": {
+      "type": "boolean"
+    },
     "position": {
       "type": "integer",
       "minimum": -9007199254740991,
@@ -78,6 +87,8 @@
     "label",
     "expires",
     "starterKey",
+    "shortLabel",
+    "requestedByDefault",
     "position",
     "archivedAt",
     "createdAt",

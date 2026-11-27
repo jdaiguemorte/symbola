@@ -8,7 +8,7 @@ import type { RiskAlert, RiskRuleKey } from "@symbola/contracts";
 export type RiskEvent = { id: string; names: string; eventDate: string | null };
 export type RiskFacts = {
   events: Map<string, RiskEvent>;
-  uncontracted?: { candidateId: string; eventId: string; vendorName: string; slotLabel: string; since: string }[];
+  uncontracted?: { candidateId: string; eventId: string; vendorName: string; slotLabel: string; since: string | null }[];
   decisions?: { id: string; eventId: string; title: string; dueOn: string | null }[];
   payments?: { scheduleItemId: string; quoteId: string; quoteNumber: string; eventId: string; label: string; dueDate: string; amountCents: number }[];
   milestones?: { taskId: string; eventId: string; label: string; dueDate: string }[];
@@ -35,7 +35,7 @@ export function evaluateRisks(facts: RiskFacts, rules: RiskRuleSetting[], today:
     if (!found?.eventDate || found.eventDate < today) continue;
     const daysLeft = daysBetween(today, found.eventDate);
     if (daysLeft > vendors!.thresholdDays) continue;
-    alerts.push({ rule: "vendor_without_contract", key: `vendor_without_contract:${vendor.candidateId}`, eventId: vendor.eventId, eventNames: found.names, label: `${vendor.vendorName} · ${vendor.slotLabel}`, facts: { vendor: vendor.vendorName, slot: vendor.slotLabel, retainedDays: Math.max(0, daysBetween(vendor.since, today)), daysLeft }, thresholdDays: vendors!.thresholdDays, href: `/events/${vendor.eventId}?onglet=prestataires` });
+    alerts.push({ rule: "vendor_without_contract", key: `vendor_without_contract:${vendor.candidateId}`, eventId: vendor.eventId, eventNames: found.names, label: `${vendor.vendorName} · ${vendor.slotLabel}`, facts: { vendor: vendor.vendorName, slot: vendor.slotLabel, retainedDays: vendor.since ? Math.max(0, daysBetween(vendor.since, today)) : 0, daysLeft }, thresholdDays: vendors!.thresholdDays, href: `/events/${vendor.eventId}?onglet=prestataires` });
   }
 
   const decisions = rule("decision_overdue");

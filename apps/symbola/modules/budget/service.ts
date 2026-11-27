@@ -171,6 +171,8 @@ export type {
 export { BUDGET_DOCUMENT_KINDS } from "@symbola/contracts";
 // Lot 37b (DOC-12, ADR 0071) : la part du module au relevé de stockage.
 export { measureBudgetStorage } from "./storage-usage";
+// Lot 73a (BUD-01, P9) : le réel d'un poste, même calcul pour le budget et pour la fiche d'un prestataire.
+export { slotActualCents } from "./actual";
 export { EventNotFoundError };
 export {
   QUOTE_MAX_SIZE_BYTES,

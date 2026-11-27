@@ -241,12 +241,13 @@ describe("L11-PRE-09 — Historique avec la planner", () => {
     await updateVendorCandidate({ organizationId, candidateId: candidate.id, quoteAmountCents: 348000 });
     await selectVendorCandidate({ organizationId, candidateId: candidate.id, changedByUserId: plannerId });
 
-    // Sans budget confirmé, pas de prix final.
+    // Lot 73a (P9) : sans ligne de budget, le montant est le réel du poste comme la colonne « Réel » du
+    // budget le montre, c'est-à-dire le devis du prestataire retenu.
     const history = await getVendorHistory(organizationId, vendor.id);
     expect(history.entries).toEqual([
-      { eventId: event.id, eventNames: "Léa", eventDate: null, slotLabel: "Traiteur", outcome: "selected", quotedCents: 348000, finalCents: null },
+      { eventId: event.id, eventNames: "Léa", eventDate: null, slotLabel: "Traiteur", outcome: "selected", quotedCents: 348000, finalCents: 348000 },
     ]);
-    expect(history.averageFinalCents).toBeNull();
+    expect(history.averageFinalCents).toBe(348000);
   });
 });
 
