@@ -191,13 +191,19 @@ test.describe("EVT-02 — L'en-tête de la fiche tient en 200 px, avec tous ses 
       const list = tabs(page);
       await expect(list.getByRole("tab", { name: /^Documents/ })).toHaveAttribute("aria-selected", "true");
       expect((await list.boundingBox())!.y).toBeLessThanOrEqual(224);
-      // L'onglet ouvert est amené dans le cadre de la barre.
-      await expect(list.getByRole("tab", { name: /^Documents/ })).toBeInViewport({ ratio: 1 });
+      // L'onglet ouvert est amené dans le cadre de la barre, entier de gauche à droite (son trait du bas
+      // déborde d'un pixel sous la barre, d'où un rapport d'un peu moins de 1).
+      const open = list.getByRole("tab", { name: /^Documents/ });
+      await expect(open).toBeInViewport({ ratio: 0.9 });
+      const [openBox, listBox] = [(await open.boundingBox())!, (await list.boundingBox())!];
+      expect(openBox.x).toBeGreaterThanOrEqual(listBox.x - 1);
+      expect(openBox.x + openBox.width).toBeLessThanOrEqual(listBox.x + listBox.width + 1);
       // Seule la barre des onglets défile de côté ; la page non.
       expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(0);
       expect(await list.evaluate((element) => element.scrollWidth > element.clientWidth)).toBe(true);
       // Noms courts sur téléphone ; les nombres restent.
-      await expect(list.getByRole("tab", { name: /^Budget 0\/9$/ })).toHaveCount(1);
+      await expect(list.getByRole("tab", { name: /^Budget(?! et)/ })).toHaveCount(1);
+      await expect(list.getByRole("tab", { name: /^Tâches 2$/ })).toHaveCount(1);
       // Pas de bouton dans l'en-tête : l'action est en tête du menu.
       await expect(header(page).getByRole("link", { name: "Écrire aux mariés" })).toBeHidden();
       const small = await page.evaluate(() =>

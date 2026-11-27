@@ -522,7 +522,14 @@ export default async function EventDetailPage({
   // J11 : le nombre d'un onglet dit ce qui demande attention, avec son mot.
   const tabsView: EventTab[] = [
     { key: "apercu", label: t("tabOverview"), href: tabHref("apercu") },
-    { key: "budget", label: t("vendorSlotsTitle"), short: tHeader("tabs.budgetShort"), href: tabHref("budget"), count: { text: tHeader("tabs.countOf", { done: progress.booked, total: progress.required }), short: tHeader("tabs.countOfShort", { done: progress.booked, total: progress.required }), alert: false } },
+    {
+      key: "budget",
+      label: t("vendorSlotsTitle"),
+      short: tHeader("tabs.budgetShort"),
+      href: tabHref("budget"),
+      // « 6 sur 9 » : postes pourvus sur requis ; aucun poste requis, aucun nombre (pas de « 0 sur 0 »).
+      ...(progress.required > 0 ? { count: { text: tHeader("tabs.countOf", { done: progress.booked, total: progress.required }), short: tHeader("tabs.countOfShort", { done: progress.booked, total: progress.required }), alert: false } } : {}),
+    },
     {
       key: "taches",
       label: tLine("tabTitle"),

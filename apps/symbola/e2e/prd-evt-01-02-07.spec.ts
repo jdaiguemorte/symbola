@@ -66,16 +66,19 @@ test("PRD-EVT-07 — la planner paramètre ses sources et motifs de perte, puis 
   await expectNoAxeViolation(page);
 
   // Lot 70e (A14) : « Nouvel évènement » ne demande plus la source ; elle se complète depuis la fiche
-  // (onglet des mariés), et se lit dans l'en-tête (PRD-EVT-07).
+  // (onglet des mariés). Lot 72d : elle quitte l'en-tête, et se lit dans « Source et clients » (PRD-EVT-07).
   await createEventByForm(page, { name: "Camille", clientFirstName: "Camille" });
   await expect(page.getByRole("heading", { name: "Camille" })).toBeVisible();
-  await expect(page.getByText("Source du prospect : —")).toBeVisible();
+  await expect(page.locator("#event-header")).not.toContainText("Source du prospect");
   await page.waitForLoadState("networkidle");
   await openEventTab(page, "Mariés");
   await page.getByLabel("Source du prospect").selectOption({ label: "Instagram" });
   await page.getByRole("button", { name: "Enregistrer la source" }).click();
   await expect(page.getByText("Source enregistrée.")).toBeVisible();
-  await expect(page.getByText("Source du prospect : Instagram")).toBeVisible();
+  // La liste garde la source enregistrée, et la fiche la relit.
+  await expect(page.getByLabel("Source du prospect").locator("option:checked")).toHaveText("Instagram");
+  await page.reload();
+  await expect(page.getByLabel("Source du prospect").locator("option:checked")).toHaveText("Instagram");
   await expectNoAxeViolation(page);
 });
 
