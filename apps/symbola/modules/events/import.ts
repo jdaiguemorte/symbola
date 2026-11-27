@@ -16,6 +16,7 @@ import {
   type ImportUndoItem,
   type ImportUndoOutcome,
   type TaskResponsible,
+  eventStatusForStage,
   sameImportValue,
   takeoverContractFor,
   type ImportAnswers,
@@ -36,6 +37,7 @@ import {
   eventVendorSlots,
   lossReasons,
   eventPlaces,
+  eventTypes,
   programItems,
   prospectSources,
 } from "@symbola/db/schema/events";
@@ -169,6 +171,7 @@ async function eventState(tx: Tx, eventId: string): Promise<Values | null> {
     status: event.status,
     clients: clients.map(clientOf),
     importedFields: event.importedFields,
+    notes: event.notes,
     wantedBudgetCents: event.wantedBudgetCents,
     places: placeRows.map((place) => ({ label: place.label })),
     program: (await tx.select().from(programItems).where(eq(programItems.eventId, eventId)).orderBy(asc(programItems.startTime), asc(programItems.createdAt))).map(
@@ -234,6 +237,7 @@ async function writeEventFields(tx: Tx, organizationId: string, eventId: string,
   if ("importedFields" in fields) set.importedFields = (fields.importedFields as Record<string, string> | null) ?? null;
   if ("status" in fields) set.status = fields.status as EventStatus;
   if ("wantedBudgetCents" in fields) set.wantedBudgetCents = (fields.wantedBudgetCents as number | null) ?? null;
+  if ("notes" in fields) set.notes = (fields.notes as string | null) ?? null;
   await tx.update(events).set(set).where(eq(events.id, eventId));
 
   if ("places" in fields) {
@@ -260,7 +264,8 @@ async function writeEventFields(tx: Tx, organizationId: string, eventId: string,
   }
   if ("status" in fields && fields.status !== fromStatus) {
     const toStatus = fields.status as EventStatus;
-    await tx.insert(eventStatusHistory).values({ organizationId, eventId, fromStatus, toStatus, changedByUserId: userId });
+    // Lot 71a (C-64) : changé par un import, à une date que le fichier ne dit pas.
+    await tx.insert(eventStatusHistory).values({ organizationId, eventId, fromStatus, toStatus, changedByUserId: userId, dateKnown: false });
     if (fromStatus !== null) {
       await emitDomainEvent(tx, {
         organizationId,
@@ -276,14 +281,24 @@ export async function importEventRows(input: {
   organizationId: string;
   userId: string;
   rows: ImportApplyRow[];
-  // PRD-EVT-07 : la source est obligatoire ; une ligne sans source reçoit celle-ci.
-  defaultProspectSourceId: string;
+  // Une ligne sans source reçoit celle-ci. Lot 71a (HUB-14) : facultative ; sans elle, la source reste
+  // « non renseignée » (comptée à part dans les statistiques).
+  defaultProspectSourceId: string | null;
+  // Lot 71a : réponses de l'étape « Questions » (type, « Où en est-il ? ») et import d'une reprise
+  // (l'évènement créé est d'origine « reprise »).
+  answers?: ImportAnswers | null;
+  takeover?: boolean;
 }): Promise<ImportApplyResult> {
   return inTransaction(input.organizationId, async (tx) => {
     const items: ImportedItem[] = [];
     let unchanged = 0;
     const sources = await tx.select().from(prospectSources);
-    if (!sources.some((source) => source.id === input.defaultProspectSourceId)) throw new Error("source par défaut inconnue");
+    if (input.defaultProspectSourceId !== null && !sources.some((source) => source.id === input.defaultProspectSourceId)) throw new Error("source par défaut inconnue");
+    // Lot 71a : le type de l'évènement, celui de la réponse (de l'organisation), ou le seul de l'espace.
+    const types = await tx.select({ id: eventTypes.id }).from(eventTypes);
+    const answeredType = input.answers?.eventTypeId && types.some((type) => type.id === input.answers!.eventTypeId) ? input.answers.eventTypeId : null;
+    const eventTypeId = answeredType ?? (types.length === 1 ? types[0]!.id : null);
+    const answeredStatus = input.answers?.eventStage ? eventStatusForStage(input.answers.eventStage) : null;
     const sourceByLabel = new Map(sources.map((source) => [normalized(source.label), source.id]));
     const defaults = await tx.select().from(defaultVendorSlots).orderBy(asc(defaultVendorSlots.position), asc(defaultVendorSlots.createdAt));
 
@@ -302,7 +317,10 @@ export async function importEventRows(input: {
 
     for (const row of input.rows) {
       const sourceId = await sourceFor(text(row.values.prospectSource));
-      const status = (row.values.status as EventStatus | null) ?? null;
+      // Lot 71a : « Où en est-il ? » l'emporte sur le statut déduit d'une fiche.
+      const status = answeredStatus ?? (row.values.status as EventStatus | null) ?? null;
+      // Lot 71a : la note d'une fiche PDF va dans « Notes », plus dans « Champs importés ».
+      const note = text(row.values.note);
       const current = row.matchId ? await eventState(tx, row.matchId) : null;
       const sheet = sheetValues(row.values);
 
@@ -321,6 +339,7 @@ export async function importEventRows(input: {
         if (sheet.wantedBudgetCents !== null) wanted.wantedBudgetCents = sheet.wantedBudgetCents;
         if (sheet.places.length > 0 && (current.places as ImportedPlace[]).length === 0) wanted.places = sheet.places;
         if (sheet.program.length > 0 && (current.program as ImportedProgramItem[]).length === 0) wanted.program = sheet.program;
+        if (note && !current.notes) wanted.notes = note.slice(0, 10000);
         const importedFields = mergedImportedFields(current.importedFields as Record<string, string> | null, row.importedFields);
         if (!same(importedFields, current.importedFields)) wanted.importedFields = importedFields;
 
@@ -343,10 +362,13 @@ export async function importEventRows(input: {
           organizationId: input.organizationId,
           status: finalStatus,
           eventDate: (row.values.eventDate as string | null) ?? null,
-          prospectSourceId: sourceId ?? input.defaultProspectSourceId,
+          prospectSourceId: sourceId ?? input.answers?.prospectSourceId ?? input.defaultProspectSourceId,
           importedFields: Object.keys(row.importedFields).length > 0 ? row.importedFields : null,
           wantedBudgetCents: sheet.wantedBudgetCents,
           programUpdatedAt: sheet.program.length > 0 ? new Date() : null,
+          notes: note ? note.slice(0, 10000) : null,
+          eventTypeId,
+          origin: input.takeover ? "takeover" : "created",
         })
         .returning();
       if (!event) throw new Error("création de l'événement échouée");
@@ -367,12 +389,14 @@ export async function importEventRows(input: {
           defaults.map((slot, position) => ({ organizationId: input.organizationId, eventId: event.id, label: slot.label, position })),
         );
       }
+      // Lot 71a (C-64) : le statut repris est daté du jour de l'import, qui n'est pas la vraie date.
       await tx.insert(eventStatusHistory).values({
         organizationId: input.organizationId,
         eventId: event.id,
         fromStatus: null,
         toStatus: finalStatus,
         changedByUserId: input.userId,
+        dateKnown: false,
       });
       await emitDomainEvent(tx, {
         organizationId: input.organizationId,
@@ -446,6 +470,8 @@ export async function importTaskRows(input: { organizationId: string; rows: Impo
           // (« — ») ; celle qui importe ne l'a pas cochée. C'est pourquoi le déclencheur 0212 n'agit qu'à la
           // mise à jour, jamais à l'insertion.
           doneAt: row.values.done === true ? new Date() : null,
+          // Lot 71a (P-01) : l'heure de l'import n'est pas la date de fin ; « date de fin non renseignée ».
+          doneDateKnown: row.values.done !== true,
           position: (last?.value ?? -1) + 1,
           importedFields: Object.keys(row.importedFields).length > 0 ? row.importedFields : null,
         })
@@ -462,9 +488,16 @@ async function writeTaskFields(tx: Tx, taskId: string, fields: Values): Promise<
   if ("label" in fields) set.label = fields.label as string;
   if ("dueDate" in fields) set.dueDate = fields.dueDate as string;
   if ("responsible" in fields) set.responsible = fields.responsible as TaskResponsible;
-  if ("done" in fields) set.doneAt = fields.done === true ? new Date() : null;
+  if ("done" in fields) {
+    set.doneAt = fields.done === true ? new Date() : null;
+    // Lot 71a (P-01) : cochée par un import, sans vraie date de fin.
+    set.doneDateKnown = fields.done !== true;
+  }
   if ("importedFields" in fields) set.importedFields = (fields.importedFields as Record<string, string> | null) ?? null;
   await tx.update(eventTasks).set(set).where(eq(eventTasks.id, taskId));
+  // Lot 71a (P-01) : ni la personne qui importe ni personne d'autre ne l'a cochée ; le déclencheur 0212
+  // l'aurait attribuée à l'auteur de la transaction, l'auteur est effacé aussitôt (done_at inchangé).
+  if (fields.done === true) await tx.update(eventTasks).set({ doneByKind: null, doneByUserId: null }).where(eq(eventTasks.id, taskId));
 }
 
 // —— Postes d'un événement (lignes de budget, PRD-BUD-02) ————————————————————
@@ -549,6 +582,9 @@ export async function importVendorSlotsForBudget(input: {
     const items: ImportedItem[] = [];
     const slotIdByRow = new Map<number, string>();
     const candidateIdByRow = new Map<number, string>();
+    // Lot 71a (HUB-14) : les lignes d'un même poste du fichier, sans poste rapproché, vont sous le poste
+    // créé par la première d'entre elles (« Traiteur » écrit trois fois : un poste, trois lignes).
+    const createdSlots = new Map<string, string>();
     for (const row of input.rows) {
       if (!row.eventId) throw new Error("événement de rattachement inconnu");
       const [event] = await tx.select({ id: events.id }).from(events).where(and(eq(events.id, row.eventId), eq(events.isDemo, false)));
@@ -562,6 +598,8 @@ export async function importVendorSlotsForBudget(input: {
           await tx.update(eventVendorSlots).set({ importedFields, updatedAt: new Date() }).where(eq(eventVendorSlots.id, slotId));
           items.push({ rowIndex: row.rowIndex, module: "events", kind: "event_vendor_slot", elementId: slotId, action: "updated", previous: { importedFields: current.importedFields }, written: { importedFields } });
         }
+      } else if (createdSlots.has(`${row.eventId}|${normalized(text(row.values.slotLabel) ?? "")}`)) {
+        slotId = createdSlots.get(`${row.eventId}|${normalized(text(row.values.slotLabel) ?? "")}`)!;
       } else {
         const [last] = await tx.select({ value: max(eventVendorSlots.position) }).from(eventVendorSlots).where(eq(eventVendorSlots.eventId, row.eventId));
         const [slot] = await tx
@@ -576,6 +614,7 @@ export async function importVendorSlotsForBudget(input: {
           .returning();
         if (!slot) throw new Error("création du poste échouée");
         slotId = slot.id;
+        createdSlots.set(`${row.eventId}|${normalized(text(row.values.slotLabel) ?? "")}`, slot.id);
         items.push({ rowIndex: row.rowIndex, module: "events", kind: "event_vendor_slot", elementId: slot.id, action: "created", previous: null, written: (await vendorSlotState(tx, slot.id)) ?? {} });
       }
       slotIdByRow.set(row.rowIndex, slotId);

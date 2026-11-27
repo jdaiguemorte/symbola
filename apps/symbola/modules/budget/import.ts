@@ -11,6 +11,7 @@ import { appDatabase } from "@symbola/db/client";
 import { budgetLineAttachments, budgetLineHistory, budgetLines, vendorPayments } from "@symbola/db/schema/budget";
 import { withOrganization } from "@symbola/db/with-organization";
 import { importVendorSlotsForBudget, undoImportedEventsElements } from "@/modules/events/service";
+import { findModifiedUnallocatedTotals, UNALLOCATED_TOTAL_KIND, undoUnallocatedTotal } from "./unallocated";
 
 type Tx = Parameters<Parameters<typeof withOrganization>[2]>[0];
 type Values = Record<string, unknown>;
@@ -300,6 +301,11 @@ export async function findModifiedImportedBudgetElements(
   return inTransaction(organizationId, async (tx) => {
     const result: boolean[] = [];
     for (const item of items) {
+      // Lot 71a : le total « à répartir » d'une fiche reprise.
+      if (item.kind === UNALLOCATED_TOTAL_KIND) {
+        result.push((await findModifiedUnallocatedTotals(tx, item)) ?? false);
+        continue;
+      }
       const current = await lineState(tx, item.elementId);
       result.push(current ? await lineModified(tx, item, current) : false);
     }
@@ -313,6 +319,10 @@ export async function undoImportedBudgetElements(organizationId: string, userId:
   return inTransaction(organizationId, async (tx) => {
     const outcomes: ImportUndoOutcome[] = [];
     for (const item of items) {
+      if (item.kind === UNALLOCATED_TOTAL_KIND) {
+        outcomes.push(await undoUnallocatedTotal(tx, item));
+        continue;
+      }
       const current = await lineState(tx, item.elementId);
       if (!current) {
         outcomes.push("missing");

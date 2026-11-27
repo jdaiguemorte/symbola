@@ -28,6 +28,7 @@ import {
 import {
   isHubObjectTrashed,
   isModuleEnabled,
+  eraseEventImports,
   listOrganizations,
   listTrashedHubRows,
   purgeFormDrafts,
@@ -242,6 +243,9 @@ async function purgeEvents(organizationId: string, eventIds: string[]): Promise<
     await removeEventGuestsData(organizationId, eventIds);
     // Lot 60 : les plans de salle de l'évènement partent avec lui.
     await removeEventFloorplansData(organizationId, eventIds);
+    // Lot 71a (RGP-03 ; décision de Julien du 27/11/2026) : le journal de ses imports ne garde que la
+    // trace sans donnée personnelle (date, sorte, nombres) ; sa reprise part avec lui.
+    await eraseEventImports(appDatabase(), organizationId, eventIds);
     await purgeTrashedEvents(organizationId, eventIds);
   });
 }

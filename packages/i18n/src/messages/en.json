@@ -3511,7 +3511,10 @@
       "phone": "Phone",
       "country": "Country",
       "notes": "Notes (become a note on the record)",
-      "contactName": "Name or first name"
+      "contactName": "Name or first name",
+      "note": "Note",
+      "total": "Total committed",
+      "paid": "Already paid"
     },
     "requiredField": "{field} (required)",
     "columnsStepTitle": "Columns",

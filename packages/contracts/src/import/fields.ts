@@ -158,6 +158,11 @@ export const IMPORT_FIELDS: Record<ImportEntityType, readonly ImportFieldDefinit
     { key: "places", kind: "text" },
     { key: "status", kind: "choice", choices: EVENT_STATUS_CHOICES },
     { key: "wantedBudget", kind: "amount" },
+    // Lot 71a (C-56 ; § 5.1) : la note va dans « Notes » ; le total engagé et le réglé vont au total
+    // « à répartir » du budget (plus dans « Champs importés »). Le solde se recalcule : non repris.
+    { key: "note", kind: "text" },
+    { key: "total", kind: "amount" },
+    { key: "paid", kind: "amount" },
   ],
   // Lot 36b (HUB-14, D11) : des personnes. Le nom vient d'une colonne pour le prénom et d'une pour
   // le nom, ou d'une seule colonne (« NOM Prénom », « Prénom Nom ») : un mot tout en majuscules y

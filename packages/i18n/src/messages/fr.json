@@ -3511,7 +3511,10 @@
       "phone": "Téléphone",
       "country": "Pays",
       "notes": "Notes (deviennent une note de la fiche)",
-      "contactName": "Nom ou prénom"
+      "contactName": "Nom ou prénom",
+      "note": "Note",
+      "total": "Total engagé",
+      "paid": "Déjà réglé"
     },
     "requiredField": "{field} (obligatoire)",
     "columnsStepTitle": "Colonnes",

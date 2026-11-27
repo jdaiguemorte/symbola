@@ -14,8 +14,7 @@ import {
   eventBudgetItems,
   eventBudgets,
   vendorPayments,
-  eventPayers,
-} from "@symbola/db/schema/budget";
+  eventPayers, unallocatedTotals } from "@symbola/db/schema/budget";
 import { withOrganization } from "@symbola/db/with-organization";
 import { appendAudit } from "@symbola/db/audit";
 import { paidTotalCents } from "./payments";
@@ -569,6 +568,8 @@ export async function deleteEventBudgetRows(organizationId: string, eventIds: st
     }
     // Lot 43 (BUD-06) : les payeurs de l'évènement (leurs parts et désignations partent avec eux).
     await tx.delete(eventPayers).where(inArray(eventPayers.eventId, eventIds));
+    // Lot 71a (C-56) : le total « à répartir » d'un mariage repris suit son budget.
+    await tx.delete(unallocatedTotals).where(inArray(unallocatedTotals.eventId, eventIds));
     const budgets = await tx
       .select({ id: eventBudgets.id })
       .from(eventBudgets)
