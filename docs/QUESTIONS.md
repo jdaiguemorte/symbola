@@ -1028,6 +1028,32 @@ Tous tranchés le 27/11 par Julien.
    urgentes restent visibles sans défiler sur un écran de 13 pouces. Proposition : noté dans `gap.csv`,
    sans ADR. **Tranché le 27/11 par Julien** (validation de la spécification).
 
+### Q50 — Lot 73 : réaliser le volet 4 des maquettes (« Prestataires »), trois écarts avec le cahier des charges (27 novembre 2026, tranchée)
+
+Relevés en écrivant `docs/lots/lot-73-prestataires.md` (§ 7 et § 8), à partir des maquettes du volet 4
+(`docs/audits/2026-11-ux-parcours/10-maquettes-prestataires.md`), dont Julien a confirmé les choix V1 à
+V14 le 27/11 (décision P1 du lot). **Tranchés le 27/11 par Julien** avec les décisions P2 et P14 du lot ;
+spécification validée le même jour (« Je valide le lot 73 »), accord compris pour les migrations 0234
+(`vendors`), 0235 (`events`) et 0236 (`hub`).
+
+1. **« Pressenti » remplacé à l'écran par « en comparaison » (PRE-02, choix V7, décision P2)**. Le
+   cahier des charges nomme les statuts « Pressenti, Consulté, Devis reçu, Retenu, Contrat signé,
+   Soldé » ; l'écran dit « en comparaison » (avec « devis reçu » en détail), le bouton « Mettre en
+   comparaison », et un retenu sans contrat signé « Retenu, contrat non signé » (P5). Les valeurs en
+   base ne changent pas. **Tranché : d'accord** ; noté dans `gap.csv` et dans un ADR (paquet 73a,
+   premier numéro libre au moment du code).
+2. **« Catégorie » (PRE-01, PRE-11) contre « famille » puis « métier »**. L'app et la maquette disent
+   « famille » et « métier ». Proposition : garder les mots de l'app, comme le recommande S13 du Design
+   System ; noté dans `gap.csv`, sans ADR. **Suit S13**, pas encore tranché à la porte 4.
+3. **Le mot « engagé » quitte l'écran (BUD-01, SC-04 ; décision P14, contre la décision du 21/11,
+   Q42, point 1)**. BUD-01 veut cinq montants (estimé, devisé, engagé, payé, reste) ; SC-04 dit « la
+   ligne passe à « engagé » ». **Tranché par Julien** : ni pastille ni mot « engagé » sur la ligne (le
+   réel, et l'état du contrat en mots) ; en tête « Réel, tout signé » quand tous les contrats le sont,
+   sinon « Réel · dont 27 000,00 € signés » (« réel dont x milliers signés Ok ») ; l'engagé reste
+   calculé, en base et dans les exports. **SC-04 étape 5 se lit « la ligne dit « Contrat signé » »**.
+   Un montant exigé ne s'affiche plus et un scénario change de mot : **un ADR** (le même que le point
+   1), `gap.csv` (BUD-01 et la note de SC-04).
+
 ### Q51 — Lot 74 : réaliser les volets 5 et 6 des maquettes, trois écarts avec le cahier des charges (27 novembre 2026, tranchée)
 
 Relevés en écrivant la spécification `docs/lots/lot-74-premiers-pas-aide-parametres.md` (§ 9 et
