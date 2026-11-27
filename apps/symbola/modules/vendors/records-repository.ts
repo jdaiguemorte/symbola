@@ -19,7 +19,9 @@ async function inOrganization<T>(organizationId: string, fn: (tx: Tx) => Promise
 
 // PRE-05 — natures de pièces, posées une fois depuis les données de départ.
 
-export function seedDocumentKindRows(organizationId: string, kinds: { key: string; label: string; expires: boolean }[]): Promise<void> {
+// Lot 73a (P3, P4) : avec leur nom court et « demandée d'habitude » (assurance et Kbis), une fois, à la
+// première lecture des natures d'une organisation ; rien n'est repris pour une organisation déjà posée (P6).
+export function seedDocumentKindRows(organizationId: string, kinds: { key: string; label: string; shortLabel: string; expires: boolean; requestedByDefault: boolean }[]): Promise<void> {
   return inOrganization(organizationId, async (tx) => {
     await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${`vendors.document_kinds:${organizationId}`}))`);
     const [settings] = await tx.select({ seededAt: vendorSettings.documentKindsSeededAt }).from(vendorSettings);
@@ -28,7 +30,7 @@ export function seedDocumentKindRows(organizationId: string, kinds: { key: strin
     const known = new Set(existing.map((row) => row.starterKey));
     for (const [position, kind] of kinds.entries()) {
       if (known.has(kind.key)) continue;
-      await tx.insert(vendorDocumentKinds).values({ organizationId, label: kind.label, expires: kind.expires, starterKey: kind.key, position });
+      await tx.insert(vendorDocumentKinds).values({ organizationId, label: kind.label, shortLabel: kind.shortLabel, expires: kind.expires, requestedByDefault: kind.requestedByDefault, starterKey: kind.key, position });
     }
     const now = new Date();
     await tx
@@ -51,6 +53,11 @@ export function insertDocumentKindRow(organizationId: string, values: { label: s
     if (!row) throw new Error("insertion de la nature de pièce échouée");
     return row;
   });
+}
+
+// Lot 73a (P3, P4) : le nom court et « demandée d'habitude » d'une nature, réglés seuls (D7).
+export function updateDocumentKindRow(organizationId: string, kindId: string, values: { shortLabel?: string | null; requestedByDefault?: boolean }): Promise<VendorDocumentKindRow | null> {
+  return inOrganization(organizationId, async (tx) => (await tx.update(vendorDocumentKinds).set({ ...values, updatedAt: new Date() }).where(and(eq(vendorDocumentKinds.id, kindId), isNull(vendorDocumentKinds.archivedAt))).returning())[0] ?? null);
 }
 
 export function archiveDocumentKindRow(organizationId: string, kindId: string): Promise<boolean> {
@@ -79,7 +86,7 @@ export function saveDocumentAlertDays(organizationId: string, days: number): Pro
 
 // PRE-05 — pièces.
 
-export type DocumentWithKind = { document: VendorDocumentRow; kindLabel: string; vendorName: string };
+export type DocumentWithKind = { document: VendorDocumentRow; kindLabel: string; kindShortLabel: string | null; vendorName: string };
 
 export function findDocumentRows(organizationId: string, filter: { vendorIds?: string[]; documentId?: string } = {}): Promise<DocumentWithKind[]> {
   return inOrganization(organizationId, async (tx) => {
@@ -88,7 +95,7 @@ export function findDocumentRows(organizationId: string, filter: { vendorIds?: s
       ...(filter.documentId ? [eq(vendorDocuments.id, filter.documentId)] : []),
     ];
     const rows = await tx
-      .select({ document: vendorDocuments, kindLabel: vendorDocumentKinds.label, vendorName: vendors.name })
+      .select({ document: vendorDocuments, kindLabel: vendorDocumentKinds.label, kindShortLabel: vendorDocumentKinds.shortLabel, vendorName: vendors.name })
       .from(vendorDocuments)
       .innerJoin(vendorDocumentKinds, eq(vendorDocumentKinds.id, vendorDocuments.kindId))
       .innerJoin(vendors, eq(vendors.id, vendorDocuments.vendorId))
