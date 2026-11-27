@@ -70,8 +70,6 @@
     "myProfile": "My profile",
     "settings": "Settings",
     "administration": "Operations",
-    "onboardingIncomplete": "Your company profile is not complete yet.",
-    "completeProfile": "Complete it",
     "events": "Events",
     "budgetModels": "Budget models",
     "quoteCatalog": "Quotes catalogue",
@@ -470,7 +468,7 @@
     },
     "home": {
       "title": "Today",
-      "body": "What needs your attention, across all events, in the next fourteen days: an item is a line, something to do or to watch, and the number at the top counts them all. Late items come first, oldest first, then everything else by date, whoever has to act. “Deal with first” keeps the first seven items, grouped by kind (follow-ups and messages, tasks, payments, decisions and signatures, prospects, “To watch” for radar alerts); when the line waits on the couple or a vendor, the name and details of the person to reach are under its title; each part gives its count and leads to its page (“See in Tasks”, “See payments received”…), each line says who has to act and leads to the action in one click; a task takes the same line as in « Tasks », without the menu: its title opens its panel, the couple's name leads to their event, « Done » ticks it, and « Review them » shows the tasks done today. Below, full width, the calendar: your events, appointments, tasks in the colour of their category and unpaid vendor due dates; “‹”, “Today” and “›” page through it, “Month”, “Week” and “List” change the view, a click on a day shows its detail. On a phone, the current week. Then the remaining items, and your events in progress, with the countdown. “To send”: a relationship message prepared by Symbola (reminder, brief…), to send from your own mailbox; one click opens the “Prepare the email” window. On a phone, the bottom bar leads to Today, Events, Tasks (with the number of late tasks) and Vendors; “More” opens the rest: Contacts, Appointments, Quotes and invoices, Payments, All modules, Settings, Tutorials, Help, then your account and “Log out”. It closes with Escape, a swipe down, a tap outside or the back button. A module you don't have leaves its place in the bar to the next entry of “More”. « Takeovers in progress » lists first the weddings you are taking over from another tool, with what is left; they do not count in the number of items.",
+      "body": "What needs your attention, across all events, in the next fourteen days. An item is something to do or keep an eye on in the next fourteen days: each item is one line, and the number at the top (“7 items to handle in the next 14 days, 2 late”) counts them all. Late items come first, oldest first, then everything else by date, whoever has to act. Nothing comes before the list except an alert that blocks a sending or an obligation (email cap, stopped reminders, a GDPR request coming due). “Handle first” shows the first seven items, grouped by kind (follow-ups and messages, tasks, payments, decisions and signatures, prospects, “To watch” for the risk radar alerts); a group says “4 of 7” when it is not shown in full, and “Show all”, at the bottom of the card, opens the rest in place. Each line gives its wedding (a link to its page), its due date in words and who has to act: “You”, a colleague, “Waiting for the client” or the vendor awaited, with, under the title, the name and phone number of the person to call (on a phone, one tap calls). A task's title opens its panel over the home screen, and “Close” brings you back to the same line; “Done” ticks it, with “Undo” for ten seconds; “Log a reminder” records a reminder made to a vendor; “Review them” shows the tasks done today. Below, “My events”: each wedding in progress, its countdown and its items (“6 items, 2 late”, “No tasks yet”, “Up to date”). Then the calendar: your events, appointments, tasks in their category colour and unpaid vendor payment due dates; “‹”, “Today” and “›” page through it, “Month”, “Week” and “List” change the view, a click on a day shows its detail. On a phone, the current week. At the bottom, “Getting started” lists the steps left; “Hide” removes it for you, on all your devices. In a new space, the screen offers one thing only: create your first wedding, or import a wedding in progress if you already track your weddings in a spreadsheet or other software. “To send”: a relationship message prepared by Symbola (reminder, brief…), to send from your own mailbox; one click opens the “Prepare the email” window. On a phone, the bottom bar leads to Today, Events, Tasks (with the number of late tasks) and Vendors; “More” opens the rest: Contacts, Appointments, Quotes and invoices, Payments, All modules, Settings, Tutorials, Help, then your account and “Log out”. It closes with Escape, a swipe down, a tap outside or the back button. A module you don't have leaves its place in the bar to the next entry of “More”. « Takeovers in progress » lists first the weddings you are taking over from another tool, with what is left; they do not count in the number of items.",
       "faq": [
         {
           "q": "How do I change the follow-up delays for quotes and prospects?",
@@ -5578,11 +5576,23 @@
     },
     "checklist": {
       "title": "Getting started",
-      "progress": "{done} of {total} done",
-      "done": "done",
       "items": {
         "essentials": "Set up the essentials: company, address, VAT",
         "first_vendor": "Add a first vendor"
+      },
+      "count": "{done} of {total}",
+      "remaining": "left: {steps}",
+      "hide": "Hide",
+      "hiddenMessage": "\"Getting started\" is hidden.",
+      "shownMessage": "\"Getting started\" is back.",
+      "hideFailed": "\"Getting started\" could not be hidden. Try again.",
+      "short": {
+        "essentials": "set up the essentials",
+        "first_vendor": "a first vendor"
+      },
+      "action": {
+        "essentials": "Complete",
+        "first_vendor": "Add"
       }
     }
   },
@@ -7320,9 +7330,7 @@
   },
   "Today": {
     "title": "Today",
-    "summary": "{date} · {events, plural, =0 {no event in progress} one {# event in progress} other {# events in progress}} · {points, plural, =0 {nothing urgent} one {# item needs your attention} other {# items need your attention}}",
     "firstTitle": "Deal with first",
-    "firstEmpty": "Nothing urgent: everything is up to date.",
     "group": {
       "overdue": "Overdue",
       "today": "Today",
@@ -7345,7 +7353,9 @@
       "checkTask": "Done",
       "checkTaskLabel": "Done: “{label}”",
       "open": "Open",
-      "openLabel": "Open: {title}"
+      "openLabel": "Open: {title}",
+      "act": "Act",
+      "actLabel": "Act: {title}"
     },
     "words": {
       "clientTask": "Task assigned to the client",
@@ -7399,7 +7409,6 @@
     "countdown": "{days, plural, =0 {today} one {tomorrow} other {in # days}}",
     "countdownPast": "past",
     "dateUnset": "Date to be set",
-    "points": "{count, plural, one {# item to deal with} other {# items to deal with}}",
     "upToDate": "Up to date",
     "undo": {
       "taskDone": "Task done: {label}",
@@ -7447,7 +7456,6 @@
       "show": "Show",
       "hint": "Signed quotes, invoices less credit notes, and payments received less cancellations (earnest money included), over the calendar year."
     },
-    "restTitle": "Next",
     "unavailable": "Part of the list is not responding right now ({sources}): the rest is up to date.",
     "source": {
       "events": "events",
@@ -7501,19 +7509,20 @@
       "listLabel": "Days of the month with something on"
     },
     "parts": {
-      "follow_ups": "Follow-ups and messages ({count})",
-      "tasks": "Tasks overdue or due within {days} days ({count})",
-      "payments": "Payments ({count})",
-      "decisions": "Decisions and signatures ({count})",
-      "prospects": "Prospects and enquiries ({count})",
-      "others": "Other items ({count})",
-      "watch": "To watch ({count})"
+      "follow_ups": "Follow-ups and messages",
+      "tasks": "Tasks",
+      "payments": "Payments",
+      "decisions": "Decisions and signatures",
+      "prospects": "Prospects and enquiries",
+      "others": "Other items",
+      "watch": "To watch"
     },
     "partLink": {
-      "tasks": "See all tasks",
+      "tasks": "See in Tasks",
       "payments": "See payments received",
       "pipeline": "See prospects",
-      "event": "See the event"
+      "event": "See the event",
+      "tasksAll": "See all {count} in Tasks"
     },
     "reminder": {
       "button": "Log a follow-up",
@@ -7548,6 +7557,31 @@
       "saved": "Follow-up logged. Reminder on {date}.",
       "savedNoRecall": "Follow-up logged.",
       "invalid": "Check the date and how you followed up."
+    },
+    "eventsInProgress": "{count, plural, =0 {no event<long> in progress</long>} one {# event<long> in progress</long>} other {# events<long> in progress</long>}}",
+    "count": "{points, plural, one {# item} other {# items}} <long>to handle </long>in the next {days} days{late, plural, =0 {} other {, <red># late</red>}}",
+    "countNone": "Nothing to handle in the next {days} days",
+    "countQuiet": "Nothing to handle in the next {days} days: {count, plural, one {your wedding has} other {your # weddings have}} no tasks yet.",
+    "cardPoints": "{count, plural, =0 {0 items} one {# item} other {# items}}",
+    "partOf": "{shown} of {total}",
+    "restLine": "{count, plural, one {# more item} other {# more items}} in the next {days} days",
+    "showAll": "Show all",
+    "quietBody": "Nothing in the next {days} days. Due dates will come with the tasks: <import>import your spreadsheet list</import> or <template>start from a template</template>, from each wedding.",
+    "noneBody": "Nothing in the next {days} days: nothing late, due or awaited.",
+    "myEventsCount": "{count} in progress",
+    "allEvents": "All events",
+    "eventPoints": "{points, plural, one {# item} other {# items}}{late, plural, =0 {} other {, <red># late</red>}}",
+    "noTasksYet": "No tasks yet",
+    "empty": {
+      "title": "Start with your first wedding",
+      "body": "Symbola starts from your events: once the first one exists, this screen tells you every morning what's urgent, for whom and when.",
+      "newEvent": "New event",
+      "otherTakeover": "Already tracking your weddings in other software or a spreadsheet?",
+      "otherTakeoverLink": "Bring your files over",
+      "takeoverTitle": "Start by importing a wedding in progress",
+      "takeoverBody": "Its vendors, budget, tasks and schedule come in as they are.",
+      "takeoverAction": "Import a wedding",
+      "otherNew": "A wedding just starting?"
     }
   },
   "QuickCreate": {
