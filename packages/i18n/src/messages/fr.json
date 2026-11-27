@@ -900,7 +900,7 @@
     },
     "vendorBook": {
       "title": "Le carnet de prestataires",
-      "body": "Chaque prestataire a une seule fiche, réutilisée d'un évènement à l'autre. Filtrez par famille avec les pastilles du haut, puis par type, étiquette, ou autour d'un lieu. Une ligne ouvre sa fiche à droite ; « Archiver » la retire du carnet après confirmation. Le filtre « Évaluation » ne garde que les prestataires notés au moins tant d'étoiles.",
+      "body": "Chaque prestataire a une seule fiche, réutilisée d'un mariage à l'autre. Les familles en haut, puis les métiers de la famille choisie ; la barre de filtres (Rechercher, Où ? et son rayon, Pièces, Avec vous, Évaluation, Étiquette) ; chaque filtre posé devient une pastille qui s'enlève. Chaque en-tête de colonne trie. Le nom ouvre la fiche ; « ⋯ » appelle, écrit, modifie ou archive (« Annuler » dix secondes). « Sélectionner » agit sur plusieurs fiches : étiquette, export, archivage. Des fiches sans métier ? « Classer les fiches » propose un métier d'après le nom, que vous validez.",
       "faq": [
         {
           "q": "Comment comparer plusieurs devis pour une ligne ?",
@@ -5490,7 +5490,7 @@
     },
     "addToEvent": {
       "button": "Ajouter à un mariage…",
-      "buttonFor": "Ajouter {vendor} à un mariage…",
+      "buttonFor": "Ajouter à un mariage… ({vendor})",
       "titleOne": "Ajouter « {vendor} » à un mariage",
       "titleMany": "Ajouter {count, plural, one {# fiche} other {# fiches}} à un mariage",
       "interimBody": "Pour l'instant, un prestataire s'ajoute depuis le budget du mariage : ouvrez le mariage, onglet « Budget et prestataires », puis « Ajouter des prestataires » sur le poste.",

@@ -900,7 +900,7 @@
     },
     "vendorBook": {
       "title": "The vendor book",
-      "body": "Each supplier has a single record, reused from one event to the next. Filter by family with the top chips, then by type, tag, or around a place. A row opens its record on the right; « Archive » removes it from the book after confirmation. The “Rating” filter keeps only vendors rated at least that many stars.",
+      "body": "Each vendor has a single record, reused from one wedding to the next. Families at the top, then the trades of the chosen family; the filter bar (Search, Where? and its radius, Documents, With you, Rating, Tag); each filter set becomes a chip you can remove. Each column header sorts. The name opens the record; “⋯” calls, emails, edits or archives (“Undo” for ten seconds). “Select” acts on several records: tag, export, archive. Records without a trade? “Sort the records” suggests a trade from the name, for you to confirm.",
       "faq": [
         {
           "q": "How do I compare several quotes for a line?",
@@ -5490,7 +5490,7 @@
     },
     "addToEvent": {
       "button": "Add to a wedding…",
-      "buttonFor": "Add {vendor} to a wedding…",
+      "buttonFor": "Add to a wedding… ({vendor})",
       "titleOne": "Add “{vendor}” to a wedding",
       "titleMany": "Add {count, plural, one {# record} other {# records}} to a wedding",
       "interimBody": "For now, a vendor is added from the wedding's budget: open the wedding, the “Budget and vendors” tab, then “Add vendors” on the item.",

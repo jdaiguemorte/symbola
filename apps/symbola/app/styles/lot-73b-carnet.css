@@ -232,8 +232,14 @@
     .vendor-board .vendor-cell-documents {
       @apply text-label;
     }
-    .vendor-table thead {
-      @apply sr-only;
+    .vendor-board .vendor-table thead {
+      @apply hidden;
+    }
+    /* Aucune commande sous 44 px (critère 11). */
+    .vendor-book-screen .pills a,
+    .vendor-book-screen .segmented a,
+    .vendor-book-screen .filter-chip {
+      @apply min-h-11;
     }
     .vendor-board .vendor-table,
     .vendor-board .vendor-table tbody {
@@ -333,7 +339,7 @@
       @apply justify-center;
     }
     .vendor-classify-table thead {
-      @apply sr-only;
+      @apply hidden;
     }
     .vendor-classify-table,
     .vendor-classify-table tbody,

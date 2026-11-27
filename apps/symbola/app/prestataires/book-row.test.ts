@@ -59,6 +59,8 @@ describe("UX-12, PRE-01 — Le tri par colonne, dans l'adresse (lot 73b, critèr
   it("sans tri choisi : par nom, ou par distance quand un lieu est posé (critère 6)", () => {
     expect(effectiveSort(parseBookFilters({}, []), false)).toEqual({ sort: "name", direction: "asc", natural: true });
     expect(effectiveSort(parseBookFilters({}, []), true)).toEqual({ sort: "distance", direction: "asc", natural: true });
+    // « Pièces à régler » : ce qui presse d'abord (critère 4).
+    expect(effectiveSort(parseBookFilters({ pieces: "a-regler" }, []), false)).toEqual({ sort: "documents", direction: "asc", natural: true });
     // La distance sans lieu trie par nom.
     expect(effectiveSort(parseBookFilters({ tri: "distance" }, []), false).sort).toBe("name");
   });

@@ -567,7 +567,7 @@ export default async function VendorBookPage({ searchParams }: { searchParams: P
 
             {outside?.travel ? (
               <p className="meta vendor-outside">
-                {t("outsideRadius", { vendor: outside.name, city: outside.city ?? t("row.noCity"), km: outside.travel.distanceKm })}{" "}
+                {t("outsideRadius", { vendor: outside.name, city: outside.city ?? t("row.noCity"), km: Math.round(outside.travel.distanceKm) })}{" "}
                 <Link href={`/prestataires${queryString(query, { rayon: String(nextRadius) })}`}>{t("widenRadius", { km: nextRadius! })}</Link>
               </p>
             ) : null}

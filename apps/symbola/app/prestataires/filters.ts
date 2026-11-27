@@ -105,7 +105,9 @@ export const documentsParam = (filter: VendorDocumentFilter): string => paramOf(
 // Le tri en vigueur : celui de l'adresse, sinon par distance autour d'un lieu, sinon par nom ; la distance
 // sans lieu trie par nom. natural : la colonne trie dans son premier sens.
 export function effectiveSort(filters: BookFilters, hasCenter: boolean): { sort: VendorSort; direction: "asc" | "desc"; natural: boolean } {
-  const sort: VendorSort = filters.sort && (filters.sort !== "distance" || hasCenter) ? filters.sort : hasCenter ? "distance" : "name";
+  // Sans tri choisi : par distance autour d'un lieu ; avec le filtre « Pièces », ce qui presse d'abord
+  // (« Pièces à régler », § 4.2) ; sinon par nom.
+  const sort: VendorSort = filters.sort && (filters.sort !== "distance" || hasCenter) ? filters.sort : hasCenter ? "distance" : filters.documents ? "documents" : "name";
   const direction = filters.sort === sort && filters.direction ? filters.direction : NATURAL_DIRECTION[sort];
   return { sort, direction, natural: direction === NATURAL_DIRECTION[sort] };
 }
