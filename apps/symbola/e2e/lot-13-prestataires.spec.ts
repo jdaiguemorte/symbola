@@ -41,7 +41,7 @@ test("L13-PRE-12 — la vue « Liste · Carte » ; le nom ouvre la fiche (lot 73
   // Lot 16 (L16-PRE-14) : pastilles par famille ; ces fiches sans type sont « à classer ».
   await expect(page.getByRole("navigation", { name: "Familles de prestataires" }).getByRole("link", { name: "Tous · 2" })).toBeVisible();
   const list = bookResults(page);
-  await expect(list.getByRole("link", { name: "Maison Verdier" })).toBeVisible();
+  await expect(list.getByRole("link", { name: "Maison Verdier", exact: true })).toBeVisible();
 
   // La liste ou la carte, jamais les deux.
   const map = page.getByRole("region", { name: /Carte : 2 prestataires placés/ });
@@ -50,7 +50,7 @@ test("L13-PRE-12 — la vue « Liste · Carte » ; le nom ouvre la fiche (lot 73
   await expect(map).toBeVisible();
   await expect(page.locator("table.vendor-table")).toHaveCount(0);
   await page.getByRole("navigation", { name: "Affichage" }).getByRole("link", { name: "Liste" }).click();
-  await expect(list.getByRole("link", { name: "Maison Verdier" })).toBeVisible();
+  await expect(list.getByRole("link", { name: "Maison Verdier", exact: true })).toBeVisible();
   await expect(page).not.toHaveURL(/vue=carte/);
 
   // La recherche filtre ; le nom ouvre la fiche, en un clic.
@@ -60,7 +60,7 @@ test("L13-PRE-12 — la vue « Liste · Carte » ; le nom ouvre la fiche (lot 73
   await closeBookFilters(page);
   await expect(list).toContainText("03 20 00 00 00");
   await expectNoAxeViolation(page);
-  await list.getByRole("link", { name: "Maison Verdier" }).click();
+  await list.getByRole("link", { name: "Maison Verdier", exact: true }).click();
   await expect(page).toHaveURL(new RegExp(`/prestataires/${verdier.id}$`));
   await expect(page.getByRole("heading", { level: 1, name: "Maison Verdier" })).toBeVisible();
 });

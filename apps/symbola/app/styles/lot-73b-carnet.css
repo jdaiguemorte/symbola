@@ -113,7 +113,6 @@
   .vendor-trade[data-unclassified="true"] {
     @apply text-ink-muted;
   }
-  .vendor-phone-summary,
   .vendor-phone-call {
     @apply hidden;
   }
@@ -249,11 +248,11 @@
       @apply mb-2 grid rounded-md border border-line bg-surface p-3;
       height: auto;
       grid-template-columns: minmax(0, 1fr) auto;
-      grid-template-areas: "name menu" "trade trade" "documents call";
+      grid-template-areas: "name menu" "trade with" "documents call";
     }
     .vendor-board[data-selecting="true"] .vendor-table tbody tr {
       grid-template-columns: auto minmax(0, 1fr);
-      grid-template-areas: "select name" "select trade" "select documents";
+      grid-template-areas: "select name" "select trade" "select documents" "select with";
     }
     .vendor-board .vendor-table td {
       @apply border-0 p-0;
@@ -275,19 +274,28 @@
     .vendor-board td.vendor-cell-actions {
       display: contents;
     }
-    .vendor-board .vendor-cell-with,
     .vendor-board .vendor-cell-rating,
     .vendor-board .vendor-contact,
-    .vendor-board .vendor-city,
-    .vendor-board .vendor-trade,
     .vendor-board .vendor-row-add {
       @apply hidden;
     }
+    /* « métier · ville » sur une ligne, « N mariages » à côté. */
+    .vendor-board .vendor-cell-trade {
+      @apply text-label text-ink-muted;
+    }
+    .vendor-board .vendor-trade,
+    .vendor-board .vendor-city {
+      @apply inline;
+    }
+    .vendor-board .vendor-city::before {
+      content: " · ";
+    }
+    .vendor-board .vendor-cell-with {
+      grid-area: with;
+      @apply self-center text-right text-label text-ink-muted;
+    }
     .vendor-board .vendor-name-link {
       @apply inline-flex min-h-11 items-center;
-    }
-    .vendor-board .vendor-phone-summary {
-      @apply block text-label text-ink-muted;
     }
     .vendor-board .vendor-cell-actions .task-menu-button {
       grid-area: menu;
@@ -366,6 +374,20 @@
     .vendor-classify-bar {
       @apply fixed inset-x-0 bottom-0 m-0 rounded-none rounded-t-lg border-x-0 border-b-0;
       padding-bottom: calc(0.75rem + env(safe-area-inset-bottom));
+    }
+  }
+
+  /* Sur téléphone (barre du bas du lot 70f), la barre de navigation s'efface quand une barre du carnet prend le
+     bas de l'écran : sélection, panneau des filtres, enregistrement de « Classer » (règle de « Tâches »). */
+  @media (max-width: 767px) {
+    body:has(.vendor-board[data-selecting="true"]) .app-tabbar,
+    body:has(.book-filters[data-open="true"]) .app-tabbar,
+    body:has(.vendor-classify-bar) .app-tabbar {
+      @apply hidden;
+    }
+    /* La dernière fiche peut remonter au-dessus du message de retour (posé au-dessus de la barre du bas). */
+    .has-tabbar .app-main:has(.vendor-board) {
+      padding-bottom: calc(var(--app-tabbar-height) + 6rem);
     }
   }
 }

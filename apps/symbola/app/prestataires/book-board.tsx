@@ -15,12 +15,12 @@
 //
 // Tout passe par délégation d'évènements sur le tableau : les lignes restent du HTML du serveur.
 import Link from "next/link";
-import { useCallback, useEffect, useRef, useState, useTransition, type ReactNode } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState, useTransition, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useFeedback } from "@/app/ui/feedback";
 import { TaskPopover, usePopover } from "@/app/ui/task-popover";
-import { archiveVendorAction, archiveVendorsAction, restoreVendorsTagsAction, tagVendorsAction, unarchiveVendorsAction, type VendorBulkResult } from "./actions";
+import { addVendorToSlotAction, archiveVendorAction, archiveVendorsAction, restoreVendorsTagsAction, tagVendorsAction, unarchiveVendorsAction, type VendorBulkResult } from "./actions";
 
 export const SELECT_TOGGLE_EVENT = "symbola:vendor-select-toggle";
 export const SELECTING_EVENT = "symbola:vendor-selecting";
@@ -28,9 +28,93 @@ export const SELECTING_EVENT = "symbola:vendor-selecting";
 type TagOption = { id: string; label: string; group: string | null };
 type RowMenuTarget = { id: string; name: string; phone: string | null; email: string | null };
 
-function rowTarget(button: HTMLElement): RowMenuTarget {
-  return { id: button.dataset.rowMenu!, name: button.dataset.name ?? "", phone: button.dataset.phone || null, email: button.dataset.email || null };
-}
+// Lot 73b (NFR-02) : une ligne du carnet, ses textes déjà formatés par le serveur.
+export type BookRowData = {
+  id: string;
+  name: string;
+  demo: boolean;
+  contact: string;
+  trade: string;
+  unclassified: boolean;
+  city: string;
+  withYou: string;
+  rating: string;
+  tone: "ok" | "soon" | "late" | "todo" | "none";
+  icon: "✓" | "◷" | "!" | null;
+  documents: string;
+  reason: string | null;
+  phone: string | null;
+  email: string | null;
+};
+// Les libellés qui portent le nom de la fiche : un modèle, le nom (\u0000) et le téléphone (\u0002) à glisser.
+export type BookRowLabels = { demo: string; add: string; addFor: string; menu: string; call: string; select: string; addToSlot: string | null };
+const fill = (template: string, name: string, phone = "") => template.replace("\u0000", name).replace("\u0002", phone);
+
+const BookRow = memo(function BookRow({ row, labels, target, selecting, selected, onToggle }: { row: BookRowData; labels: BookRowLabels; target: { eventId: string; slotId: string } | null; selecting: boolean; selected: boolean; onToggle: (id: string) => void }) {
+  return (
+    <tr data-vendor-id={row.id}>
+      <td className="vendor-select-cell">
+        {selecting ? (
+          <label>
+            <input type="checkbox" checked={selected} onChange={() => onToggle(row.id)} />
+            <span className="sr-only">{fill(labels.select, row.name)}</span>
+          </label>
+        ) : null}
+      </td>
+      <td className="vendor-cell-name">
+        {/* Un lien simple : 500 composants Link hydratés et préchargés coûtaient au rendu. */}
+        <a href={`/prestataires/${row.id}`} className="vendor-name-link">
+          {row.name}
+        </a>
+        {row.demo ? <span className="badge badge-ambre">{labels.demo}</span> : null}
+        <span className="vendor-contact">{row.contact}</span>
+      </td>
+      <td className="vendor-cell-trade">
+        <span className="vendor-trade" data-unclassified={row.unclassified ? "true" : undefined}>
+          {row.trade}
+        </span>
+        <span className="vendor-city">{row.city}</span>
+      </td>
+      <td className="vendor-cell-with">{row.withYou}</td>
+      <td className="vendor-cell-rating">{row.rating}</td>
+      <td className="vendor-cell-documents">
+        <span className="book-documents" data-tone={row.tone}>
+          {row.icon ? (
+            <span className="book-documents-icon" aria-hidden="true">
+              {row.icon}
+            </span>
+          ) : null}
+          {row.documents}
+        </span>
+        {row.reason ? <span className="book-documents-reason">{row.reason}</span> : null}
+      </td>
+      <td className="vendor-cell-actions">
+        {row.phone ? (
+          <a className="vendor-phone-call" href={`tel:${row.phone}`} aria-label={fill(labels.call, row.name, row.phone)}>
+            {row.phone}
+          </a>
+        ) : null}
+        {target && labels.addToSlot ? (
+          <form action={addVendorToSlotAction}>
+            <input type="hidden" name="vendorId" value={row.id} />
+            <input type="hidden" name="eventId" value={target.eventId} />
+            <input type="hidden" name="slotId" value={target.slotId} />
+            <button type="submit" className="button-secondary vendor-row-add">
+              {fill(labels.addToSlot, row.name)}
+            </button>
+          </form>
+        ) : (
+          <button type="button" className="button-secondary vendor-row-add" data-add-to-event aria-label={fill(labels.addFor, row.name)}>
+            {labels.add}
+          </button>
+        )}
+        <button type="button" className="task-menu-button" aria-haspopup="menu" aria-label={fill(labels.menu, row.name)} data-row-menu>
+          ⋯
+        </button>
+      </td>
+    </tr>
+  );
+})
 
 function moveFocus(event: React.KeyboardEvent<HTMLElement>) {
   if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;
@@ -320,16 +404,23 @@ function BulkBar({ ids, names, tags, exportFields, exportListHrefs, onEnd, onAdd
 }
 
 export function BookBoard({
-  children,
+  rows,
+  labels,
+  target,
+  caption,
+  head,
   tags,
   exportFields,
   exportListHrefs,
   back,
-  addInMenu,
 }: {
-  children: ReactNode;
-  // Hors d'un poste : « Ajouter à un mariage… » est aussi au menu (sur téléphone, à la place du bouton).
-  addInMenu: boolean;
+  rows: BookRowData[];
+  labels: BookRowLabels;
+  // Le carnet ouvert depuis un poste : l'action rapide ajoute à ce poste (règle actuelle, avant le 73c).
+  target: { eventId: string; slotId: string } | null;
+  caption: string;
+  // Les en-têtes qui trient, rendus par le serveur.
+  head: ReactNode;
   tags: TagOption[];
   // Lieu, rayon et tri de l'écran : l'export de la sélection garde les trajets et l'ordre.
   exportFields: Record<string, string>;
@@ -337,29 +428,29 @@ export function BookBoard({
   // L'adresse du carnet, filtres compris, où revenir après « Archiver… ».
   back: string;
 }) {
-  const container = useRef<HTMLDivElement>(null);
+  const t = useTranslations("VendorBook");
   const [selecting, setSelecting] = useState(false);
   const [selected, setSelected] = useState<string[]>([]);
   const [menu, setMenu] = useState<{ target: RowMenuTarget; anchor: HTMLElement; requests: number } | null>(null);
   const addDialog = useRef<HTMLDialogElement>(null);
   const [addNames, setAddNames] = useState<string[]>([]);
+  const byId = useMemo(() => new Map(rows.map((row) => [row.id, row])), [rows]);
+  // Les fiches qui quittent la liste (archivées, filtrées) quittent la sélection.
+  const shown = selected.filter((id) => byId.has(id));
 
-  const boxes = () => [...(container.current?.querySelectorAll<HTMLInputElement>("input[data-select-vendor]") ?? [])];
-  const readSelection = () => setSelected(boxes().filter((box) => box.checked).map((box) => box.value));
   const end = useCallback(() => {
-    for (const box of boxes()) box.checked = false;
     setSelected([]);
     setSelecting(false);
   }, []);
+  const toggle = useCallback((id: string) => setSelected((current) => (current.includes(id) ? current.filter((value) => value !== id) : [...current, id])), []);
 
   // « Sélectionner » est dans l'en-tête de l'écran ; il parle au tableau par un évènement.
   useEffect(() => {
-    const toggle = () => setSelecting((current) => !current);
-    window.addEventListener(SELECT_TOGGLE_EVENT, toggle);
-    return () => window.removeEventListener(SELECT_TOGGLE_EVENT, toggle);
+    const onToggle = () => setSelecting((current) => !current);
+    window.addEventListener(SELECT_TOGGLE_EVENT, onToggle);
+    return () => window.removeEventListener(SELECT_TOGGLE_EVENT, onToggle);
   }, []);
   useEffect(() => {
-    if (!selecting) for (const box of boxes()) box.checked = false;
     if (!selecting) setSelected([]);
     window.dispatchEvent(new CustomEvent(SELECTING_EVENT, { detail: selecting }));
     if (!selecting) return;
@@ -370,7 +461,7 @@ export function BookBoard({
     return () => window.removeEventListener("keydown", onKey);
   }, [selecting, end]);
 
-  const nameOf = (id: string) => container.current?.querySelector<HTMLElement>(`[data-row-menu="${id}"]`)?.dataset.name ?? "";
+  const nameOf = (id: string) => byId.get(id)?.name ?? "";
   const openAdd = (names: string[]) => {
     setAddNames(names);
     requestAnimationFrame(() => addDialog.current?.showModal());
@@ -378,51 +469,43 @@ export function BookBoard({
 
   return (
     <div
-      ref={container}
       className="vendor-board"
       data-selecting={selecting ? "true" : undefined}
-      onChange={(event) => {
-        if ((event.target as HTMLElement).matches("input[data-select-vendor]")) readSelection();
-      }}
       onClick={(event) => {
+        // Un seul menu et une seule fenêtre pour tout le tableau : la ligne se lit au clic.
         const element = event.target as HTMLElement;
+        const id = element.closest<HTMLElement>("tr[data-vendor-id]")?.dataset.vendorId;
+        const row = id ? byId.get(id) : undefined;
+        if (!row) return;
         const menuButton = element.closest<HTMLElement>("[data-row-menu]");
         if (menuButton) {
-          setMenu((current) => ({ target: rowTarget(menuButton), anchor: menuButton, requests: (current?.requests ?? 0) + 1 }));
+          setMenu((current) => ({ target: { id: row.id, name: row.name, phone: row.phone, email: row.email }, anchor: menuButton, requests: (current?.requests ?? 0) + 1 }));
           return;
         }
-        const addButton = element.closest<HTMLElement>("[data-add-to-event]");
-        if (addButton) openAdd([addButton.dataset.name ?? ""]);
+        if (element.closest("[data-add-to-event]")) openAdd([row.name]);
       }}
     >
       {selecting ? (
         <div className="vendor-board-select">
-          <button
-            type="button"
-            className="button-ghost"
-            onClick={() => {
-              for (const box of boxes()) box.checked = true;
-              readSelection();
-            }}
-          >
-            {/* Le nombre de cases, lu au clic : le tableau peut avoir changé. */}
-            <SelectAllLabel container={container} />
+          <button type="button" className="button-ghost" onClick={() => setSelected(rows.map((row) => row.id))}>
+            {t("bulk.selectAll", { count: rows.length })}
           </button>
         </div>
       ) : null}
-      {children}
-      {menu ? <RowMenu target={menu.target} anchor={menu.anchor} requests={menu.requests} back={back} onAddToEvent={addInMenu ? () => openAdd([menu.target.name]) : null} /> : null}
-      {selecting ? <BulkBar ids={selected} names={selected.map(nameOf)} tags={tags} exportFields={exportFields} exportListHrefs={exportListHrefs} onEnd={end} onAddToEvent={() => openAdd(selected.map(nameOf))} onDeselect={() => { for (const box of boxes()) box.checked = false; setSelected([]); }} /> : null}
+      <table className="vendor-table">
+        <caption className="sr-only">{caption}</caption>
+        {head}
+        <tbody>
+          {rows.map((row) => (
+            <BookRow key={row.id} row={row} labels={labels} target={target} selecting={selecting} selected={selecting && selected.includes(row.id)} onToggle={toggle} />
+          ))}
+        </tbody>
+      </table>
+      {menu ? <RowMenu target={menu.target} anchor={menu.anchor} requests={menu.requests} back={back} onAddToEvent={target ? null : () => openAdd([menu.target.name])} /> : null}
+      {selecting ? <BulkBar ids={shown} names={shown.map(nameOf)} tags={tags} exportFields={exportFields} exportListHrefs={exportListHrefs} onEnd={end} onAddToEvent={() => openAdd(shown.map(nameOf))} onDeselect={() => setSelected([])} /> : null}
       <AddToEventInterim dialog={addDialog} names={addNames} />
     </div>
   );
-}
-
-function SelectAllLabel({ container }: { container: React.RefObject<HTMLDivElement | null> }) {
-  const t = useTranslations("VendorBook");
-  const [count, setCount] = useState(0);
-  useEffect(() => setCount(container.current?.querySelectorAll("input[data-select-vendor]").length ?? 0), [container]);
-  return <>{t("bulk.selectAll", { count })}</>;
 }
 
 // « Sélectionner » / « Terminer la sélection », dans l'en-tête de l'écran.

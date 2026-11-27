@@ -32,7 +32,6 @@ import { PageTour } from "@/app/page-tour";
 import { settingsPanelHref } from "@/app/reglages/panels";
 import { countVendorsByFamily, countVendorsByType, findVendors, VENDOR_LIST_LIMIT } from "@/modules/vendors/service";
 import { ensureVendorFamilies } from "@/lib/vendors/catalog";
-import { addVendorToSlotAction } from "./actions";
 import {
   activeFilters,
   clearFiltersHref,
@@ -53,7 +52,7 @@ import { VendorMap, type MapPoint } from "./vendor-map";
 import { FamilyIcon } from "./family-icon";
 import { documentStateView, shortDayMonth, unclassifiedNotice } from "./book-row";
 import { latestBookImport } from "./book-import";
-import { BookBoard, SelectToggle } from "./book-board";
+import { BookBoard, SelectToggle, type BookRowData, type BookRowLabels } from "./book-board";
 import { BookHeaderMenu, FiltersPanel } from "./book-controls";
 
 // Types « à classer » (sans famille) et fiches sans type, sur la carte.
@@ -184,82 +183,53 @@ export default async function VendorBookPage({ searchParams }: { searchParams: P
   const summary = results.length !== total || chips.length > 0 ? t("countOf", { count: results.length, total, sort: sortLabel }) : t("countAll", { count: results.length, sort: sortLabel });
   const tagOptions = tags.map((tag) => ({ id: tag.id, label: tag.label, group: tagGroups.find((group) => group.id === tag.groupId)?.label ?? null }));
 
-  const row = (vendor: VendorListItem) => {
+  // NFR-02 (500 lignes) : chaque texte de ligne est formaté une fois par jeu de valeurs, et le nom de la fiche
+  // se glisse dans un modèle formaté une fois : quelques dizaines de formatages au lieu de cinq mille.
+  const formatted = new Map<string, string>();
+  const once = (key: string, values?: Record<string, string | number>): string => {
+    const cacheKey = values ? `${key}\u0001${JSON.stringify(values)}` : key;
+    let text = formatted.get(cacheKey);
+    if (text === undefined) {
+      text = values ? t(key as Parameters<typeof t>[0], values) : t(key as Parameters<typeof t>[0]);
+      formatted.set(cacheKey, text);
+    }
+    return text;
+  };
+  // Lot 73b (NFR-02) : la ligne part au navigateur en données compactes, ses textes déjà formatés ; le
+  // composant client BookBoard la dessine (même principe que les lignes de « Tâches »).
+  const rowData = (vendor: VendorListItem): BookRowData => {
     const primary = vendor.primaryTypeId ? (typeById.get(vendor.primaryTypeId) ?? null) : null;
     const documents = documentStateView(vendor.documentState);
-    const values = Object.fromEntries(Object.entries(documents.message.values).map(([key, value]) => [key, key === "date" && typeof value === "string" ? shortDayMonth(value, locale) : value]));
-    const reason = documents.reason ? t(`documents.${documents.reason.key}`, Object.fromEntries(Object.entries(documents.reason.values).map(([key, value]) => [key, key === "date" && typeof value === "string" ? shortDayMonth(value, locale) : value]))) : null;
-    const trade = primary?.label ?? t("unclassified");
-    const city = vendor.city ?? t("row.noCity");
-    const withYou = vendor.workedWithCount > 0 ? t("row.weddings", { count: vendor.workedWithCount }) : t("row.never");
-    return (
-      <tr key={vendor.id} data-vendor-id={vendor.id}>
-        <td className="vendor-select-cell">
-          <label>
-            <input type="checkbox" data-select-vendor value={vendor.id} />
-            <span className="sr-only">{t("row.select", { vendor: vendor.name })}</span>
-          </label>
-        </td>
-        <td className="vendor-cell-name">
-          <Link href={`/prestataires/${vendor.id}`} className="vendor-name-link">
-            {vendor.name}
-          </Link>
-          {vendor.isDemo ? <span className="badge badge-ambre">{t("demo")}</span> : null}
-          <span className="vendor-contact">
-            {[vendor.contactName ?? t("row.noContact"), vendor.phone].filter(Boolean).join(" · ")}
-          </span>
-        </td>
-        <td className="vendor-cell-trade">
-          <span className="vendor-trade" data-unclassified={primary ? undefined : "true"}>
-            {trade}
-          </span>
-          <span className="vendor-city">
-            {city}
-            {vendor.travel ? ` · ${t("row.travel", { km: vendor.travel.distanceKm, minutes: vendor.travel.minutes })}` : null}
-          </span>
-          {/* Sur téléphone : « métier · ville · N mariages » sur une ligne. */}
-          <span className="vendor-phone-summary">{[trade, vendor.city, vendor.workedWithCount > 0 ? withYou : null].filter(Boolean).join(" · ")}</span>
-        </td>
-        <td className="vendor-cell-with">{withYou}</td>
-        <td className="vendor-cell-rating">{vendor.rating ? t("row.rating", { rating: vendor.rating }) : t("row.notRated")}</td>
-        <td className="vendor-cell-documents">
-          <span className="book-documents" data-tone={documents.tone}>
-            {documents.icon ? (
-              <span className="book-documents-icon" aria-hidden="true">
-                {documents.icon}
-              </span>
-            ) : null}
-            {t(`documents.${documents.message.key}`, values)}
-            {documents.more > 0 ? ` ${t("documents.more", { count: documents.more })}` : null}
-          </span>
-          {filters.documents && reason ? <span className="book-documents-reason">{reason}</span> : null}
-        </td>
-        <td className="vendor-cell-actions">
-          {vendor.phone ? (
-            <a className="vendor-phone-call" href={`tel:${vendor.phone}`} aria-label={t("row.callVendor", { vendor: vendor.name, phone: vendor.phone })}>
-              {vendor.phone}
-            </a>
-          ) : null}
-          {target ? (
-            <form action={addVendorToSlotAction}>
-              <input type="hidden" name="vendorId" value={vendor.id} />
-              <input type="hidden" name="eventId" value={target.eventId} />
-              <input type="hidden" name="slotId" value={target.slotId} />
-              <button type="submit" className="button-secondary vendor-row-add">
-                {t("addToSlot", { vendor: vendor.name, slot: target.slotLabel })}
-              </button>
-            </form>
-          ) : (
-            <button type="button" className="button-secondary vendor-row-add" data-add-to-event={vendor.id} data-name={vendor.name} aria-label={t("addToEvent.buttonFor", { vendor: vendor.name })}>
-              {t("addToEvent.button")}
-            </button>
-          )}
-          <button type="button" className="task-menu-button" aria-haspopup="menu" aria-label={t("row.menuLabel", { vendor: vendor.name })} data-row-menu={vendor.id} data-name={vendor.name} data-phone={vendor.phone ?? ""} data-email={vendor.email ?? ""}>
-            <span aria-hidden="true">⋯</span>
-          </button>
-        </td>
-      </tr>
-    );
+    const dated = (values: Record<string, string | number>) => Object.fromEntries(Object.entries(values).map(([key, value]) => [key, key === "date" && typeof value === "string" ? shortDayMonth(value, locale) : value]));
+    const reason = filters.documents && documents.reason ? once(`documents.${documents.reason.key}`, dated(documents.reason.values)) : null;
+    return {
+      id: vendor.id,
+      name: vendor.name,
+      demo: vendor.isDemo,
+      contact: [vendor.contactName ?? once("row.noContact"), vendor.phone].filter(Boolean).join(" · "),
+      trade: primary?.label ?? once("unclassified"),
+      unclassified: !primary,
+      city: `${vendor.city ?? once("row.noCity")}${vendor.travel ? ` · ${once("row.travel", { km: vendor.travel.distanceKm, minutes: vendor.travel.minutes })}` : ""}`,
+      withYou: vendor.workedWithCount > 0 ? once("row.weddings", { count: vendor.workedWithCount }) : once("row.never"),
+      rating: vendor.rating ? once("row.rating", { rating: vendor.rating }) : once("row.notRated"),
+      tone: documents.tone,
+      icon: documents.icon,
+      documents: `${once(`documents.${documents.message.key}`, dated(documents.message.values))}${documents.more > 0 ? ` ${once("documents.more", { count: documents.more })}` : ""}`,
+      reason,
+      phone: vendor.phone,
+      email: vendor.email,
+    };
+  };
+  const NAME = "\u0000";
+  const PHONE = "\u0002";
+  const rowLabels: BookRowLabels = {
+    demo: once("demo"),
+    add: once("addToEvent.button"),
+    addFor: once("addToEvent.buttonFor", { vendor: NAME }),
+    menu: once("row.menuLabel", { vendor: NAME }),
+    call: once("row.callVendor", { vendor: NAME, phone: PHONE }),
+    select: once("row.select", { vendor: NAME }),
+    addToSlot: target ? once("addToSlot", { vendor: NAME, slot: target.slotLabel }) : null,
   };
 
   return (
@@ -334,9 +304,10 @@ export default async function VendorBookPage({ searchParams }: { searchParams: P
 
           {/* Lot 73b (critère 8) : la phrase « à classer », sa raison, et son geste, bouton plein. */}
           {notice ? (
-            <section className="vendor-unclassified" aria-labelledby="vendor-unclassified-title">
+            // Un bloc, pas un repère : la liste reste la seule région dont le nom dit « N fiches ».
+            <div className="vendor-unclassified">
               <div>
-                <p id="vendor-unclassified-title" className="vendor-unclassified-title">
+                <p className="vendor-unclassified-title">
                   {t("unclassifiedTitle", { count: notice.count })}
                 </p>
                 {notice.key === "unclassifiedFromImport" ? <p className="meta">{t("unclassifiedFromImport")}</p> : null}
@@ -344,7 +315,7 @@ export default async function VendorBookPage({ searchParams }: { searchParams: P
               <Link href="/prestataires/classer" className="button-link button-link-primary">
                 {t("classifyButton", { count: notice.count })}
               </Link>
-            </section>
+            </div>
           ) : null}
 
           <nav aria-label={t("familiesFilter")} className="pills vendor-types" data-tour="vendor-types">
@@ -547,9 +518,16 @@ export default async function VendorBookPage({ searchParams }: { searchParams: P
             ) : null}
 
             {view === "liste" && results.length > 0 ? (
-              <BookBoard tags={tagOptions} exportFields={Object.fromEntries((["autour", "rayon", "tri", "sens"] as const).flatMap((key) => (typeof query[key] === "string" && query[key] ? [[key, query[key] as string]] : [])))} exportListHrefs={{ csv: exportHref("csv"), pdf: exportHref("pdf") }} back={back} addInMenu={!target}>
-                <table className="vendor-table">
-                  <caption className="sr-only">{t("tableCaption")}</caption>
+              <BookBoard
+                tags={tagOptions}
+                exportFields={Object.fromEntries((["autour", "rayon", "tri", "sens"] as const).flatMap((key) => (typeof query[key] === "string" && query[key] ? [[key, query[key] as string]] : [])))}
+                exportListHrefs={{ csv: exportHref("csv"), pdf: exportHref("pdf") }}
+                back={back}
+                rows={results.map(rowData)}
+                labels={rowLabels}
+                target={target ? { eventId: target.eventId, slotId: target.slotId } : null}
+                caption={t("tableCaption")}
+                head={
                   <thead>
                     <tr>
                       <th scope="col" className="vendor-select-cell">
@@ -568,9 +546,8 @@ export default async function VendorBookPage({ searchParams }: { searchParams: P
                       </th>
                     </tr>
                   </thead>
-                  <tbody>{results.map(row)}</tbody>
-                </table>
-              </BookBoard>
+                }
+              />
             ) : null}
 
             {outside?.travel ? (

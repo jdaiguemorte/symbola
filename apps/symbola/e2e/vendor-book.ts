@@ -4,7 +4,7 @@
 import { expect, type Locator, type Page } from "@playwright/test";
 
 export function bookResults(page: Page): Locator {
-  return page.getByRole("region", { name: /^(\d+|Aucune) fiches?\b/ });
+  return page.getByRole("region", { name: /^(\d+|Aucune) fiches?\b.*, par / });
 }
 
 export function isPhone(page: Page): boolean {

@@ -28,9 +28,12 @@ Aucun serveur réel. Pas de rejeu de scénario du § 17 à ce paquet : SC-04 et 
   séries sous 300 ms).
 - Un seul menu dans la page avant le premier clic (celui de l'en-tête) : les 500 lignes n'ont qu'un bouton
   « ⋯ », le menu est monté au clic et posé sous la ligne. C'est ce qui avait fait échouer « Tâches » au 70d.
-- Poids de la page : 2,7 Mo pour 520 fiches, dont 0,56 Mo de messages de traduction communs à toute l'app ;
-  environ 1,6 Ko de HTML par ligne, autant dans la charge React. À surveiller si une agence approche de la
-  limite (aucune agence pilote n'en est près, § 4.2).
+- Correctif du 27/11 au soir (CI à 440 ms sur 510 fiches) : les lignes partent au navigateur en données
+  compactes, textes déjà formatés, et un composant client les dessine (principe des lignes de « Tâches ») ; le
+  nom est un lien simple (plus 500 composants `Link` préchargés) ; les cases ne sont montées qu'en mode
+  « Sélectionner » ; chaque texte de ligne est formaté une fois. Le rendu des 500 lignes passe d'environ
+  95 à 45 ms en local ; la page de 2,7 à 1,46 Mo. Médianes locales, compte de 65 évènements et 520 fiches :
+  carnet 145 ms, « Tâches » 173 ms, « Évènements » 164 ms (machine chargée, à confirmer par la CI).
 
 ## Ce qui n'a pas été rejoué ici
 
