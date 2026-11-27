@@ -116,7 +116,7 @@
     "upcomingTasksEmpty": "Nothing urgent: no task overdue or due within 14 days.",
     "allTasksLink": "All tasks",
     "agenda": "Today",
-    "apps": "Apps",
+    "apps": "All modules",
     "tasks": "Tasks",
     "tasksOverdue": "{count} overdue",
     "settingsOrganization": "My organisation",
@@ -132,15 +132,14 @@
     "setup": "Set-up",
     "setupLocked": "Menus open once set-up is complete.",
     "agendaCreateOn": "Create on {date}",
-    "agendaCreateProspect": "Create a prospect on this date",
-    "agendaCreateEvent": "Create an event on this date",
+    "agendaCreateEvent": "New event on this date",
     "followUpTitle": "To follow up",
     "followUpEmpty": "Nothing to follow up for now.",
     "followUpQuote": "Follow up quote {number} · {names}",
     "followUpProspect": "Prospect with no news · {names}",
     "followUpDays": "{days, plural, one {# day} other {# days}}",
     "followUpSettings": "Prospect follow-ups",
-    "topBar": "Search and screen help",
+    "topBar": "Search, create, notifications, help and account",
     "agendaYear": "See the year",
     "documentsSettings": "Documents: logo, colour, IBAN",
     "privacySearch": "Find a person (GDPR)",
@@ -487,8 +486,8 @@
           "a": "In Events: the calendar of your weekends is there, with the list."
         },
         {
-          "q": "How do I quickly create a prospect, a task, an expense or a quote?",
-          "a": "With « Create » at the top of every screen, or the N key outside a field: a short form opens without leaving the screen, and the screen's event is suggested."
+          "q": "How do I quickly create an event, a task, a vendor, a contact, a quote or an expense?",
+          "a": "With « + Create » at the top of every screen, or the N key outside a field: six entries, each with its own line. The event, the vendor and the contact open their screen; the task, the quote and the expense open a short form without leaving the screen, and the screen's wedding is named (« Task for Léa & Maxime »)."
         },
         {
           "q": "How do I make more room on screen?",
@@ -552,7 +551,7 @@
     },
     "eventsList": {
       "title": "Event list",
-      "body": "All your prospects and ongoing events; « Finished » keeps those closed or cancelled. « List », « Columns » or « Calendar », always in the same place: the filterable table, options by stage, or the coming months. Below, the workload over the next twelve months; two events on the same day are flagged in both views. Start with « New » (prospect, confirmed event or existing client), or filter the list by name, status, source or year. To try the module safely, start the guided trial below.",
+      "body": "All your prospects and ongoing events; « Finished » keeps those closed or cancelled. « List », « Columns » or « Calendar », always in the same place: the filterable table, options by stage, or the coming months. Below, the workload over the next twelve months; two events on the same day are flagged in both views. Start with « New event » (an ongoing enquiry, or a signed event), or filter the list by name, status, source or year. To try the module safely, start the guided trial below.",
       "faq": [
         {
           "q": "Where do I find a past event?",
@@ -570,15 +569,15 @@
     },
     "eventsNew": {
       "title": "Create an event",
-      "body": "“New” offers three choices. A prospect: a partner's first name and the contact source are enough; date, venue and budget can be filled in later. A confirmed event: type and date are enough, the client is optional (a photo shoot). For an existing client: pick them from the search, their name and details are not typed again. If the type has a retroplanning template, the form offers it (ticked for a confirmed event); otherwise a tip lets you create one without leaving the form. If the date falls on the same day as another confirmed or optional event, Symbola flags it before saving, without blocking.",
+      "body": "One entry, \"New event\": first say where it stands — an ongoing enquiry (it stays an Option) or signed, in preparation (it becomes Confirmed and gets the task list of its type if its date is set) — then give it a name. The date, the client and the type are optional or suggested; the venue, the source and a second client are completed from its page. If you already track the event in another tool or a spreadsheet, \"Import your files\" leads to the import page without creating anything. If the date falls on the same day as another confirmed or optional event, Symbola flags it before saving, without blocking you.",
       "faq": [
         {
-          "q": "What is the difference between a prospect and an event?",
-          "a": "A prospect has not signed yet. It becomes a confirmed event when you change its status on the timeline of its page, or when the quote is signed."
+          "q": "What is the difference between an enquiry and a signed event?",
+          "a": "An enquiry is not signed: the event is an Option. It becomes Confirmed when you change its status on its page's timeline, or when the quote is signed."
         },
         {
-          "q": "A source is missing from the list?",
-          "a": "Add it in Settings › Sources and reasons; it is offered straight away."
+          "q": "Where do I enter the source or a second client?",
+          "a": "On the event page, Couple tab: \"Source and clients\"."
         }
       ]
     },
@@ -1483,7 +1482,7 @@
       "body": "Your plan, its apps and options, the total and your storage against the plan's quota. Changing plan takes effect immediately; the prorated difference goes on the next invoice. Cancelling takes two steps: “Cancel subscription”, then “Confirm cancellation”; you keep access until the end of the paid period, then the space is closed (export for 30 days, then deletion). At 80% and 95% of the quota, Symbola warns you; when full, new uploads are only refused after seven days' notice, and viewing and export always remain available. Account holder only."
     },
     "apps": {
-      "title": "Apps",
+      "title": "All modules",
       "body": "All of Symbola's apps, with their state, what they bring and where to find them once active. During the pilot, “Request activation” tells the Symbola team, who activate the app for you, free of charge: you receive a notification and the app appears in your menu. A request can be cancelled until it is handled. The team only sees your organisation's name and the app requested. After the commercial launch, “Add to my subscription” shows the price, the prorated amount and the new total. Reserved to the Owner."
     },
     "adminPlans": {
@@ -1586,7 +1585,6 @@
     "title": "Events",
     "moduleUnavailable": "The Events module is not enabled for your organization.",
     "unauthenticated": "Your session has expired. Sign in again and retry.",
-    "newProspect": "New prospect",
     "settingsLink": "Event settings",
     "tabsLabel": "Period",
     "tabUpcoming": "Upcoming",
@@ -1650,11 +1648,9 @@
     "client2LastName": "Second partner's last name (optional)",
     "source": "Prospect source",
     "sourceChoose": "Choose…",
-    "noSourcesYet": "Each prospect is linked to where it came from (Instagram, wedding fair, word of mouth…). Add your sources in <link>Event settings</link>, or load the starter list in one click and edit it afterwards.",
     "eventDate": "Event date",
     "venueName": "Venue",
     "venueCity": "City",
-    "createProspect": "Create prospect",
     "missingFirstName": "The first partner's first name is required.",
     "missingSource": "Choose the prospect source.",
     "status": "Status",
@@ -1874,7 +1870,6 @@
     "confirmAsPlanned": "Make it the estimated budget",
     "trialStepQuote": "Compose a fictional quote, have the fictional couple sign it on the trial signing page, then issue its invoices (DEMO series, watermarked).",
     "trialStartQuote": "Try a fictional quote",
-    "noSourcesTitle": "A source is required",
     "loadStarterLists": "Load common sources and loss reasons",
     "starterListsLoaded": "{sources, plural, =0 {No source added} one {# source added} other {# sources added}}, {reasons, plural, =0 {no reason added} one {# reason added} other {# reasons added}}.",
     "starterListsTitle": "Start from a common list",
@@ -2351,41 +2346,12 @@
     "archivedEmpty": "No archived event.",
     "floorplanLink": "Event floor plan",
     "importHere": "Import",
-    "newMenu": "New",
-    "newMenuLabel": "Create an event",
-    "newMenuProspect": "Prospect",
-    "newMenuProspectHint": "A request to look into, before any signed quote. No retroplanning.",
-    "newMenuConfirmed": "Confirmed event",
-    "newMenuConfirmedHint": "Straight into preparation, with or without a client (e.g. a photo shoot).",
-    "newMenuClient": "For an existing client",
-    "newMenuClientHint": "A new event for a client already in your contacts.",
-    "newForClient": "New event for an existing client",
     "viewColumns": "Columns",
-    "newStatusLegend": "This is:",
-    "newStatusProspect": "a request to look into (prospect)",
-    "newStatusConfirmed": "a confirmed event",
-    "existingClientSearch": "Search your contacts for the client (name, email or phone)",
-    "clientOptionalLegend": "Client (optional: choose or create a contact)",
     "sourceNone": "None",
-    "missingExistingContact": "Choose the client from your contacts.",
     "taskTemplateUnavailable": "This retroplanning is no longer available for this type. Reload the page.",
     "templateProposal": "Start from the “{name}” retroplanning ({count, plural, one {# task} other {# tasks}})",
     "templateProposalHint": "Tasks are dated from the event date. You can also apply it later, from the Retroplanning tab.",
-    "templateProposalNeedsDate": "Enter the date to start from the retroplanning: its tasks depend on it. Otherwise, apply it later from the Retroplanning tab.",
-    "templateProposalShow": "See the tasks",
-    "templateTip": "Tip: “{type}” has no retroplanning template yet. Do you organise these often? Create one: your usual tasks will be ready for every new event of this type, without typing them again.",
-    "templateTipCreate": "Create a template for “{type}”",
-    "quickTemplateIntro": "The template is linked to this type: it will be offered for every new event. Fine-tune it (owner, tasks after the date) in the retroplanning templates.",
-    "quickTemplateTasks": "Usual tasks",
-    "quickTemplateTaskLabel": "Task {number}",
-    "quickTemplateDaysBefore": "Days before the date (task {number})",
-    "quickTemplateAddTask": "+ Add a task",
-    "quickTemplateSave": "Create the template",
-    "quickTemplateNoTask": "Add at least one task.",
-    "quickTemplateInvalid": "Check the template name and tasks.",
     "eventName": "Event name",
-    "eventNameHint": "(required without a client, e.g. “Roux photo shoot”)",
-    "missingEventName": "Without a client, give the event a name.",
     "taskMarkDone": "Mark “{label}” as done",
     "taskMarkUndone": "Mark “{label}” as to do",
     "tasksSelectAll": "Select all",
@@ -2458,7 +2424,30 @@
     "statusRestoredDetail": "It went back to “Option”, to be confirmed again.",
     "responsibleYou": "You",
     "responsibleMemberRemoved": "{name} (access removed)",
-    "responsibleNobody": "Nobody yet"
+    "responsibleNobody": "Nobody yet",
+    "newEvent": "New event",
+    "standingLegend": "Where does it stand?",
+    "standingEnquiry": "An ongoing enquiry",
+    "standingEnquiryHint": "You're discussing it, nothing is signed.",
+    "standingSigned": "Signed, in preparation",
+    "standingSignedHint": "The contract is signed, even if you started on paper: the task list is created today.",
+    "importPrompt": "Already tracking it in another tool or a spreadsheet?",
+    "importLink": "Import your files",
+    "newName": "Event name",
+    "newNamePlaceholder": "For example: Léa & Maxime",
+    "newDate": "Date",
+    "newDateHint": "Not set yet",
+    "newClient": "Client",
+    "newClientHint": "New client, or search your contacts",
+    "newType": "Type",
+    "createEvent": "Create event",
+    "originTitle": "Source and clients",
+    "sourceSave": "Save the source",
+    "sourceSaved": "Source saved.",
+    "addClientTitle": "Add a client",
+    "addClientSubmit": "Add this client",
+    "clientAdded": "Client added.",
+    "clientsFull": "This event already has two clients."
   },
   "Budget": {
     "title": "Budget",
@@ -4537,7 +4526,7 @@
   },
   "Search": {
     "label": "Search",
-    "placeholder": "Search for an event, a quote, a task, some help…",
+    "placeholder": "Search an event, a task, a vendor…",
     "shortcut": "⌘K",
     "submit": "Search",
     "title": "Search",
@@ -4547,24 +4536,34 @@
     "onlyYourOrganization": "Only your organisation's data is searched.",
     "groupEvents": "Events",
     "groupDocuments": "Quotes and invoices",
-    "groupTasks": "Tasks and vendors",
-    "groupHelp": "Help and screens",
+    "groupTasks": "Tasks",
+    "groupHelp": "Help",
     "noClientName": "No name",
     "noDate": "Date to be set",
     "quoteTitle": "Quote {number} · {names}",
     "invoiceTitle": "Invoice {number} · {names}",
     "invoiceIssued": "Issued on {date}",
     "taskTitle": "{label} · {names}",
-    "taskDue": "Due {date}",
+    "taskDue": "Due {when}",
     "vendorTitle": "{vendor} · {slot}",
     "tutorialDetail": "Tutorial · {minutes} min",
     "screenDetail": "Application screen",
     "close": "Close",
     "seeAll": "See all results",
-    "hint": "↑ ↓ to choose · Enter to open · Esc to close",
+    "hint": "Enter opens the highlighted result · arrows to choose · Esc to close",
     "globalLabel": "Search Symbola",
     "vendorBookDetail": "Vendor book",
-    "groupContacts": "Contacts"
+    "groupContacts": "Contacts",
+    "placeholderShort": "Search…",
+    "groupVendors": "Vendors",
+    "groupCount": "{label} · {count}",
+    "allResults": "All results for \"{term}\"",
+    "eventWhen": "{when}",
+    "dayToday": "today",
+    "dayTomorrow": "tomorrow",
+    "dayYesterday": "yesterday",
+    "dayFuture": "in {days, plural, one {# day} other {# days}}",
+    "dayPast": "{days, plural, one {# day} other {# days}} ago"
   },
   "AdminOnboarding": {
     "title": "Organisations getting started",
@@ -7507,22 +7506,23 @@
   "QuickCreate": {
     "button": "Create",
     "menuLabel": "What do you want to create?",
-    "shortcutHint": "Shortcut: N key",
+    "shortcutHint": "Press N to open this menu",
     "kind": {
-      "prospect": "Prospect",
       "task": "Task",
       "expense": "Expense",
-      "quote": "Quote"
+      "quote": "Quote",
+      "event": "New event",
+      "vendor": "Vendor",
+      "contact": "Contact",
+      "taskFor": "Task for {event}",
+      "quoteFor": "Quote for {event}",
+      "expenseFor": "Expense for {event}"
     },
     "title": {
-      "prospect": "New prospect",
-      "task": "New task",
       "expense": "New expense",
       "quote": "New quote"
     },
     "submit": {
-      "prospect": "Create the prospect",
-      "task": "Add the task",
       "expense": "Save the expense",
       "quote": "Create the quote"
     },
@@ -7537,11 +7537,6 @@
     "source": "Contact source",
     "sourceChoose": "Choose a source",
     "date": "Event date (optional)",
-    "taskLabel": "Task",
-    "dueDate": "Due date",
-    "responsible": "Who handles it",
-    "responsiblePlanner": "You",
-    "responsibleClients": "The client",
     "slot": "Budget category",
     "slotChoose": "Choose a category",
     "noSlots": "This event has no budget category yet: add one from its budget.",
@@ -7556,13 +7551,19 @@
     "quoteHintProspect": "The prospect is created, then its quote as a numbered draft; you compose it afterwards.",
     "quoteDoneForProspect": "Prospect {name} created, with draft quote {number}.",
     "quoteFailedProspectKept": "Prospect {name} was created, but its quote could not be. Create it from the prospect's page.",
-    "prospectDone": "Prospect {name} created.",
-    "taskDone": "Task “{label}” added.",
     "expenseDone": "Expense “{label}” saved.",
     "quoteDone": "Quote {number} created, as a draft.",
     "chooseEventError": "Choose an event.",
     "amountInvalid": "Unreadable amount: write for example 1,250.50.",
-    "unavailable": "Quick create is unavailable: the Events module is not enabled."
+    "unavailable": "Quick create is unavailable: the Events module is not enabled.",
+    "hint": {
+      "event": "An enquiry, a signed wedding, or one you are taking over",
+      "task": "Or without an event: you will choose in the form",
+      "vendor": "A card in your address book",
+      "contact": "A client, a relative, a venue",
+      "quote": "A numbered draft, to compose next",
+      "expense": "A real line in its budget"
+    }
   },
   "OrganizationExport": {
     "title": "Export my data",
@@ -9093,7 +9094,7 @@
   "Shortcuts": {
     "title": "Keyboard shortcuts",
     "search": "⌘K or Ctrl K: search, or run an action (\"create\", \"trash\"…).",
-    "create": "N: create (event, task, expense, quote), from any screen.",
+    "create": "N: open « + Create » (event, task, vendor, contact, quote, expense), from any screen.",
     "close": "Esc: close the open panel or window.",
     "help": "?: open the screen's help."
   },
@@ -12302,7 +12303,7 @@
     }
   },
   "Apps": {
-    "title": "Apps",
+    "title": "All modules",
     "subtitle": "Symbola's apps: those of your organisation, and those you can add.",
     "ownerOnly": "This screen is reserved to the organisation's Owner.",
     "listLabel": "Symbola apps",
@@ -12944,10 +12945,9 @@
     "dueDateRequired": "Choose a due date.",
     "dateInvalid": "Enter a date that exists, as dd/mm/yyyy.",
     "clientFirstNameRequired": "Enter the client's first name, or pick them from your contacts.",
-    "existingContactRequired": "Pick the client from your contacts.",
-    "eventNameRequired": "Give the event a name, or enter its client.",
-    "sourceRequired": "Choose where the enquiry came from.",
-    "datePlaceholder": "dd/mm/yyyy"
+    "eventNameRequired": "Give the event a name, for example \"Léa & Maxime\".",
+    "datePlaceholder": "dd/mm/yyyy",
+    "standingRequired": "Choose where this event stands."
   },
   "Feedback": {
     "close": "Close the message",
@@ -12961,7 +12961,11 @@
     "taskSaved": "Task saved: {label}",
     "taskAdded": "Task added: {label}",
     "dateChanged": "Date changed: {date}",
-    "restored": "Restored."
+    "restored": "Restored.",
+    "eventCreated": "Event created",
+    "eventCreatedTasksBudget": "With {count, plural, one {# task} other {# tasks}} and its budget",
+    "eventCreatedTasks": "With {count, plural, one {# task} other {# tasks}}",
+    "seeTasks": "See its tasks"
   },
   "TaskLine": {
     "dueLate": "{days, plural, one {# day} other {# days}} late",
@@ -13128,5 +13132,17 @@
     "doneToday": "{count, plural, one {# task done today} other {# tasks done today}}",
     "review": "Review them",
     "theClients": "The couple"
+  },
+  "Account": {
+    "menu": "Account menu",
+    "role": {
+      "owner": "owner",
+      "member": "planner"
+    },
+    "organizationRole": "{organization} · {role}",
+    "profile": "My account",
+    "profileHint": "Name, sign-in, security",
+    "switch": "Switch organization",
+    "switchHint": "Or create another"
   }
 }

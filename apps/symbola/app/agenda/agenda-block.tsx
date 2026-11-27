@@ -150,10 +150,7 @@ export async function AgendaBlock({
                       </summary>
                       <ul>
                         <li>
-                          <Link href={`/events/new?date=${cell.date}`}>{t("agendaCreateProspect")}</Link>
-                        </li>
-                        <li>
-                          <Link href={`/events/new?date=${cell.date}&type=evenement`}>{t("agendaCreateEvent")}</Link>
+                          <Link href={`/events/new?date=${cell.date}`}>{t("agendaCreateEvent")}</Link>
                         </li>
                       </ul>
                     </details>

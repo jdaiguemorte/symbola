@@ -7,6 +7,7 @@ import { createAppConnection } from "@symbola/db/client";
 import { createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
 import { openEventTab, readyOrganization, changeEventStatus, signIn as signInByLink } from "./helpers";
+import { createEventByForm } from "./new-event";
 
 async function loginAndSetupMfa(page: Page, email: string, _password: string) {
   // Lot 33 : lien magique et fournisseur d'identité (e2e/helpers.ts).
@@ -48,10 +49,7 @@ test("PRD-BUD-03 — joindre le devis d'un prestataire à une ligne et l'ouvrir 
   await page.getByLabel("Traiteur %").fill("40");
   await page.getByRole("button", { name: "Créer le modèle" }).click();
   await expect(page.getByText("Modèle créé.")).toBeVisible();
-  await page.goto("/events/new");
-  await page.getByLabel(/^Prénom du premier marié( \*)?$/).fill("Camille");
-  await page.getByLabel("Source du prospect").selectOption({ label: "Instagram" });
-  await page.getByRole("button", { name: "Créer le prospect" }).click();
+  await createEventByForm(page, { name: "Camille", clientFirstName: "Camille" });
   await expect(page.getByRole("heading", { name: "Camille" })).toBeVisible();
   const eventUrl = page.url();
   // Lot 12 (L12-EVT-17) : le budget est un onglet de la fiche ; le module

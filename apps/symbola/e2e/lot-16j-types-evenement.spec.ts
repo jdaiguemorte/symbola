@@ -35,10 +35,12 @@ async function plannerOf(metier: "wedding_planner" | "event_agency") {
 
 async function createEvent(page: Page, type: string, expectedLabel: string): Promise<string> {
   await page.goto("/events/new");
-  await page.getByLabel("Type d'évènement").selectOption({ label: type });
+  // Lot 70e : « Nouvel évènement » ; le type n'est demandé que s'il y en a plusieurs.
+  await page.locator('select[name="eventTypeId"]').selectOption({ label: type });
+  await page.getByRole("radio", { name: /^Une demande en cours/ }).check();
+  await page.getByLabel(/^Nom de l'évènement/).fill("Inès");
   await page.getByLabel(expectedLabel).fill("Inès");
-  await page.getByLabel("Source du prospect").selectOption({ label: "Bouche-à-oreille" });
-  await page.getByRole("button", { name: "Créer le prospect" }).click();
+  await page.getByRole("button", { name: "Créer l'évènement" }).click();
   await expect(page).toHaveURL(/\/events\/[0-9a-f-]{36}$/);
   return new URL(page.url()).pathname;
 }

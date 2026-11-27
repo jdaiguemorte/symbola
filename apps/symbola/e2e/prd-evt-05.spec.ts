@@ -8,6 +8,7 @@ import { createAppConnection } from "@symbola/db/client";
 import { createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
 import { openEventTab, readyOrganization, signIn as signInByLink } from "./helpers";
+import { createEventByForm } from "./new-event";
 
 async function loginAndSetupMfa(page: Page, email: string, _password: string) {
   // Lot 33 : lien magique et fournisseur d'identité (e2e/helpers.ts).
@@ -57,10 +58,7 @@ test("PRD-EVT-05 — programme du jour J depuis un modèle, chevauchement signal
   await expect(page.getByRole("link", { name: /^Programme du jour J \(modèle de départ\)/ })).toBeVisible();
   await expectNoAxeViolation(page);
 
-  await page.goto("/events/new");
-  await page.getByLabel(/^Prénom du premier marié( \*)?$/).fill("Inès");
-  await page.getByLabel("Source du prospect").selectOption({ label: "Salon" });
-  await page.getByRole("button", { name: "Créer le prospect" }).click();
+  await createEventByForm(page, { name: "Inès", clientFirstName: "Inès" });
   await expect(page).toHaveURL(/\/events\/[0-9a-f-]{36}$/);
   const detailUrl = page.url();
 

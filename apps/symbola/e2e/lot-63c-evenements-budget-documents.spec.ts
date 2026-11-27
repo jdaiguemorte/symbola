@@ -61,7 +61,7 @@ async function wedding() {
   return { ...setup, eventId: event.id, saveursId: saveurs.id };
 }
 
-test("EVT-01, EVT-07, CHR-01 — « Nouveau » sur les trois vues ; un mariage confirmé part de son rétroplanning, un shooting reçoit l'astuce (ADR 0106)", async ({ page }) => {
+test("EVT-01, EVT-07, CHR-01 — « Nouvel évènement » sur les trois vues ; un mariage signé part de son rétroplanning, un shooting sans modèle n'en reçoit pas (ADR 0106, lot 70e)", async ({ page }) => {
   test.setTimeout(120_000);
   const setup = await planner();
   expect(await listEvents({ organizationId: setup.organizationId })).toEqual([]);
@@ -70,62 +70,51 @@ test("EVT-01, EVT-07, CHR-01 — « Nouveau » sur les trois vues ; un mariage c
   const shootingTypeId = (await createEventType(setup.organizationId, { label: "Shooting photo", audience: "clients" })).id;
   await signIn(page, setup.email);
 
-  // Un seul en-tête sur les trois vues, avec « Nouveau » au même endroit.
+  // Un seul en-tête sur les trois vues, avec « Nouvel évènement » au même endroit, une seule entrée (D8).
   for (const [view, path] of [["Liste", "/events"], ["Colonnes", "/events/pipeline"], ["Calendrier", "/events?affichage=calendrier"]] as const) {
     await page.goto(path);
     await expect(page.getByRole("heading", { level: 1, name: "Évènements" })).toBeVisible();
     await expect(page.getByRole("navigation", { name: "Affichage" }).getByRole("link", { name: view })).toHaveAttribute("aria-current", "page");
-    await expect(page.getByRole("button", { name: "Nouveau", exact: true })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Nouvel évènement", exact: true })).toBeVisible();
   }
-
-  // « Nouveau » : trois choix ; « Évènement confirmé ».
   await page.goto("/events");
-  await page.getByRole("button", { name: "Nouveau", exact: true }).click();
-  const menu = page.getByRole("list", { name: "Créer un évènement" });
-  await expect(menu.getByRole("link")).toHaveCount(3);
+  await page.getByRole("link", { name: "Nouvel évènement", exact: true }).click();
+  await expect(page).toHaveURL(/\/events\/new$/);
   await expectNoAxeViolation(page);
-  await menu.getByRole("link", { name: /Évènement confirmé/ }).click();
-  await expect(page).toHaveURL(/\/events\/new\?type=evenement$/);
 
-  // Le type a un modèle : la case est cochée pour un évènement confirmé.
-  const types = page.getByLabel("Type d'évènement");
+  // Le type a un modèle : un évènement signé, daté, le reçoit d'emblée (lot 70e, A10).
   await createTaskTemplate(setup.organizationId, "Mariage — 12 mois", [
     { label: "Réserver le lieu", offsetDays: -365, responsible: "planner" },
     { label: "Plan de table", offsetDays: -14, responsible: "clients" },
   ], weddingTypeId);
   await page.reload();
-  await types.selectOption({ value: weddingTypeId });
-  await page.getByLabel("Date de l'évènement", { exact: true }).fill("2027-06-12");
-  const proposal = page.getByRole("checkbox", { name: /Partir du rétroplanning « Mariage — 12 mois » \(2 tâches\)/ });
-  await expect(proposal).toBeChecked();
-  await page.getByText("Voir les tâches").click();
-  await expect(page.getByText("Réserver le lieu")).toBeVisible();
-
-  // Le shooting n'a pas de modèle : l'astuce, et le panneau pour en créer un.
-  await types.selectOption({ value: shootingTypeId });
-  await expect(page.getByText(/Astuce : « Shooting photo » n.a pas encore de modèle de rétroplanning/)).toBeVisible();
-  await page.getByRole("button", { name: "Créer un modèle pour « Shooting photo »" }).click();
-  const panel = page.getByRole("complementary", { name: "Créer un modèle pour « Shooting photo »" });
-  await panel.getByLabel("Tâche 1", { exact: true }).fill("Repérer le lieu");
-  await expectNoAxeViolation(page);
-  await panel.getByRole("button", { name: "Créer le modèle" }).click();
-  await expect(page.getByRole("checkbox", { name: /Partir du rétroplanning « Shooting photo » \(1 tâche\)/ })).toBeChecked();
-
-  // Retour au mariage, sans client (facultatif pour un évènement confirmé) : il faut alors un nom (Q43).
-  await types.selectOption({ value: weddingTypeId });
+  // Sans nom ni réponse : les deux erreurs, sous leurs champs ; le focus va à la première (lot 70b, UX-10).
   await page.getByRole("button", { name: "Créer l'évènement" }).click();
-  // Lot 70b (UX-10) : l'erreur s'écrit sous le champ, liée à lui ; le focus y va.
-  const eventName = page.getByLabel(/Nom de l'évènement/);
+  const eventName = page.getByLabel(/^Nom de l'évènement/);
   await expect(eventName).toHaveAttribute("aria-invalid", "true");
-  await expect(eventName).toHaveAccessibleDescription(/Donnez un nom à l'évènement, ou indiquez son client\./);
-  await expect(eventName).toBeFocused();
+  await expect(eventName).toHaveAccessibleDescription(/Donnez un nom à l'évènement, par exemple « Léa & Maxime »\./);
+  await expect(page.getByText("Choisissez où en est cet évènement.")).toBeVisible();
+  await page.locator('select[name="eventTypeId"]').selectOption({ value: weddingTypeId });
+  await page.getByRole("radio", { name: /^Signé, en préparation/ }).check();
   await eventName.fill("Mariage Bernard");
+  await page.getByLabel(/^Date/).fill("2027-06-12");
   await page.getByRole("button", { name: "Créer l'évènement" }).click();
   await expect(page).toHaveURL(/\/events\/[0-9a-f-]{36}/, { timeout: 20_000 });
   const eventId = /\/events\/([0-9a-f-]{36})/.exec(page.url())![1]!;
   expect((await listEventTasks(setup.organizationId, eventId)).map((task) => task.label).sort()).toEqual(["Plan de table", "Réserver le lieu"]);
   await expect(page.getByRole("heading", { level: 1, name: /Mariage Bernard/ })).toBeVisible();
   await expectNoHorizontalScroll(page);
+
+  // Le shooting n'a pas de modèle : aucune tâche n'est posée ; une demande en cours reste une Option.
+  await page.goto("/events/new");
+  await page.locator('select[name="eventTypeId"]').selectOption({ value: shootingTypeId });
+  await page.getByRole("radio", { name: /^Une demande en cours/ }).check();
+  await page.getByLabel(/^Nom de l'évènement/).fill("Shooting Léa");
+  await page.getByLabel(/^Date/).fill("2027-07-03");
+  await page.getByRole("button", { name: "Créer l'évènement" }).click();
+  await expect(page).toHaveURL(/\/events\/[0-9a-f-]{36}/, { timeout: 20_000 });
+  const shootingId = /\/events\/([0-9a-f-]{36})/.exec(page.url())![1]!;
+  expect(await listEventTasks(setup.organizationId, shootingId)).toEqual([]);
 });
 
 test("BUD-01, BUD-03, BUD-04 — Budget et prestataires : réel, écart, réglé, reste, prochaine échéance, échéancier, engagé, grande fenêtre", async ({ page }) => {

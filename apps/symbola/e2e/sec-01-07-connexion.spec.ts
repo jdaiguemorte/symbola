@@ -8,7 +8,7 @@ import { expect, test, type Page } from "@playwright/test";
 import { addMembership, createUser } from "@symbola/auth";
 import { createAppConnection } from "@symbola/db/client";
 import { users } from "@symbola/db/schema/hub";
-import { crossIdentityProvider, latestMagicLink, openMenu, provisionTestMfa, readyOrganization, signIn } from "./helpers";
+import { crossIdentityProvider, latestMagicLink, provisionTestMfa, readyOrganization, signIn } from "./helpers";
 
 async function expectNoAxeViolation(page: Page) {
   const result = await new AxeBuilder({ page }).analyze();
@@ -99,20 +99,27 @@ test("HUB-02 — plusieurs organisations : passer de l'une à l'autre, en créer
     await sql.end();
   }
   await signIn(page, email, /\/$/);
-  await openMenu(page);
+  // Lot 70e (M7) : le changement d'organisation est dans le menu du compte, sous le prénom.
+  await page.locator(".account-menu-button").click();
   const select = page.getByLabel("Organisation");
   await expect(select.locator("option")).toHaveText([first, second].sort());
   await select.selectOption({ label: second });
   await page.getByRole("button", { name: "Ouvrir" }).click();
-  // On était déjà sur l'accueil : attendre ce qui change, l'organisation ouverte.
-  await openMenu(page);
+  // On était déjà sur l'accueil : attendre ce qui change, l'organisation ouverte. Lot 70e (C-09) : après la
+  // bascule le menu du compte se referme, le focus revient sur son bouton et l'organisation ouverte se lit
+  // sur ce bouton, sans rouvrir le menu.
+  const account = page.locator(".account-menu-button");
+  await expect(account).toContainText(second);
+  await expect(account).toHaveAttribute("aria-expanded", "false");
+  await expect(account).toBeFocused();
+  await account.click();
   await expect(page.getByLabel("Organisation").locator("option:checked")).toHaveText(second);
   await expect(page).toHaveURL(/\/$/);
   // Envoi du formulaire puis redirection : deux navigations ; analyser une fois la page posée.
   await page.waitForLoadState("networkidle");
   await expectNoAxeViolation(page);
 
-  await openMenu(page);
+  await expect(account).toHaveAttribute("aria-expanded", "true");
   await page.getByRole("button", { name: "Créer une autre organisation" }).click();
   await expect(page).toHaveURL(/\/demarrage$/);
 });

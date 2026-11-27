@@ -72,10 +72,12 @@ test("CRM-03 / UX-02 — Léa revient : sa fiche, son second évènement sans re
   // Un second évènement pour elle, sans ressaisir son nom.
   await page.getByRole("link", { name: "Créer un évènement" }).click();
   await expect(page.getByText(`Contact choisi : Léa ${lastName}`)).toBeVisible();
-  await expect(page.getByLabel(/^Prénom du premier marié( \*)?$/)).toHaveCount(0);
+  await expect(page.getByLabel(/^Prénom du premier marié/)).toHaveCount(0);
   await expectNoAxeViolation(page);
-  await page.getByLabel("Source du prospect").selectOption({ label: "Salon" });
-  await page.getByRole("button", { name: "Créer le prospect" }).click();
+  // Lot 70e : « Nouvel évènement », une seule forme ; le client choisi reste le premier client.
+  await page.getByRole("radio", { name: /^Une demande en cours/ }).check();
+  await page.getByLabel(/^Nom de l'évènement/).fill("Léa");
+  await page.getByRole("button", { name: "Créer l'évènement" }).click();
   await expect(page.getByRole("heading", { name: "Léa" })).toBeVisible();
 
   // À l'envoi en signature : nom, e-mail et adresse de sa fiche ; l'adresse corrigée y est gardée.
@@ -117,8 +119,8 @@ test("UX-02 / DAT-12 — un client déjà connu se choisit par la recherche ; un
   // Le choix d'un contact existant, à la création d'un évènement.
   await page.goto("/events/new");
   await page.waitForLoadState("networkidle");
-  const picker = page.getByRole("group", { name: "Premier client" });
-  await picker.getByLabel(/Client déjà connu/).fill(lastName);
+  const picker = page.getByRole("group", { name: "Client" });
+  await picker.getByLabel(/chercher dans vos contacts/).fill(lastName);
   await picker.getByRole("button", { name: `Choisir Léa ${lastName}` }).click();
   await expect(picker).toContainText(`Contact choisi : Léa ${lastName}`);
   await expectNoAxeViolation(page);
