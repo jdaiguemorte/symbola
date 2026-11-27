@@ -82,7 +82,7 @@ test("PRD-EVT-06 / UX-11 / SEC-17 — le marié ouvre son lien sans inscription,
   await newTask.getByRole("button", { name: "Créer la tâche" }).click();
   await expect(feedback(planner).getByText(/^Tâche créée : /)).toBeVisible();
 
-  await openEventTab(planner, "Programme du jour J");
+  await openEventTab(planner, "Programme");
   // Lot 62c (D1) : la séquence s'ajoute dans la liste, puis « Enregistrer le programme ».
   await planner.getByRole("button", { name: "Ajouter une séquence" }).click();
   const newLine = planner.getByRole("group", { name: "Modifier la ligne Nouvelle séquence" });

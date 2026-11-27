@@ -6,9 +6,9 @@ import AxeBuilder from "./axe";
 import { createAppConnection } from "@symbola/db/client";
 import { createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
-import { formatCalendarDate, parisToday } from "@symbola/i18n";
+import { parisToday } from "@symbola/i18n";
 import { createProspect, createProspectSource, createTaskTemplate } from "../modules/events/service";
-import { changeEventStatus, readyOrganization, signIn as signInByLink } from "./helpers";
+import { changeEventStatus, expectEventStep, readyOrganization, signIn as signInByLink } from "./helpers";
 
 async function expectNoAxeViolation(page: Page) {
   const result = await new AxeBuilder({ page }).analyze();
@@ -38,11 +38,15 @@ test("L13-EVT-19 — frise datée du statut, prochaine étape et chiffres clés"
   await login(page, email, password);
 
   // Option (lot 34a, EVT-05) : la frise date l'étape en cours ; le bandeau propose le devis.
+  // Lot 72d (E1, E2) : la frise se lit, l'étape en cours dit depuis quand ; « Clôturé » n'a pas de date à venir.
   await page.goto(`/events/${event.id}`);
-  const today = formatCalendarDate(parisToday(), "fr");
-  const steps = page.getByRole("list", { name: "Statut de l'évènement" });
-  await expect(steps.getByRole("listitem").filter({ hasText: "Option" })).toContainText(today);
-  await expect(steps.getByRole("listitem").filter({ hasText: "Clôturé" })).toContainText("après le");
+  const today = new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "short", timeZone: "UTC" }).format(new Date(`${parisToday()}T00:00:00Z`));
+  const phone = (page.viewportSize()?.width ?? 1280) < 768;
+  if (phone) await page.locator("#event-header").getByRole("button", { name: "Les étapes" }).click();
+  const steps = (phone ? page.locator(".event-steps-sheet") : page.locator("#event-header")).getByRole("list");
+  await expect(steps.getByRole("listitem").filter({ hasText: "Une demande en cours" })).toContainText(`depuis le ${today}`);
+  await expect(steps.getByRole("listitem").filter({ hasText: "Clôturé" })).toHaveText(/^4\s*Clôturé$/);
+  if (phone) await page.keyboard.press("Escape");
   await expect(page.getByRole("heading", { name: "Prochaine étape : envoyer le devis" })).toBeVisible();
 
   // Lot 32a (EVT-02, D5) : la synthèse dit la prochaine action et la santé de l'évènement.
@@ -51,12 +55,15 @@ test("L13-EVT-19 — frise datée du statut, prochaine étape et chiffres clés"
   await expect(page.getByRole("region", { name: "Santé de l'évènement" })).toContainText("Aucune en attente");
   await expectNoAxeViolation(page);
 
-  // Changer d'étape demande confirmation ; « Annuler » ne change rien.
-  await page.getByRole("button", { name: "Passer en Confirmé" }).click();
-  await page.getByRole("button", { name: "Annuler", exact: true }).click();
-  await expect(steps.getByRole("listitem").filter({ hasText: "Option" })).toHaveAttribute("aria-current", "step");
+  // Lot 72d (E2) : « Le contrat est signé… » ouvre la question ; « Garder en demande » ne change rien.
+  if (phone) await page.locator("#event-header").getByRole("button", { name: "Les étapes" }).click();
+  const scope = phone ? page.locator(".event-steps-sheet") : page.locator("#event-header");
+  await scope.getByRole("button", { name: "Le contrat est signé…" }).click();
+  await scope.getByRole("button", { name: "Garder en demande" }).click();
+  if (phone) await page.keyboard.press("Escape");
+  await expectEventStep(page, "Une demande en cours");
   await changeEventStatus(page, "Confirmé");
-  await expect(steps.getByRole("listitem").filter({ hasText: "Confirmé" })).toContainText(today);
+  if (!phone) await expect(steps.getByRole("listitem").filter({ hasText: "Signé, en préparation" })).toContainText(`depuis le ${today}`);
 
   // Confirmé sans tâches : appliquer le rétroplanning ; « Plus tard » le masque, même rechargé.
   await expect(page.getByRole("heading", { name: "Prochaine étape : appliquer le rétroplanning" })).toBeVisible();

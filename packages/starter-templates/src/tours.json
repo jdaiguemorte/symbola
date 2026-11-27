@@ -79,11 +79,11 @@
     ],
     "event": [
       {
-        "target": "event-tabs",
-        "title": { "fr": "Les onglets", "en": "The tabs" },
+        "target": "event-header",
+        "title": { "fr": "L'en-tête", "en": "The header" },
         "body": {
-          "fr": "Synthèse, budget, rétroplanning, programme, documents : chaque onglet regroupe une partie de la préparation.",
-          "en": "Summary, budget, planning timeline, schedule, documents: each tab groups part of the preparations."
+          "fr": "Le nom, la date et le lieu ; la frise dit où en est l'évènement, et son bouton l'étape suivante (« Le contrat est signé… »). Une action, le menu « ⋯ » pour le reste (messages, type, reporter, annuler), puis les onglets, qui restent en haut en défilant.",
+          "en": "Name, date and venue; the steps show where the event stands, and their button the next step (\"The contract is signed…\"). One action, the \"⋯\" menu for the rest (messages, type, postpone, cancel), then the tabs, which stay at the top as you scroll."
         }
       },
       {
@@ -95,11 +95,11 @@
         }
       },
       {
-        "target": "tab-retroplanning",
-        "title": { "fr": "Le rétroplanning", "en": "Planning timeline" },
+        "target": "tab-taches",
+        "title": { "fr": "Les tâches", "en": "Tasks" },
         "body": {
-          "fr": "Les tâches mois par mois, à partir d'un modèle de rétroplanning.",
-          "en": "Tasks month by month, from a planning timeline template."
+          "fr": "Les tâches de l'évènement, à partir d'un modèle de rétroplanning ; le nombre de l'onglet dit les retards.",
+          "en": "The event's tasks, from a planning timeline template; the tab's count shows what is late."
         }
       },
       {

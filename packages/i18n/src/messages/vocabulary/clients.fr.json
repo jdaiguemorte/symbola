@@ -4,7 +4,7 @@
       "body": "Un prénom de contact et la source suffisent pour créer le prospect ; la date, le lieu et le budget se complètent plus tard. Depuis l'agenda, une date libre ouvre ce formulaire avec la date déjà remplie."
     },
     "eventsDetail": {
-      "body": "Tout l'évènement, en onglets. La frise du haut montre où il en est : cliquez l'étape suivante pour avancer. Le bandeau « Prochaine étape » dit quoi faire maintenant (envoyer le devis, appliquer le rétroplanning, créer le lien du client). Chaque onglet a son lien « Réglages » vers ses modèles.",
+      "body": "Tout l'évènement, en onglets. En tête, une action (« Écrire au client ») et le menu « ⋯ » pour le reste. La frise dit où en est l'évènement ; son bouton fait passer l'étape suivante (« Le contrat est signé… »). Le bandeau « Prochaine étape » dit quoi faire maintenant (envoyer le devis, appliquer le rétroplanning, créer le lien du client). Chaque onglet a son lien « Réglages » vers ses modèles.",
       "faq": {
         "3": {
           "q": "Que voient les clients ?",

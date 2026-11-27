@@ -62,7 +62,7 @@ test("DEV-02 — envoyer un devis en signature, signer par le lien reçu, archiv
   await createEventByForm(page, { name: "Inès", clientFirstName: "Inès", clientLastName: "Martin" });
   await expect(page.getByRole("heading", { name: "Inès" })).toBeVisible();
   await page.waitForLoadState("networkidle");
-  await openEventTab(page, "Mes devis et factures");
+  await openEventTab(page, "Devis et factures");
   await page.getByRole("button", { name: "Créer un devis" }).click();
   await expect(page).toHaveURL(/\/devis\/[0-9a-f-]{36}$/);
   const quoteUrl = page.url();

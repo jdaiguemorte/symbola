@@ -10,7 +10,7 @@ import { createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
 import { addEventTask, addEventVendorSlot, changeEventStatus, createProspect, createProspectSource, getEvent, updateEventClientContact } from "../modules/events/service";
 import { saveOnboardingStep, setModuleEnabled } from "../modules/hub/service";
-import { readyOrganization, signIn as signInByLink } from "./helpers";
+import { eventCommand, readyOrganization, signIn as signInByLink } from "./helpers";
 
 const PASSWORD = "mot-de-passe-de-mardi";
 
@@ -145,7 +145,8 @@ test("HUB-07 / UX-03 / CRM-04 — créer un prospect, une tâche, une dépense e
   // la page du message. Lot 45 (CRM-05) : sans modèle de message, le texte de départ de la réponse,
   // à relire, part de Symbola ou s'ouvre dans la messagerie.
   await page.goto(`/events/${setup.lea}`);
-  await page.getByRole("link", { name: "Écrire au client" }).click();
+  // Lot 72d (J10) : « Écrire aux mariés » (ou le mot des clients du type), dans l'en-tête ou au menu « ⋯ ».
+  await eventCommand(page, /^Écrire (aux mariés|au client)/);
   await expect(page.getByRole("heading", { name: "Écrire au client", level: 1 })).toBeVisible();
   await expect(page.getByRole("textbox", { name: "Texte" })).toHaveValue(/^Bonjour /);
   // Lot 65d (ADR 0110) : par défaut, la planner l'envoie de sa messagerie, préparé par Symbola.

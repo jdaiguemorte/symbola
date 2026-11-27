@@ -10,7 +10,7 @@ import { expect, test, type Page } from "@playwright/test";
 import { createUser } from "@symbola/auth";
 import { createAppConnection } from "@symbola/db/client";
 import { addProgramItem, createProspect, createProspectSource } from "../modules/events/service";
-import { feedback, openSettingsTab, readyOrganization, signIn } from "./helpers";
+import { eventCommand, feedback, openSettingsTab, readyOrganization, signIn } from "./helpers";
 
 async function expectNoAxeViolation(page: Page) {
   const result = await new AxeBuilder({ page }).analyze();
@@ -100,7 +100,7 @@ test("HUB-21 / MSG-02 — « Écrire au client » : le modèle rempli avec la fi
   await expect(page.getByRole("status")).toContainText("3 modèles ajoutés.");
 
   await page.goto(`/events/${setup.eventId}`);
-  await page.getByRole("link", { name: "Écrire au client" }).first().click();
+  await eventCommand(page, /^Écrire (aux mariés|au client)/);
   await expect(page.getByRole("heading", { name: "Écrire au client", level: 1 })).toBeVisible();
   await page.getByLabel("Modèle", { exact: true }).selectOption({ label: "Réponse à une première demande" });
   await page.getByRole("button", { name: "Mettre à jour l'aperçu" }).click();

@@ -297,7 +297,7 @@ function StatusLine(props: StatusTimelineProps) {
       </div>
       {/* FAC-13, D7 : un avoir est proposé pour chaque facture émise ; la planner décide. */}
       {props.invoicesToCredit.length > 0 ? (
-        <div className="notice-check event-invoices-check">
+        <div className="event-invoices-check">
           <p>{t("invoicesCheck", { count: props.invoicesToCredit.length })}</p>
           <ul>
             {props.invoicesToCredit.map((invoice) => (
