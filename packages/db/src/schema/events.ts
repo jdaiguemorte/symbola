@@ -345,6 +345,10 @@ export const eventVendorCandidates = eventsSchema.table("event_vendor_candidates
   // « unsigned », « unknown ») ; nul pour un prestataire retenu hors reprise. Un prestataire retenu par une
   // reprise ne devient jamais d'office une relance « à faire signer ».
   takeoverContract: text("takeover_contract", { enum: TAKEOVER_CONTRACTS }),
+  // Lot 73a (P5, P6 ; migration 0235) : depuis quand le prestataire est retenu (« retenu le 18 nov. »),
+  // posé quand il passe à un statut retenu, effacé quand il ne l'est plus (déclencheur de la base) ; nul
+  // pour un prestataire retenu avant ce lot, rien n'est reconstruit.
+  retainedAt: timestamp("retained_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
@@ -354,6 +358,7 @@ export const eventVendorCandidates = eventsSchema.table("event_vendor_candidates
   index("event_vendor_candidates_organization_idx").on(table.organizationId),
   check("event_vendor_candidates_takeover_contract_check", sql`${table.takeoverContract} is null or ${table.takeoverContract} in ('signed', 'unsigned', 'unknown')`),
   index("event_vendor_candidates_brief_idx").on(table.briefId),
+  index("event_vendor_candidates_retained_at_idx").on(table.organizationId, table.retainedAt),
   check("event_vendor_candidates_availability_check", sql`${table.availability} is null or ${table.availability} in ('available', 'unavailable')`),
   check("event_vendor_candidates_answer_message_check", sql`${table.answerMessage} is null or char_length(${table.answerMessage}) between 1 and 1000`),
   check("event_vendor_candidates_dismissal_reason_check", sql`${table.dismissalReason} is null or ${table.dismissalReason} in ('unavailable', 'other_chosen')`),
@@ -2149,7 +2154,8 @@ export const taskChangeSnapshots = eventsSchema.table(
     organizationId: uuid("organization_id").notNull(),
     // Le membre qui a fait le geste : lui seul peut l'annuler.
     userId: uuid("user_id").notNull(),
-    payload: jsonb("payload").$type<TaskChangeSnapshotPayload>().notNull(),
+    // Lot 73a : aussi ce que « Annuler » remet après « Ajouter à un mariage… » (même table, même délai court).
+    payload: jsonb("payload").$type<TaskChangeSnapshotPayload | VendorAdditionSnapshotPayload>().notNull(),
     expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   },
@@ -2164,6 +2170,18 @@ export const taskChangeSnapshots = eventsSchema.table(
 export type TaskChangeSnapshotPayload = {
   kind: "date" | "assignee";
   tasks: { id: string; dueDate: string; fixedAt: string | null; responsible: "planner" | "clients" | "vendor"; vendorCandidateId: string | null; assigneeUserId: string | null }[];
+};
+
+// Lot 73a (PRE-02, UX-07 ; spécification du lot 73, § 4.2) — « Annuler » un ajout à un mariage : le poste
+// créé, les prestataires ajoutés, et l'état d'avant de ceux que l'ajout a changés (statut, motif d'écart,
+// date de rétention). Aucun nom.
+export type VendorAdditionSnapshotPayload = {
+  kind: "vendor_addition";
+  eventId: string;
+  slotId: string;
+  slotCreated: boolean;
+  created: string[];
+  changed: { id: string; status: (typeof VENDOR_CANDIDATE_STATUSES)[number]; dismissalReason: string | null; retainedAt: string | null }[];
 };
 
 // Lot 64 (HUB-29, RDV-02 ; D1, D2) — réglages des plages occupées, par organisation : la règle des

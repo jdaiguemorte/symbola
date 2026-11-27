@@ -1569,6 +1569,20 @@
       "when": 1795774420844,
       "tag": "0223_lot71a_budget_unallocated_totals",
       "breakpoints": true
+    },
+    {
+      "idx": 224,
+      "version": "7",
+      "when": 1795797847370,
+      "tag": "0234_lot73a_vendors_document_kind_usage",
+      "breakpoints": true
+    },
+    {
+      "idx": 225,
+      "version": "7",
+      "when": 1795797856437,
+      "tag": "0235_lot73a_events_candidate_retained_at",
+      "breakpoints": true
     }
   ]
 }

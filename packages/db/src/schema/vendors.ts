@@ -264,6 +264,10 @@ export const vendorDocumentKinds = vendorsSchema.table("vendor_document_kinds", 
   // Une pièce de cette nature a-t-elle une fin de validité ? (assurance oui, plan non)
   expires: boolean("expires").notNull().default(true),
   starterKey: text("starter_key"),
+  // Lot 73a (P3, P4 ; migration 0234) : le nom court en tête de l'état d'une pièce (« Assurance · à
+  // renouveler »), sans genre grammatical ; et la nature demandée d'habitude à un nouveau prestataire.
+  shortLabel: text("short_label"),
+  requestedByDefault: boolean("requested_by_default").notNull().default(false),
   position: integer("position").notNull().default(0),
   archivedAt: timestamp("archived_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
@@ -274,6 +278,7 @@ export const vendorDocumentKinds = vendorsSchema.table("vendor_document_kinds", 
   index("vendor_document_kinds_organization_idx").on(table.organizationId),
   unique("vendor_document_kinds_starter_key_unique").on(table.organizationId, table.starterKey),
   check("vendor_document_kinds_label_check", sql`char_length(${table.label}) between 1 and 120`),
+  check("vendor_document_kinds_short_label_check", sql`${table.shortLabel} is null or (char_length(${table.shortLabel}) between 1 and 40 and ${table.shortLabel} !~ '[[:cntrl:]]')`),
 ]);
 
 export const VENDOR_DOCUMENT_STATUSES = ["requested", "to_verify", "verified"] as const;

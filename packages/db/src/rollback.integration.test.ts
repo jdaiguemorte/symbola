@@ -115,6 +115,9 @@ const LOT_70A = [
   "0212_lot70a_events_task_done_by",
   "0211_lot70a_events_task_assignee",
 ];
+// Lot 73a : nom court et « demandée d'habitude » des natures de pièces (0234, vendors), date de rétention
+// d'un prestataire rattaché et son déclencheur (0235, events) ; les plus récentes.
+const LOT_73A = ["0235_lot73a_events_candidate_retained_at", "0234_lot73a_vendors_document_kind_usage"];
 // Lot 71a : reprise d'un mariage (0218, 0219, hub), origine et dates non renseignées (0220), contrat
 // déclaré (0221), forme des moments (0222, events), total à répartir (0223, budget) ; les plus récentes.
 const LOT_71A = [
@@ -159,7 +162,7 @@ const LOT_37A = ["0137_lot37a_events_documents"];
 const LOT_36B = ["0136_lot36b_contacts_members"];
 const LOT_36A = ["0135_lot36a_contacts"];
 // 0140 à 0138 (lot 37b), 0137 (lot 37a), puis 0136 (ses liens pointent vers les contacts), puis 0135.
-const LOT_36 = [...LOT_71A, ...LOT_70A, ...LOT_66, ...LOT_65, ...LOT_64, ...LOT_63B, ...LOT_63G, ...LOT_63E, ...LOT_63D, ...LOT_63C, ...LOT_55, ...LOT_54, ...LOT_60, ...LOT_58, ...LOT_35C, ...LOT_35B, ...LOT_53, ...LOT_52, ...LOT_48B, ...LOT_48A, ...LOT_45, ...LOT_43, ...LOT_51, ...LOT_47, ...LOT_44, ...LOT_50, ...LOT_46, ...LOT_41, ...LOT_49, ...LOT_40B, ...LOT_39B, ...LOT_39A, ...LOT_38B, ...LOT_38A, ...LOT_37B, ...LOT_37A, ...LOT_36B, ...LOT_36A];
+const LOT_36 = [...LOT_73A, ...LOT_71A, ...LOT_70A, ...LOT_66, ...LOT_65, ...LOT_64, ...LOT_63B, ...LOT_63G, ...LOT_63E, ...LOT_63D, ...LOT_63C, ...LOT_55, ...LOT_54, ...LOT_60, ...LOT_58, ...LOT_35C, ...LOT_35B, ...LOT_53, ...LOT_52, ...LOT_48B, ...LOT_48A, ...LOT_45, ...LOT_43, ...LOT_51, ...LOT_47, ...LOT_44, ...LOT_50, ...LOT_46, ...LOT_41, ...LOT_49, ...LOT_40B, ...LOT_39B, ...LOT_39A, ...LOT_38B, ...LOT_38A, ...LOT_37B, ...LOT_37A, ...LOT_36B, ...LOT_36A];
 // Lot 63c : l'ordre des annulations des lots récents, de la plus récente à la plus ancienne, se lit
 // dans cette seule liste. Un nouveau lot ajoute sa liste en tête de LOT_36, et rien d'autre : les
 // tests annulent par rollbackNewerThan et rollbackThrough, jamais par une suite écrite à la main.
@@ -222,6 +225,35 @@ afterAll(async () => {
 // Lot 47 : chaque test remonte la chaîne des annulations, qui s'allonge à chaque lot ; la limite par
 // défaut (5 s) ne suffit plus sur un poste chargé.
 describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)", { timeout: 60_000 }, () => {
+  it("lot 73a (PRE-05, PRE-02) — 0234 et 0235 s'annulent et se rejouent sur une base vide ; le déclencheur pose et efface la date de rétention", async () => {
+    await migrateAll();
+    const [organization] = await target<{ id: string }[]>`insert into hub.organizations (name) values ('Atelier 0234') returning id`;
+    const organizationId = organization!.id;
+    const [event] = await target<{ id: string }[]>`insert into events.events (organization_id) values (${organizationId}) returning id`;
+    const [slot] = await target<{ id: string }[]>`insert into events.event_vendor_slots (organization_id, event_id, label) values (${organizationId}, ${event!.id}, 'Traiteur') returning id`;
+    const [candidate] = await target<{ id: string; retained_at: Date | null }[]>`insert into events.event_vendor_candidates (organization_id, event_id, vendor_slot_id, vendor_name) values (${organizationId}, ${event!.id}, ${slot!.id}, 'Maison Exemple') returning id, retained_at`;
+    expect(candidate!.retained_at).toBeNull();
+    const [retained] = await target<{ retained_at: Date | null }[]>`update events.event_vendor_candidates set status = 'retained' where id = ${candidate!.id} returning retained_at`;
+    expect(retained!.retained_at).not.toBeNull();
+    const [signed] = await target<{ retained_at: Date | null }[]>`update events.event_vendor_candidates set status = 'contract_signed' where id = ${candidate!.id} returning retained_at`;
+    expect(signed!.retained_at).toEqual(retained!.retained_at);
+    const [released] = await target<{ retained_at: Date | null }[]>`update events.event_vendor_candidates set status = 'quote_received' where id = ${candidate!.id} returning retained_at`;
+    expect(released!.retained_at).toBeNull();
+    await expect(target`insert into vendors.vendor_document_kinds (organization_id, label, short_label) values (${organizationId}, 'Assurance RC', ${"x".repeat(41)})`).rejects.toThrow(/short_label_check/);
+
+    await rollbackNewerThan(LOT_73A[0]!);
+    await rollback(LOT_73A[0]!);
+    expect(await hasColumn("events", "event_vendor_candidates", "retained_at")).toBe(false);
+    expect(await target`select 1 from pg_proc p join pg_namespace n on n.oid = p.pronamespace where n.nspname = 'events' and p.proname = 'stamp_candidate_retained_at'`).toEqual([]);
+    await rollback(LOT_73A[1]!);
+    for (const column of ["short_label", "requested_by_default"]) expect(await hasColumn("vendors", "vendor_document_kinds", column)).toBe(false);
+    // Le prestataire rattaché reste, sans date de rétention.
+    expect(await target`select status from events.event_vendor_candidates where id = ${candidate!.id}`).toEqual([{ status: "quote_received" }]);
+    await migrateAll();
+    expect(await hasColumn("events", "event_vendor_candidates", "retained_at")).toBe(true);
+    expect(await hasColumn("vendors", "vendor_document_kinds", "requested_by_default")).toBe(true);
+  });
+
   it("lot 71a (HUB-14 ; ADR 0119) — 0218 à 0223 : chaque annulation refuse tant qu'une reprise, un évènement repris, un contrat déclaré, un moment ponctuel ou un total à répartir existe ; 0219 efface les imports des deux sortes nouvelles et recrée le type ; tout se rejoue", async () => {
     await migrateAll();
     const [organization] = await target<{ id: string }[]>`insert into hub.organizations (name) values ('Atelier 0218') returning id`;
