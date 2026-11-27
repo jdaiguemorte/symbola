@@ -2,8 +2,8 @@
 
 **Statut** : **spécification à valider par Julien**. Elle change les schémas `hub` et `events`
 (migrations 0244 à 0246) et le parcours P0 PAR-01 (le premier quart d'heure, SC-01). Aucun code n'est
-écrit avant sa validation. Décisions L74-D1 à L74-D12 (§ 9) : L74-D1 à L74-D11 tranchées le 27/11 ;
-les autres restent à trancher.
+écrit avant sa validation. Décisions L74-D1 à L74-D12 (§ 9) : toutes tranchées le 27/11 ; reste la validation
+d'ensemble de Julien avant le code.
 **Branche de la spécification** : `lot-74-premiers-pas-aide-parametres` (une PR vers `main`, ce
 fichier et `docs/QUESTIONS.md` seulement). Chaque paquet aura ensuite sa branche `lot-74<x>-…` et sa PR.
 **Date** : 27/11/2026, par Claude Code.
@@ -907,7 +907,7 @@ touchent le cahier des charges sont aussi dans `docs/QUESTIONS.md` (Q51).
 | L74-D9 | **Tranché le 27/11 : une fois par jour.** **Qu'est-ce qu'une « venue » pour la ligne « Découvrir » (trois venues) ?** | Page 25 ; B11 | **Une ouverture de l'écran un jour différent** : recharger ou revenir dans la journée ne compte pas | Chaque ouverture |
 | L74-D10 | **Tranché le 27/11 : attendre** les paquets des lots 72 et 73. **L'ordre avec les lots 72 et 73.** La section « Réglages » vit dans le menu « ⋯ » de chaque écran, que les volets 3 et 4 créent ; les états vides de la liste des évènements et du carnet aussi. | § 5.2 | **74l et 74c après les paquets des lots 72 et 73 qui créent ces menus et ces écrans** ; d'ici là, la roue reste sur les écrans qui n'ont pas de menu « ⋯ » | 74l ajoute lui-même un menu « ⋯ » minimal aux écrans qui n'en ont pas, quitte à le refaire |
 | L74-D11 | **Tranché le 27/11 : une soixantaine**, selon la proposition. **Les questions fréquentes du « ? »** : 85 fiches sur 125 n'en ont pas ; en écrire pour toutes est un gros travail de textes (FR et EN). | Page 26 ; § 6.5 | **Obligatoires pour les écrans à visite, les écrans vides, les fenêtres à champs difficiles et les rubriques de réglage** (une soixantaine) ; les autres montrent « Sur cet écran » et la recherche | Toutes les 125 dans ce lot |
-| L74-D12 | **Regarder le patron avant de l'étendre.** La règle du 27/11 écarte toute recette avant la fin des lots de réalisation. | § 7.2 | **Un rejeu local par Claude Code de la vague 1, captures dans la PR 74h**, que vous regardez avant que 74i et 74j partent ; ce n'est pas une recette de la planner | Basculer les trois vagues sans arrêt |
+| L74-D12 | **Tranché le 27/11 : regarder** la vague 1 (captures dans la PR 74h) avant les vagues 2 et 3. **Regarder le patron avant de l'étendre.** La règle du 27/11 écarte toute recette avant la fin des lots de réalisation. | § 7.2 | **Un rejeu local par Claude Code de la vague 1, captures dans la PR 74h**, que vous regardez avant que 74i et 74j partent ; ce n'est pas une recette de la planner | Basculer les trois vagues sans arrêt |
 
 **Points qui ne demandent pas de décision mais méritent d'être sus**
 
