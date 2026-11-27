@@ -28,6 +28,8 @@ export const SCREENS: ScreenEntry[] = [
   { path: "/devis/catalogue", module: "quotes", label: "quoteCatalog", help: "quotesCatalog" },
   { path: "/devis/e-reporting", module: "quotes", label: "eReporting", help: "quotesEReporting" },
   { path: "/import", module: "hub", label: "importData", help: "importFile" },
+  // Lot 71b (HUB-14) : « Reprendre un mariage en cours », trouvé par la recherche.
+  { path: "/reprise", module: "events", label: "takeover", help: "takeover" },
   { path: "/rgpd", module: "hub", label: "privacy", help: "privacyRequests", ownerOnly: true },
   { path: "/rgpd/recherche", module: "hub", label: "privacySearch", help: "privacySearch", ownerOnly: true },
   { path: "/profil", module: "hub", label: "myProfile", help: "profile" },

@@ -53,9 +53,10 @@ test("HUB-14 — import de prestataires : chargement visible, colonnes avec aper
   const { email } = await atelier("planner-63b");
   await signIn(page, email, /\/$/);
 
-  // Le bouton « Importer » de l'écran ouvre l'import réglé sur les prestataires.
+  // Le bouton « Importer » de l'écran ouvre l'import réglé sur les prestataires. Lot 71b (I6) : il porte
+  // le nom de l'écran, « Reprendre et importer ».
   await page.goto("/prestataires");
-  await page.getByRole("link", { name: "Importer", exact: true }).click();
+  await page.getByRole("link", { name: "Reprendre et importer", exact: true }).click();
   await expect(page).toHaveURL(/\/import\?type=vendors/);
   await page.getByLabel("Fichier (CSV, Excel .xlsx ou JSON)").setInputFiles({
     name: "prestataires-2026.csv",

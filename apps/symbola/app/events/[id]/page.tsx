@@ -115,7 +115,7 @@ const LINK_STATUS_KEYS = {
 const TABS = ["apercu", "budget", "taches", "programme", "devis", "maries", "documents", "invites"] as const;
 type Tab = (typeof TABS)[number];
 
-type SearchParams = { importer?: string; reprendre?: string; cote?: string; groupe?: string; sansReponse?: string; suppression?: string; exemple?: string; onglet?: string; poste?: string; tache?: string; vue?: string; qui?: string; filtre?: string; visite?: string; decalage?: string; depuis?: string; fait?: string; evenement?: string; modifier?: string; periode?: string; categorie?: string; etat?: string; nouvelle?: string; copie?: string };
+type SearchParams = { importer?: string; reprendre?: string; reprise?: string; cote?: string; groupe?: string; sansReponse?: string; suppression?: string; exemple?: string; onglet?: string; poste?: string; tache?: string; vue?: string; qui?: string; filtre?: string; visite?: string; decalage?: string; depuis?: string; fait?: string; evenement?: string; modifier?: string; periode?: string; categorie?: string; etat?: string; nouvelle?: string; copie?: string };
 
 // Lot 28a (PRE-02) : postes pourvus (un prestataire retenu) ou non requis.
 const SETTLED_SLOT_STATUSES = new Set<string>(["retained", "contract_signed", "paid_off", "not_required"]);
@@ -940,7 +940,7 @@ export default async function EventDetailPage({
             ) : null}
             <progress aria-labelledby="vendor-progress-label" value={progress.booked} max={Math.max(progress.required, 1)} />
             {/* Lot 67e (HUB-14, PRE-02 ; R07) : reprendre d'un PDF les prestataires retenus de l'évènement. */}
-            {vendorsAvailable ? <VendorsImportForm eventId={event.id} open={query.reprendre === "1"} /> : null}
+            {vendorsAvailable ? <VendorsImportForm eventId={event.id} open={query.reprendre === "1"} takeoverId={query.reprise && isValidId(query.reprise) ? query.reprise : null} /> : null}
             {vendorSlots.length === 0 ? <p>{t("noVendorSlots")}</p> : null}
             {vendorSlots.length > 0 ? (
               <BudgetVendorsTable
@@ -1194,7 +1194,7 @@ export default async function EventDetailPage({
           <ProgramShiftProposal eventId={event.id} proposal={shiftProposal} />
           {/* Lot 65g (CHR-08 ; recette staging du 22/11/2026) : « Importer » ouvre l'import en tête de la
               carte, au-dessus de la diffusion, au lieu de le déplier plus bas. */}
-          {query.importer === "1" ? <ProgramImportForm eventId={event.id} open /> : null}
+          {query.importer === "1" ? <ProgramImportForm eventId={event.id} open takeoverId={query.reprise && isValidId(query.reprise) ? query.reprise : null} /> : null}
           {/* Lot 62c (UX-13) : en tête de la carte, la diffusion à gauche, les PDF et l'agenda à droite. */}
           <div className="program-head">
           {/* Lot 37b (CHR-07, DAT-14 ; D8, D10) : clients et prestataires lisent la dernière version diffusée. */}

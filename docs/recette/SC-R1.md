@@ -30,3 +30,34 @@ Mesures :
   contrats (règles de fond) ; la page « Aujourd'hui » elle-même est rejouée au paquet 71f.
 - **30 minutes par mariage** : non mesuré (aucun écran) ; la cible reste au rejeu des paquets 71b à 71g.
 - Sophie à 150 % : sans objet pour ce paquet (aucun écran).
+
+## Lot 71b — la page de reprise et ses portes
+
+- Date : 27/11/2026, en local, par Claude Code. Base de test dédiée (`symbola_lot71b`, migrations
+  jusqu'à 0223), socle de dev (Garage, ClamAV, Mailpit, Logto). Rejoué **à l'écran**, à 1 440 et à
+  375 px, par le parcours `apps/symbola/e2e/lot-71b-page-de-reprise.spec.ts` (16 parcours verts) et à
+  la main dans le navigateur, sur les fichiers fictifs du tableur de la planner
+  (`packages/testing/import-corpus/files/tableur-planner/`). Camille seulement : Sophie à 150 % reste au
+  paquet 71g (messages d'erreur) et au rejeu d'ensemble.
+
+| Étape du parcours | Ce qui est vérifié | Résultat |
+| --- | --- | --- |
+| Arriver sur la reprise | Par « Nouvel évènement › Reprendre ses fichiers », la fin de l'assistant (réponse « un tableur »), la recherche, l'état « À vérifier » de « Tâches » | Tenu |
+| La page vide | Six lignes dans l'ordre (carnet, mariage, budget, prestataires retenus, liste « à faire », programme), « 0 fichier sur 6 », seule action principale sur la ligne 1, lignes 3 à 6 « Après le mariage » sans bouton ; rien n'est écrit avant le premier geste | Tenu |
+| Le carnet | « Je n'ai pas ce fichier » règle la ligne (« Pas de fichier · Choisi le … ») et se défait par « Déposer un fichier », qui ouvre l'import du carnet avec « ‹ Reprendre un mariage en cours » en tête | Tenu |
+| Le mariage | « Saisir les noms et la date » : « Juliette & Romain », 20/03/2027 ; Confirmé, d'origine « reprise », statut « date non renseignée », aucune tâche ; message de retour « Mariage enregistré » | Tenu |
+| Le budget (`budget.csv`) | Déposé depuis sa ligne : rattaché au mariage (« Les lignes iront dans l'évènement « Juliette & Romain » »), la ligne « En cours », « Arrêté à « Colonnes » », « Continuer » en bouton plein ; la ligne 4 « Avec le budget : votre budget nomme 7 prestataires » dès le dépôt ; « 3 fichiers sur 6 » | Tenu |
+| Un import laissé en plan | En tête de « Reprendre et importer » (« Import en cours : budget.csv, pour « Juliette & Romain » ») ; « Abandonner cet import… » demande confirmation et rend la ligne | Tenu |
+| La fin | Six lignes réglées : « Reprise terminée. Il reste 3 points à compléter à la main. » (les tâches, le lien des mariés, les invités), « Ouvrir « À compléter » », jamais « à jour » ; « Reprendre un autre mariage » repart d'une page où le carnet est déjà fait | Tenu |
+
+Mesures :
+
+- **Aucune commande sous 44 px, aucun défilement de côté à 375 px** sur la page vide, en cours, terminée,
+  « Saisir les noms et la date », « Reprendre et importer » et la fin de l'assistant (qui avait un
+  bouton « Ouvrir l'exemple » de 40 px, corrigé).
+- **axe-core** : aucune violation sur la page vide, en cours, terminée, « Reprendre et importer » et la fin
+  de l'assistant.
+- **30 minutes par mariage** : non mesuré ; l'assistant d'import lui-même change aux paquets 71c à 71e.
+- Ce qui reste provisoire jusqu'au 71c : chaque ligne ouvre l'assistant d'import d'avant (sans l'étape
+  « Questions ») ; les PDF des prestataires retenus et du programme s'ouvrent sur la fiche du mariage et
+  cochent leur ligne sans bilan (paquet 71e).

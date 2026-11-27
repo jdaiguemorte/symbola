@@ -10,7 +10,9 @@ import { useLocale, useTranslations } from "next-intl";
 import { formatCalendarDate, type Locale } from "@symbola/i18n";
 import { importEventVendorsAction, type EventVendorsImportState } from "./vendors-import-actions";
 
-export function VendorsImportForm({ eventId, open = false }: { eventId: string; open?: boolean }) {
+// Lot 71b (HUB-14) : ouvert depuis la page de reprise, le formulaire porte sa reprise et y ramène.
+export function VendorsImportForm({ eventId, open = false, takeoverId = null }: { eventId: string; open?: boolean; takeoverId?: string | null }) {
+  const tTakeover = useTranslations("Takeover");
   const t = useTranslations("EventVendorsImport");
   const locale = useLocale() as Locale;
   const [state, action, pending] = useActionState(importEventVendorsAction, {} as EventVendorsImportState);
@@ -31,6 +33,7 @@ export function VendorsImportForm({ eventId, open = false }: { eventId: string; 
       <p className="muted">{t("hint")}</p>
       <form action={run} className="stack">
         <input type="hidden" name="eventId" value={eventId} />
+        {takeoverId ? <input type="hidden" name="takeoverId" value={takeoverId} /> : null}
         <label>
           {t("fileLabel")}
           <input type="file" name="file" onChange={(change) => (file.current = change.target.files?.[0] ?? null)} accept=".pdf,application/pdf" />
@@ -129,6 +132,12 @@ export function VendorsImportForm({ eventId, open = false }: { eventId: string; 
           <p role="status">
             {t("applied", { retained: result.retained, createdVendors: result.createdVendors, createdSlots: result.createdSlots })}
             {result.alreadyRetained > 0 ? ` ${t("appliedAlready", { count: result.alreadyRetained })}` : ""}
+            {takeoverId ? (
+              <>
+                {" "}
+                <a href={`/reprise/${takeoverId}`}>{tTakeover("backToTakeover")}</a>
+              </>
+            ) : null}
           </p>
         ) : null}
       </form>

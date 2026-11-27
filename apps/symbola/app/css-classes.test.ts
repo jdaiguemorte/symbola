@@ -90,7 +90,6 @@ const MARKERS: readonly string[] = [
   "job-progress",
   "matches-table",
   "sheet-statuses",
-  "takeover",
   // Journal d'activité, envois.
   "activity-action",
   "delivery-status",

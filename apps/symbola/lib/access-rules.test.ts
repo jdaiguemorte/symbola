@@ -72,6 +72,9 @@ const SHARED_ACCESS: Record<string, string> = {
   linkFloorplanAccess: "app/plans-de-salle/link-access.ts",
   sharedFloorplanPdfResponse: "app/plans-de-salle/link-access.ts",
   sharedFloorplanBackgroundResponse: "app/plans-de-salle/link-access.ts",
+  // Lot 71b : la page de reprise (session, organisation, rôle, module Évènements, ce que voit la personne).
+  requireTakeoverActor: "app/reprise/access.ts",
+  takeoverActorForAction: "app/reprise/access.ts",
 };
 
 const GUARDS = new Set([...BASE_GUARDS, ...Object.keys(SHARED_ACCESS)]);

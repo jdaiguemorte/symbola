@@ -4,6 +4,8 @@
 // séquences s'enregistrent ensemble (saveProgramAction), plus ligne par ligne.
 import { offerUndo } from "@/lib/undo";
 import { revalidatePath } from "next/cache";
+import { taskListViewer } from "@/lib/event-visibility";
+import { markTakeoverPdfStepDone } from "@/lib/takeover/flow";
 import { pendingPreparedEmailIds, withPreparer } from "@/lib/prepared-emails";
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
@@ -283,7 +285,16 @@ export async function importProgramAction(_prev: ProgramImportState, formData: F
     // Le carnet signale un intervenant qui n'est pas encore sur l'évènement (module souscrit seulement).
     const catalogVendors = looksLikePdf(bytes) && (await isModuleEnabled(appDatabase(), auth.organizationId, "vendors")) ? await listVendorImportCandidates(auth.organizationId) : [];
     const result = await importEventProgram({ organizationId: auth.organizationId, eventId, bytes, apply: apply ? { skipLines } : null, speakerSlots, catalogVendors });
-    if (result.status === "applied") revalidatePath(`/events/${eventId}`);
+    if (result.status === "applied") {
+      revalidatePath(`/events/${eventId}`);
+      // Lot 71b (HUB-14) : ouvert depuis la page de reprise, il coche sa ligne (provisoire, paquet 71e).
+      const takeoverId = String(formData.get("takeoverId") ?? "");
+      const session = await getPlannerAuthContext();
+      if (isValidId(takeoverId) && session.status === "authenticated" && session.user.organizationId === auth.organizationId) {
+        const user = { id: session.user.id, role: session.user.role, organizationId: auth.organizationId };
+        if (await markTakeoverPdfStepDone({ organizationId: auth.organizationId, userId: user.id, viewer: await taskListViewer({ user }) }, { takeoverId, kind: "program", eventId })) revalidatePath(`/reprise/${takeoverId}`);
+      }
+    }
     return { result };
   } catch (error) {
     if (error instanceof EventNotFoundError) return { error: t("eventNotFound") };

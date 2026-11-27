@@ -23,9 +23,10 @@ export async function EventsHeader({ view, showViews = true }: { view: EventsVie
         actions={
           <>
             <SettingsLink href="/events/parametres" back="events" label={t("settingsLink")} tour="events-settings" />
-            {/* Lot 63b (HUB-14) : importer des évènements (fiches PDF ou tableur) depuis l'écran. */}
+            {/* Lot 63b (HUB-14) : importer des évènements (fiches PDF ou tableur) depuis l'écran. Lot 71b
+                (I6) : le nom de l'écran, « Reprendre et importer ». */}
             <Link className="button-link" href="/import?type=evenements#import-form">
-              {t("importHere")}
+              {t("importAndTakeOver")}
             </Link>
             {/* Lot 70e (D8, C-03) : une seule entrée, « Nouvel évènement ». */}
             <Link className="button-link button-link-primary" href="/events/new" data-tour="new-prospect">

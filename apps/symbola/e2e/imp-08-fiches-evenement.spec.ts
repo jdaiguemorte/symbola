@@ -48,9 +48,11 @@ test("IMP-08 — reprendre ses évènements depuis les fiches PDF de l'outil act
   }
   await loginAndSetupMfa(page, email, password);
 
-  await openSettingsTab(page, "Importer");
-  // Lot 16 (IMP-11) : la tuile « Reprendre mes évènements » ouvre le dépôt des fiches.
-  await page.getByRole("navigation", { name: "Que voulez-vous reprendre ?" }).getByRole("link", { name: /Reprendre mes évènements/ }).click();
+  await openSettingsTab(page, "Reprendre et importer");
+  // Lot 16 (IMP-11) : la tuile « Reprendre mes évènements » ouvre le dépôt des fiches. Lot 71b (I6, R18) :
+  // les fiches de plusieurs mariages restent acceptées ici, sous « Une autre liste ».
+  await page.getByRole("navigation", { name: "Que voulez-vous importer ?" }).getByRole("link", { name: /Une autre liste/ }).click();
+  await page.getByLabel("Fiches évènement (PDF, une fiche par évènement)").check();
   await page.getByLabel("Fiches évènement (PDF, une ou plusieurs)").setInputFiles([
     { name: "fiche-evenement-complete.pdf", mimeType: "application/pdf", buffer: readFileSync(corpus("fiche-evenement-complete.pdf")) },
     { name: "fiche-evenement-trois-lieux.pdf", mimeType: "application/pdf", buffer: readFileSync(corpus("fiche-evenement-trois-lieux.pdf")) },

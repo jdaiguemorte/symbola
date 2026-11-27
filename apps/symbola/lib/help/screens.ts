@@ -150,6 +150,8 @@ export const HELP_SCREENS: HelpScreen[] = [
   { key: "setup", group: "company", audience: "team", path: null, capture: false },
   // Données : import et données personnelles
   { key: "importFile", group: "data", audience: "team", path: "/import", capture: true },
+  // Lot 71b (HUB-14, PAR-01) : la page « Reprendre un mariage en cours ».
+  { key: "takeover", group: "data", audience: "team", module: "events", path: "/reprise", capture: false },
   { key: "importColumns", group: "data", audience: "team", path: null, capture: false },
   // Lot 16 (IMP-12) : étape « Types » de l'assistant (prestataires).
   { key: "importTypes", group: "data", audience: "team", path: null, capture: false },

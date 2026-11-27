@@ -77,7 +77,9 @@ function rowBadges(row: ProgramImportRow, t: ReturnType<typeof useTranslations<"
   return badges;
 }
 
-export function ProgramImportForm({ eventId, open = false }: { eventId: string; open?: boolean }) {
+// Lot 71b (HUB-14) : ouvert depuis la page de reprise, le formulaire porte sa reprise et y ramène.
+export function ProgramImportForm({ eventId, open = false, takeoverId = null }: { eventId: string; open?: boolean; takeoverId?: string | null }) {
+  const tTakeover = useTranslations("Takeover");
   const t = useTranslations("Events");
   const [state, action, pending] = useActionState(importProgramAction, {} as ProgramImportState);
   const result = state.result;
@@ -97,6 +99,7 @@ export function ProgramImportForm({ eventId, open = false }: { eventId: string; 
       <p className="muted">{t("programImportHint")}</p>
       <form action={run} className="stack">
         <input type="hidden" name="eventId" value={eventId} />
+        {takeoverId ? <input type="hidden" name="takeoverId" value={takeoverId} /> : null}
         <label>
           {t("programImportFileLabel")}
           <input
@@ -182,7 +185,17 @@ export function ProgramImportForm({ eventId, open = false }: { eventId: string; 
         ) : null}
         {state.error ? <p role="alert">{state.error}</p> : null}
         {result?.status === "rejected" ? <p role="alert">{t.has(`programImportRejected.${result.reason}`) ? t(`programImportRejected.${result.reason}`) : t("programImportRejected.malformed")}</p> : null}
-        {result?.status === "applied" ? <p role="status">{t("programImportApplied", { items: result.items, moments: result.moments })}</p> : null}
+        {result?.status === "applied" ? (
+          <p role="status">
+            {t("programImportApplied", { items: result.items, moments: result.moments })}
+            {takeoverId ? (
+              <>
+                {" "}
+                <a href={`/reprise/${takeoverId}`}>{tTakeover("backToTakeover")}</a>
+              </>
+            ) : null}
+          </p>
+        ) : null}
       </form>
     </details>
   );

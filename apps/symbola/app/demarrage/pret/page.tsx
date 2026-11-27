@@ -14,6 +14,7 @@ import { requirePlanner } from "@/lib/guards";
 import { clientFieldLabelsByAudience } from "@/lib/vocabulary";
 import { ScreenHelp } from "@/app/screen-help";
 import { isEventsModuleEnabled } from "@/app/events/module-access";
+import { onboardingSuggestsTakeover, starterOnboarding } from "@symbola/starter-templates";
 import { exploreExampleAction } from "./actions";
 import { FirstEventForm } from "./first-event-form";
 
@@ -36,6 +37,14 @@ export default async function ReadyPage() {
     eventsEnabled ? getActiveEventsTrial(organizationId) : Promise.resolve(null),
   ]);
   const tasks = templates[0]?.items.length ?? 0;
+  // Lot 71b (PAR-01, HUB-09 ; décision I5, R3, D6) : la planner suit ses mariages dans un tableur ou un
+  // autre logiciel : « Reprendre un mariage en cours » d'abord, en bouton plein ; sinon l'inverse.
+  const takeoverFirst = eventsEnabled && onboardingSuggestsTakeover(profile.replacedTools);
+  const firstLetterLow = (label: string) => label.charAt(0).toLocaleLowerCase(locale) + label.slice(1);
+  const toolLabels = starterOnboarding(locale)
+    .tools.filter((tool) => profile.replacedTools.includes(tool.key) && onboardingSuggestsTakeover([tool.key]))
+    .map((tool) => firstLetterLow(tool.label));
+  const tools = toolLabels.length > 1 ? t("ready.toolsAnd", { first: toolLabels.slice(0, -1).join(", "), last: toolLabels.at(-1)! }) : (toolLabels[0] ?? "");
 
   return (
     <main className="setup onboarding-ready">
@@ -55,12 +64,32 @@ export default async function ReadyPage() {
       </section>
 
       <h2>{t("ready.choiceTitle")}</h2>
+      {takeoverFirst ? (
+        <section className="card" aria-labelledby="ready-takeover">
+          <h3 id="ready-takeover">{t("ready.takeoverTitle")}</h3>
+          <p>{t("ready.takeoverIntro", { tools })}</p>
+          <p className="meta">{t("ready.takeoverBody")}</p>
+          <div className="ready-takeover-actions">
+            <Link className="button-link button-link-primary" href="/reprise">
+              {t("ready.takeoverStart")}
+            </Link>
+            <Link className="button-link" href="#ready-first-event">
+              {t("ready.takeoverCreate")}
+            </Link>
+          </div>
+        </section>
+      ) : eventsEnabled ? (
+        <p className="ready-takeover-elsewhere">
+          {t("ready.takeoverElsewhere")} <Link href="/reprise">{t("ready.takeoverStart")}</Link>
+        </p>
+      ) : null}
       {eventsEnabled ? (
         <div className="ready-choices">
           <section className="card" aria-labelledby="ready-first-event">
-            <h3 id="ready-first-event">{t("ready.firstEventTitle")}</h3>
+            <h3 id="ready-first-event">{takeoverFirst ? t("ready.takeoverCreate") : t("ready.firstEventTitle")}</h3>
             <p>{t("ready.firstEventBody")}</p>
-            <FirstEventForm eventTypes={eventTypes.map(({ id, label, audience }) => ({ id, label, audience }))} clientLabels={clientFieldLabelsByAudience(locale)} templates={templates.flatMap((template) => (template.eventTypeId ? [{ id: template.id, name: template.name, eventTypeId: template.eventTypeId, count: template.items.length }] : []))} />
+            <FirstEventForm
+              primary={!takeoverFirst} eventTypes={eventTypes.map(({ id, label, audience }) => ({ id, label, audience }))} clientLabels={clientFieldLabelsByAudience(locale)} templates={templates.flatMap((template) => (template.eventTypeId ? [{ id: template.id, name: template.name, eventTypeId: template.eventTypeId, count: template.items.length }] : []))} />
           </section>
           <section className="card" aria-labelledby="ready-example">
             <h3 id="ready-example">{t("ready.exampleTitle")}</h3>
@@ -82,6 +111,17 @@ export default async function ReadyPage() {
           <Link href="/">{t("ready.goHome")}</Link>
         </section>
       )}
+      {/* Lot 71b (critère 9) : sur téléphone, les deux boutons collés en bas, le principal en haut. */}
+      {takeoverFirst ? (
+        <div className="ready-takeover-bar">
+          <Link className="button-link button-link-primary" href="/reprise">
+            {t("ready.takeoverStart")}
+          </Link>
+          <Link className="button-link" href="#ready-first-event">
+            {t("ready.takeoverCreate")}
+          </Link>
+        </div>
+      ) : null}
     </main>
   );
 }
