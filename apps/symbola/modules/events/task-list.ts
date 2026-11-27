@@ -78,7 +78,16 @@ function filtersOf(filters: TaskListFilters, viewer: TaskListViewer, today: stri
   return conditions;
 }
 
-export async function findTaskList(input: { organizationId: string; today: string; viewer: TaskListViewer; filters: TaskListFilters }): Promise<{ rows: EventTaskRowWithEvent[]; total: number }> {
+export type TaskListTotals = { total: number; todoTotal: number; todoByWho: Record<string, number> };
+
+// Lot 70d (PAR-10) : la clé de « Qui s'en charge » d'une tâche à faire, comptée dans la base.
+const whoKey = sql<string>`case
+  when ${eventTasks.responsible} = 'clients' then 'clients'
+  when ${eventTasks.responsible} = 'vendor' then 'vendors'
+  when ${eventTasks.assigneeUserId} is null then 'nobody'
+  else 'member:' || ${eventTasks.assigneeUserId}::text end`;
+
+export async function findTaskList(input: { organizationId: string; today: string; viewer: TaskListViewer; filters: TaskListFilters }): Promise<{ rows: EventTaskRowWithEvent[] } & TaskListTotals> {
   const visible = visibleTo(input.viewer);
   const conditions = filtersOf(input.filters, input.viewer, input.today);
   const order =
@@ -92,8 +101,36 @@ export async function findTaskList(input: { organizationId: string; today: strin
       .leftJoin(events, eq(events.id, eventTasks.eventId))
       .where(and(visible, ...conditions))
       .orderBy(...order);
-    const [total] = await tx.select({ value: count() }).from(eventTasks).leftJoin(events, eq(events.id, eventTasks.eventId)).where(visible);
-    return { rows: rows.map((row) => row.task), total: total?.value ?? 0 };
+    // Lot 70d (CHR-03 crit. 3) : le total (faites comprises) et les tâches à faire de chacun, sans filtre,
+    // en une seule lecture groupée.
+    const groups = await tx
+      .select({ who: whoKey, todo: sql<number>`count(*) filter (where ${eventTasks.doneAt} is null)::int`, all: sql<number>`count(*)::int` })
+      .from(eventTasks)
+      .leftJoin(events, eq(events.id, eventTasks.eventId))
+      .where(visible)
+      .groupBy(whoKey);
+    const todoByWho: Record<string, number> = {};
+    for (const group of groups) if (group.todo > 0) todoByWho[group.who] = group.todo;
+    return {
+      rows: rows.map((row) => row.task),
+      total: groups.reduce((sum, group) => sum + group.all, 0),
+      todoTotal: groups.reduce((sum, group) => sum + group.todo, 0),
+      todoByWho,
+    };
+  });
+}
+
+// Lot 70d (UX-08, C-55) : parmi des évènements donnés, ceux qui n'ont aucune tâche (une tâche à la corbeille
+// ne compte pas). La base ne montre que les évènements de l'organisation (RLS).
+export async function findEventIdsWithoutTasks(organizationId: string, eventIds: string[]): Promise<string[]> {
+  const ids = [...new Set(eventIds.filter((id) => UUID.test(id)).map((id) => id.toLowerCase()))];
+  if (ids.length === 0) return [];
+  return withOrganization(appDatabase(), organizationId, async (tx) => {
+    const rows = await tx
+      .select({ id: events.id })
+      .from(events)
+      .where(and(inArray(events.id, ids), sql`not exists (select 1 from ${eventTasks} where ${eventTasks.eventId} = ${events.id} and ${eventTasks.deletedAt} is null)`));
+    return rows.map((row) => row.id);
   });
 }
 

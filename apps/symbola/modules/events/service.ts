@@ -193,7 +193,7 @@ import { addComment, listComments, removeComment, restoreComment } from "./task-
 import { addStarterCategories, countByCategory, createCategory, listCategories, moveCategory, removeCategory, TaskCategoryNotFoundError, updateCategory } from "./task-categories";
 import { changeTasks, changeTasksKeepingUndo, removeTasks, restoreTasksDeletedWith, undoTasksChange, type UndoableTaskChange } from "./task-bulk";
 import { actingMemberId, normalizeTaskNote } from "./task-assignment";
-import { countOpenTasksOf, findEventTaskRow, findTaskList } from "./task-list";
+import { countOpenTasksOf, findEventIdsWithoutTasks, findEventTaskRow, findTaskList } from "./task-list";
 import { taskDueState } from "./due-state";
 import { listTrashedEventRows, restoreDocumentRow, restoreEventRow, restoreProgramTemplateRow, restoreTaskTemplateRow, trashEventRow } from "./trash";
 import { createStorageClient, deletePrivateObject, detectFileType, PrivateObjectNotFoundError, readPrivateObject, scanBuffer, uploadPrivateObject } from "@symbola/files";
@@ -1727,7 +1727,7 @@ export async function undoTaskChange(input: { organizationId: string; userId: st
 export async function listTasks(input: ListTasksInput): Promise<TaskList> {
   assertDate(input.today);
   const filters = input.filters ?? {};
-  const [{ rows, total }, soonDays] = await Promise.all([findTaskList({ organizationId: input.organizationId, today: input.today, viewer: input.viewer, filters }), getTaskSoonDays(input.organizationId)]);
+  const [{ rows, total, todoTotal, todoByWho }, soonDays] = await Promise.all([findTaskList({ organizationId: input.organizationId, today: input.today, viewer: input.viewer, filters }), getTaskSoonDays(input.organizationId)]);
   const eventIds = new Set(rows.flatMap((row) => (row.eventId ? [row.eventId] : [])));
   const eventsById = eventIds.size > 0 ? new Map((await listEvents({ organizationId: input.organizationId })).filter((event) => eventIds.has(event.id)).map((event) => [event.id, event])) : new Map<string, EventSummary>();
   const tasks: TaskListItem[] = rows.map((row) => {
@@ -1740,7 +1740,13 @@ export async function listTasks(input: ListTasksInput): Promise<TaskList> {
       event: event ? { id: event.id, names: eventNames(event.clients, event.name), eventDate: event.eventDate, status: event.status, isDemo: event.isDemo } : null,
     };
   });
-  return { tasks, total, filtered: tasks.length, late: tasks.filter((task) => task.dueState?.kind === "late").length, soonDays };
+  return { tasks, total, filtered: tasks.length, late: tasks.filter((task) => task.dueState?.kind === "late").length, soonDays, todoTotal, todoByWho };
+}
+
+// Lot 70d (UX-08, C-55) : parmi des évènements de l'organisation, ceux qui n'ont encore aucune tâche (un
+// mariage repris dont les tâches sont restées dans l'ancien outil).
+export async function eventIdsWithoutTasks(organizationId: string, eventIds: string[]): Promise<string[]> {
+  return findEventIdsWithoutTasks(organizationId, eventIds);
 }
 
 // Lot 70c (CHR-02 ; D3) : une tâche pour son panneau, d'évènement ou non, avec son état d'échéance et sa

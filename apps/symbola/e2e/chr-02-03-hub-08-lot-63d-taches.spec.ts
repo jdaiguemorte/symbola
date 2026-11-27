@@ -73,13 +73,17 @@ test("CHR-02, UX-07 — tâches : « Fait » annulable, sélection et actions gr
   await page.getByRole("button", { name: "Sélectionner" }).click();
   await page.getByRole("checkbox", { name: "Choisir « Envoyer le questionnaire »" }).check();
   await page.getByRole("checkbox", { name: "Choisir « Confirmer le menu »" }).check();
-  const bulk = page.getByRole("form", { name: "Actions sur les tâches sélectionnées" });
+  // Lot 70d : la barre de sélection, collée au bas de la liste ; « Catégorie… » (dans « Plus » sur téléphone).
+  const bulk = page.getByRole("region", { name: "Actions sur les tâches sélectionnées" });
   await expect(bulk).toContainText("2 tâches sélectionnées");
-  await bulk.getByText("Catégorie", { exact: true }).first().click();
-  await bulk.getByLabel("Catégorie").selectOption({ label: "Prestataires" });
-  await bulk.getByRole("button", { name: "Appliquer" }).last().click();
-  await expect(feedback(page).filter({ hasText: "Catégorie changée pour 2 tâches." })).toBeVisible();
-  await page.getByRole("button", { name: "Terminer" }).click();
+  if ((page.viewportSize()?.width ?? 1440) < 640) {
+    await bulk.getByRole("button", { name: "Plus" }).click();
+    await page.getByRole("menuitem", { name: "Catégorie…" }).click();
+  } else {
+    await bulk.getByRole("button", { name: "Catégorie…" }).click();
+  }
+  await page.getByRole("dialog", { name: "Catégorie de 2 tâches" }).getByRole("button", { name: "Prestataires" }).click();
+  await expect(feedback(page).filter({ hasText: "Catégorie changée pour 2 tâches" })).toBeVisible();
 
   // « Changer la date… » : « Demain », la date est écrite dans le petit panneau.
   const tomorrow = formatShortCalendarDate(inDays(1), "fr");

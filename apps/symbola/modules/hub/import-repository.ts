@@ -176,3 +176,23 @@ export async function clearExpiredUndoValues(db: AppDatabase, organizationId: st
     return cleared;
   });
 }
+
+// Lot 70d (UX-08, C-55) : les évènements créés par un import encore appliqué (pas retiré), avec sa date :
+// « À vérifier : « Léa & Hugo », repris le 24 nov., n'a pas encore de tâches ». Le lot 71 (reprise d'un
+// mariage, origine `takeover` de l'évènement) prendra le relais.
+export async function findImportedEvents(db: AppDatabase, organizationId: string): Promise<{ eventId: string; importedAt: string }[]> {
+  const rows = await withOrganization(db, organizationId, (tx) =>
+    tx
+      .select({ eventId: importItems.elementId, appliedAt: imports.appliedAt })
+      .from(importItems)
+      .innerJoin(imports, eq(imports.id, importItems.importId))
+      .where(and(eq(importItems.module, "events"), eq(importItems.kind, "event"), eq(importItems.action, "created"), eq(imports.status, "applied")))
+      .orderBy(desc(imports.appliedAt)),
+  );
+  const seen = new Set<string>();
+  return rows.flatMap((row) => {
+    if (!row.appliedAt || seen.has(row.eventId)) return [];
+    seen.add(row.eventId);
+    return [{ eventId: row.eventId, importedAt: row.appliedAt.toISOString() }];
+  });
+}

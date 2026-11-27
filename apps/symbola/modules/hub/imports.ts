@@ -17,7 +17,7 @@ import {
   type ImportFieldDefinition,
 } from "@symbola/contracts";
 import { z } from "zod";
-import type { AppDatabase } from "@symbola/db/client";
+import { appDatabase, type AppDatabase } from "@symbola/db/client";
 import type { ImportColumnChoice, ImportMatch, ImportMatching, ImportResult, ImportVendorTypeTarget } from "@symbola/db/schema/hub";
 import { parseEnv } from "@symbola/env";
 import { createStorageClient, scanBuffer, sealFile, uploadPrivateObject } from "@symbola/files";
@@ -51,6 +51,7 @@ import {
   type ImportItemRow,
   type ImportRow,
   type NewImportItem,
+  findImportedEvents,
 } from "./import-repository";
 import { cancelImportJobs, createImportJob, isReadingSheets, listImportJobs, type ImportJobView } from "./import-jobs";
 import { findPlatformSettings, insertDefaultPlatformSettings } from "./repository";
@@ -821,4 +822,9 @@ export async function purgeExpiredImportUndoValues(db: AppDatabase, organization
   let cleared = 0;
   for (const organizationId of organizationIds) cleared += await clearExpiredUndoValues(db, organizationId, appliedBefore);
   return cleared;
+}
+
+// Lot 70d (UX-08, C-55) : les évènements créés par un import encore appliqué, et sa date (mariage repris).
+export async function listImportedEvents(organizationId: string): Promise<{ eventId: string; importedAt: string }[]> {
+  return findImportedEvents(appDatabase(), organizationId);
 }
