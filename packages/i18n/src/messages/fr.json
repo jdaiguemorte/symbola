@@ -116,7 +116,7 @@
     "upcomingTasksEmpty": "Rien d'urgent : aucune tâche en retard ni due dans les 14 jours.",
     "allTasksLink": "Toutes les tâches",
     "agenda": "Aujourd'hui",
-    "apps": "Apps",
+    "apps": "Tous les modules",
     "tasks": "Tâches",
     "tasksOverdue": "{count} en retard",
     "settingsOrganization": "Mon organisation",
@@ -132,15 +132,14 @@
     "setup": "Démarrage",
     "setupLocked": "Les menus s'ouvrent quand le démarrage est terminé.",
     "agendaCreateOn": "Créer le {date}",
-    "agendaCreateProspect": "Créer un prospect à cette date",
-    "agendaCreateEvent": "Créer un évènement à cette date",
+    "agendaCreateEvent": "Nouvel évènement à cette date",
     "followUpTitle": "À traiter",
     "followUpEmpty": "Rien à relancer pour le moment.",
     "followUpQuote": "Relancer le devis {number} · {names}",
     "followUpProspect": "Prospect sans nouvelle · {names}",
     "followUpDays": "{days, plural, one {# jour} other {# jours}}",
     "followUpSettings": "Relances des prospects",
-    "topBar": "Recherche et aide de l'écran",
+    "topBar": "Recherche, création, notifications, aide et compte",
     "agendaYear": "Voir l'année",
     "documentsSettings": "Documents : logo, couleur, IBAN",
     "privacySearch": "Rechercher une personne (RGPD)",
@@ -487,8 +486,8 @@
           "a": "Dans Évènements : le calendrier de vos week-ends y est, avec la liste."
         },
         {
-          "q": "Comment créer vite un prospect, une tâche, une dépense ou un devis ?",
-          "a": "Avec « Créer » en haut de chaque écran, ou la touche N hors d'un champ : un formulaire court s'ouvre sans quitter l'écran, et l'évènement de l'écran est proposé."
+          "q": "Comment créer vite un évènement, une tâche, un prestataire, un contact, un devis ou une dépense ?",
+          "a": "Avec « + Créer » en haut de chaque écran, ou la touche N hors d'un champ : six entrées, chacune avec sa phrase. L'évènement, le prestataire et le contact ouvrent leur écran ; la tâche, le devis et la dépense ouvrent un formulaire court sans quitter l'écran, et le mariage de l'écran est dit (« Tâche pour Léa & Maxime »)."
         },
         {
           "q": "Comment gagner de la place à l'écran ?",
@@ -552,7 +551,7 @@
     },
     "eventsList": {
       "title": "Liste des évènements",
-      "body": "Tous vos prospects et évènements en cours ; « Terminés » garde ceux clôturés ou annulés. « Liste », « Colonnes » ou « Calendrier », toujours au même endroit : le tableau filtrable, les options rangées par étape, ou les mois à venir. Dessous, la charge des douze prochains mois ; deux évènements le même jour sont signalés dans les deux vues. Commencez par « Nouveau » (prospect, évènement confirmé ou client existant), ou filtrez la liste par nom, statut, source ou année. Pour découvrir le module sans risque, lancez l'essai guidé ci-dessous.",
+      "body": "Tous vos prospects et évènements en cours ; « Terminés » garde ceux clôturés ou annulés. « Liste », « Colonnes » ou « Calendrier », toujours au même endroit : le tableau filtrable, les options rangées par étape, ou les mois à venir. Dessous, la charge des douze prochains mois ; deux évènements le même jour sont signalés dans les deux vues. Commencez par « Nouvel évènement » (une demande en cours, ou un évènement signé), ou filtrez la liste par nom, statut, source ou année. Pour découvrir le module sans risque, lancez l'essai guidé ci-dessous.",
       "faq": [
         {
           "q": "Où retrouver un évènement passé ?",
@@ -570,15 +569,15 @@
     },
     "eventsNew": {
       "title": "Créer un évènement",
-      "body": "« Nouveau » propose trois choix. Un prospect : un prénom de marié et la source du contact suffisent ; la date, le lieu et le budget se complètent plus tard. Un évènement confirmé : le type et la date suffisent, le client est facultatif (un shooting photo). Pour un client existant : choisissez-le par la recherche, son nom et ses coordonnées ne sont pas ressaisis. Si le type a un modèle de rétroplanning, le formulaire le propose (case cochée pour un évènement confirmé) ; sinon, une astuce permet d'en créer un sans quitter le formulaire. Si la date tombe le même jour qu'un autre évènement confirmé ou en option, Symbola le signale avant l'enregistrement, sans l'empêcher.",
+      "body": "Une seule entrée, « Nouvel évènement » : dites d'abord où il en est — une demande en cours (il reste une Option) ou signé, en préparation (il est Confirmé et reçoit la liste de tâches de son type si sa date est fixée) —, puis donnez-lui un nom. La date, le client et le type sont facultatifs ou proposés ; le lieu, la source et un second client se complètent depuis la fiche. Si vous suivez déjà l'évènement dans un autre logiciel ou un tableur, « Reprendre ses fichiers » mène à la page de reprise, sans rien créer. Si la date tombe le même jour qu'un autre évènement confirmé ou en option, Symbola le signale avant l'enregistrement, sans l'empêcher.",
       "faq": [
         {
-          "q": "Quelle différence entre prospect et évènement ?",
-          "a": "Un prospect n'a pas encore signé. Il devient un évènement confirmé quand vous changez son statut sur la frise de sa fiche, ou à la signature du devis."
+          "q": "Quelle différence entre une demande et un évènement signé ?",
+          "a": "Une demande n'est pas signée : l'évènement est en Option. Il devient Confirmé quand vous changez son statut sur la frise de sa fiche, ou à la signature du devis."
         },
         {
-          "q": "Une source manque dans la liste ?",
-          "a": "Ajoutez-la dans Paramètres › Sources et motifs ; elle sera proposée aussitôt."
+          "q": "Où saisir la source ou un second client ?",
+          "a": "Sur la fiche de l'évènement, onglet Mariés : « Source et clients »."
         }
       ]
     },
@@ -1483,7 +1482,7 @@
       "body": "Votre offre, ses apps et ses options, le total et votre stockage face au quota de l'offre. Changer d'offre prend effet tout de suite ; l'écart au prorata va sur la facture suivante. Résilier se fait en deux gestes : « Résilier », puis « Confirmer la résiliation » ; vous gardez l'accès jusqu'à la fin de la période payée, puis l'espace est fermé (export pendant 30 jours, puis effacement). À 80 % et 95 % du quota, Symbola vous prévient ; plein, les nouveaux dépôts ne sont refusés qu'après sept jours de préavis, et la lecture et l'export restent toujours possibles. Réservé à la titulaire du compte."
     },
     "apps": {
-      "title": "Apps",
+      "title": "Tous les modules",
       "body": "Toutes les apps de Symbola, avec leur état, ce qu'elles apportent et où les trouver une fois activées. Pendant le pilote, « Demander l'activation » prévient l'équipe Symbola, qui active l'app pour vous, sans frais : vous recevez une notification et l'app apparaît dans votre menu. Une demande s'annule tant qu'elle n'est pas traitée. L'équipe ne voit que le nom de votre organisation et l'app demandée. Après l'ouverture commerciale, « Ajouter à mon abonnement » affiche le prix, le prorata et le nouveau total. Réservé à la Propriétaire."
     },
     "adminPlans": {
@@ -1586,7 +1585,6 @@
     "title": "Évènements",
     "moduleUnavailable": "Le module Évènements n'est pas activé pour votre organisation.",
     "unauthenticated": "Votre session a expiré. Reconnectez-vous puis recommencez.",
-    "newProspect": "Nouveau prospect",
     "settingsLink": "Paramètres des évènements",
     "tabsLabel": "Période",
     "tabUpcoming": "À venir",
@@ -1650,11 +1648,9 @@
     "client2LastName": "Nom du second marié (facultatif)",
     "source": "Source du prospect",
     "sourceChoose": "Choisir…",
-    "noSourcesYet": "Chaque prospect est rattaché à sa source (Instagram, salon, bouche-à-oreille…). Ajoutez vos sources dans les <link>Paramètres des évènements</link>, ou chargez la liste de départ en un clic, modifiable ensuite.",
     "eventDate": "Date de l'évènement",
     "venueName": "Lieu",
     "venueCity": "Ville",
-    "createProspect": "Créer le prospect",
     "missingFirstName": "Le prénom du premier marié est obligatoire.",
     "missingSource": "Choisissez la source du prospect.",
     "status": "Statut",
@@ -1874,7 +1870,6 @@
     "confirmAsPlanned": "En faire le budget estimé",
     "trialStepQuote": "Composez un devis fictif, faites-le signer par le marié fictif sur la page de signature d'essai, puis émettez ses factures (série DEMO, en filigrane).",
     "trialStartQuote": "Essayer un devis fictif",
-    "noSourcesTitle": "Une source est nécessaire",
     "loadStarterLists": "Charger les sources et motifs de perte courants",
     "starterListsLoaded": "{sources, plural, =0 {Aucune source ajoutée} one {# source ajoutée} other {# sources ajoutées}}, {reasons, plural, =0 {aucun motif ajouté} one {# motif ajouté} other {# motifs ajoutés}}.",
     "starterListsTitle": "Partir d'une liste courante",
@@ -2351,41 +2346,12 @@
     "archivedEmpty": "Aucun évènement archivé.",
     "floorplanLink": "Plan de salle de l'évènement",
     "importHere": "Importer",
-    "newMenu": "Nouveau",
-    "newMenuLabel": "Créer un évènement",
-    "newMenuProspect": "Prospect",
-    "newMenuProspectHint": "Une demande à étudier, avant tout devis signé. Pas de rétroplanning.",
-    "newMenuConfirmed": "Évènement confirmé",
-    "newMenuConfirmedHint": "Directement en préparation, avec ou sans client (ex. un shooting photo).",
-    "newMenuClient": "Pour un client existant",
-    "newMenuClientHint": "Un nouvel évènement pour un client déjà dans vos contacts.",
-    "newForClient": "Nouvel évènement pour un client existant",
     "viewColumns": "Colonnes",
-    "newStatusLegend": "C'est :",
-    "newStatusProspect": "une demande à étudier (prospect)",
-    "newStatusConfirmed": "un évènement confirmé",
-    "existingClientSearch": "Rechercher le client dans vos contacts (nom, e-mail ou téléphone)",
-    "clientOptionalLegend": "Client (facultatif : choisir ou créer un contact)",
     "sourceNone": "Aucune",
-    "missingExistingContact": "Choisissez le client dans vos contacts.",
     "taskTemplateUnavailable": "Ce rétroplanning n'est plus disponible pour ce type. Rechargez la page.",
     "templateProposal": "Partir du rétroplanning « {name} » ({count, plural, one {# tâche} other {# tâches}})",
     "templateProposalHint": "Les tâches sont datées depuis la date de l'évènement. Vous pourrez aussi l'appliquer plus tard, depuis l'onglet Rétroplanning.",
-    "templateProposalNeedsDate": "Indiquez la date pour partir du rétroplanning : ses tâches en dépendent. Sinon, appliquez-le plus tard depuis l'onglet Rétroplanning.",
-    "templateProposalShow": "Voir les tâches",
-    "templateTip": "Astuce : « {type} » n'a pas encore de modèle de rétroplanning. Vous en organisez souvent ? Créez-en un : vos tâches habituelles seront prêtes à chaque nouvel évènement de ce type, sans les saisir à nouveau.",
-    "templateTipCreate": "Créer un modèle pour « {type} »",
-    "quickTemplateIntro": "Le modèle est rattaché à ce type : il sera proposé à chaque nouvel évènement. Vous réglerez le détail (responsable, tâches après la date) dans les modèles de rétroplanning.",
-    "quickTemplateTasks": "Tâches habituelles",
-    "quickTemplateTaskLabel": "Tâche {number}",
-    "quickTemplateDaysBefore": "Jours avant la date (tâche {number})",
-    "quickTemplateAddTask": "+ Ajouter une tâche",
-    "quickTemplateSave": "Créer le modèle",
-    "quickTemplateNoTask": "Ajoutez au moins une tâche.",
-    "quickTemplateInvalid": "Vérifiez le nom et les tâches du modèle.",
     "eventName": "Nom de l'évènement",
-    "eventNameHint": "(obligatoire sans client, ex. « Shooting Roux »)",
-    "missingEventName": "Sans client, donnez un nom à l'évènement.",
     "taskMarkDone": "Marquer « {label} » comme faite",
     "taskMarkUndone": "Marquer « {label} » comme à faire",
     "tasksSelectAll": "Tout sélectionner",
@@ -2458,7 +2424,30 @@
     "statusRestoredDetail": "Il est revenu en « Option », à confirmer de nouveau.",
     "responsibleYou": "Vous",
     "responsibleMemberRemoved": "{name} (accès retiré)",
-    "responsibleNobody": "Personne pour l’instant"
+    "responsibleNobody": "Personne pour l’instant",
+    "newEvent": "Nouvel évènement",
+    "standingLegend": "Où en est-il ?",
+    "standingEnquiry": "Une demande en cours",
+    "standingEnquiryHint": "Vous en parlez, rien n'est signé.",
+    "standingSigned": "Signé, en préparation",
+    "standingSignedHint": "Le contrat est signé, même si vous aviez commencé sur papier : la liste des tâches se crée aujourd'hui.",
+    "importPrompt": "Vous le suivez déjà dans un autre logiciel ou un tableur ?",
+    "importLink": "Reprendre ses fichiers",
+    "newName": "Nom de l'évènement",
+    "newNamePlaceholder": "Par exemple : Léa & Maxime",
+    "newDate": "Date",
+    "newDateHint": "Pas encore fixée",
+    "newClient": "Client",
+    "newClientHint": "Nouveau client, ou chercher dans vos contacts",
+    "newType": "Type",
+    "createEvent": "Créer l'évènement",
+    "originTitle": "Source et clients",
+    "sourceSave": "Enregistrer la source",
+    "sourceSaved": "Source enregistrée.",
+    "addClientTitle": "Ajouter un client",
+    "addClientSubmit": "Ajouter ce client",
+    "clientAdded": "Client ajouté.",
+    "clientsFull": "Cet évènement a déjà deux clients."
   },
   "Budget": {
     "title": "Budget",
@@ -4534,7 +4523,7 @@
   },
   "Search": {
     "label": "Rechercher",
-    "placeholder": "Rechercher un évènement, un devis, une tâche, une aide…",
+    "placeholder": "Rechercher un évènement, une tâche, un prestataire…",
     "shortcut": "⌘K",
     "submit": "Rechercher",
     "title": "Recherche",
@@ -4544,24 +4533,34 @@
     "onlyYourOrganization": "Seules les données de votre organisation sont cherchées.",
     "groupEvents": "Évènements",
     "groupDocuments": "Devis et factures",
-    "groupTasks": "Tâches et prestataires",
-    "groupHelp": "Aide et écrans",
+    "groupTasks": "Tâches",
+    "groupHelp": "Aide",
     "noClientName": "Sans nom",
     "noDate": "Date à fixer",
     "quoteTitle": "Devis {number} · {names}",
     "invoiceTitle": "Facture {number} · {names}",
     "invoiceIssued": "Émise le {date}",
     "taskTitle": "{label} · {names}",
-    "taskDue": "Échéance {date}",
+    "taskDue": "Échéance {when}",
     "vendorTitle": "{vendor} · {slot}",
     "tutorialDetail": "Tutoriel · {minutes} min",
     "screenDetail": "Écran de l'application",
     "close": "Fermer",
     "seeAll": "Voir tous les résultats",
-    "hint": "↑ ↓ pour choisir · Entrée pour ouvrir · Échap pour fermer",
+    "hint": "Entrée ouvre le résultat surligné · flèches pour choisir · Échap pour fermer",
     "globalLabel": "Recherche dans Symbola",
     "vendorBookDetail": "Carnet de prestataires",
-    "groupContacts": "Contacts"
+    "groupContacts": "Contacts",
+    "placeholderShort": "Rechercher…",
+    "groupVendors": "Prestataires",
+    "groupCount": "{label} · {count}",
+    "allResults": "Tous les résultats pour « {term} »",
+    "eventWhen": "{when}",
+    "dayToday": "aujourd'hui",
+    "dayTomorrow": "demain",
+    "dayYesterday": "hier",
+    "dayFuture": "dans {days, plural, one {# jour} other {# jours}}",
+    "dayPast": "il y a {days, plural, one {# jour} other {# jours}}"
   },
   "AdminOnboarding": {
     "title": "Prise en main des organisations",
@@ -7501,22 +7500,23 @@
   "QuickCreate": {
     "button": "Créer",
     "menuLabel": "Que voulez-vous créer ?",
-    "shortcutHint": "Raccourci : touche N",
+    "shortcutHint": "Touche N pour ouvrir ce menu",
     "kind": {
-      "prospect": "Prospect",
       "task": "Tâche",
       "expense": "Dépense",
-      "quote": "Devis"
+      "quote": "Devis",
+      "event": "Nouvel évènement",
+      "vendor": "Prestataire",
+      "contact": "Contact",
+      "taskFor": "Tâche pour {event}",
+      "quoteFor": "Devis pour {event}",
+      "expenseFor": "Dépense pour {event}"
     },
     "title": {
-      "prospect": "Nouveau prospect",
-      "task": "Nouvelle tâche",
       "expense": "Nouvelle dépense",
       "quote": "Nouveau devis"
     },
     "submit": {
-      "prospect": "Créer le prospect",
-      "task": "Ajouter la tâche",
       "expense": "Enregistrer la dépense",
       "quote": "Créer le devis"
     },
@@ -7531,11 +7531,6 @@
     "source": "Source du contact",
     "sourceChoose": "Choisir une source",
     "date": "Date de l'évènement (facultatif)",
-    "taskLabel": "Tâche",
-    "dueDate": "Échéance",
-    "responsible": "Qui s'en charge",
-    "responsiblePlanner": "Vous",
-    "responsibleClients": "Le client",
     "slot": "Poste du budget",
     "slotChoose": "Choisir un poste",
     "noSlots": "Cet évènement n'a pas encore de poste de budget : ajoutez-en depuis son budget.",
@@ -7550,13 +7545,19 @@
     "quoteHintProspect": "Le prospect est créé, puis son devis en brouillon, numéroté ; vous le composez ensuite.",
     "quoteDoneForProspect": "Prospect {name} créé, avec le devis {number} en brouillon.",
     "quoteFailedProspectKept": "Le prospect {name} est créé, mais son devis n'a pas pu l'être. Créez-le depuis sa fiche.",
-    "prospectDone": "Prospect {name} créé.",
-    "taskDone": "Tâche « {label} » ajoutée.",
     "expenseDone": "Dépense « {label} » enregistrée.",
     "quoteDone": "Devis {number} créé, en brouillon.",
     "chooseEventError": "Choisissez un évènement.",
     "amountInvalid": "Montant illisible : écrivez par exemple 1 250,50.",
-    "unavailable": "La création rapide n'est pas disponible : le module Évènements n'est pas activé."
+    "unavailable": "La création rapide n'est pas disponible : le module Évènements n'est pas activé.",
+    "hint": {
+      "event": "Une demande, un mariage signé, ou un mariage que vous reprenez",
+      "task": "Ou sans évènement : vous le choisirez dans le formulaire",
+      "vendor": "Une fiche dans votre carnet",
+      "contact": "Un client, un proche, un lieu",
+      "quote": "Un brouillon numéroté, à composer ensuite",
+      "expense": "Une ligne réelle dans son budget"
+    }
   },
   "OrganizationExport": {
     "title": "Exporter mes données",
@@ -9087,7 +9088,7 @@
   "Shortcuts": {
     "title": "Raccourcis clavier",
     "search": "⌘K ou Ctrl K : rechercher, ou lancer une action (« créer », « corbeille »…).",
-    "create": "N : créer (évènement, tâche, dépense, devis), depuis n'importe quel écran.",
+    "create": "N : ouvrir « + Créer » (évènement, tâche, prestataire, contact, devis, dépense), depuis n'importe quel écran.",
     "close": "Échap : fermer le panneau ou la fenêtre ouverte.",
     "help": "? : ouvrir l'aide de l'écran."
   },
@@ -12296,7 +12297,7 @@
     }
   },
   "Apps": {
-    "title": "Apps",
+    "title": "Tous les modules",
     "subtitle": "Les apps de Symbola : celles de votre organisation, et celles que vous pouvez ajouter.",
     "ownerOnly": "Cet écran est réservé à la Propriétaire de l'organisation.",
     "listLabel": "Apps de Symbola",
@@ -12938,10 +12939,9 @@
     "dueDateRequired": "Choisissez une date d'échéance.",
     "dateInvalid": "Écrivez une date qui existe, au format jj/mm/aaaa.",
     "clientFirstNameRequired": "Indiquez le prénom du client, ou choisissez-le dans vos contacts.",
-    "existingContactRequired": "Choisissez le client dans vos contacts.",
-    "eventNameRequired": "Donnez un nom à l'évènement, ou indiquez son client.",
-    "sourceRequired": "Choisissez d'où vient la demande.",
-    "datePlaceholder": "jj/mm/aaaa"
+    "eventNameRequired": "Donnez un nom à l'évènement, par exemple « Léa & Maxime ».",
+    "datePlaceholder": "jj/mm/aaaa",
+    "standingRequired": "Choisissez où en est cet évènement."
   },
   "Feedback": {
     "close": "Fermer le message",
@@ -12955,7 +12955,11 @@
     "taskSaved": "Tâche enregistrée : {label}",
     "taskAdded": "Tâche ajoutée : {label}",
     "dateChanged": "Date changée : {date}",
-    "restored": "C'est rétabli."
+    "restored": "C'est rétabli.",
+    "eventCreated": "Évènement créé",
+    "eventCreatedTasksBudget": "Avec {count, plural, one {# tâche} other {# tâches}} et son budget",
+    "eventCreatedTasks": "Avec {count, plural, one {# tâche} other {# tâches}}",
+    "seeTasks": "Voir ses tâches"
   },
   "TaskLine": {
     "dueLate": "En retard de {days, plural, one {# jour} other {# jours}}",
@@ -13122,5 +13126,17 @@
     "doneToday": "{count, plural, one {# tâche faite aujourd'hui} other {# tâches faites aujourd'hui}}",
     "review": "Les revoir",
     "theClients": "Les mariés"
+  },
+  "Account": {
+    "menu": "Menu du compte",
+    "role": {
+      "owner": "titulaire",
+      "member": "planner"
+    },
+    "organizationRole": "{organization} · {role}",
+    "profile": "Mon compte",
+    "profileHint": "Nom, connexion, sécurité",
+    "switch": "Changer d'organisation",
+    "switchHint": "Ou en créer une autre"
   }
 }

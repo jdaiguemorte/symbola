@@ -37,12 +37,12 @@ test("UX-09 — SC-01 étape 7 : un prospect commencé se reprend ailleurs, à l
   const setup = await atelier();
   await signIn(page, setup.email, /\/$/);
   await page.goto("/events/new");
-  await page.locator('select[name="prospectSourceId"]').selectOption({ label: "Salon" });
+  // Lot 70e : « Nouvel évènement » ; la réponse à « Où en est-il ? », le nom, la date et le client.
+  await page.getByRole("radio", { name: /^Une demande en cours/ }).check();
+  await page.locator('input[name="name"]').fill("Léa & Maxime");
   await page.locator('input[name="firstName1"]').fill("Léa");
-  await page.locator('input[name="firstName2"]').fill("Maxime");
   await page.locator('input[name="eventDate"]').fill("2027-06-12");
-  await page.locator('input[name="venueName"]').fill("Domaine des Tilleuls");
-  await expect.poll(async () => (await getFormDraft(setup.organizationId, setup.ownerId, "event-new"))?.content.venueName, { timeout: 15_000 }).toBe("Domaine des Tilleuls");
+  await expect.poll(async () => (await getFormDraft(setup.organizationId, setup.ownerId, "event-new"))?.content.eventDate, { timeout: 15_000 }).toBe("2027-06-12");
 
   // « Ailleurs » : plus aucune copie sur l'appareil, écran de téléphone ; seul le serveur a le brouillon.
   await page.evaluate(() => window.localStorage.clear());
@@ -52,12 +52,12 @@ test("UX-09 — SC-01 étape 7 : un prospect commencé se reprend ailleurs, à l
   await expect(offer).toBeVisible();
   await expectNoAxeViolation(page);
   await offer.getByRole("button", { name: "Reprendre" }).click();
+  await expect(page.getByRole("radio", { name: /^Une demande en cours/ })).toBeChecked();
+  await expect(page.locator('input[name="name"]')).toHaveValue("Léa & Maxime");
   await expect(page.locator('input[name="firstName1"]')).toHaveValue("Léa");
-  await expect(page.locator('input[name="firstName2"]')).toHaveValue("Maxime");
   await expect(page.locator('input[name="eventDate"]')).toHaveValue("2027-06-12");
-  await expect(page.locator('input[name="venueName"]')).toHaveValue("Domaine des Tilleuls");
 
-  await page.getByRole("button", { name: "Créer le prospect" }).click();
+  await page.getByRole("button", { name: "Créer l'évènement" }).click();
   await expect(page).toHaveURL(/\/events\/[0-9a-f-]{36}/);
   expect(await getFormDraft(setup.organizationId, setup.ownerId, "event-new")).toBeNull();
   await page.goto("/events/new");
