@@ -154,6 +154,8 @@
     "appointments": "Rendez-vous",
     "settingsAppointments": "Types et page de réservation",
     "appointmentAvailability": "Mes disponibilités",
+    "tabBarLabel": "Navigation principale",
+    "more": "Plus",
     "takeover": "Reprendre un mariage en cours"
   },
   "Admin": {
@@ -468,7 +470,7 @@
     },
     "home": {
       "title": "Aujourd'hui",
-      "body": "Ce qui demande votre attention, tous évènements confondus, d'ici quatorze jours : un point est une ligne, une chose à faire ou à surveiller, et le nombre du haut les compte toutes. Les retards viennent d'abord, du plus ancien au plus récent, puis tout le reste par date, quel que soit qui doit agir. « À traiter en premier » en garde les sept premiers points, regroupés par nature (relances et messages, tâches, paiements, décisions et signatures, prospects, « À regarder » pour les alertes du radar) ; quand la ligne attend les mariés ou un prestataire, le nom et les coordonnées de la personne à joindre sont sous son titre ; chaque partie dit son nombre et mène à sa page (« Voir dans Tâches », « Voir les encaissements »…), chaque ligne dit qui doit agir et mène à l'action en un clic ; une tâche y prend la même ligne que dans « Tâches », sans menu : son titre ouvre son panneau, le nom du mariage mène à sa fiche, « Fait » la coche, et « Les revoir » montre les tâches faites aujourd'hui. Dessous, sur toute la largeur, le calendrier : vos évènements, vos rendez-vous, vos tâches de la couleur de leur catégorie et les échéances de paiement des prestataires non réglées ; « ‹ », « Aujourd'hui » et « › » le feuillettent, « Mois », « Semaine » et « Liste » changent la vue, un clic sur un jour en montre le détail. Sur téléphone, la semaine en cours. Puis le reste des points, et vos évènements en cours, avec le compte à rebours. « À envoyer » : un message de la relation préparé par Symbola (relance, rappel, brief…), à envoyer de votre messagerie ; un clic ouvre la fenêtre « Préparer l'e-mail ».",
+      "body": "Ce qui demande votre attention, tous évènements confondus, d'ici quatorze jours : un point est une ligne, une chose à faire ou à surveiller, et le nombre du haut les compte toutes. Les retards viennent d'abord, du plus ancien au plus récent, puis tout le reste par date, quel que soit qui doit agir. « À traiter en premier » en garde les sept premiers points, regroupés par nature (relances et messages, tâches, paiements, décisions et signatures, prospects, « À regarder » pour les alertes du radar) ; quand la ligne attend les mariés ou un prestataire, le nom et les coordonnées de la personne à joindre sont sous son titre ; chaque partie dit son nombre et mène à sa page (« Voir dans Tâches », « Voir les encaissements »…), chaque ligne dit qui doit agir et mène à l'action en un clic ; une tâche y prend la même ligne que dans « Tâches », sans menu : son titre ouvre son panneau, le nom du mariage mène à sa fiche, « Fait » la coche, et « Les revoir » montre les tâches faites aujourd'hui. Dessous, sur toute la largeur, le calendrier : vos évènements, vos rendez-vous, vos tâches de la couleur de leur catégorie et les échéances de paiement des prestataires non réglées ; « ‹ », « Aujourd'hui » et « › » le feuillettent, « Mois », « Semaine » et « Liste » changent la vue, un clic sur un jour en montre le détail. Sur téléphone, la semaine en cours. Puis le reste des points, et vos évènements en cours, avec le compte à rebours. « À envoyer » : un message de la relation préparé par Symbola (relance, rappel, brief…), à envoyer de votre messagerie ; un clic ouvre la fenêtre « Préparer l'e-mail ». Sur téléphone, la barre du bas mène à Aujourd'hui, Évènements, Tâches (avec le nombre de tâches en retard) et Prestataires ; « Plus » ouvre le reste : Contacts, Rendez-vous, Devis et factures, Encaissements, Tous les modules, Paramètres, Tutoriels, Aide, puis votre compte et « Se déconnecter ». Il se ferme par Échap, un glissé vers le bas, un toucher dehors ou le retour arrière. Un module que vous n'avez pas laisse sa place dans la barre à l'entrée suivante de « Plus ».",
       "faq": [
         {
           "q": "Comment changer les délais de relance des devis et des prospects ?",
@@ -1010,7 +1012,7 @@
     },
     "search": {
       "title": "Recherche",
-      "body": "La barre du haut cherche dans toute votre organisation : évènements et clients, devis et factures, tâches et fiches d'aide. Tapez un nom, un numéro de devis ou un mot comme « TVA ». Le raccourci ⌘K (Ctrl K sur PC) y place le curseur depuis n'importe quel écran."
+      "body": "La barre du haut cherche dans toute votre organisation : évènements et clients, devis et factures, tâches et fiches d'aide. Tapez un nom, un numéro de devis ou un mot comme « TVA ». Le raccourci ⌘K (Ctrl K sur PC) y place le curseur depuis n'importe quel écran. Sur téléphone, la loupe de la barre du haut ouvre la recherche en page entière ; « Fermer la recherche » ou Échap la referme."
     },
     "tutorials": {
       "title": "Tutoriels",
@@ -4598,7 +4600,9 @@
     "dayTomorrow": "demain",
     "dayYesterday": "hier",
     "dayFuture": "dans {days, plural, one {# jour} other {# jours}}",
-    "dayPast": "il y a {days, plural, one {# jour} other {# jours}}"
+    "dayPast": "il y a {days, plural, one {# jour} other {# jours}}",
+    "openFullScreen": "Rechercher",
+    "closeFullScreen": "Fermer la recherche"
   },
   "AdminOnboarding": {
     "title": "Prise en main des organisations",
@@ -13293,7 +13297,8 @@
     "profile": "Mon compte",
     "profileHint": "Nom, connexion, sécurité",
     "switch": "Changer d'organisation",
-    "switchHint": "Ou en créer une autre"
+    "switchHint": "Ou en créer une autre",
+    "phoneIdentity": "{name} · {organization}"
   },
   "Takeover": {
     "title": "Reprendre un mariage en cours",

@@ -66,7 +66,7 @@ test("RGPD-02 — la titulaire exporte les fiches cochées de la personne et té
   await page.getByRole("link", { name: `Élodie ${lastName}`, exact: true }).click();
   await expect(page.getByRole("heading", { level: 2, name: "Données retrouvées" })).toBeVisible();
   await expect(page.getByLabel("Nom")).toHaveValue(`Élodie ${lastName}`);
-  await page.getByRole("button", { name: "Rechercher", exact: true }).click();
+  await page.locator("main").getByRole("button", { name: "Rechercher", exact: true }).click();
   await expect(page.getByRole("heading", { name: /données trouvées/ })).toBeVisible();
 
   // Les deux clients sont trouvés (le nom de l'homonyme contient le terme) ;

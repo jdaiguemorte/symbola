@@ -2043,6 +2043,246 @@
   }
 }
 
+/* Lot 70f (UX-05, HUB-06, ARC-06 ; C-84, C-81, C-77 ; D4, A17 ; page 3 des maquettes du lot 68, section
+   « Téléphone ») — sous 768 px, pour l'équipe (`.has-tabbar`) : la barre du haut de 60 px (le nom de
+   l'écran, puis la loupe, « + », les notifications et l'aide en 44 px), la barre du bas (quatre entrées et
+   « Plus », libellés de 13 px sur une ligne, l'entrée courante soulignée d'un trait en plus de sa couleur),
+   « Plus » en panneau du bas posé au-dessus de la barre (il ne pousse pas la page), « Créer » en panneau du
+   bas, la recherche en page entière. Le contenu, le message de retour, la pastille « Reprendre » et le
+   tutoriel en cours restent au-dessus de la barre du bas ; `scroll-padding` garde le focus et les ancres
+   hors des deux barres (WCAG 2.4.11). Zones sûres des téléphones à encoche : `env(safe-area-inset-*)`
+   (viewport-fit=cover, app/layout.tsx). Sur ordinateur (911 × 512 compris), rien de cela ne paraît. */
+@layer components {
+  .app-tabbar,
+  .app-sheet-backdrop,
+  .app-sheet-grab,
+  .app-sheet-account,
+  .app-topbar-title,
+  .search-box-open,
+  .search-box-close,
+  .quick-create-sheet-title {
+    @apply hidden;
+  }
+  body {
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+
+  @media (max-width: 767px) {
+    :root {
+      --app-topbar-height: calc(60px + env(safe-area-inset-top));
+      --app-tabbar-height: calc(4rem + max(0.5rem, env(safe-area-inset-bottom)));
+    }
+    html:has(.app-shell.has-tabbar) {
+      scroll-padding-top: calc(var(--app-topbar-height) + 0.5rem);
+      scroll-padding-bottom: calc(var(--app-tabbar-height) + 0.5rem);
+    }
+
+    /* La barre du haut, 60 px, fixe en haut. */
+    .has-tabbar .app-topbar {
+      @apply sticky top-0 z-40 mb-4 min-h-0 flex-nowrap gap-0 py-0 pr-2 pl-4;
+      height: var(--app-topbar-height);
+      padding-top: env(safe-area-inset-top);
+    }
+    .has-tabbar .app-topbar-title {
+      @apply m-0 block min-w-0 flex-1 truncate font-display text-title text-ink;
+    }
+    .has-tabbar .app-topbar .search-box-open,
+    .has-tabbar .app-topbar .quick-create-button {
+      @apply inline-flex !h-11 !min-h-11 !w-11 !min-w-0 flex-none items-center justify-center rounded-full border-0 !bg-transparent !p-0 text-ink hover:!bg-ground;
+    }
+    /* Les quatre commandes de la barre du haut se ressemblent : des icônes de 44 px, sans contour. */
+    .has-tabbar .app-topbar > .help-button {
+      @apply border-0 hover:!bg-ground;
+    }
+    .has-tabbar .app-topbar .quick-create-label {
+      @apply sr-only;
+    }
+    .has-tabbar .app-topbar .search-box:not([data-full-screen]),
+    .has-tabbar .app-topbar .search-box-shortcut,
+    .has-tabbar .app-topbar .account-menu {
+      @apply hidden;
+    }
+    .has-tabbar .app-topbar .notification-bell {
+      @apply ml-0;
+    }
+
+    /* La recherche en page entière. */
+    .has-tabbar .search-box[data-full-screen] {
+      @apply fixed inset-0 z-[60] m-0 flex max-w-none flex-wrap content-start items-center gap-2 overflow-y-auto bg-surface px-4 pb-4;
+      padding-top: calc(env(safe-area-inset-top) + 0.5rem);
+    }
+    .has-tabbar .search-box[data-full-screen] input {
+      @apply w-auto min-w-0 flex-1 pr-4;
+    }
+    .has-tabbar .search-box[data-full-screen] .search-box-close {
+      @apply order-last inline-flex !h-11 !min-h-11 !w-11 !min-w-0 flex-none items-center justify-center rounded-full border-0 !bg-transparent !p-0 text-ink;
+    }
+    .has-tabbar .search-box[data-full-screen] .search-box-results {
+      @apply static order-last m-0 max-h-none basis-full border-0 p-0 shadow-none;
+    }
+
+    /* « Créer » en panneau du bas, au-dessus de la barre du bas. */
+    .has-tabbar .quick-create-menu {
+      @apply fixed inset-x-0 top-auto z-50 m-0 w-auto max-w-none overflow-y-auto rounded-none rounded-t-lg border-x-0 border-b-0 px-2 pt-2 pb-4;
+      bottom: var(--app-tabbar-height);
+      max-height: calc(100dvh - var(--app-tabbar-height) - var(--app-topbar-height));
+    }
+    .has-tabbar .quick-create-sheet-title {
+      @apply m-0 block px-3 pt-1 pb-2 font-display text-heading text-ink;
+    }
+    .has-tabbar .quick-create-item {
+      @apply min-h-[52px] justify-center;
+    }
+
+    /* La barre du bas. */
+    .has-tabbar .app-tabbar {
+      @apply fixed inset-x-0 bottom-0 z-[48] block border-t border-line bg-surface;
+      padding: 0 env(safe-area-inset-right) max(0.5rem, env(safe-area-inset-bottom)) env(safe-area-inset-left);
+    }
+    .app-tabbar > ul {
+      @apply m-0 flex h-16 list-none items-stretch p-0;
+    }
+    .app-tabbar > ul > li {
+      @apply m-0 flex min-w-0 flex-[1_1_auto];
+    }
+    .app-tabbar a,
+    .app-tabbar button.app-tabbar-more {
+      @apply relative flex min-h-14 min-w-11 flex-1 flex-col items-center justify-center gap-1 rounded-none border-0 !bg-transparent px-1 py-0 text-label tracking-[-0.01em] whitespace-nowrap !text-ink-muted no-underline;
+    }
+    .app-tabbar a[aria-current="page"],
+    .app-tabbar button.app-tabbar-more[aria-expanded="true"] {
+      @apply font-semibold !text-primary;
+    }
+    /* L'entrée courante se lit sans la couleur : un trait au-dessus d'elle. */
+    .app-tabbar a[aria-current="page"]::before,
+    .app-tabbar button.app-tabbar-more[aria-expanded="true"]::before {
+      @apply absolute top-0 right-[22%] left-[22%] h-[3px] rounded-b-sm bg-primary;
+      content: "";
+    }
+    /* « Plus » ouvert : lui seul est allumé (maquette). */
+    .app-tabbar:has(.app-tabbar-more[aria-expanded="true"]) a[aria-current="page"] {
+      @apply font-medium !text-ink-muted;
+    }
+    .app-tabbar:has(.app-tabbar-more[aria-expanded="true"]) a[aria-current="page"]::before {
+      @apply hidden;
+    }
+    .app-tabbar .app-nav-label,
+    .app-tabbar .app-tabbar-label {
+      @apply block max-w-full truncate;
+    }
+    .app-tabbar a:focus-visible,
+    .app-tabbar button.app-tabbar-more:focus-visible {
+      @apply outline-2 outline-offset-[-2px] outline-primary;
+    }
+    .app-tabbar-badge {
+      @apply absolute top-1 left-[calc(50%+6px)] h-5 min-w-5 rounded-full bg-critical px-1 text-center text-label leading-5 font-semibold text-on-primary;
+    }
+    /* Clavier ouvert (un champ de saisie a le focus), recherche en page entière, panneau d'une tâche ouvert,
+       petit panneau du bas ouvert (`popover` : menu d'une ligne, « Changer la date »…), mode sélection (sa
+       barre la remplace) : la barre du bas s'efface. */
+    body:has(.search-box[data-full-screen]) .app-tabbar,
+    body:has(:is(input:not([type="checkbox"], [type="radio"], [type="button"], [type="submit"], [type="reset"], [type="range"], [type="color"], [type="file"], [type="image"]), textarea, [contenteditable="true"]):focus) .app-tabbar,
+    body:has(.task-panel[open]) .app-tabbar,
+    body:has(:popover-open) .app-tabbar,
+    body:has(.task-board[data-selecting="true"]) .app-tabbar {
+      @apply hidden;
+    }
+
+    /* « Plus » : le menu, en panneau du bas, au-dessus de la barre. */
+    .app-sidebar.has-tabbar {
+      @apply fixed inset-x-0 z-[47] m-0 flex flex-col gap-0 overflow-y-auto overscroll-contain rounded-t-lg border-0 bg-surface px-0 pt-2 pb-4 shadow-float;
+      bottom: var(--app-tabbar-height);
+      max-height: calc(100dvh - var(--app-tabbar-height) - 1.5rem);
+      padding-left: env(safe-area-inset-left);
+      padding-right: env(safe-area-inset-right);
+      transform: translateY(var(--sheet-drag, 0px));
+    }
+    .app-sidebar.has-tabbar:not(.is-open) {
+      @apply hidden;
+    }
+    .app-sidebar.has-tabbar > .app-sidebar-header,
+    .app-sidebar.has-tabbar .app-nav-tabbed {
+      @apply hidden;
+    }
+    .app-sidebar.has-tabbar > .app-collapsible {
+      @apply flex flex-col gap-0;
+    }
+    .app-sheet-grab {
+      @apply mx-auto mt-1 mb-2 block h-1 w-10 flex-none rounded-full bg-line-strong;
+    }
+    .app-sidebar.has-tabbar .app-nav {
+      @apply gap-0;
+    }
+    .app-sidebar.has-tabbar .app-nav a {
+      @apply min-h-[52px] gap-3 rounded-none px-4 text-body;
+    }
+    .app-sidebar.has-tabbar .app-nav-secondary,
+    .app-sheet-account {
+      @apply mt-2 block border-t border-line pt-2;
+    }
+    .app-sheet-identity {
+      @apply m-0;
+    }
+    .app-sheet-switch > summary {
+      @apply flex min-h-[52px] w-full cursor-pointer flex-col items-start justify-center rounded-none border-0 bg-transparent px-4 text-left text-body font-normal text-ink;
+    }
+    .app-sheet-switch,
+    .app-sheet-switch[open] {
+      @apply m-0 max-w-none rounded-none border-0 bg-transparent p-0;
+    }
+    .app-sheet-switch[open] > summary {
+      @apply mb-0;
+    }
+    .app-sheet-switch > summary .meta {
+      @apply text-label text-ink-muted;
+    }
+    .app-sheet-switch .organization-switcher {
+      @apply px-4 pb-2;
+    }
+    .app-sheet-logout {
+      @apply mt-2 border-t border-line pt-2;
+    }
+    .app-sheet-logout form {
+      @apply m-0;
+    }
+    /* « Se déconnecter » en encre, jamais l'action principale. */
+    .app-sheet-logout button[type="submit"] {
+      @apply flex min-h-[52px] w-full items-center justify-start gap-3 rounded-none border-0 !bg-transparent px-4 text-body font-normal !text-ink;
+    }
+    .app-sheet-backdrop {
+      @apply fixed inset-0 z-[46] block;
+      background: color-mix(in srgb, var(--color-ink) 35%, transparent);
+    }
+
+    /* Le contenu, le message de retour, la pastille et le tutoriel au-dessus de la barre du bas. */
+    .has-tabbar .app-main {
+      padding-bottom: calc(var(--app-tabbar-height) + 1.5rem);
+    }
+    .has-tabbar .feedback-region:not(.feedback-region-floating) {
+      bottom: calc(var(--app-tabbar-height) + 0.75rem);
+    }
+    .has-tabbar .app-main:has(.resume-chip) .feedback-region:not(.feedback-region-floating) {
+      bottom: calc(var(--app-tabbar-height) + 4.5rem);
+    }
+    .has-tabbar .resume-chip {
+      bottom: calc(var(--app-tabbar-height) + 1rem);
+    }
+    .has-tabbar .tutorial-panel {
+      bottom: var(--app-tabbar-height);
+    }
+    /* « Nouvelle tâche » (lot 70d) flotte au-dessus de la barre du bas. */
+    .has-tabbar .task-new-button {
+      bottom: calc(var(--app-tabbar-height) + 1rem);
+    }
+  }
+  @media (max-width: 767px) and (prefers-reduced-motion: no-preference) {
+    .app-sidebar.has-tabbar {
+      transition: transform 120ms ease-out;
+    }
+  }
+}
+
 /* Lot 13 (L13-HUB-17) — console d'Administration : menu sombre. */
 @layer components {
   .app-sidebar-admin {
@@ -5632,7 +5872,7 @@
     @apply bg-primary-soft font-semibold text-primary;
   }
   .segmented-radio > label:has(input:focus-visible) {
-    @apply outline-2 -outline-offset-2 outline-primary;
+    @apply outline-2 outline-offset-[-2px] outline-primary;
   }
   .type-switches {
     @apply m-0 mt-4 grid list-none gap-3 border-t border-line p-0 pt-4;

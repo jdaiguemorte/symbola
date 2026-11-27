@@ -1,4 +1,5 @@
 import { Suspense, type ReactNode } from "react";
+import type { Viewport } from "next";
 import localFont from "next/font/local";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale } from "next-intl/server";
@@ -31,6 +32,14 @@ export const metadata = {
   description: "Suite applicative pour les métiers de l'évènementiel",
   // Lot 55 (POR-11) : le manifeste de l'application de l'équipe ; le portail le remplace par le sien.
   manifest: "/manifest.webmanifest",
+};
+
+// Lot 70f (UX-05) : la page couvre tout l'écran des téléphones à encoche ; les barres du haut et du bas
+// gardent leurs zones sûres (`env(safe-area-inset-*)`, app/globals.css).
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
 };
 
 export default async function RootLayout({ children, panel }: { children: ReactNode; panel: ReactNode }) {

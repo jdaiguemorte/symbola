@@ -294,12 +294,18 @@ for (const size of [
       expect(small).toBe(0);
     });
 
-    test.fixme("UX-14 crit. 9 — à 375 px, la première tâche de « Tâches » arrive à 200 px au plus", async () => {
-      // Lot 70d (27/11) : l'écran « Tâches » tient en 122 px au-dessus de sa première tâche (« Filtres » et
-      // « Mes tâches » sur la ligne du titre, liste sans carte ; mesuré par `lot-70d-ecran-taches.spec.ts`,
-      // 140 px au plus). Reste la part du paquet 70f : la barre du haut, qui prend encore 218 px à 375 px
-      // (deux rangées, recherche comprise), passe à 60 px ; la première tâche, aujourd'hui à 340 px,
-      // arrivera vers 200 px. Ce test s'écrit avec le 70f, qui retire ce `fixme`.
+    test("UX-14 crit. 9 — à 375 px, la première tâche de « Tâches » arrive à 200 px au plus", async ({ page }) => {
+      test.skip(size.width !== 375, "critère du téléphone");
+      const setup = await atelier();
+      await signIn(page, setup.email, /\/$/);
+      await page.goto("/taches");
+      const first = page.locator(".task-lines .task-line").first();
+      await expect(first).toBeVisible();
+      // Lots 70d et 70f réunis (27/11) : barre du haut de 60 px (218 avant), marge 16, en-tête de « Tâches »
+      // 44, décompte et premier mois 74 : première tâche à 198 px.
+      await page.evaluate(() => window.scrollTo(0, 0));
+      const top = await first.evaluate((element) => Math.round(element.getBoundingClientRect().top));
+      expect(top).toBeLessThanOrEqual(200);
     });
 
     test("EVT-03 crit. 10 — l'ancienne adresse du rétroplanning ouvre l'onglet « Tâches » et la bonne tâche ; clavier", async ({ page }) => {
