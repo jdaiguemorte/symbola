@@ -308,7 +308,7 @@ describe("HUB-14 — L'assistant demande au lieu de rejeter (lot 71c)", () => {
     ]);
     await addTaskTemplateItem(planner.organizationId, template.id, { label: "Feuilles de route", offsetDays: -7, responsible: "planner" });
     // Repris : Confirmé, sans tâche, même si un modèle est cité.
-    const { id: taken } = await createProspect({ organizationId: planner.organizationId, createdByUserId: planner.userId, clients: [], name: "Juliette & Romain", eventDate: "2027-03-20", takeover: true, taskTemplateId: template.id });
+    const { id: taken } = await createProspect({ organizationId: planner.organizationId, createdByUserId: planner.userId, prospectSourceId: null, clients: [], name: "Juliette & Romain", eventDate: "2027-03-20", takeover: true, taskTemplateId: template.id });
     const count = async () => (await withOrganization(db, planner.organizationId, (tx) => tx.select().from(eventTasks).where(eq(eventTasks.eventId, taken)))).length;
     expect(await count()).toBe(0);
 
