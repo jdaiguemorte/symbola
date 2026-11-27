@@ -274,7 +274,8 @@ Le contrat `privacy/v1` du hub (find, export, anonymize, erase) couvre les nouve
 `leftovers` est trouvé et effacé par une demande qui vise un nom ou un téléphone qu'il contient.
 **Durée de l'annuaire** (I4, Julien, 27/11) : 90 jours pour les invités du mariage qu'il nomme
 (famille, témoins), qui ne vont jamais au carnet ; les professionnels ajoutés au carnet suivent
-ensuite la conservation du carnet. À porter à la fiche du DPO (`docs/conformite/`) avec le paquet
+ensuite la conservation du carnet. **Effacement d'un mariage** (27/11) : l'effacement définitif d'un
+évènement efface aussi le journal de ses imports, qui aujourd'hui lui survit (§ 5.1). À porter à la fiche du DPO (`docs/conformite/`) avec le paquet
 71e ; aucune autre catégorie nouvelle.
 
 ---
@@ -307,6 +308,7 @@ Les migrations du § 4, et les règles qui empêchent un import de mentir, sans 
 | `packages/import-engine/src/third-party/event-sheet-row.ts:42,77-82` | `note`, `paid`, `balance`, `total` en champ libre ; statut déduit | Note → `notes` ; total et payé → `unallocated_totals` ; solde et pourcentage non repris (recalculés) ; statut demandé, plus déduit |
 | `packages/import-engine/src/values.ts` (casse) | « MARTIN » reste en capitales | `appNameCase` : prénom et nom à la casse de l'app (particules et noms composés gardés : « de La Tour », « Le Gall », « Saint-Exemple ») ; la ville aussi ; « Garder les capitales » l'annule pour un import |
 | `lib/import-purge.ts`, `import-repository.ts:44-53` | Les brouillons expirés gardent leurs fiches PDF chiffrées | La purge appelle `cancelImportJobs` (efface les objets) ; et efface `leftovers` après 90 jours |
+| `lib/trash.ts:236` (`purgeEvents`), `modules/hub/imports.ts` | L'effacement définitif d'un évènement (corbeille, 30 jours) efface budget, devis, invités et plans, **mais pas le journal de ses imports** : `import_items.previous` et les valeurs écrites (noms, téléphones) restent jusqu'à 90 jours, `leftovers` aussi | `purgeEvents` appelle une fonction du hub (`eraseEventImports`, par `service.ts`) qui efface, pour les imports de cet évènement, les valeurs d'avant, les valeurs écrites, `leftovers` et `fields` ; il ne reste que la trace sans donnée personnelle (date, sorte de fichier, nombres du bilan, « retiré le … »). « Retirer toute la reprise… » (I10, 71d) l'appelle aussitôt. Correction demandée par Julien le 27/11 ; action jugée très rare (mariage importé par erreur, essai fait en production) |
 | `program-import.ts:60`, `event-vendors-import.ts` | Textes des PDF non neutralisés | Chaque texte lu passe par `neutralizeCell` (SEC, § 6) |
 
 **Critères d'acceptation**
@@ -330,6 +332,9 @@ Les migrations du § 4, et les règles qui empêchent un import de mentir, sans 
    les laisse.
 9. Un brouillon de fiche PDF expiré n'a plus d'objet dans le stockage après la purge.
 10. Une cellule « =HYPERLINK(…) » lue dans un PDF de programme est neutralisée.
+11. Un mariage repris, supprimé puis effacé de la corbeille, ne laisse aucune valeur dans le journal de
+    ses imports (`previous`, valeurs écrites, `leftovers`, `fields`) ; la trace qui reste ne contient
+    ni nom, ni téléphone, ni nom de fichier. Restauré avant 30 jours, il garde son journal intact.
 
 **Tests**
 
@@ -337,7 +342,8 @@ Les migrations du § 4, et les règles qui empêchent un import de mentir, sans 
   simulée** (acompte daté de la veille, du jour même, du lendemain ; solde le 28/03/2027, jour du
   passage à l'heure d'été) ; `appNameCase` (particules, traits d'union, accents, « MC », initiales) ;
   `targetLine` (aucune fusion dans un fichier) ; `findUncontractedVendors` en règle pure.
-- Intégration (base réelle, `takeovers-71a.integration.test.ts`) : critères 1 à 9 ; migrations 0218 à
+- Intégration (base réelle, `takeovers-71a.integration.test.ts`) : critères 1 à 9 et 11 (horloge
+  simulée : effacement au 30e jour de corbeille, restauration au 29e) ; migrations 0218 à
   0223 et leurs retours arrière (`rollback.integration.test.ts`).
 - **Isolation et abus** (helpers de `packages/testing`) : l'organisation A ne lit ni ne modifie les
   reprises, lignes, imports, totaux à répartir de B ; une reprise de A ne peut pas viser un évènement
