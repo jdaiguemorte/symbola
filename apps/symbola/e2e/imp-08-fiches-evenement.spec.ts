@@ -71,11 +71,11 @@ test("IMP-08 — reprendre ses évènements depuis les fiches PDF de l'outil act
   // Lot 63a (HUB-14, recette du 21/11) : le statut choisi s'enregistre dès le choix et reste
   // affiché, après l'enregistrement comme après un rechargement (le bouton « Enregistrer les
   // statuts » réaffichait le statut du fichier).
-  await second.selectOption({ label: "En préparation" });
+  await second.selectOption({ label: "Clôturé" });
   await expect(page.getByText("Statut enregistré.")).toBeVisible();
-  await expect(second).toHaveValue("in_preparation");
+  await expect(second).toHaveValue("closed");
   await page.reload();
-  await expect(page.getByLabel(/Ligne 2 : Chloé PETIT & Antoine ROUX/)).toHaveValue("in_preparation");
+  await expect(page.getByLabel(/Ligne 2 : Chloé PETIT & Antoine ROUX/)).toHaveValue("closed");
   await page.getByLabel(/Ligne 2 : Chloé PETIT & Antoine ROUX/).selectOption({ label: "Option" });
   await expect(page.getByText("Statut enregistré.")).toBeVisible();
   await page.reload();

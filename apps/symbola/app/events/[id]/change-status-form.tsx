@@ -1,7 +1,7 @@
 "use client";
 
 // PRD-EVT-02, lot 12 (L12-EVT-12), refait au lot 13 (L13-EVT-19), puis au lot 34a (EVT-05,
-// ADR 0055 ; D2 à D6) — frise du statut : Option → Confirmé → En préparation → Jour J → Clôturé,
+// ADR 0055 ; D2 à D6) — frise du statut : Option → Confirmé → Jour J → Clôturé,
 // chaque étape franchie avec sa date. « Jour J » s'applique de lui-même (D3). Un clic sur une autre
 // étape demande confirmation. « Reporter l'évènement… » demande la nouvelle date ; « Annuler
 // l'évènement… » demande le motif et nomme l'évènement (UX-07) ; un annulé se réactive en Option.
@@ -20,8 +20,9 @@ import { cancelEventAction, changeEventStatusAction, postponeEventAction, reacti
 import type { EventPhase, EventStatus, EventStatusDates, LossReason } from "@/modules/events/service";
 import { STATUS_LABEL_KEYS } from "../event-status";
 
-const STEPS: EventPhase[] = ["option", "confirmed", "in_preparation", "day_of", "closed"];
-const CLICKABLE: EventPhase[] = ["option", "confirmed", "in_preparation", "closed"];
+// Lot 72a (J1) : « En préparation » retiré ; la frise en lecture seule vient au paquet 72d.
+const STEPS: EventPhase[] = ["option", "confirmed", "day_of", "closed"];
+const CLICKABLE: EventPhase[] = ["option", "confirmed", "closed"];
 
 export function ChangeStatusForm({
   eventId,
@@ -139,7 +140,7 @@ export function ChangeStatusForm({
         </div>
       ) : (
         <div className="timeline-actions">
-          {currentStatus === "confirmed" || currentStatus === "in_preparation" ? (
+          {currentStatus === "confirmed" ? (
             <ConfirmDialog
               level={2}
               trigger={t("postponeAsk")}

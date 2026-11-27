@@ -21,7 +21,6 @@
           "enum": [
             "option",
             "confirmed",
-            "in_preparation",
             "closed",
             "postponed",
             "cancelled"
@@ -37,7 +36,6 @@
       "enum": [
         "option",
         "confirmed",
-        "in_preparation",
         "closed",
         "postponed",
         "cancelled"

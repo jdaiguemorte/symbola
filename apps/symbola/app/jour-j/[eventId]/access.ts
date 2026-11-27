@@ -1,6 +1,6 @@
 // Lot 51 (JRJ-05 à JRJ-09, ARC-09, SEC-12, SEC-13 ; ADR 0091) — accès commun aux routes du jour J de
 // terrain (file d'actions, photos, état partagé) : session de l'équipe (titulaire ou membre), module
-// Évènements souscrit, évènement de l'organisation confirmé (ou en préparation, ou réalisé) et daté ;
+// Évènements souscrit, évènement de l'organisation confirmé (ou réalisé) et daté ;
 // pour une écriture, même origine que l'app. Sinon une réponse JSON, sans dire si l'évènement existe ;
 // une session expirée répond 401 (le téléphone garde sa file et invite à se reconnecter).
 // Lot 52 (EVT-06 ; D2, D3 ; ADR 0094) : une Planner qui ne voit pas l'évènement (réglage de visibilité)

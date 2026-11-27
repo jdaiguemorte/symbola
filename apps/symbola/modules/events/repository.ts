@@ -273,11 +273,16 @@ export async function updateEventStatus(input: {
   toStatus: EventStatus;
   lossReasonId?: string | null;
   lossReasonNote?: string | null;
+  // Lot 72a (J2, migration 0224) : la date effective du changement (« Signé le », jour d'une annulation).
+  effectiveOn?: string | null;
+  // Lot 72a : le changement n'a lieu que depuis ce statut (relu dans la transaction).
+  expectFrom?: EventStatus;
 }): Promise<EventRow> {
   const db = appDatabase();
   return await withOrganization(db, input.organizationId, async (tx) => {
-    const [current] = await tx.select().from(events).where(eq(events.id, input.eventId));
+    const [current] = await tx.select().from(events).where(eq(events.id, input.eventId)).for("update");
     if (!current) throw new Error("événement introuvable");
+    if (input.expectFrom && current.status !== input.expectFrom) throw new StatusChangedMeanwhileError();
 
     // Lot 34a (EVT-05, D6) : l'annulation garde son motif ; quitter un report en cours (par une
     // annulation) oublie la date et le statut d'avant.
@@ -300,6 +305,7 @@ export async function updateEventStatus(input: {
       fromStatus: current.status,
       toStatus: input.toStatus,
       changedByUserId: input.changedByUserId,
+      effectiveOn: input.effectiveOn ?? null,
     });
 
     // AIDE-02 : un événement d'essai ne publie rien (aucun consommateur
@@ -752,7 +758,7 @@ export async function postponeEventRow(input: { organizationId: string; eventId:
   return await withOrganization(db, input.organizationId, async (tx) => {
     const [current] = await tx.select().from(events).where(eq(events.id, input.eventId));
     if (!current) return { status: "not_found" };
-    if (current.status !== "confirmed" && current.status !== "in_preparation") return { status: "not_postponable" };
+    if (current.status !== "confirmed") return { status: "not_postponable" };
     const [updated] = await tx
       .update(events)
       .set({ status: "postponed", postponedFromDate: current.eventDate, postponedFromStatus: current.status, eventDate: input.newDate, updatedAt: new Date() })
@@ -1587,11 +1593,11 @@ export async function applyProgramTemplateRows(
 
 // Lot 13 (L13-EVT-19) — passages de statut d'un événement, du plus ancien au
 // plus récent, pour dater les étapes de la frise.
-export async function findEventStatusChanges(organizationId: string, eventId: string): Promise<{ toStatus: EventStatus; changedAt: Date }[]> {
+export async function findEventStatusChanges(organizationId: string, eventId: string): Promise<{ toStatus: EventStatus; changedAt: Date; effectiveOn: string | null }[]> {
   const db = appDatabase();
   return await withOrganization(db, organizationId, (tx) =>
     tx
-      .select({ toStatus: eventStatusHistory.toStatus, changedAt: eventStatusHistory.changedAt })
+      .select({ toStatus: eventStatusHistory.toStatus, changedAt: eventStatusHistory.changedAt, effectiveOn: eventStatusHistory.effectiveOn })
       .from(eventStatusHistory)
       .where(eq(eventStatusHistory.eventId, eventId))
       .orderBy(asc(eventStatusHistory.changedAt)),
@@ -2132,5 +2138,33 @@ export async function findDayReminderEventRows(organizationId: string, from: str
       .select({ id: events.id, eventDate: events.eventDate, timeZone: events.timeZone, status: events.status, isDemo: events.isDemo })
       .from(events)
       .where(and(eq(events.organizationId, organizationId), gte(events.eventDate, from), lte(events.eventDate, to), isNull(events.deletedAt))),
+  );
+}
+
+// Lot 72a : le statut a changé entre la lecture et l'écriture.
+export class StatusChangedMeanwhileError extends Error {
+  constructor() {
+    super("le statut a changé entre-temps");
+    this.name = "StatusChangedMeanwhileError";
+  }
+}
+
+// Lot 72a (EVT-07, UX-01 ; critère 9) — tâches faites, total et en retard par évènement, en une requête
+// groupée (index (organization_id, event_id)), hors corbeille. En retard : à faire, échéance avant
+// « today » (le jour même ne l'est pas), comme l'état d'échéance unique (due-state.ts).
+export async function countTasksByEvent(organizationId: string, eventIds: string[], today: string): Promise<{ eventId: string; done: number; total: number; late: number }[]> {
+  if (eventIds.length === 0) return [];
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, (tx) =>
+    tx
+      .select({
+        eventId: sql<string>`${eventTasks.eventId}`,
+        done: sql<number>`count(*) filter (where ${eventTasks.doneAt} is not null)::int`,
+        total: sql<number>`count(*)::int`,
+        late: sql<number>`count(*) filter (where ${eventTasks.doneAt} is null and ${eventTasks.dueDate} < ${today}::date)::int`,
+      })
+      .from(eventTasks)
+      .where(and(inArray(eventTasks.eventId, eventIds), isNull(eventTasks.deletedAt)))
+      .groupBy(eventTasks.eventId),
   );
 }

@@ -13,7 +13,7 @@ import { withContacts } from "./clients";
 
 export type RetentionEvent = {
   eventId: string;
-  status: "option" | "confirmed" | "in_preparation" | "closed" | "postponed" | "cancelled";
+  status: "option" | "confirmed" | "closed" | "postponed" | "cancelled";
   // Lot 34a : l'événement a-t-il été confirmé un jour ? Un événement annulé sans l'avoir été suit
   // la règle des prospects, sinon celle des clients.
   everConfirmed: boolean;
@@ -42,7 +42,7 @@ export async function listRetentionEvents(organizationId: string): Promise<Reten
         await tx
           .select({ eventId: eventStatusHistory.eventId })
           .from(eventStatusHistory)
-          .where(and(inArray(eventStatusHistory.eventId, ids), inArray(eventStatusHistory.toStatus, ["confirmed", "in_preparation", "closed", "postponed"])))
+          .where(and(inArray(eventStatusHistory.eventId, ids), inArray(eventStatusHistory.toStatus, ["confirmed", "closed", "postponed"])))
       ).map((row) => row.eventId),
     );
     return { rows, clientLinks, lastChange, confirmedOnce };
@@ -60,7 +60,7 @@ export async function listRetentionEvents(organizationId: string): Promise<Reten
     result.push({
       eventId: row.id,
       status: row.status,
-      everConfirmed: confirmedOnce.has(row.id) || ["confirmed", "in_preparation", "closed", "postponed"].includes(row.status),
+      everConfirmed: confirmedOnce.has(row.id) || ["confirmed", "closed", "postponed"].includes(row.status),
       eventDate: row.eventDate,
       activityDates: [parisDate(row.createdAt), parisDate(row.updatedAt), ...(changedAt ? [parisDate(new Date(changedAt))] : [])],
       clientNames: own.map((client) => (client.lastName ? `${client.firstName} ${client.lastName}` : client.firstName)),

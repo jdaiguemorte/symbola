@@ -944,22 +944,16 @@
           "signée",
           "réservé",
           "réservée",
-          "validé"
-        ],
-        "en": [
-          "confirmed",
-          "booked",
-          "signed",
-          "won"
-        ]
-      },
-      "in_preparation": {
-        "fr": [
+          "validé",
           "en préparation",
           "en préparation active",
           "préparation"
         ],
         "en": [
+          "confirmed",
+          "booked",
+          "signed",
+          "won",
           "in preparation",
           "preparing",
           "planning"

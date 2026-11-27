@@ -49,7 +49,7 @@ async function atelier() {
     await updateEventClientContact({ organizationId, eventId: lea, clientId: leaClient.id, contact: { email: `lea-${randomUUID()}@exemple.test` } });
     await changeEventStatus({ organizationId, eventId: lea, changedByUserId: owner.id, toStatus: "confirmed" });
     // Lot 34a (EVT-05) : en préparation, l'alerte de date le dit toujours confirmé.
-    await changeEventStatus({ organizationId, eventId: lea, changedByUserId: owner.id, toStatus: "in_preparation" });
+    await changeEventStatus({ organizationId, eventId: lea, changedByUserId: owner.id, toStatus: "confirmed" });
     await createProspect({ organizationId, createdByUserId: owner.id, prospectSourceId: source.id, clients: [{ firstName: "Inès" }, { firstName: "Sacha" }], eventDate: date });
     await addEventVendorSlot(organizationId, lea, "Traiteur");
     const dueOn = parisDay(1);
