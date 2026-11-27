@@ -240,9 +240,12 @@ test.describe("UX-05 — La barre du bas et la barre du haut du téléphone (lot
       await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
       const measure = await page.evaluate(() => {
         const bar = document.querySelector<HTMLElement>(".app-tabbar")!.getBoundingClientRect();
-        // Ce qui se voit : une boîte de plus d'un pixel (pas un texte réservé aux lecteurs d'écran), bornée par
+        // Ce qui se voit : une boîte peinte de plus d'un pixel (pas un texte réservé aux lecteurs d'écran), bornée par
         // ses conteneurs qui rognent (défilement de côté, calendrier), hors des éléments fixes.
+        // Le contenu d'un <details> fermé (« Voir 5 de plus ») n'est pas peint, mais Chromium rend sa position
+        // comme s'il était déployé : checkVisibility() l'écarte.
         const visibleBottom = (element: HTMLElement): number | null => {
+          if (!element.checkVisibility({ contentVisibilityAuto: true, visibilityProperty: true, opacityProperty: true })) return null;
           const rect = element.getBoundingClientRect();
           if (rect.width <= 1 || rect.height <= 1) return null;
           let bottom = rect.bottom;
