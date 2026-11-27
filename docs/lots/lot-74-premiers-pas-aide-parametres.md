@@ -2,7 +2,7 @@
 
 **Statut** : **spécification à valider par Julien**. Elle change les schémas `hub` et `events`
 (migrations 0244 à 0246) et le parcours P0 PAR-01 (le premier quart d'heure, SC-01). Aucun code n'est
-écrit avant sa validation. Décisions L74-D1 à L74-D12 (§ 9) : L74-D1 à L74-D5 tranchées le 27/11 ;
+écrit avant sa validation. Décisions L74-D1 à L74-D12 (§ 9) : L74-D1 à L74-D6 tranchées le 27/11 ;
 les autres restent à trancher.
 **Branche de la spécification** : `lot-74-premiers-pas-aide-parametres` (une PR vers `main`, ce
 fichier et `docs/QUESTIONS.md` seulement). Chaque paquet aura ensuite sa branche `lot-74<x>-…` et sa PR.
@@ -258,7 +258,7 @@ schémas `hub` et `events` (règle du § 8 de `CLAUDE.md`).
 | --- | --- | --- | --- |
 | 0244 | `0244_lot74a_hub_onboarding_answers.sql` | `hub.organization_profiles` : ajoute `has_ongoing_events text` nullable (`yes`, `no`) et `vat_answer_pending boolean not null default false`. Aucune valeur par défaut sur les réponses de fait. **Étape de données** : aucune (les espaces déjà préparés gardent leurs réponses ; `has_ongoing_events` nul y vaut « parcours non choisi », voir L74-D8) | B3 (la question nouvelle choisit la fin de l'assistant et le parcours de D6) ; B5 (« Je ne sais pas encore » garde la franchise en base, comme aujourd'hui, et pose un drapeau relu par l'étape « Devis et factures » et par « L'essentiel ») |
 | 0245 | `0245_lot74b_events_task_due_date_known.sql` | `events.event_tasks.due_date_known boolean not null default true`. Une tâche « à dater » garde une date technique (la date de l'évènement) pour ne casser ni les tris, ni la contrainte `NOT NULL`, ni les lectures existantes ; la marque dit qu'elle n'est pas une échéance | B7 : « une tâche sans réponse est créée « à dater », comptée à part et jamais en retard ». Même choix que `done_date_known` du lot 71a (0220) ; l'autre voie (rendre `due_date` nullable) est écartée (L74-D3, tranchée le 27/11) |
-| 0246 | `0246_lot74h_hub_automations_paused.sql` | `hub.automations` : ajoute `paused_at timestamptz` et `paused_by uuid` (nullables ; les deux nuls quand l'automatisme est en marche). **Étape de données** : rien de deviné (voir L74-D6) | G10 et A6 : « Coupé depuis le 12 novembre par Camille · aucune alerte n'arrive dans « À traiter en premier » » |
+| 0246 | `0246_lot74h_hub_automations_paused.sql` | `hub.automations` : ajoute `paused_at timestamptz` et `paused_by uuid` (nullables ; les deux nuls quand l'automatisme est en marche). **Étape de données** : aucune ; aucune donnée réelle n'existe encore (L74-D6, tranchée) | G10 et A6 : « Coupé depuis le 12 novembre par Camille · aucune alerte n'arrive dans « À traiter en premier » » |
 
 **Pas de migration** pour :
 
@@ -666,8 +666,7 @@ n'a pas les Paramètres ; une rubrique d'un module non souscrit répond comme un
 4. « Mariages par an » se lit et se change dans la fiche. (G15)
 5. Le seuil de « Bientôt » se règle de 1 à 30 ; hors de cet intervalle, l'erreur sous le champ ; la
    valeur change l'état « Bientôt » de « Tâches » au rechargement. (G9)
-6. Couper le radar le dit avec la date et la personne dans « Automatismes » et en tête de ses règles ;
-   un automatisme coupé avant ce lot dit « Coupé » sans date (L74-D6). (G10)
+6. Couper le radar le dit avec la date et la personne dans « Automatismes » et en tête de ses règles (G10).
 7. Un membre voit les rubriques titulaires en lecture et le texte « Seule la titulaire la change ».
 
 **Tests** : Vitest (composants : `saved-indicator`, `settings-save-bar` — liste des champs modifiés,
@@ -902,7 +901,7 @@ touchent le cahier des charges sont aussi dans `docs/QUESTIONS.md` (Q51).
 | L74-D3 | **Tranché le 27/11 : une marque** (`due_date_known`), à côté d'une date technique. **« À dater » : une marque à côté d'une date technique, ou une échéance vide ?** | § 4.1, 0245 | **Une marque** (`due_date_known`, comme `done_date_known` du lot 71) : rien ne casse dans les tris ni les lectures, et le lot 71 a fait ce choix | `due_date` facultatif : plus juste, mais chaque lecture d'échéance de l'app est à revoir |
 | L74-D4 | **Tranché le 27/11 : la planner doit choisir** (« il faut qu'elle choisisse ») : aucun devis envoyé tant que la réponse manque, le brouillon reste possible ; l'étape « Devis et factures » et « L'essentiel » le lui rappellent. **« Je ne sais pas encore » pour la TVA : quel régime en attendant ?** C'est un point fiscal : un devis envoyé sous franchise porte la mention « TVA non applicable, art. 293 B du CGI ». | Page 22, Q5 ; B5 | La note 11 propose de garder la franchise et de redemander avant le premier devis. **Je ne tranche pas** : je recommande que l'envoi du premier devis (pas son brouillon) soit impossible tant que la réponse manque, et de faire confirmer par l'expert-comptable | Garder la franchise sans blocage, avec un rappel seulement |
 | L74-D5 | **Tranché le 27/11 par la règle de la décision récente : l'écart est accepté** (B2 l'emporte sur HUB-09 et SC-01). **Le volume annuel quitte l'assistant** (B2), alors que HUB-09 le cite parmi les questions et que SC-01 dit « douze par an ». | HUB-09, SC-01 ; B2, G15 | **Accepter l'écart** : la réponse reste modifiable dans la fiche de l'entreprise (HUB-09 : « tout reste modifiable dans les réglages ») ; noté dans `gap.csv` et Q51 ; un ADR court, puisque c'est une divergence acceptée | Garder la question (six questions), contre B2 |
-| L74-D6 | **Un automatisme coupé avant ce lot** : la base n'a ni la date ni l'auteur. | § 4.1, 0246 ; page 30 | **« Coupé », sans date ni nom**, et la conséquence ; la prochaine coupure les gardera (règle « le sûr », comme A9) | Prendre `updated_at` et `updated_by`, au risque d'une date qui n'est pas celle de la coupure |
+| L74-D6 | **Tranché le 27/11 : sans objet.** Aucune production n'est en cours (conception du MVP) : il n'existe aucun automatisme réellement coupé avant ce lot, donc aucun cas particulier à prévoir ; le jeu fictif est rechargé. **Un automatisme coupé avant ce lot** : la base n'a ni la date ni l'auteur. | § 4.1, 0246 ; page 30 | **« Coupé », sans date ni nom**, et la conséquence ; la prochaine coupure les gardera (règle « le sûr », comme A9) | Prendre `updated_at` et `updated_by`, au risque d'une date qui n'est pas celle de la coupure |
 | L74-D7 | **L'adresse de « Vos données ».** | § 6.7 | **`/donnees`** (page à part, comme `/aide`), les anciennes adresses gardées par redirection | `/parametres/donnees` (reste « dans » les Paramètres pour le menu et la recherche) |
 | L74-D8 | **Le tutoriel « Compléter un mariage repris »** du parcours « Je reprends » n'existe pas ; et un espace préparé avant ce lot n'a pas répondu à la question des mariages en cours. | Page 28 ; note 11, § 4 | **L'écrire** (un scénario joué sur un mariage d'exemple repris, après 71f) ; pour un espace déjà préparé, le parcours « Je pars de zéro » par défaut, avec « Changer de parcours » en tête | Le remplacer par la visite de la fiche ; demander la question à la prochaine connexion |
 | L74-D9 | **Qu'est-ce qu'une « venue » pour la ligne « Découvrir » (trois venues) ?** | Page 25 ; B11 | **Une ouverture de l'écran un jour différent** : recharger ou revenir dans la journée ne compte pas | Chaque ouverture |
