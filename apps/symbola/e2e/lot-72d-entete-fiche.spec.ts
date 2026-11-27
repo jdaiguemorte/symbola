@@ -10,6 +10,7 @@ import { createUser, setUserNames } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
 import { addEventTask, archiveEvent, cancelEvent, changeEventStatus, createEventLink, createLossReason, createProspect, createProspectSource, postponeEvent } from "../modules/events/service";
 import { saveOnboardingStep } from "../modules/hub/service";
+import { enterTakeoverEvent } from "../lib/takeover/flow";
 import { feedback, readyOrganization, signIn } from "./helpers";
 
 async function expectNoAxeViolation(page: Page, within?: string) {
@@ -466,6 +467,54 @@ test.describe("EVT-05 — La frise se lit ; l'étape suivante a son bouton ; les
     // Lecture seule : ni type, ni report, ni annulation au menu.
     await menuButton(page).click();
     await expect(menu(page).getByRole("menuitem", { name: /^(Changer le type|Reporter|Annuler)/ })).toHaveCount(0);
+    await expectNoAxeViolation(page, "#event-header");
+  });
+});
+
+test.describe("EVT-02 — Un mariage repris : « Repris le … » tient dans l'en-tête (lots 71f et 72d)", () => {
+  test("la mention dans la ligne de faits, l'en-tête et le contenu à leurs mesures, aux quatre tailles ; la frise ne déduit pas la date de signature", async ({ page }) => {
+    test.setTimeout(120_000);
+    const { sql, db } = createAppConnection();
+    let email = "";
+    let eventId = "";
+    try {
+      const organizationId = (await readyOrganization(db, `Atelier repris ${randomUUID().slice(0, 6)}`)).id;
+      email = `camille-repris-${randomUUID()}@symbola.test`;
+      const owner = await createUser(db, { organizationId, email, role: "owner" });
+      const actor = { organizationId, userId: owner.id, viewer: { userId: owner.id, role: "owner" as const, allPlannersSeeAll: true } };
+      eventId = (await enterTakeoverEvent(actor, { takeoverId: null, name: "", eventDate: parisDay(199), clients: [{ firstName: "Léa", lastName: "Martin" }, { firstName: "Maxime", lastName: "Roux" }] })).eventId;
+    } finally {
+      await sql.end();
+    }
+    await signIn(page, email);
+    const sizes = isPhone(page) ? [[375, 812], [360, 780]] : [[1440, 900], [911, 512]];
+    for (const [width, height] of sizes) {
+      await page.setViewportSize({ width: width!, height: height! });
+      await page.goto(`/events/${eventId}`);
+      const origin = header(page).locator(".takeover-origin");
+      await expect(origin).toContainText(/Repris le /);
+      await expect(origin.getByRole("link", { name: "Voir la reprise" })).toBeVisible();
+      // La mention est dans la ligne de faits (avec le lieu), au-dessus de la frise.
+      await expect(header(page).locator(".object-header-facts .takeover-origin")).toHaveCount(1);
+      const measures = await measure(page);
+      if (width === 1440) {
+        // La mention tient au bout de la ligne de faits : rien ne recule (mêmes mesures qu'un mariage créé).
+        expect(measures.header).toBeLessThanOrEqual(200);
+        expect(measures.content).toBeLessThanOrEqual(200);
+      } else if (width === 911) {
+        expect(measures.content).toBeLessThanOrEqual(230);
+      } else {
+        expect((await tabs(page).boundingBox())!.y).toBeLessThanOrEqual(224);
+      }
+      expect(measures.zones).toBeLessThanOrEqual(3);
+      console.log(`72d repris ${width}×${height} : en-tête ${measures.header} px, contenu ${measures.content} px, zones ${measures.zones}, commandes ${measures.commands}`);
+    }
+    // La date de signature n'est pas sue : la frise ne dit pas « depuis le … » à l'étape « Signé ».
+    if (!isPhone(page)) {
+      await page.setViewportSize({ width: 1440, height: 900 });
+      await page.goto(`/events/${eventId}`);
+      await expect(header(page).getByRole("listitem").filter({ hasText: "Signé, en préparation" })).not.toContainText("depuis le");
+    }
     await expectNoAxeViolation(page, "#event-header");
   });
 });

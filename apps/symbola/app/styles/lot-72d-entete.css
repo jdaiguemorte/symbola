@@ -49,6 +49,21 @@
   .object-header-date-short {
     @apply hidden;
   }
+  /* Lot 71f : « Repris le … · Voir la reprise » au bout de la ligne de faits ; le lien garde 44 px de cible
+     sans hausser la ligne. */
+  .object-header-venue {
+    @apply inline-flex flex-wrap items-center gap-x-2;
+  }
+  .object-header-venue > span + span::before {
+    content: "·";
+    @apply mr-2;
+  }
+  .object-header-facts .takeover-origin {
+    @apply m-0 inline-flex items-center gap-1 text-body;
+  }
+  .object-header-facts .takeover-origin a {
+    @apply -my-3;
+  }
   .object-header-actions {
     @apply flex flex-none items-center gap-2;
   }
@@ -263,6 +278,13 @@
       @apply inline;
     }
     .object-header-facts .object-header-date-short::before {
+      @apply hidden;
+    }
+    /* Lot 71f sur téléphone : la mention de la reprise en petit, sans son icône (onglets à 224 px au plus). */
+    .object-header-facts .takeover-origin {
+      @apply text-label leading-4;
+    }
+    .object-header-facts .takeover-origin svg {
       @apply hidden;
     }
     .event-sheet .object-header-facts {

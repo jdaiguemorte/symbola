@@ -540,7 +540,11 @@ export default async function EventDetailPage({
   const dayOf = dayOfOpen ? { href: `/jour-j/${event.id}`, label: tHeader("openDayOf") } : null;
   const shownAction: "write" | "day_of" | null = dayOf && headerAction(event, leadDays) === "day_of" ? "day_of" : write ? "write" : null;
   const archived = Boolean(event.archivedAt);
-  const timeline = eventTimeline({ status: event.status, phase: event.phase, dates: statusDates, eventDate: event.eventDate, postponedFromDate: event.postponedFromDate, archived, closingDue: closingDue(event) });
+  // Lot 71f (C-64, P-01) : la date de signature d'un mariage repris n'est pas toujours sue ; la frise ne la
+  // déduit pas du jour de la reprise.
+  const signedOnForTimeline = checklist ? (signedOn ?? (await getEventSignedOn(organizationId, id))) : null;
+  const timelineDates = signedOnForTimeline && !signedOnForTimeline.known ? Object.fromEntries(Object.entries(statusDates).filter(([status]) => status !== "confirmed")) : statusDates;
+  const timeline = eventTimeline({ status: event.status, phase: event.phase, dates: timelineDates, eventDate: event.eventDate, postponedFromDate: event.postponedFromDate, archived, closingDue: closingDue(event) });
   const typeLabel = eventTypes.find((type) => type.id === event.eventTypeId)?.label ?? null;
   const dateWords = (options: Intl.DateTimeFormatOptions) => (event.eventDate ? new Intl.DateTimeFormat(locale === "en" ? "en-GB" : "fr-FR", { ...options, timeZone: "UTC" }).format(new Date(`${event.eventDate}T00:00:00Z`)) : tHeader("dateUnset"));
   const daysLeft = event.eventDate ? Math.round((Date.parse(`${event.eventDate}T00:00:00Z`) - Date.parse(`${today}T00:00:00Z`)) / 86_400_000) : null;
@@ -608,15 +612,20 @@ export default async function EventDetailPage({
                 <span className="object-header-date-long">{dateWords({ weekday: "long", day: "numeric", month: "long", year: "numeric" })}</span>
                 <span className="object-header-date-short">{dateWords({ day: "numeric", month: "long", year: "numeric" })}</span>
                 {countdownWords ? <span className="countdown">{countdownWords}</span> : null}
-                {venueWords ? <span className="object-header-venue">{venueWords}</span> : null}
+                {/* Le lieu et, pour un mariage repris (lot 71f, P-06, C-55), « Repris le … · Voir la reprise » : un seul
+                    groupe, au bout de la ligne de faits ou sur la seconde ligne, sans faire reculer le contenu. */}
+                {venueWords || checklist ? (
+                  <span className="object-header-venue">
+                    {venueWords ? <span>{venueWords}</span> : null}
+                    {checklist ? (
+                      <span className="takeover-origin">
+                        <FileText size={16} aria-hidden="true" /> {tSheet("origin", { date: formatCalendarDate(parisToday(checklist.takeover.createdAt), locale), files: checklist.fileCount }).trim()} ·{" "}
+                        <Link href={`/reprise/${checklist.takeover.id}`}>{tSheet("originLink")}</Link>
+                      </span>
+                    ) : null}
+                  </span>
+                ) : null}
               </p>
-              {/* Lot 71f (P-06, C-55) : la marque de la reprise et le lien vers sa page, sous la ligne de faits (lot 72d). */}
-              {checklist ? (
-                <p className="takeover-origin">
-                  <FileText size={16} aria-hidden="true" /> {tSheet("origin", { date: formatCalendarDate(parisToday(checklist.takeover.createdAt), locale), files: checklist.fileCount }).trim()} ·{" "}
-                  <Link href={`/reprise/${checklist.takeover.id}`}>{tSheet("originLink")}</Link>
-                </p>
-              ) : null}
             </div>
             <div className="object-header-actions">
               {shownAction === "day_of" && dayOf ? (
