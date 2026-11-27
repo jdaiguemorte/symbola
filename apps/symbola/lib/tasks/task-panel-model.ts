@@ -1,4 +1,4 @@
-// Lot 70c (CHR-02, CHR-10, UX-09 ; M1, A3, A8, A22 ; ADR 0119 ; page 1 et 2 des maquettes du lot 68) — le
+// Lot 70c (CHR-02, CHR-10, UX-09 ; M1, A3, A8, A22 ; ADR 0120 ; page 1 et 2 des maquettes du lot 68) — le
 // panneau d'une tâche, sans React : ce qu'il garde (le brouillon), ce qui a changé, s'il faut demander
 // « Fermer sans enregistrer ? » ; la création avec ou sans évènement ; la copie d'une tâche.
 //

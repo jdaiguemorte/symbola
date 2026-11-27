@@ -1,4 +1,4 @@
-# ADR 0119 — Le panneau d'une tâche s'enregistre d'un bouton, et demande avant de fermer
+# ADR 0120 — Le panneau d'une tâche s'enregistre d'un bouton, et demande avant de fermer
 
 - Statut : accepté (lot 70c ; décision M1 de la porte 3 du lot 68, confirmée par Julien le 26/11/2026,
   « Oui, l'ADR »)

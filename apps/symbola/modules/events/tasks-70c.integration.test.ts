@@ -1,4 +1,4 @@
-// Lot 70c (CHR-02, CHR-03, CHR-10, UX-07 ; D3, M1, A8 ; ADR 0119) — ce que lisent et changent la ligne type
+// Lot 70c (CHR-02, CHR-03, CHR-10, UX-07 ; D3, M1, A8 ; ADR 0120) — ce que lisent et changent la ligne type
 // et le panneau unique d'une tâche, contre un vrai PostgreSQL (RLS), par la porte d'entrée du module : la
 // tâche lue pour son panneau (d'évènement ou non, avec sa répétition et son état d'échéance) ; « Fait » qui
 // enregistre aussi les changements en cours (une seule écriture, l'auteur de la coche posé par la base) ;

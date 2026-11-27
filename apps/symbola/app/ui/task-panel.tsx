@@ -1,7 +1,7 @@
 "use client";
 
 // Lot 70c (CHR-02, CHR-03, CHR-04, CHR-10, UX-09, UX-10, UX-14 ; D3, M1, M11, P-11, P-12, A3, A6, A7, A8,
-// A22, C-04, C-08, C-38, C-90 ; ADR 0119 ; pages 1 et 2 des maquettes du lot 68) — le panneau unique d'une
+// A22, C-04, C-08, C-38, C-90 ; ADR 0120 ; pages 1 et 2 des maquettes du lot 68) — le panneau unique d'une
 // tâche, le même depuis « Aujourd'hui », « Tâches », la fiche, une notification et la recherche, en
 // édition comme en création. Fenêtre longue de DESIGN.md (860 px, deux colonnes) ; sur téléphone, une
 // page entière avec « ← {écran d'origine} », « Fait » et « Enregistrer » en bas.
