@@ -663,6 +663,7 @@ export async function AppShell({ children }: { children: ReactNode }) {
                   shortName={personShortName(accountPerson)}
                   fullName={personFullName(accountPerson)}
                   email={auth.user.email}
+                  organization={organizationsOfUser.length > 1 ? (organizationsOfUser.find((organization) => organization.organizationId === organizationId)?.name ?? null) : null}
                   context={tAccount("organizationRole", {
                     organization: organizationsOfUser.find((organization) => organization.organizationId === organizationId)?.name ?? "",
                     role: tAccount(auth.user.role === "owner" ? "role.owner" : "role.member"),

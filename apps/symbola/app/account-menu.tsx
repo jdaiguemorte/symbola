@@ -16,6 +16,7 @@ export function AccountMenu({
   fullName,
   email,
   context,
+  organization,
   labels,
   switcher,
   logout,
@@ -26,6 +27,9 @@ export function AccountMenu({
   email: string;
   // « Atelier Roussel · titulaire »
   context: string;
+  // Le nom de l'organisation ouverte, lu sur le bouton quand le compte en a plusieurs (le menu, refermé,
+  // dit où l'on est) ; null : une seule organisation, rien à ajouter.
+  organization: string | null;
   labels: AccountMenuLabels;
   switcher: ReactNode;
   logout: ReactNode;
@@ -34,6 +38,25 @@ export function AccountMenu({
   const panelId = useId();
   const root = useRef<HTMLDivElement>(null);
   const button = useRef<HTMLButtonElement>(null);
+
+  // Lot 70e (C-09) : après « Ouvrir » sur une autre organisation, toute la page change (le menu peut être
+  // monté à neuf) ; le menu se referme, le focus revient sur le bouton du compte, et l'organisation ouverte
+  // se lit sur ce bouton. L'organisation vue en dernier est gardée pour l'onglet (sessionStorage).
+  useEffect(() => {
+    if (organization === null) return;
+    const KEY = "symbola:organisation-ouverte";
+    let previous: string | null = null;
+    try {
+      previous = window.sessionStorage.getItem(KEY);
+      window.sessionStorage.setItem(KEY, organization);
+    } catch {
+      // Stockage refusé : pas de retour du focus, le menu se referme quand même au rendu.
+    }
+    if (previous !== null && previous !== organization) {
+      setOpen(false);
+      button.current?.focus();
+    }
+  }, [organization]);
 
   useEffect(() => {
     if (!open) return;
@@ -59,7 +82,10 @@ export function AccountMenu({
         <span className="account-menu-initials" aria-hidden="true">
           {initials}
         </span>
-        <span className="account-menu-name">{shortName}</span>
+        <span className="account-menu-name">
+          {shortName}
+          {organization ? <span className="account-menu-organization">{organization}</span> : null}
+        </span>
         <ChevronDown size={16} aria-hidden="true" />
       </button>
       {open ? (

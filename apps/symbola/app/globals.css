@@ -3784,7 +3784,13 @@
     @apply border-t border-line;
   }
   .account-menu-name {
-    @apply max-w-[12ch] truncate max-sm:sr-only;
+    @apply flex max-w-[16ch] flex-col items-start text-left leading-tight max-sm:sr-only;
+  }
+  .account-menu-name > * {
+    @apply max-w-full truncate;
+  }
+  .account-menu-organization {
+    @apply text-label font-normal text-ink-muted;
   }
   /* Lot 70e (M7) : le menu du compte, sous le prénom, dans la barre du haut. */
   .account-menu {

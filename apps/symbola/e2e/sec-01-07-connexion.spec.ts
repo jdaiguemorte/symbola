@@ -85,13 +85,6 @@ test("D4 — une titulaire sans second facteur : « Sécurisez votre compte », 
   await expect(page).toHaveURL(/\/$/);
 });
 
-// Lot 70e (M7) : le menu du compte reste ouvert après l'envoi du formulaire ; l'ouvrir seulement s'il est fermé.
-async function openAccountMenu(page: Page) {
-  const button = page.locator(".account-menu-button");
-  if ((await button.getAttribute("aria-expanded")) !== "true") await button.click();
-  await expect(button).toHaveAttribute("aria-expanded", "true");
-}
-
 test("HUB-02 — plusieurs organisations : passer de l'une à l'autre, en créer une autre", async ({ page }) => {
   const email = `deux-ateliers-${randomUUID()}@symbola.test`;
   const first = `Premier atelier ${randomUUID().slice(0, 8)}`;
@@ -112,15 +105,21 @@ test("HUB-02 — plusieurs organisations : passer de l'une à l'autre, en créer
   await expect(select.locator("option")).toHaveText([first, second].sort());
   await select.selectOption({ label: second });
   await page.getByRole("button", { name: "Ouvrir" }).click();
-  // On était déjà sur l'accueil : attendre ce qui change, l'organisation ouverte.
-  await openAccountMenu(page);
+  // On était déjà sur l'accueil : attendre ce qui change, l'organisation ouverte. Lot 70e (C-09) : après la
+  // bascule le menu du compte se referme, le focus revient sur son bouton et l'organisation ouverte se lit
+  // sur ce bouton, sans rouvrir le menu.
+  const account = page.locator(".account-menu-button");
+  await expect(account).toContainText(second);
+  await expect(account).toHaveAttribute("aria-expanded", "false");
+  await expect(account).toBeFocused();
+  await account.click();
   await expect(page.getByLabel("Organisation").locator("option:checked")).toHaveText(second);
   await expect(page).toHaveURL(/\/$/);
   // Envoi du formulaire puis redirection : deux navigations ; analyser une fois la page posée.
   await page.waitForLoadState("networkidle");
   await expectNoAxeViolation(page);
 
-  await openAccountMenu(page);
+  await expect(account).toHaveAttribute("aria-expanded", "true");
   await page.getByRole("button", { name: "Créer une autre organisation" }).click();
   await expect(page).toHaveURL(/\/demarrage$/);
 });
