@@ -79,7 +79,7 @@ test("L12-HUB-13 — un clic sur une date libre de l'agenda crée un évènement
   await page.goto("/events?affichage=calendrier&agenda=3");
   const agenda = page.locator("[data-tour='events-agenda']");
   // Aucun menu fermé ne reste affiché (image fantôme sous Safari, recette lot 12).
-  await expect(agenda.getByRole("link", { name: "Créer un prospect à cette date" }).first()).toBeHidden();
+  await expect(agenda.getByRole("link", { name: "Nouvel évènement à cette date" }).first()).toBeHidden();
   // Un seul menu ouvert à la fois ; un clic ailleurs ou Échap le referme.
   const other = agenda.locator("details.agenda-create").nth(25);
   await other.locator("summary").click();
@@ -93,7 +93,7 @@ test("L12-HUB-13 — un clic sur une date libre de l'agenda crée un évènement
   await day.locator("summary").click();
   await page.keyboard.press("Escape");
   await expect(day).not.toHaveAttribute("open");
-  await expect(day.getByRole("link", { name: "Créer un prospect à cette date" })).toBeHidden();
+  await expect(day.getByRole("link", { name: "Nouvel évènement à cette date" })).toBeHidden();
   await expectNoAxeViolation(page);
   await day.locator("summary").click();
   // Lot 40c (WCAG 2.5.8) : le menu ouvert recouvre des dates voisines, que l'on rejoint en le
@@ -101,14 +101,15 @@ test("L12-HUB-13 — un clic sur une date libre de l'agenda crée un évènement
   // fermés (ci-dessus), puis le menu lui-même.
   const menu = await new AxeBuilder({ page }).include("details.agenda-create[open] > ul").analyze();
   expect(menu.violations, JSON.stringify(menu.violations, null, 2)).toEqual([]);
-  await day.getByRole("link", { name: "Créer un évènement à cette date" }).click();
-  await expect(page).toHaveURL(/\/events\/new\?date=\d{4}-\d{2}-\d{2}&type=evenement$/);
+  // Lot 70e : une seule entrée, « Nouvel évènement à cette date ».
+  await day.getByRole("link", { name: "Nouvel évènement à cette date" }).click();
+  await expect(page).toHaveURL(/\/events\/new\?date=\d{4}-\d{2}-\d{2}$/);
   const date = new URL(page.url()).searchParams.get("date")!;
   await expect(page.getByRole("heading", { name: "Nouvel évènement" })).toBeVisible();
-  await expect(page.getByLabel("Date de l'évènement", { exact: true })).toHaveValue(date);
+  await expect(page.getByLabel(/^Date/)).toHaveValue(date);
 
-  await page.getByLabel("Prénom du premier marié").fill("Léa");
-  await page.getByLabel("Source du prospect").selectOption({ label: "Salon" });
+  await page.getByRole("radio", { name: /^Signé, en préparation/ }).check();
+  await page.getByLabel(/^Nom de l'évènement/).fill("Léa");
   await page.getByRole("button", { name: "Créer l'évènement" }).click();
   await expect(page).toHaveURL(/\/events\/[0-9a-f-]{36}$/);
   await expect(page.getByRole("list", { name: "Statut de l'évènement" }).getByRole("listitem").filter({ hasText: "Confirmé" })).toHaveAttribute("aria-current", "step");

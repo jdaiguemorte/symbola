@@ -24,7 +24,7 @@ export function EventSourceForm({ eventId, sources, current }: { eventId: string
           ))}
         </select>
       </label>
-      <button type="submit" disabled={pending}>
+      <button type="submit" className="button-secondary" disabled={pending}>
         {t("sourceSave")}
       </button>
       {state.error ? <p role="alert">{state.error}</p> : null}
@@ -49,7 +49,7 @@ export function AddClientForm({ eventId, labels }: { eventId: string; labels: { 
           <input type="text" name="lastName" autoComplete="off" />
         </label>
       </ContactPicker>
-      <button type="submit" disabled={pending}>
+      <button type="submit" className="button-secondary" disabled={pending}>
         {t("addClientSubmit")}
       </button>
       {state.error ? <p role="alert">{state.error}</p> : null}
