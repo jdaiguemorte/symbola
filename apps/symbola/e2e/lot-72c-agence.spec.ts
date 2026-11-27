@@ -164,6 +164,8 @@ test.describe("PAR-10, HUB-03 — « Moi · L'agence » (lot 72c)", () => {
     await toggle(page).getByRole("link", { name: "L'agence" }).click();
     await expect(page).toHaveURL(/\?vue=agence$/);
     await expect(toggle(page).getByRole("link", { name: "L'agence" })).toHaveAttribute("aria-current", "page");
+    // La vue d'agence est une lecture : aucune action principale, la bascule n'en est pas une.
+    await expect(primaries(page)).toHaveCount(0);
     // 3 (Hugo) + 1 (Lina) + 1 (attendu des mariés) = 5, dans deux évènements.
     await expect(page.locator(".today-count")).toHaveText("L'agence : 5 tâches en retard, dans 2 évènements");
     await expect(personRow(page, "Nadia Belkacem")).toContainText("(vous)");
@@ -188,7 +190,7 @@ test.describe("PAR-10, HUB-03 — « Moi · L'agence » (lot 72c)", () => {
     await page.goto("/");
     await expect(people(page)).toBeVisible();
     // « Voir ses tâches » : « Tâches » sur Hugo, groupé par évènement.
-    await personRow(page, "Hugo Lemaire").getByRole("link", { name: /Voir ses tâches/ }).click();
+    await personRow(page, "Hugo Lemaire").getByRole("link", { name: /^Voir/ }).click();
     await expect(page).toHaveURL(new RegExp(`/taches\\?qui=${context.hugo.id}&grouper=evenement`));
     await expect(page.getByRole("main")).toContainText("Faire signer le contrat du photographe");
     await expect(page.getByRole("main")).not.toContainText("Envoyer le plan de table au traiteur");
