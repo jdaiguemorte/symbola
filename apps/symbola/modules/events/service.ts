@@ -5055,3 +5055,6 @@ function dayReminderOpenItems(slots: { label: string; status: string }[], tasks:
   ];
   return lines.length > 0 ? lines.slice(0, 20).join("\n") : t("dayReminder.nothingOpen");
 }
+
+// Lot 70e (A14) : la source et un client de plus, complétés depuis la fiche.
+export { addEventClient, EventClientsFullError, InvalidProspectSourceError, setEventProspectSource } from "./event-origin";

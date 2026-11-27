@@ -55,10 +55,10 @@ test("Lot 18 — menu, « Plus d'options », pastille des tutoriels et estimatio
   await expect(mainMenu(page).getByRole("link", { name: "Devis et factures", exact: true })).not.toHaveAttribute("aria-current", "page");
 
   // L18-HUB-24, revu au lot 20 (décision 2) : plus de « Plus d'options » ; la
-  // barre des Évènements ne garde que « Nouveau prospect ».
+  // barre des Évènements ne garde que « Nouvel évènement » (lot 70e).
   await page.goto("/events");
-  // Lot 63c (EVT-01, M7) : « Nouveau » propose prospect, évènement confirmé ou client existant.
-  await expect(page.getByRole("button", { name: "Nouveau", exact: true })).toBeVisible();
+  // Lot 70e (D8, C-03) : une seule entrée, « Nouvel évènement ».
+  await expect(page.getByRole("link", { name: "Nouvel évènement", exact: true })).toBeVisible();
   await expect(page.getByText("Plus d'options")).toHaveCount(0);
 
   // L18-HUB-23 : un tutoriel en cours ; la pastille « Reprendre » n'apparaît que sur Tutoriels.

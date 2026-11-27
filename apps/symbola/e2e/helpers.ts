@@ -28,7 +28,7 @@ export async function openMenu(page: Page): Promise<void> {
   await expect(toggle).toHaveAttribute("aria-expanded", "true");
 }
 
-// Le menu latéral (navigation et compte), pour cibler ses liens sans
+// Le menu latéral (navigation), pour cibler ses liens sans
 // confusion avec un lien de même nom dans la page.
 export function mainMenu(page: Page) {
   return page.locator("#app-menu");
@@ -43,8 +43,12 @@ export async function clickMenuLink(page: Page, name: string): Promise<void> {
 // Ouvre le menu si besoin puis se déconnecte. Lot 33 : la déconnexion passe par le fournisseur
 // d'identité, qui ramène sur /login ; attendre ce retour, sinon la navigation suivante du parcours
 // est interrompue par lui.
+// Lot 70e (M7) : pour l'équipe, « Se déconnecter » est dans le menu du compte, sous le prénom, dans la
+// barre du haut ; l'Administration et le Comptable le gardent dans leur menu latéral.
 export async function logout(page: Page): Promise<void> {
   await openMenu(page);
+  const account = page.locator(".account-menu-button");
+  if ((await account.count()) > 0) await account.click();
   await page.getByRole("button", { name: "Se déconnecter" }).click();
   await page.waitForURL((url) => url.origin === APP_ORIGIN && url.pathname === "/login", { timeout: 30_000 });
 }

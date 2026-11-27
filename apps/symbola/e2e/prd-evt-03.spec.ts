@@ -9,6 +9,7 @@ import { createAppConnection } from "@symbola/db/client";
 import { createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
 import { closeSlotWindow, openEventTab, openSlotRubric, readyOrganization, signIn as signInByLink, slotWindow } from "./helpers";
+import { createEventByForm } from "./new-event";
 
 async function loginAndSetupMfa(page: Page, email: string, _password: string) {
   // Lot 33 : lien magique et fournisseur d'identité (e2e/helpers.ts).
@@ -50,10 +51,7 @@ test("PRD-EVT-03 — lignes du budget par défaut, barre d'avancement et prestat
   await expectNoAxeViolation(page);
 
   // Un nouvel évènement reçoit les 11 lignes par défaut.
-  await page.goto("/events/new");
-  await page.getByLabel(/^Prénom du premier marié( \*)?$/).fill("Camille");
-  await page.getByLabel("Source du prospect").selectOption({ label: "Salon" });
-  await page.getByRole("button", { name: "Créer le prospect" }).click();
+  await createEventByForm(page, { name: "Camille", clientFirstName: "Camille" });
   await expect(page).toHaveURL(/\/events\/[0-9a-f-]{36}$/);
   await page.waitForLoadState("networkidle");
   await expect(page.getByText("Aucune ligne pourvue sur 11")).toBeVisible();

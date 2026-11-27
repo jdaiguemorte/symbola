@@ -5,7 +5,6 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { PageHeader } from "@/app/ui/page-header";
 import { SettingsLink } from "@/app/settings-link";
-import { NewEventMenu } from "./new-event-menu";
 
 export type EventsView = "list" | "pipeline" | "calendar";
 
@@ -28,7 +27,10 @@ export async function EventsHeader({ view, showViews = true }: { view: EventsVie
             <Link className="button-link" href="/import?type=evenements#import-form">
               {t("importHere")}
             </Link>
-            <NewEventMenu />
+            {/* Lot 70e (D8, C-03) : une seule entrée, « Nouvel évènement ». */}
+            <Link className="button-link button-link-primary" href="/events/new" data-tour="new-prospect">
+              {t("newEvent")}
+            </Link>
           </>
         }
       />

@@ -63,7 +63,7 @@
   /* z-40 : le menu, collant, est son propre contexte d'empilement ; sans rang, ses infobulles
      passaient sous la barre de recherche. */
   .app-sidebar {
-    @apply md:z-40 md:transition-[width] md:duration-150;
+    @apply md:z-[45] md:transition-[width] md:duration-150;
   }
   .app-sidebar.is-collapsed .app-sidebar-header {
     @apply md:flex-col md:gap-2;

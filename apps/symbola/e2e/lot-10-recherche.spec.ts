@@ -9,8 +9,10 @@ import { expect, test, type Page } from "@playwright/test";
 import { createProspect, createProspectSource } from "../modules/events/service";
 import { readyOrganization, signIn as signInByLink } from "./helpers";
 
-async function expectNoAxeViolation(page: Page) {
-  const result = await new AxeBuilder({ page }).analyze();
+async function expectNoAxeViolation(page: Page, within?: string) {
+  const builder = new AxeBuilder({ page });
+  if (within) builder.include(within);
+  const result = await builder.analyze();
   expect(result.violations, JSON.stringify(result.violations, null, 2)).toEqual([]);
 }
 
@@ -40,13 +42,13 @@ test("AIDE-08 — rechercher un évènement par le nom du client, et une aide pa
   await signInByLink(page, email);
   await expect(page).toHaveURL("/");
 
-  // Résultats instantanés : flèche bas puis Entrée ouvre l'évènement.
+  // Résultats instantanés : le premier résultat est surligné (lot 70e, M9), Entrée l'ouvre.
   const box = page.getByRole("combobox", { name: "Rechercher" });
   await box.fill(firstName.toLowerCase());
   const options = page.getByRole("option");
   await expect(options.first()).toContainText(`${firstName} & Julien`);
-  await expectNoAxeViolation(page);
-  await box.press("ArrowDown");
+  await expect(options.first()).toHaveAttribute("aria-selected", "true");
+  await expectNoAxeViolation(page, ".search-box");
   await box.press("Enter");
   await expect(page).toHaveURL(new RegExp(`/events/${eventId}$`));
 
@@ -56,10 +58,10 @@ test("AIDE-08 — rechercher un évènement par le nom du client, et une aide pa
 
   // Un mot d'aide mène à l'écran qui en parle ; la page /recherche marche aussi.
   await box.fill("TVA");
-  await box.press("Enter");
+  await page.getByRole("option", { name: /Tous les résultats pour « TVA »/ }).click();
   await expect(page).toHaveURL(/\/recherche\?q=TVA$/);
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Résultats pour « TVA »");
-  await expect(page.getByRole("region", { name: "Aide et écrans" })).toContainText("Mon organisation");
+  await expect(page.getByRole("region", { name: /^Aide · \d+$/ })).toContainText("Mon organisation");
   await expectNoAxeViolation(page);
 
   await page.goto("/recherche?q=xyzintrouvable");

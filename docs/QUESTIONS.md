@@ -1004,6 +1004,30 @@ aucun retard ni relance né de l'import, mêmes nombres à « Vérifier » et au
 compléter cité sans hésiter, retrait possible), rejoué à chaque paquet du lot 71. À trancher : le
 scénario reste-t-il local, ou entre-t-il au § 17 du cahier des charges comme SC-13 ?
 
+### Q49 — Lot 72 : réaliser le volet 3 des maquettes, trois écarts avec le cahier des charges (27 novembre 2026)
+
+Relevés en écrivant la spécification `docs/lots/lot-72-aujourdhui-et-evenements.md` (§ 7 et § 8), à
+partir des maquettes validées le 26/11 (`docs/audits/2026-11-ux-parcours/09-maquettes-aujourdhui-evenements.md`).
+Tous tranchés le 27/11 par Julien.
+
+1. **Les statuts d'un évènement (EVT-05)**. Le cahier des charges cite « Option, Confirmé, En
+   préparation, Jour J, Clôturé, Reporté, Annulé ». La frise retenue (E1) n'affiche que quatre étapes :
+   « Une demande en cours », « Signé, en préparation », « Jour J », « Clôturé », Reporté et Annulé étant
+   des lignes d'état. **Tranché le 27/11 par Julien (J1)** : « En préparation » est retiré de la base
+   (migration 0225, les évènements passent en « Confirmé ») ; un seul statut, affiché « Signé, en
+   préparation ». Aucune règle de l'app ne distinguait les deux, et rien n'est en production. Écart
+   noté dans `gap.csv`, ADR au paquet 72a.
+2. **Les onglets du cockpit (patrons d'interface)**. Le cahier des charges cite « Synthèse, Planning,
+   Budget, Prestataires, Invités, Documents, Jour J ». L'app aura « Synthèse, Budget et prestataires,
+   Tâches, Programme, Devis et factures, Mariés, Documents, Invités » (« Tâches » tranché en Q47 ;
+   « Programme » au lieu de « Jour J », choix E6, parce que « Jour J » nomme déjà l'étape et l'écran du
+   terrain). Proposition : noté dans `gap.csv`, sans ADR. **Tranché le 27/11 par Julien** (validation de la spécification).
+3. **Le cockpit (EVT-02)** : « bandeau de santé » sous l'en-tête et « échéances des quatorze jours ».
+   La santé descend dans « Où en est le mariage », sous la suite ; les quatorze jours se fondent dans la
+   suite, avec les mêmes lignes et les mêmes nombres que l'accueil (E9). Les trois actions les plus
+   urgentes restent visibles sans défiler sur un écran de 13 pouces. Proposition : noté dans `gap.csv`,
+   sans ADR. **Tranché le 27/11 par Julien** (validation de la spécification).
+
 ### Q51 — Lot 74 : réaliser les volets 5 et 6 des maquettes, trois écarts avec le cahier des charges (27 novembre 2026, tranchée)
 
 Relevés en écrivant la spécification `docs/lots/lot-74-premiers-pas-aide-parametres.md` (§ 9 et
