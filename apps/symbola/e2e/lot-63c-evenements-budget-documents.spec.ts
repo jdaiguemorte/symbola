@@ -162,7 +162,7 @@ test("BUD-01, BUD-03, BUD-04 — Budget et prestataires : réel, écart, réglé
   const results = page.getByRole("list", { name: "Prestataires de votre catalogue" });
   await expect(results.getByRole("listitem").first()).toContainText("Atelier Floréal");
   await expect(page.getByRole("link", { name: /Voir tout le carnet \(1 fiche du métier\)/ })).toBeVisible();
-  await results.getByRole("button", { name: "Comparer — Atelier Floréal", exact: true }).click();
+  await results.getByRole("button", { name: "Mettre en comparaison — Atelier Floréal", exact: true }).click();
   await expect(results.getByRole("listitem").first()).toContainText("Dans la comparaison");
   await page.keyboard.press("Escape");
   await expect(flowers).toContainText("1 en comparaison");
