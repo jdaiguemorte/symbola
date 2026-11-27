@@ -31,7 +31,7 @@ import {
 } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import { parisToday } from "@symbola/i18n";
-import { isMfaPromptDue, listOrganizations, mfaPromptDismissedAt } from "@symbola/auth";
+import { getUserNames, isMfaPromptDue, listOrganizations, mfaPromptDismissedAt, personFullName, personInitials, personShortName } from "@symbola/auth";
 import { accountCenterUrl } from "@/lib/identity";
 import { MfaPromptBanner } from "./securite/mfa-prompt";
 import { SubscriptionBanner } from "./subscription-banner";
@@ -71,6 +71,7 @@ import { TaskUndoProvider } from "./taches/task-undo";
 import { HelpButton } from "./help-button";
 import { NotificationBell } from "./notification-bell";
 import { OrganizationSwitcher } from "./organization-switcher";
+import { AccountMenu } from "./account-menu";
 import { getHelpProgress } from "@/modules/hub/service";
 import { type HelpModule, TUTORIALS, tutorialHref } from "@/lib/help/catalog";
 
@@ -267,6 +268,10 @@ export async function AppShell({ children }: { children: ReactNode }) {
   const isTeam =
     Boolean(organizationId) &&
     (auth.user.role === "owner" || auth.user.role === "member");
+  // Lot 70e (M7) : le compte quitte le bas du menu latéral pour la barre du haut (sous le prénom).
+  const organizationsOfUser = isTeam ? await listOrganizations(appDatabase(), auth.user.id) : [];
+  const accountPerson = isTeam ? { email: auth.user.email, ...(await getUserNames(appDatabase(), auth.user.id)) } : null;
+  const tAccount = await getTranslations("Account");
   let helpBar: {
     completed: number;
     total: number;
@@ -629,12 +634,15 @@ export async function AppShell({ children }: { children: ReactNode }) {
               </li>
             </ul>
           </nav>
-        <div className="app-user">
-          <span className="app-user-email">{t("connectedAs", { email: auth.user.email })}</span>
-          {/* Lot 33 (HUB-02, D6) : plusieurs organisations, et en créer une autre. */}
-          {isTeam ? <OrganizationSwitcher organizations={await listOrganizations(appDatabase(), auth.user.id)} current={organizationId} /> : null}
-          {logout}
-        </div>
+        {/* Lot 70e (M7) : le bloc du compte est dans la barre du haut ; sans équipe, il reste ici. */}
+        {isTeam ? (
+          <OfflineGuard userId={auth.user.id} />
+        ) : (
+          <div className="app-user">
+            <span className="app-user-email">{t("connectedAs", { email: auth.user.email })}</span>
+            {logout}
+          </div>
+        )}
       </AppSidebar>
       <HelpProvider>
         <div className="app-main">
@@ -645,10 +653,25 @@ export async function AppShell({ children }: { children: ReactNode }) {
             <section className="app-topbar" aria-label={t("topBar")}>
               {isTeam ? <SearchBox actions={paletteActions} /> : null}
               {/* Lot 32b (HUB-07, D9) : création rapide, touche N ; ses entrées suivent les modules. */}
-              {isTeam ? <QuickCreate modules={{ events, quotes, budget }} /> : null}
+              {isTeam ? <QuickCreate modules={{ events, quotes, budget, vendors }} /> : null}
               {/* Lot 53 (HUB-15, UX-16) : la cloche des notifications, avant le « ? ». */}
               {isTeam && organizationId ? <NotificationBell organizationId={organizationId} userId={auth.user.id} /> : null}
               <HelpButton />
+              {isTeam && accountPerson ? (
+                <AccountMenu
+                  initials={personInitials(accountPerson)}
+                  shortName={personShortName(accountPerson)}
+                  fullName={personFullName(accountPerson)}
+                  email={auth.user.email}
+                  context={tAccount("organizationRole", {
+                    organization: organizationsOfUser.find((organization) => organization.organizationId === organizationId)?.name ?? "",
+                    role: tAccount(auth.user.role === "owner" ? "role.owner" : "role.member"),
+                  })}
+                  labels={{ menu: tAccount("menu"), profile: tAccount("profile"), profileHint: tAccount("profileHint"), switch: tAccount("switch"), switchHint: tAccount("switchHint") }}
+                  switcher={<OrganizationSwitcher organizations={organizationsOfUser} current={organizationId} />}
+                  logout={<LogoutButton label={t("logout")} menu />}
+                />
+              ) : null}
             </section>
             {settingsSections.length > 0 ? (
               <SettingsNav

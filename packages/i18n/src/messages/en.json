@@ -116,7 +116,7 @@
     "upcomingTasksEmpty": "Nothing urgent: no task overdue or due within 14 days.",
     "allTasksLink": "All tasks",
     "agenda": "Today",
-    "apps": "Apps",
+    "apps": "All modules",
     "tasks": "Tasks",
     "tasksOverdue": "{count} overdue",
     "settingsOrganization": "My organisation",
@@ -132,15 +132,14 @@
     "setup": "Set-up",
     "setupLocked": "Menus open once set-up is complete.",
     "agendaCreateOn": "Create on {date}",
-    "agendaCreateProspect": "Create a prospect on this date",
-    "agendaCreateEvent": "Create an event on this date",
+    "agendaCreateEvent": "New event on this date",
     "followUpTitle": "To follow up",
     "followUpEmpty": "Nothing to follow up for now.",
     "followUpQuote": "Follow up quote {number} · {names}",
     "followUpProspect": "Prospect with no news · {names}",
     "followUpDays": "{days, plural, one {# day} other {# days}}",
     "followUpSettings": "Prospect follow-ups",
-    "topBar": "Search and screen help",
+    "topBar": "Search, create, notifications, help and account",
     "agendaYear": "See the year",
     "documentsSettings": "Documents: logo, colour, IBAN",
     "privacySearch": "Find a person (GDPR)",
@@ -2458,7 +2457,23 @@
     "statusRestoredDetail": "It went back to “Option”, to be confirmed again.",
     "responsibleYou": "You",
     "responsibleMemberRemoved": "{name} (access removed)",
-    "responsibleNobody": "Nobody yet"
+    "responsibleNobody": "Nobody yet",
+    "newEvent": "New event",
+    "standingLegend": "Where does it stand?",
+    "standingEnquiry": "An ongoing enquiry",
+    "standingEnquiryHint": "You're discussing it, nothing is signed.",
+    "standingSigned": "Signed, in preparation",
+    "standingSignedHint": "The contract is signed, even if you started on paper: the task list is created today.",
+    "importPrompt": "Already tracking it in another tool or a spreadsheet?",
+    "importLink": "Import your files",
+    "newName": "Event name",
+    "newNamePlaceholder": "For example: Léa & Maxime",
+    "newDate": "Date",
+    "newDateHint": "Not set yet",
+    "newClient": "Client",
+    "newClientHint": "New client, or search your contacts",
+    "newType": "Type",
+    "createEvent": "Create event"
   },
   "Budget": {
     "title": "Budget",
@@ -3549,7 +3564,10 @@
     "matchesUndecidedBody": "The import cannot be confirmed while any remain. Decide them row by row below, or all at once: accepting updates the existing item, creating adds a new row.",
     "matchesUndecidedBodyContacts": "The import cannot be confirmed while any remain. Decide them row by row below, or accept them all at once.",
     "refuseAllMatches": "{count, plural, one {Create the row as new} other {Create the # rows as new}}",
-    "blockerLink": { "matches_undecided": "Decide the matches", "columns_undecided": "Decide the columns" },
+    "blockerLink": {
+      "matches_undecided": "Decide the matches",
+      "columns_undecided": "Decide the columns"
+    },
     "acceptSelectedMatches": "Accept selected",
     "refuseSelectedMatches": "Refuse selected",
     "rowHeading": "Row {line}: {title}",
@@ -4531,7 +4549,7 @@
   },
   "Search": {
     "label": "Search",
-    "placeholder": "Search for an event, a quote, a task, some help…",
+    "placeholder": "Search an event, a task, a vendor…",
     "shortcut": "⌘K",
     "submit": "Search",
     "title": "Search",
@@ -4541,24 +4559,34 @@
     "onlyYourOrganization": "Only your organisation's data is searched.",
     "groupEvents": "Events",
     "groupDocuments": "Quotes and invoices",
-    "groupTasks": "Tasks and vendors",
-    "groupHelp": "Help and screens",
+    "groupTasks": "Tasks",
+    "groupHelp": "Help",
     "noClientName": "No name",
     "noDate": "Date to be set",
     "quoteTitle": "Quote {number} · {names}",
     "invoiceTitle": "Invoice {number} · {names}",
     "invoiceIssued": "Issued on {date}",
     "taskTitle": "{label} · {names}",
-    "taskDue": "Due {date}",
+    "taskDue": "Due {when}",
     "vendorTitle": "{vendor} · {slot}",
     "tutorialDetail": "Tutorial · {minutes} min",
     "screenDetail": "Application screen",
     "close": "Close",
     "seeAll": "See all results",
-    "hint": "↑ ↓ to choose · Enter to open · Esc to close",
+    "hint": "Enter opens the highlighted result · arrows to choose · Esc to close",
     "globalLabel": "Search Symbola",
     "vendorBookDetail": "Vendor book",
-    "groupContacts": "Contacts"
+    "groupContacts": "Contacts",
+    "placeholderShort": "Search…",
+    "groupVendors": "Vendors",
+    "groupCount": "{label} · {count}",
+    "allResults": "All results for \"{term}\"",
+    "eventWhen": "{when}",
+    "dayToday": "today",
+    "dayTomorrow": "tomorrow",
+    "dayYesterday": "yesterday",
+    "dayFuture": "in {days, plural, one {# day} other {# days}}",
+    "dayPast": "{days, plural, one {# day} other {# days}} ago"
   },
   "AdminOnboarding": {
     "title": "Organisations getting started",
@@ -7498,21 +7526,24 @@
   "QuickCreate": {
     "button": "Create",
     "menuLabel": "What do you want to create?",
-    "shortcutHint": "Shortcut: N key",
+    "shortcutHint": "Press N to open this menu",
     "kind": {
-      "prospect": "Prospect",
       "task": "Task",
       "expense": "Expense",
-      "quote": "Quote"
+      "quote": "Quote",
+      "event": "New event",
+      "vendor": "Vendor",
+      "contact": "Contact",
+      "taskFor": "Task for {event}",
+      "quoteFor": "Quote for {event}",
+      "expenseFor": "Expense for {event}"
     },
     "title": {
-      "prospect": "New prospect",
       "task": "New task",
       "expense": "New expense",
       "quote": "New quote"
     },
     "submit": {
-      "prospect": "Create the prospect",
       "task": "Add the task",
       "expense": "Save the expense",
       "quote": "Create the quote"
@@ -7547,13 +7578,24 @@
     "quoteHintProspect": "The prospect is created, then its quote as a numbered draft; you compose it afterwards.",
     "quoteDoneForProspect": "Prospect {name} created, with draft quote {number}.",
     "quoteFailedProspectKept": "Prospect {name} was created, but its quote could not be. Create it from the prospect's page.",
-    "prospectDone": "Prospect {name} created.",
     "taskDone": "Task “{label}” added.",
     "expenseDone": "Expense “{label}” saved.",
     "quoteDone": "Quote {number} created, as a draft.",
     "chooseEventError": "Choose an event.",
     "amountInvalid": "Unreadable amount: write for example 1,250.50.",
-    "unavailable": "Quick create is unavailable: the Events module is not enabled."
+    "unavailable": "Quick create is unavailable: the Events module is not enabled.",
+    "hint": {
+      "event": "An enquiry, a signed wedding, or one you are taking over",
+      "task": "Or without an event: you will choose in the form",
+      "vendor": "A card in your address book",
+      "contact": "A client, a relative, a venue",
+      "quote": "A numbered draft, to compose next",
+      "expense": "A real line in its budget"
+    },
+    "noEvent": "No event",
+    "noEventHint": "Anything not tied to an event: VAT, insurance, accounting",
+    "noEventsTask": "No ongoing event: the task is created without one.",
+    "taskDoneStandalone": "Task \"{label}\" added, without an event."
   },
   "OrganizationExport": {
     "title": "Export my data",
@@ -12936,9 +12978,10 @@
     "dateInvalid": "Enter a date that exists, as dd/mm/yyyy.",
     "clientFirstNameRequired": "Enter the client's first name, or pick them from your contacts.",
     "existingContactRequired": "Pick the client from your contacts.",
-    "eventNameRequired": "Give the event a name, or enter its client.",
+    "eventNameRequired": "Give the event a name, for example \"Léa & Maxime\".",
     "sourceRequired": "Choose where the enquiry came from.",
-    "datePlaceholder": "dd/mm/yyyy"
+    "datePlaceholder": "dd/mm/yyyy",
+    "standingRequired": "Choose where this event stands."
   },
   "Feedback": {
     "close": "Close the message",
@@ -12952,6 +12995,22 @@
     "taskSaved": "Task saved: {label}",
     "taskAdded": "Task added: {label}",
     "dateChanged": "Date changed: {date}",
-    "restored": "Restored."
+    "restored": "Restored.",
+    "eventCreated": "Event created",
+    "eventCreatedTasksBudget": "With {count, plural, one {# task} other {# tasks}} and its budget",
+    "eventCreatedTasks": "With {count, plural, one {# task} other {# tasks}}",
+    "seeTasks": "See its tasks"
+  },
+  "Account": {
+    "menu": "Account menu",
+    "role": {
+      "owner": "owner",
+      "member": "planner"
+    },
+    "organizationRole": "{organization} · {role}",
+    "profile": "My account",
+    "profileHint": "Name, sign-in, security",
+    "switch": "Switch organization",
+    "switchHint": "Or create another"
   }
 }

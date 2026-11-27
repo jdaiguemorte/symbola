@@ -1,13 +1,13 @@
 "use client";
 
-// Lot 32b (HUB-07, UX-03 ; décision D9) — « Créer » dans la barre du haut de chaque écran, et la
-// touche N hors d'un champ : prospect, tâche, dépense, devis, chacun en formulaire court dans une
-// fenêtre, sans quitter l'écran. L'évènement proposé est celui de l'écran courant. Les entrées
-// suivent les modules souscrits (ARC-06).
+// Lot 32b (HUB-07, UX-03 ; décision D9) — « + Créer » dans la barre du haut de chaque écran, et la
+// touche N hors d'un champ. Lot 70e (M7, A12) : six entrées dans l'ordre de la journée, chacune avec sa
+// phrase (évènement, tâche, prestataire, contact, devis, dépense) ; tâche, devis et dépense en formulaire
+// court dans une fenêtre, les trois autres mènent à leur écran. Le mariage de l'écran en cours est dit
+// (« Tâche pour Léa & Maxime »). Les entrées suivent les modules souscrits (ARC-06).
 import Link from "next/link";
 import { Plus } from "lucide-react";
-import { DraftKeeper } from "@/app/ui/draft-keeper";
-import { useActionState, useEffect, useRef, useState } from "react";
+import { useActionState, useEffect, useId, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { formatCalendarDate, parisToday, type Locale } from "@symbola/i18n";
@@ -15,17 +15,16 @@ import { SameDayNotice } from "@/app/events/same-day-notice";
 import {
   quickCreateExpenseAction,
   quickCreateOptionsAction,
-  quickCreateProspectAction,
   quickCreateQuoteAction,
   quickCreateSlotsAction,
   quickCreateTaskAction,
   type QuickCreateOptions,
   type QuickCreateState,
-  type QuickModules,
   type QuickSlot,
 } from "./actions";
+import { quickCreateEntries, type QuickModules } from "./entries";
 
-type Kind = "prospect" | "task" | "expense" | "quote";
+type Kind = "task" | "expense" | "quote";
 
 function inField(target: EventTarget | null): boolean {
   if (!(target instanceof HTMLElement)) return false;
@@ -48,15 +47,32 @@ export function QuickCreate({ modules }: { modules: QuickModules }) {
   const options = loaded && loaded.path === pathname ? loaded.options : undefined;
   const [round, setRound] = useState(0);
   const dialog = useRef<HTMLDialogElement>(null);
-  const firstItem = useRef<HTMLButtonElement>(null);
-  const kinds: Kind[] = [
-    ...(modules.events ? (["prospect", "task"] as const) : []),
-    ...(modules.events && modules.budget ? (["expense"] as const) : []),
-    ...(modules.events && modules.quotes ? (["quote"] as const) : []),
-  ];
+  const root = useRef<HTMLDivElement>(null);
+  const button = useRef<HTMLButtonElement>(null);
+  const menuId = useId();
+  const entries = quickCreateEntries(modules);
+  // Le mariage de l'écran en cours, dit dans les entrées qui le suivent (« Tâche pour Léa & Maxime »).
+  const currentEvent = options?.currentEventId ? options.events.find((event) => event.id === options.currentEventId) : undefined;
 
+  // Ouverture : le focus va à la première entrée ; Échap et un clic ailleurs ferment, le focus revient
+  // au bouton.
   useEffect(() => {
-    if (menuOpen) firstItem.current?.focus();
+    if (!menuOpen) return;
+    root.current?.querySelector<HTMLElement>(".quick-create-menu a, .quick-create-menu button")?.focus();
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      setMenuOpen(false);
+      button.current?.focus();
+    };
+    const onPointer = (event: PointerEvent) => {
+      if (!root.current?.contains(event.target as Node)) setMenuOpen(false);
+    };
+    document.addEventListener("keydown", onKey);
+    document.addEventListener("pointerdown", onPointer);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.removeEventListener("pointerdown", onPointer);
+    };
   }, [menuOpen]);
 
   // Lot 67c (HUB-07) : « Ouvrir » mène à ce qui vient d'être créé ; la fenêtre se ferme à l'arrivée,
@@ -99,14 +115,14 @@ export function QuickCreate({ modules }: { modules: QuickModules }) {
     dialog.current?.showModal();
   };
 
-  if (kinds.length === 0) return null;
   return (
-    <div className="quick-create">
+    <div className="quick-create" ref={root}>
       <button
+        ref={button}
         type="button"
-        className="quick-create-button"
+        className="quick-create-button button-secondary"
         aria-expanded={menuOpen}
-        aria-controls="quick-create-menu"
+        aria-controls={menuId}
         aria-keyshortcuts="N"
         onClick={() => setMenuOpen((open) => !open)}
       >
@@ -114,21 +130,26 @@ export function QuickCreate({ modules }: { modules: QuickModules }) {
         {t("button")}
       </button>
       {menuOpen ? (
-        <div
-          id="quick-create-menu"
-          className="quick-create-menu"
-          role="group"
-          aria-label={t("menuLabel")}
-          onKeyDown={(event) => {
-            if (event.key === "Escape") setMenuOpen(false);
-          }}
-        >
+        <div id={menuId} className="quick-create-menu" role="group" aria-label={t("menuLabel")}>
+          {entries.map((entry) => {
+            const title = entry.contextual && currentEvent && entry.key !== "event" ? t(`kind.${entry.key}For`, { event: currentEvent.names }) : t(`kind.${entry.key}`);
+            const body = (
+              <>
+                <strong>{title}</strong>
+                <span className="meta">{t(`hint.${entry.key}`)}</span>
+              </>
+            );
+            return entry.action === "link" ? (
+              <Link key={entry.key} href={entry.href!} className="quick-create-item" onClick={() => setMenuOpen(false)}>
+                {body}
+              </Link>
+            ) : (
+              <button key={entry.key} type="button" className="quick-create-item" onClick={() => choose(entry.key as Kind)}>
+                {body}
+              </button>
+            );
+          })}
           <p className="quick-create-hint">{t("shortcutHint")}</p>
-          {kinds.map((entry, index) => (
-            <button key={entry} type="button" ref={index === 0 ? firstItem : undefined} onClick={() => choose(entry)}>
-              {t(`kind.${entry}`)}
-            </button>
-          ))}
         </div>
       ) : null}
       <dialog ref={dialog} className="quick-create-dialog" aria-labelledby="quick-create-title" onClose={() => setKind(null)}>
@@ -144,14 +165,12 @@ export function QuickCreate({ modules }: { modules: QuickModules }) {
               <p role="status">{t("loading")}</p>
             ) : options === null ? (
               <p>{t("unavailable")}</p>
-            ) : kind === "prospect" ? (
-              <ProspectForm key={round} options={options} />
             ) : kind === "quote" ? (
               <QuoteForm key={round} options={options} />
-            ) : options.events.length === 0 ? (
-              <p>{t("noEvents")}</p>
             ) : kind === "task" ? (
               <TaskForm key={round} options={options} />
+            ) : options.events.length === 0 ? (
+              <p>{t("noEvents")}</p>
             ) : (
               <ExpenseForm key={round} options={options} />
             )}
@@ -174,7 +193,7 @@ function Outcome({ state }: { state: QuickCreateState }) {
   );
 }
 
-function EventSelect({ options, value, onChange }: { options: QuickCreateOptions; value?: string; onChange?: (eventId: string) => void }) {
+function EventSelect({ options, value, onChange, optional = false }: { options: QuickCreateOptions; value?: string; onChange?: (eventId: string) => void; optional?: boolean }) {
   const t = useTranslations("QuickCreate");
   const locale = useLocale() as Locale;
   return (
@@ -182,12 +201,16 @@ function EventSelect({ options, value, onChange }: { options: QuickCreateOptions
       {t("event")}
       <select
         name="eventId"
-        required
+        required={!optional}
         {...(onChange ? { value, onChange: (event) => onChange(event.target.value) } : { defaultValue: options.currentEventId ?? "" })}
       >
-        <option value="" disabled>
-          {t("eventChoose")}
-        </option>
+        {optional ? (
+          <option value="">{t("noEvent")}</option>
+        ) : (
+          <option value="" disabled>
+            {t("eventChoose")}
+          </option>
+        )}
         {options.events.map((event) => (
           <option key={event.id} value={event.id}>
             {event.date ? `${event.names} — ${formatCalendarDate(event.date, locale)}` : event.names}
@@ -195,22 +218,6 @@ function EventSelect({ options, value, onChange }: { options: QuickCreateOptions
         ))}
       </select>
     </label>
-  );
-}
-
-function ProspectForm({ options }: { options: QuickCreateOptions }) {
-  const t = useTranslations("QuickCreate");
-  const [state, action, pending] = useActionState(quickCreateProspectAction, {});
-  return (
-    <form action={action}>
-      {/* Lot 39b (UX-09) : la saisie est gardée et se reprend sur tout appareil. */}
-      <DraftKeeper formKey="event-quick" submission={state} saved={Boolean("done" in state && state.done)} />
-      <ProspectFields options={options} />
-      <button type="submit" disabled={pending}>
-        {t("submit.prospect")}
-      </button>
-      <Outcome state={state} />
-    </form>
   );
 }
 
@@ -262,7 +269,8 @@ function TaskForm({ options }: { options: QuickCreateOptions }) {
   const [state, action, pending] = useActionState(quickCreateTaskAction, {});
   return (
     <form action={action}>
-      <EventSelect options={options} />
+      <EventSelect options={options} optional />
+      <p className="meta">{t("noEventHint")}</p>
       <label>
         {t("taskLabel")}
         <input type="text" name="label" required autoComplete="off" />

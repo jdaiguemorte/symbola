@@ -1916,6 +1916,19 @@
   .app-topbar > .help-button {
     @apply ml-auto flex-none;
   }
+  /* Lot 70e (C-12, C-13, M7) : la barre du haut reste en place quand la page défile, blanche, de 68 px,
+     toutes ses commandes de 44 px ; elle déborde du remplissage de la page pour toucher ses bords. */
+  .app-topbar {
+    @apply sticky top-0 z-40 -mx-4 -mt-6 min-h-[68px] border-b border-line bg-surface px-4 py-3 sm:-mx-8 sm:px-8 md:-mt-8;
+  }
+  .app-topbar .search-box {
+    @apply min-w-0 flex-1;
+  }
+  .app-topbar .search-box input,
+  .app-topbar .quick-create-button,
+  .app-topbar .account-menu-button {
+    @apply !min-h-11;
+  }
   /* Lot 16 (L16-HUB-19, ADR 0039) : un tiroir qui pousse le contenu au lieu de le
      recouvrir. Ordinateur : à droite, toute la hauteur ; téléphone et tablette :
      en bas de l'écran, le contenu défile au-dessus. Lot 63f (ADR 0104) : plus de
@@ -3699,13 +3712,91 @@
     @apply gap-1 whitespace-nowrap;
   }
   .quick-create-menu {
-    @apply absolute top-full left-0 z-30 mt-2 flex w-56 flex-col gap-1 rounded-md border border-line bg-surface p-2 shadow-float;
+    @apply absolute top-full left-0 z-50 mt-2 flex w-80 max-w-[calc(100vw-2rem)] flex-col gap-1 rounded-lg border border-line bg-surface p-2 shadow-float;
   }
-  .quick-create-menu > button {
-    @apply w-full justify-start border-0 bg-transparent font-medium hover:bg-ground;
+  .quick-create-item {
+    @apply flex min-h-11 w-full flex-col items-start gap-0 rounded-md border-0 bg-transparent px-3 py-2 text-left font-normal text-ink no-underline hover:bg-ground hover:text-ink;
+  }
+  .quick-create-item > strong {
+    @apply font-semibold;
+  }
+  .quick-create-item > .meta {
+    @apply text-label text-ink-muted;
   }
   .quick-create-hint {
-    @apply m-0 px-2 py-1 text-label text-ink-muted;
+    @apply m-0 border-t border-line px-2 pt-2 text-label text-ink-muted max-md:hidden;
+  }
+  /* Lot 70e (D8, M12, M13) : « Nouvel évènement » — la question « Où en est-il ? » et la porte de reprise. */
+  .standing-choice {
+    @apply m-0 flex flex-col gap-2 border-0 p-0;
+  }
+  .standing-choice > legend {
+    @apply mb-2 p-0 font-medium;
+  }
+  .standing-option {
+    @apply flex min-h-11 cursor-pointer items-start gap-3 rounded-md border border-line bg-surface p-3;
+  }
+  .standing-option:has(input:checked) {
+    @apply border-ink;
+  }
+  .standing-option > span {
+    @apply flex flex-col;
+  }
+  .standing-option > input {
+    @apply mt-1;
+  }
+  .new-event-import {
+    @apply m-0 text-label text-ink-muted;
+  }
+  /* Lot 70e (M9) : « Tous les résultats pour … », dernière ligne de la recherche. */
+  .search-box-all {
+    @apply border-t border-line;
+  }
+  .account-menu-name {
+    @apply max-w-[12ch] truncate;
+  }
+  /* Lot 70e (M7) : le menu du compte, sous le prénom, dans la barre du haut. */
+  .account-menu {
+    @apply relative flex-none;
+  }
+  .account-menu-button {
+    @apply gap-2 whitespace-nowrap;
+  }
+  .account-menu-initials {
+    @apply inline-flex size-7 items-center justify-center rounded-full bg-ink text-label font-semibold text-on-primary;
+  }
+  .account-menu-panel {
+    @apply absolute top-full right-0 z-50 mt-2 flex w-80 max-w-[calc(100vw-2rem)] flex-col gap-1 rounded-lg border border-line bg-surface p-2 shadow-float;
+  }
+  .account-menu-identity {
+    @apply flex flex-col gap-1 px-3 py-2 text-label text-ink-muted [overflow-wrap:anywhere];
+  }
+  .account-menu-identity > strong {
+    @apply text-body font-semibold text-ink;
+  }
+  .account-menu-item {
+    @apply flex min-h-11 w-full flex-col items-start gap-0 rounded-md px-3 py-2 text-left text-ink no-underline hover:text-ink;
+  }
+  a.account-menu-item:hover {
+    @apply bg-ground;
+  }
+  .account-menu-item > strong {
+    @apply font-semibold;
+  }
+  .account-menu-item > .meta {
+    @apply text-label text-ink-muted;
+  }
+  .account-menu-switch {
+    @apply gap-1;
+  }
+  .account-menu-logout {
+    @apply mt-1 border-t border-line pt-2;
+  }
+  .account-menu-logout form {
+    @apply m-0;
+  }
+  .account-menu-logout-button {
+    @apply w-full justify-start border-0 bg-transparent font-semibold text-ink hover:bg-ground;
   }
   .quick-create-dialog {
     @apply m-auto w-[min(32rem,calc(100vw-2rem))] rounded-lg border border-line bg-surface p-6 text-ink shadow-float;

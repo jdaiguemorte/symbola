@@ -8,7 +8,6 @@
 import { readResponsibleCreate } from "@/app/events/[id]/task-responsible";
 import { revalidatePath } from "next/cache";
 import { unexpectedActionError } from "@/lib/action-errors";
-import { discardMyFormDraft } from "@/lib/form-drafts";
 import { getLocale, getTranslations } from "next-intl/server";
 import { appDatabase } from "@symbola/db/client";
 import { parseAmountToCents, type Locale } from "@symbola/i18n";
@@ -20,6 +19,8 @@ import { isValidId } from "@/app/events/module-access";
 import { addBudgetLine, BudgetLineDetailsInvalidError, updateBudgetLine } from "@/modules/budget/service";
 import {
   addEventTask,
+  addStandaloneTask,
+  PlanningInputError,
   createProspect,
   eventNames,
   getEvent,
@@ -30,10 +31,10 @@ import {
   makeCreatorLead, createTypedDocumentFolders } from "@/modules/events/service";
 import { isModuleEnabled } from "@/modules/hub/service";
 import { createQuote, EventNotFoundError, getQuote } from "@/modules/quotes/service";
+import type { QuickModules } from "./entries";
 
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
 
-export type QuickModules = { events: boolean; quotes: boolean; budget: boolean };
 export type QuickEvent = { id: string; names: string; date: string | null };
 export type QuickCreateOptions = {
   modules: QuickModules;
@@ -54,6 +55,7 @@ async function planner(): Promise<{ organizationId: string; userId: string; modu
     events: await isModuleEnabled(db, organizationId, "events"),
     quotes: await isModuleEnabled(db, organizationId, "quotes"),
     budget: await isModuleEnabled(db, organizationId, "budget"),
+    vendors: await isModuleEnabled(db, organizationId, "vendors"),
   };
   return { organizationId, userId: auth.user.id, modules };
 }
@@ -147,28 +149,17 @@ async function createQuickProspect(access: { organizationId: string; userId: str
   return { id: created.id, firstName };
 }
 
-export async function quickCreateProspectAction(_prev: QuickCreateState, formData: FormData): Promise<QuickCreateState> {
-  const t = await getTranslations("QuickCreate");
-  const tEvents = await getTranslations("Events");
-  const access = await planner();
-  if (!access) return { error: tEvents("unauthenticated") };
-  if (!access.modules.events) return { error: tEvents("moduleUnavailable") };
-  const created = await createQuickProspect(access, formData);
-  if ("error" in created) return { error: created.error };
-  refresh(created.id);
-  // Lot 39b (UX-09) : l'évènement est créé, le brouillon de la saisie n'a plus lieu d'être.
-  await discardMyFormDraft("event-quick");
-  return { done: { message: t("prospectDone", { name: created.firstName }), href: `/events/${created.id}` }, nonce: Date.now() };
-}
-
 export async function quickCreateTaskAction(_prev: QuickCreateState, formData: FormData): Promise<QuickCreateState> {
   const t = await getTranslations("QuickCreate");
   const tEvents = await getTranslations("Events");
   const access = await planner();
   if (!access) return { error: tEvents("unauthenticated") };
   if (!access.modules.events) return { error: tEvents("moduleUnavailable") };
-  const eventId = field(formData, "eventId");
-  if (!isValidId(eventId)) return { error: t("chooseEventError") };
+  // Lot 70e (HUB-07 ; M7) : l'évènement est facultatif — sans lui, la tâche est celle de l'agence (TVA,
+  // assurance, comptabilité), créée comme sur l'écran « Tâches ».
+  const rawEventId = field(formData, "eventId");
+  const eventId = rawEventId === "" ? null : rawEventId;
+  if (eventId !== null && !isValidId(eventId)) return { error: t("chooseEventError") };
   const label = field(formData, "label");
   if (!label) return { error: tEvents("missingLabel") };
   const dueDate = field(formData, "dueDate");
@@ -177,15 +168,23 @@ export async function quickCreateTaskAction(_prev: QuickCreateState, formData: F
   const choice = readResponsibleCreate(field(formData, "responsible"));
   if (!choice || choice.responsible === "vendor") return { error: tEvents("invalidResponsible") };
   try {
-    await addEventTask(access.organizationId, eventId, { label, dueDate, responsible: choice.responsible, ...(choice.assigneeUserId ? { assigneeUserId: choice.assigneeUserId } : {}) });
+    if (eventId === null) {
+      // Hors évènement : toujours « planner » (contrainte de la table), à qui la crée par défaut.
+      if (choice.responsible !== "planner") return { error: tEvents("invalidResponsible") };
+      await addStandaloneTask(access.organizationId, { label, dueDate, recurrence: null, ...(choice.assigneeUserId ? { assigneeUserId: choice.assigneeUserId } : {}) });
+    } else {
+      await addEventTask(access.organizationId, eventId, { label, dueDate, responsible: choice.responsible, ...(choice.assigneeUserId ? { assigneeUserId: choice.assigneeUserId } : {}) });
+    }
   } catch (error) {
-    if (error instanceof RangeError) return { error: tEvents("invalidDate") };
+    if (error instanceof RangeError || error instanceof PlanningInputError) return { error: tEvents("invalidDate") };
     if ((error as Error).name === "TaskAssigneeNotFoundError") return { error: tEvents("taskNotFound") };
     if ((error as Error).name === "EventNotFoundError") return { error: tEvents("eventNotFound") };
     return { error: await unexpectedActionError(error) };
   }
   refresh(eventId);
-  return { done: { message: t("taskDone", { label }), href: `/events/${eventId}?onglet=retroplanning` }, nonce: Date.now() };
+  return eventId === null
+    ? { done: { message: t("taskDoneStandalone", { label }), href: "/taches" }, nonce: Date.now() }
+    : { done: { message: t("taskDone", { label }), href: `/events/${eventId}?onglet=retroplanning` }, nonce: Date.now() };
 }
 
 export async function quickCreateExpenseAction(_prev: QuickCreateState, formData: FormData): Promise<QuickCreateState> {

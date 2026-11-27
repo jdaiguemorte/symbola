@@ -10,8 +10,11 @@ import { useTranslations } from "next-intl";
 import type { SearchGroup } from "@/lib/search/run-search";
 
 // Lot 39c (HUB-12 ; D12) — palette de commandes : ⌘K propose aussi des actions (créer, aller à…),
-// filtrées par les modules souscrits (le gabarit ne passe que celles-là). Elles passent avant les
-// résultats de la recherche.
+// filtrées par les modules souscrits (le gabarit ne passe que celles-là).
+// Lot 70e (M9, A15 bis) — premier temps de la recherche typée : groupes comptés (« Tâches · 2 »), le
+// premier résultat surligné et ouvert par Entrée, les actions après les résultats et seulement si elles
+// répondent au texte, « Tous les résultats pour … » en dernière ligne ; sous 760 px de barre, le texte
+// d'aide devient « Rechercher… ».
 export type PaletteAction = { label: string; href: string };
 
 function fold(text: string): string {
@@ -39,13 +42,20 @@ export function SearchBox({ actions = [] }: { actions?: PaletteAction[] }) {
   const [term, setTerm] = useState(() => (pathname === "/recherche" ? (searchParams.get("q") ?? "") : ""));
   const [groups, setGroups] = useState<SearchGroup[]>([]);
   const [open, setOpen] = useState(false);
-  const [active, setActive] = useState(-1);
+  const [active, setActive] = useState(0);
+  // Sous 760 px de barre (911 px d'écran à côté du menu latéral), le texte d'aide long passait sur trois lignes.
+  const [compact, setCompact] = useState(false);
   // L16-SEC-02 (ADR 0044) : message traduit d'une recherche refusée (trop de requêtes).
   const [notice, setNotice] = useState<string | null>(null);
 
   const actionItems = term.trim().length >= 2 ? actions.filter((action) => matches(action.label, term.trim())).map((action) => ({ title: action.label, detail: tPalette("detail"), href: action.href })) : [];
-  const shownGroups: { key: string; label: string; items: { title: string; detail: string; href: string }[] }[] = [...(actionItems.length > 0 ? [{ key: "actions", label: tPalette("group"), items: actionItems }] : []), ...groups];
-  const flat = shownGroups.flatMap((group) => group.items.map((item) => ({ ...item, group: group.key })));
+  const shownGroups: { key: string; label: string; items: { title: string; detail: string; href: string }[] }[] = [...groups, ...(actionItems.length > 0 ? [{ key: "actions", label: tPalette("group"), items: actionItems }] : [])];
+  const trimmed = term.trim();
+  const flat = [
+    ...shownGroups.flatMap((group) => group.items.map((item) => ({ ...item, group: group.key }))),
+    // Dernière ligne : la page de tous les résultats.
+    ...(shownGroups.length > 0 ? [{ title: t("allResults", { term: trimmed }), detail: "", href: `/recherche?q=${encodeURIComponent(trimmed)}`, group: "all" }] : []),
+  ];
 
   useEffect(() => {
     function onKey(event: KeyboardEvent) {
@@ -57,6 +67,14 @@ export function SearchBox({ actions = [] }: { actions?: PaletteAction[] }) {
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
+  useEffect(() => {
+    const bar = inputRef.current?.closest(".app-topbar");
+    if (!bar || typeof ResizeObserver === "undefined") return;
+    const observer = new ResizeObserver(() => setCompact(bar.getBoundingClientRect().width < 760));
+    observer.observe(bar);
+    return () => observer.disconnect();
   }, []);
 
   useEffect(() => {
@@ -78,7 +96,7 @@ export function SearchBox({ actions = [] }: { actions?: PaletteAction[] }) {
         const body = (await response.json()) as { groups: SearchGroup[] };
         setNotice(null);
         setGroups(body.groups);
-        setActive(-1);
+        setActive(0);
         // La liste ne s'ouvre que si l'on est dans le champ (pas au chargement
         // de la page de résultats, qui reprend la recherche).
         setOpen(document.activeElement === inputRef.current);
@@ -104,7 +122,7 @@ export function SearchBox({ actions = [] }: { actions?: PaletteAction[] }) {
     } else if (event.key === "ArrowUp") {
       event.preventDefault();
       setActive((index) => (index <= 0 ? flat.length - 1 : index - 1));
-    } else if (event.key === "Enter" && active >= 0) {
+    } else if (event.key === "Enter" && active >= 0 && flat[active]) {
       event.preventDefault();
       setOpen(false);
       router.push(flat[active]!.href);
@@ -125,9 +143,12 @@ export function SearchBox({ actions = [] }: { actions?: PaletteAction[] }) {
         type="search"
         name="q"
         autoComplete="off"
-        placeholder={t("placeholder")}
+        placeholder={compact ? t("placeholderShort") : t("placeholder")}
         value={term}
-        onChange={(event) => setTerm(event.target.value)}
+        onChange={(event) => {
+          setTerm(event.target.value);
+          setActive(0);
+        }}
         onFocus={() => setOpen(true)}
         onBlur={() => setTimeout(() => setOpen(false), 150)}
         onKeyDown={onKeyDown}
@@ -151,7 +172,7 @@ export function SearchBox({ actions = [] }: { actions?: PaletteAction[] }) {
               {shownGroups.map((group) => (
                 <li key={group.key} role="presentation">
                   <p className="search-box-group" aria-hidden="true">
-                    {group.label}
+                    {t("groupCount", { label: group.label, count: group.items.length })}
                   </p>
                   <ul role="group" aria-label={group.label}>
                     {group.items.map((item) => {
@@ -178,6 +199,23 @@ export function SearchBox({ actions = [] }: { actions?: PaletteAction[] }) {
                   </ul>
                 </li>
               ))}
+              <li role="presentation">
+                <ul role="group" aria-label={t("seeAll")}>
+                  <li
+                    id={`${listId}-option-${flat.length - 1}`}
+                    role="option"
+                    aria-selected={flat.length - 1 === active}
+                    className="search-box-option search-box-all"
+                    onMouseDown={(event) => {
+                      event.preventDefault();
+                      setOpen(false);
+                      router.push(flat[flat.length - 1]!.href);
+                    }}
+                  >
+                    <strong>{t("allResults", { term: trimmed })}</strong>
+                  </li>
+                </ul>
+              </li>
             </ul>
           )}
           <p className="search-box-hint">{t("hint")}</p>

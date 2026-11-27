@@ -116,7 +116,7 @@
     "upcomingTasksEmpty": "Rien d'urgent : aucune tâche en retard ni due dans les 14 jours.",
     "allTasksLink": "Toutes les tâches",
     "agenda": "Aujourd'hui",
-    "apps": "Apps",
+    "apps": "Tous les modules",
     "tasks": "Tâches",
     "tasksOverdue": "{count} en retard",
     "settingsOrganization": "Mon organisation",
@@ -132,15 +132,14 @@
     "setup": "Démarrage",
     "setupLocked": "Les menus s'ouvrent quand le démarrage est terminé.",
     "agendaCreateOn": "Créer le {date}",
-    "agendaCreateProspect": "Créer un prospect à cette date",
-    "agendaCreateEvent": "Créer un évènement à cette date",
+    "agendaCreateEvent": "Nouvel évènement à cette date",
     "followUpTitle": "À traiter",
     "followUpEmpty": "Rien à relancer pour le moment.",
     "followUpQuote": "Relancer le devis {number} · {names}",
     "followUpProspect": "Prospect sans nouvelle · {names}",
     "followUpDays": "{days, plural, one {# jour} other {# jours}}",
     "followUpSettings": "Relances des prospects",
-    "topBar": "Recherche et aide de l'écran",
+    "topBar": "Recherche, création, notifications, aide et compte",
     "agendaYear": "Voir l'année",
     "documentsSettings": "Documents : logo, couleur, IBAN",
     "privacySearch": "Rechercher une personne (RGPD)",
@@ -2458,7 +2457,23 @@
     "statusRestoredDetail": "Il est revenu en « Option », à confirmer de nouveau.",
     "responsibleYou": "Vous",
     "responsibleMemberRemoved": "{name} (accès retiré)",
-    "responsibleNobody": "Personne pour l’instant"
+    "responsibleNobody": "Personne pour l’instant",
+    "newEvent": "Nouvel évènement",
+    "standingLegend": "Où en est-il ?",
+    "standingEnquiry": "Une demande en cours",
+    "standingEnquiryHint": "Vous en parlez, rien n'est signé.",
+    "standingSigned": "Signé, en préparation",
+    "standingSignedHint": "Le contrat est signé, même si vous aviez commencé sur papier : la liste des tâches se crée aujourd'hui.",
+    "importPrompt": "Vous le suivez déjà dans un autre logiciel ou un tableur ?",
+    "importLink": "Reprendre ses fichiers",
+    "newName": "Nom de l'évènement",
+    "newNamePlaceholder": "Par exemple : Léa & Maxime",
+    "newDate": "Date",
+    "newDateHint": "Pas encore fixée",
+    "newClient": "Client",
+    "newClientHint": "Nouveau client, ou chercher dans vos contacts",
+    "newType": "Type",
+    "createEvent": "Créer l'évènement"
   },
   "Budget": {
     "title": "Budget",
@@ -3549,7 +3564,10 @@
     "matchesUndecidedBody": "L'import ne peut pas être confirmé tant qu'il en reste. Décidez-les ligne par ligne ci-dessous, ou en une fois : rapprocher met à jour l'élément existant, créer ajoute une nouvelle ligne.",
     "matchesUndecidedBodyContacts": "L'import ne peut pas être confirmé tant qu'il en reste. Décidez-les ligne par ligne ci-dessous, ou validez-les en une fois.",
     "refuseAllMatches": "{count, plural, one {Créer la ligne comme nouvelle} other {Créer les # lignes comme nouvelles}}",
-    "blockerLink": { "matches_undecided": "Décider les rapprochements", "columns_undecided": "Décider des colonnes" },
+    "blockerLink": {
+      "matches_undecided": "Décider les rapprochements",
+      "columns_undecided": "Décider des colonnes"
+    },
     "acceptSelectedMatches": "Valider la sélection",
     "refuseSelectedMatches": "Refuser la sélection",
     "rowHeading": "Ligne {line} : {title}",
@@ -4531,7 +4549,7 @@
   },
   "Search": {
     "label": "Rechercher",
-    "placeholder": "Rechercher un évènement, un devis, une tâche, une aide…",
+    "placeholder": "Rechercher un évènement, une tâche, un prestataire…",
     "shortcut": "⌘K",
     "submit": "Rechercher",
     "title": "Recherche",
@@ -4541,24 +4559,34 @@
     "onlyYourOrganization": "Seules les données de votre organisation sont cherchées.",
     "groupEvents": "Évènements",
     "groupDocuments": "Devis et factures",
-    "groupTasks": "Tâches et prestataires",
-    "groupHelp": "Aide et écrans",
+    "groupTasks": "Tâches",
+    "groupHelp": "Aide",
     "noClientName": "Sans nom",
     "noDate": "Date à fixer",
     "quoteTitle": "Devis {number} · {names}",
     "invoiceTitle": "Facture {number} · {names}",
     "invoiceIssued": "Émise le {date}",
     "taskTitle": "{label} · {names}",
-    "taskDue": "Échéance {date}",
+    "taskDue": "Échéance {when}",
     "vendorTitle": "{vendor} · {slot}",
     "tutorialDetail": "Tutoriel · {minutes} min",
     "screenDetail": "Écran de l'application",
     "close": "Fermer",
     "seeAll": "Voir tous les résultats",
-    "hint": "↑ ↓ pour choisir · Entrée pour ouvrir · Échap pour fermer",
+    "hint": "Entrée ouvre le résultat surligné · flèches pour choisir · Échap pour fermer",
     "globalLabel": "Recherche dans Symbola",
     "vendorBookDetail": "Carnet de prestataires",
-    "groupContacts": "Contacts"
+    "groupContacts": "Contacts",
+    "placeholderShort": "Rechercher…",
+    "groupVendors": "Prestataires",
+    "groupCount": "{label} · {count}",
+    "allResults": "Tous les résultats pour « {term} »",
+    "eventWhen": "{when}",
+    "dayToday": "aujourd'hui",
+    "dayTomorrow": "demain",
+    "dayYesterday": "hier",
+    "dayFuture": "dans {days, plural, one {# jour} other {# jours}}",
+    "dayPast": "il y a {days, plural, one {# jour} other {# jours}}"
   },
   "AdminOnboarding": {
     "title": "Prise en main des organisations",
@@ -7498,21 +7526,24 @@
   "QuickCreate": {
     "button": "Créer",
     "menuLabel": "Que voulez-vous créer ?",
-    "shortcutHint": "Raccourci : touche N",
+    "shortcutHint": "Touche N pour ouvrir ce menu",
     "kind": {
-      "prospect": "Prospect",
       "task": "Tâche",
       "expense": "Dépense",
-      "quote": "Devis"
+      "quote": "Devis",
+      "event": "Nouvel évènement",
+      "vendor": "Prestataire",
+      "contact": "Contact",
+      "taskFor": "Tâche pour {event}",
+      "quoteFor": "Devis pour {event}",
+      "expenseFor": "Dépense pour {event}"
     },
     "title": {
-      "prospect": "Nouveau prospect",
       "task": "Nouvelle tâche",
       "expense": "Nouvelle dépense",
       "quote": "Nouveau devis"
     },
     "submit": {
-      "prospect": "Créer le prospect",
       "task": "Ajouter la tâche",
       "expense": "Enregistrer la dépense",
       "quote": "Créer le devis"
@@ -7547,13 +7578,24 @@
     "quoteHintProspect": "Le prospect est créé, puis son devis en brouillon, numéroté ; vous le composez ensuite.",
     "quoteDoneForProspect": "Prospect {name} créé, avec le devis {number} en brouillon.",
     "quoteFailedProspectKept": "Le prospect {name} est créé, mais son devis n'a pas pu l'être. Créez-le depuis sa fiche.",
-    "prospectDone": "Prospect {name} créé.",
     "taskDone": "Tâche « {label} » ajoutée.",
     "expenseDone": "Dépense « {label} » enregistrée.",
     "quoteDone": "Devis {number} créé, en brouillon.",
     "chooseEventError": "Choisissez un évènement.",
     "amountInvalid": "Montant illisible : écrivez par exemple 1 250,50.",
-    "unavailable": "La création rapide n'est pas disponible : le module Évènements n'est pas activé."
+    "unavailable": "La création rapide n'est pas disponible : le module Évènements n'est pas activé.",
+    "hint": {
+      "event": "Une demande, un mariage signé, ou un mariage que vous reprenez",
+      "task": "Ou sans évènement : vous le choisirez dans le formulaire",
+      "vendor": "Une fiche dans votre carnet",
+      "contact": "Un client, un proche, un lieu",
+      "quote": "Un brouillon numéroté, à composer ensuite",
+      "expense": "Une ligne réelle dans son budget"
+    },
+    "noEvent": "Aucun évènement",
+    "noEventHint": "Ce qui ne dépend d'aucun mariage : TVA, assurance, comptabilité",
+    "noEventsTask": "Aucun évènement en cours : la tâche se crée sans évènement.",
+    "taskDoneStandalone": "Tâche « {label} » ajoutée, hors évènement."
   },
   "OrganizationExport": {
     "title": "Exporter mes données",
@@ -12936,9 +12978,10 @@
     "dateInvalid": "Écrivez une date qui existe, au format jj/mm/aaaa.",
     "clientFirstNameRequired": "Indiquez le prénom du client, ou choisissez-le dans vos contacts.",
     "existingContactRequired": "Choisissez le client dans vos contacts.",
-    "eventNameRequired": "Donnez un nom à l'évènement, ou indiquez son client.",
+    "eventNameRequired": "Donnez un nom à l'évènement, par exemple « Léa & Maxime ».",
     "sourceRequired": "Choisissez d'où vient la demande.",
-    "datePlaceholder": "jj/mm/aaaa"
+    "datePlaceholder": "jj/mm/aaaa",
+    "standingRequired": "Choisissez où en est cet évènement."
   },
   "Feedback": {
     "close": "Fermer le message",
@@ -12952,6 +12995,22 @@
     "taskSaved": "Tâche enregistrée : {label}",
     "taskAdded": "Tâche ajoutée : {label}",
     "dateChanged": "Date changée : {date}",
-    "restored": "C'est rétabli."
+    "restored": "C'est rétabli.",
+    "eventCreated": "Évènement créé",
+    "eventCreatedTasksBudget": "Avec {count, plural, one {# tâche} other {# tâches}} et son budget",
+    "eventCreatedTasks": "Avec {count, plural, one {# tâche} other {# tâches}}",
+    "seeTasks": "Voir ses tâches"
+  },
+  "Account": {
+    "menu": "Menu du compte",
+    "role": {
+      "owner": "titulaire",
+      "member": "planner"
+    },
+    "organizationRole": "{organization} · {role}",
+    "profile": "Mon compte",
+    "profileHint": "Nom, connexion, sécurité",
+    "switch": "Changer d'organisation",
+    "switchHint": "Ou en créer une autre"
   }
 }

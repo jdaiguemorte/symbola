@@ -24,7 +24,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
       {term.length >= 2 && groups.length === 0 ? <p role="status">{t("noResults", { term })}</p> : null}
       {groups.map((group) => (
         <section key={group.key} className="card" aria-labelledby={`search-${group.key}`}>
-          <h2 id={`search-${group.key}`}>{group.label}</h2>
+          <h2 id={`search-${group.key}`}>{t("groupCount", { label: group.label, count: group.items.length })}</h2>
           <ul className="item-list">
             {group.items.map((item) => (
               <li key={item.href + item.title}>
