@@ -323,3 +323,78 @@ test.describe("lot 70e — téléphone", () => {
     await expectNoAxeViolation(page, ".account-menu");
   });
 });
+
+// WCAG 2.4.11 (focus non masqué) : la barre fixe ne doit pas cacher ce que le clavier atteint. C'est la
+// contrepartie de `e2e/axe.ts`, qui remonte en haut de page avant d'analyser (une cible que le parcours vient
+// de faire défiler sous la barre était signalée « partiellement masquée » à tort) : ici, on vérifie
+// directement ce que la barre peut casser.
+test.describe("lot 70e — la barre fixe ne masque pas le focus", () => {
+  async function tabAndMeasure(page: Page, stops: number) {
+    let scrolled = 0;
+    const hidden: string[] = [];
+    for (let stop = 0; stop < stops; stop += 1) {
+      await page.keyboard.press("Tab");
+      const state = await page.evaluate(() => {
+        const bar = document.querySelector<HTMLElement>(".app-topbar")!;
+        const active = document.activeElement as HTMLElement | null;
+        if (!active || active === document.body || bar.contains(active)) return null;
+        const barBox = bar.getBoundingClientRect();
+        const box = active.getBoundingClientRect();
+        // Seul un élément visible dans la fenêtre compte (un lien d'évitement caché hors écran n'en est pas un).
+        if (box.width === 0 || box.height === 0 || box.bottom <= 0 || box.top >= window.innerHeight) return null;
+        // Recouvrement dans les deux sens : le menu latéral, à gauche de la barre, ne la croise pas.
+        const overlaps = box.top < barBox.bottom - 1 && box.bottom > barBox.top + 1 && barBox.bottom > 0 && box.left < barBox.right - 1 && box.right > barBox.left + 1;
+        return { scrollY: window.scrollY, overlaps, label: (active.getAttribute("aria-label") ?? active.textContent ?? active.tagName).trim().slice(0, 50), barBottom: barBox.bottom, top: box.top };
+      });
+      if (!state) continue;
+      scrolled = Math.max(scrolled, state.scrollY);
+      if (state.overlaps) hidden.push(`${state.label} (haut ${Math.round(state.top)} px sous une barre qui finit à ${Math.round(state.barBottom)} px)`);
+    }
+    return { scrolled, hidden };
+  }
+
+  for (const screen of ["fiche", "taches"] as const) {
+    test(`${screen} — un élément atteint au clavier (Tab) plus bas dans la page n'est pas caché sous la barre`, async ({ page }) => {
+      test.setTimeout(120_000);
+      const setup = await atelier();
+      await signInByLink(page, setup.email);
+      await page.goto(screen === "fiche" ? `/events/${setup.lea}` : "/taches");
+      await page.waitForLoadState("networkidle");
+      const { scrolled, hidden } = await tabAndMeasure(page, 70);
+      // Le parcours a bien fait défiler la page : sans cela, il ne prouverait rien.
+      expect(scrolled).toBeGreaterThan(300);
+      expect(hidden).toEqual([]);
+    });
+  }
+
+  test("une ancre plus bas dans la page, comme le lien d'évitement « contenu », amène son contenu sous la barre, pas dessous", async ({ page }) => {
+    const setup = await atelier();
+    await signInByLink(page, setup.email);
+    await page.goto(`/events/${setup.lea}`);
+    await page.waitForLoadState("networkidle");
+    // Une cible profonde : le 20e lien de la page reçoit une ancre, puis on y va comme par un lien interne.
+    await page.evaluate(() => {
+      const links = [...document.querySelectorAll<HTMLElement>("main a, main button")].filter((element) => element.getBoundingClientRect().height > 0);
+      links[Math.min(20, links.length - 1)]!.id = "ancre-profonde";
+      window.location.hash = "ancre-profonde";
+    });
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(0);
+    const measure = await page.evaluate(() => {
+      const bar = document.querySelector<HTMLElement>(".app-topbar")!.getBoundingClientRect();
+      const target = document.getElementById("ancre-profonde")!.getBoundingClientRect();
+      return { sticky: getComputedStyle(document.querySelector(".app-topbar")!).position === "sticky", below: target.top - bar.bottom };
+    });
+    // Sur ordinateur (barre fixe) la cible arrive sous la barre ; sur téléphone la barre défile avec la page.
+    if (measure.sticky) expect(measure.below).toBeGreaterThanOrEqual(-1);
+    // Le lien d'évitement mène au contenu principal, sous la barre : page défilée, on l'active au clavier.
+    await page.evaluate(() => window.scrollTo(0, 1500));
+    await page.locator(".skip-link").focus();
+    await page.keyboard.press("Enter");
+    const skip = await page.evaluate(() => {
+      const bar = document.querySelector<HTMLElement>(".app-topbar")!.getBoundingClientRect();
+      const target = document.getElementById("contenu")!.getBoundingClientRect();
+      return { sticky: getComputedStyle(document.querySelector(".app-topbar")!).position === "sticky", below: target.top - bar.bottom };
+    });
+    if (skip.sticky) expect(skip.below).toBeGreaterThanOrEqual(-1);
+  });
+});
