@@ -1,9 +1,8 @@
 # Lot 74 — Réaliser les volets 5 et 6 des maquettes : « Premiers pas et aide » et « Paramètres »
 
-**Statut** : **spécification à valider par Julien**. Elle change les schémas `hub` et `events`
-(migrations 0244 à 0246) et le parcours P0 PAR-01 (le premier quart d'heure, SC-01). Aucun code n'est
-écrit avant sa validation. Décisions L74-D1 à L74-D12 (§ 9) : toutes tranchées le 27/11 ; reste la validation
-d'ensemble de Julien avant le code.
+**Statut** : **spécification validée par Julien le 27/11/2026** (« Je valide »). Elle change les schémas `hub` et `events`
+(migrations 0244 à 0246) et le parcours P0 PAR-01 (le premier quart d'heure, SC-01). Décisions L74-D1 à L74-D12 (§ 9)
+toutes tranchées le 27/11.
 **Branche de la spécification** : `lot-74-premiers-pas-aide-parametres` (une PR vers `main`, ce
 fichier et `docs/QUESTIONS.md` seulement). Chaque paquet aura ensuite sa branche `lot-74<x>-…` et sa PR.
 **Date** : 27/11/2026, par Claude Code.
