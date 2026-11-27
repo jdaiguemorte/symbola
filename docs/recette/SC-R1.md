@@ -65,7 +65,7 @@ Mesures :
 ## Lot 71c — l'assistant qui demande
 
 - Date : 27/11/2026, en local, par Claude Code. Base de test dédiée (`symbola_lot71c`, migrations
-  jusqu'à 0226 de `main`, aucune nouvelle), socle de dev (Garage, ClamAV, Mailpit). Rejoué **à l'écran**,
+  jusqu'à 0235 de `main`, aucune nouvelle), socle de dev (Garage, ClamAV, Mailpit). Rejoué **à l'écran**,
   à 1 440 et à 375 px, par le parcours `apps/symbola/e2e/lot-71c-questions.spec.ts` (version compilée
   sur le port 3071, session ouverte en base faute du port 3000), et par les services dans
   `apps/symbola/lib/import/questions-71c.integration.test.ts` (horloge simulée au 25/11/2026), sur les
