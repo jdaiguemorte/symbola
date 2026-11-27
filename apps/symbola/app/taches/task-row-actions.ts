@@ -8,33 +8,16 @@
 import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
 import { z } from "zod";
-import {
-  BulkTaskChangeInvalidError,
-  changeEventTasks,
-  EventNotFoundError,
-  EventTaskNotFoundError,
-  removeEventTask,
-  removeEventTasks,
-  TaskAssigneeNotFoundError,
-  TaskCategoryNotFoundError,
-  TaskLabelRequiredError,
-  TaskVendorInvalidError,
-  updateEventTask,
-  type BulkTaskChange,
-} from "@/modules/events/service";
-import { readResponsibleEdit, readResponsibleValue, UNCHANGED_RESPONSIBLE } from "@/app/events/[id]/task-responsible";
+import { BulkTaskChangeInvalidError, changeEventTasks, EventNotFoundError, EventTaskNotFoundError, removeEventTask, removeEventTasks, TaskAssigneeNotFoundError, TaskCategoryNotFoundError, TaskLabelRequiredError, TaskVendorInvalidError, type BulkTaskChange } from "@/modules/events/service";
+import { readResponsibleValue } from "@/app/events/[id]/task-responsible";
 import { getPlannerAuthContext } from "@/lib/auth-context";
 import { offerUndo } from "@/lib/undo";
-import { fieldErrors, formValues, translatedFieldErrors } from "@/lib/forms/field-validation";
-import { taskFieldsSchema } from "@/lib/forms/task-fields";
-import { isPostponeChoice, postponedDueDate } from "@/lib/tasks/postpone";
+
 import { isEventsModuleEnabled, isValidId } from "@/app/events/module-access";
 
 // Lot 70b (UX-10) : `fieldErrors`, les erreurs de saisie traduites, champ par champ ; `undoOffered`, une
 // offre « Annuler » posée pour le message de retour (il ne faut pas la remplacer).
 export type TaskRowState = { error?: string; success?: string; done?: number; fieldErrors?: Record<string, string>; undoOffered?: boolean };
-
-const DATE = /^\d{4}-\d{2}-\d{2}$/;
 
 async function organizationOrNull(): Promise<string | null> {
   const auth = await getPlannerAuthContext();
@@ -63,70 +46,6 @@ function knownError(error: unknown, t: Awaited<ReturnType<typeof getTranslations
 
 // « vendor:<id> » confie la tâche à ce prestataire retenu sur l'évènement (lot 34b) ; lot 70a (A1) :
 // « member:<id> » à ce collègue (vérifié par le service).
-
-const saveSchema = z.object({
-  taskId: z.string().refine(isValidId),
-  label: z.string().trim().min(1).max(300),
-  dueDate: z.string().regex(DATE),
-  // Revue du 70a : absent = personne inchangée (readResponsibleEdit).
-  responsible: z.string().optional(),
-  categoryId: z.string(),
-  priority: z.enum(["high", "normal"]),
-});
-
-// Revue du 70a : le message dit le champ en cause (auparavant, tout refus hors libellé disait « date »).
-function saveErrorMessage(fields: (PropertyKey | undefined)[], t: Awaited<ReturnType<typeof getTranslations<"Events">>>): string {
-  if (fields.includes("taskId")) return t("taskNotFound");
-  if (fields.includes("label")) return t("missingLabel");
-  if (fields.includes("dueDate")) return t("invalidDate");
-  if (fields.includes("responsible")) return t("invalidResponsible");
-  if (fields.includes("categoryId")) return t("taskCategoryInvalid");
-  // Seule la priorité reste : elle ne peut être fausse que forgée.
-  return t("taskNotFound");
-}
-
-// La fenêtre de la tâche : « Enregistrer ».
-export async function saveTaskAction(_prev: TaskRowState, formData: FormData): Promise<TaskRowState> {
-  const t = await getTranslations("Events");
-  const organizationId = await organizationOrNull();
-  if (!organizationId) return { error: t("unauthenticated") };
-  // Lot 70b (UX-10) : le même schéma qu'à l'écran ; les erreurs vont sous les champs.
-  const invalid = fieldErrors(taskFieldsSchema, formValues(formData));
-  if (invalid.length > 0) return { fieldErrors: translatedFieldErrors(invalid, await getTranslations("Validation")) };
-  const parsed = saveSchema.safeParse(Object.fromEntries(formData));
-  if (!parsed.success) return { error: saveErrorMessage(parsed.error.issues.map((issue) => issue.path[0]), t) };
-  const responsible = readResponsibleEdit(parsed.data.responsible);
-  if (!responsible) return { error: t("invalidResponsible") };
-  const categoryId = parsed.data.categoryId === "" ? null : parsed.data.categoryId;
-  if (categoryId !== null && !isValidId(categoryId)) return { error: t("taskCategoryInvalid") };
-  try {
-    await updateEventTask({ organizationId, taskId: parsed.data.taskId, label: parsed.data.label, dueDate: parsed.data.dueDate, ...(responsible === UNCHANGED_RESPONSIBLE ? {} : responsible), categoryId, priority: parsed.data.priority });
-  } catch (error) {
-    return { error: knownError(error, t) };
-  }
-  refresh();
-  return { success: t("taskSaved") };
-}
-
-// L'échéance changée dans sa cellule, ou « Reporter » (demain, dans une semaine, une date choisie).
-export async function setTaskDueDateAction(_prev: TaskRowState, formData: FormData): Promise<TaskRowState> {
-  const t = await getTranslations("Events");
-  const organizationId = await organizationOrNull();
-  if (!organizationId) return { error: t("unauthenticated") };
-  const taskId = String(formData.get("taskId") ?? "");
-  if (!isValidId(taskId)) return { error: t("taskNotFound") };
-  const choice = String(formData.get("postpone") ?? "");
-  const raw = String(formData.get("dueDate") ?? "");
-  const dueDate = isPostponeChoice(choice) ? postponedDueDate(choice) : raw;
-  if (!DATE.test(dueDate)) return { error: t("invalidDate") };
-  try {
-    await updateEventTask({ organizationId, taskId, dueDate });
-  } catch (error) {
-    return { error: knownError(error, t) };
-  }
-  refresh();
-  return { success: t("taskDueChanged") };
-}
 
 // « Supprimer » sur la ligne ou dans la fenêtre : tout de suite, sans confirmation ; le bandeau du
 // gabarit propose « Annuler » pendant dix secondes (UX-07), puis la tâche est purgée de la corbeille.

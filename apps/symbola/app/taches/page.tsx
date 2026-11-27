@@ -1,38 +1,44 @@
 // PRD-HUB-02 / PRD-EVT-04 — écran « Tâches » : les tâches de tous les événements en
-// cours (hors perdus et réalisés), en tableau, filtrables par état et par
-// responsable. Cocher une tâche ici la marque faite sur sa fiche.
-// Lot 63d (CHR-02, CHR-03 ; maquette M6) : le tableau agit sur la ligne, et la tâche s'ouvre dans une
-// fenêtre sur cet écran (« ?tache= »), sans partir vers l'évènement.
+// cours (hors perdus et réalisés), filtrables par état et par responsable. Cocher une tâche
+// ici la marque faite sur sa fiche.
+// Lot 63d (CHR-02, CHR-03 ; maquette M6) : la tâche s'ouvre sur cet écran (« ?tache= »), sans partir
+// vers l'évènement.
+// Lot 70c (CHR-02, CHR-03, CHR-10, UX-05 ; D3, C-31, C-38) : la ligne type (titre, évènement, échéance et
+// son état, qui s'en charge, « Fait », menu « ⋯ ») et le panneau unique, en édition (« ?tache= ») et en
+// création (« ?nouvelle=1 », avec ou sans évènement) ; la vue « Faites » (« Les revoir » d'« Aujourd'hui »).
+// La liste unique, les filtres et le décompte de la maquette viennent au paquet 70d.
 import { PageHeader } from "@/app/ui/page-header";
 import { EmptyState } from "@/app/ui/empty-state";
 import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
-import { formatCalendarDate, parisToday, type Locale } from "@symbola/i18n";
+import { parisToday, type Locale } from "@symbola/i18n";
 import { ScreenHelp } from "@/app/screen-help";
-import { ENGAGED_CANDIDATE_STATUSES } from "@symbola/contracts";
-import { listOrganizationTasks, listStandaloneTasks, listVendorCandidates } from "@/modules/events/service";
+import { listOrganizationTasks, listTasks } from "@/modules/events/service";
 import { ensureTaskCategories } from "@/lib/events/task-categories";
 import { isValidId } from "@/app/events/module-access";
-import { responsibleValue } from "@/app/events/[id]/task-responsible";
-import { TaskDialog } from "./task-dialog";
-import { AddStandaloneTaskForm, EditStandaloneTask } from "./standalone-tasks";
-import { completeStandaloneTaskAction, deleteStandaloneTaskAction } from "./standalone-actions";
 import { requirePlanner } from "@/lib/guards";
 import { taskMemberOptions } from "@/lib/tasks/members";
 import { isEventsModuleEnabled } from "@/app/events/module-access";
 import { SettingsLink } from "@/app/settings-link";
-import { TaskTable } from "./task-table";
 import { countTasks } from "@/lib/task-counts";
 import { TaskCalendar } from "./task-calendar";
-import { responsibleLabels } from "@/lib/vocabulary";
+import { TaskLineBoard } from "@/app/ui/task-line-board";
+import { TaskLineList } from "@/app/ui/task-line";
+import { TaskPanelLoader, panelFromQuery } from "@/app/ui/task-panel-loader";
+import { buildTaskLines, linesByMonth } from "@/lib/tasks/task-lines";
+import { taskListViewer } from "@/lib/event-visibility";
 
-type SearchParams = { vue?: string; qui?: string; affichage?: string; mois?: string; tache?: string };
+type SearchParams = { vue?: string; qui?: string; affichage?: string; mois?: string; tache?: string; nouvelle?: string; evenement?: string; copie?: string };
+
+const VIEWS = ["a-faire", "en-retard", "faites", "toutes"] as const;
+type View = (typeof VIEWS)[number];
 
 export default async function TasksPage({ searchParams }: { searchParams: Promise<SearchParams> }) {
   const auth = await requirePlanner();
   const organizationId = auth.user.organizationId;
 
   const t = await getTranslations("Events");
+  const tLine = await getTranslations("TaskLine");
   const tHelp = await getTranslations("Help");
   if (!(await isEventsModuleEnabled(organizationId))) {
     return (
@@ -44,13 +50,13 @@ export default async function TasksPage({ searchParams }: { searchParams: Promis
   }
 
   const query = await searchParams;
-  const view = query.vue === "en-retard" || query.vue === "toutes" ? query.vue : "a-faire";
+  const view: View = VIEWS.includes(query.vue as View) ? (query.vue as View) : "a-faire";
   const owner = query.qui === "planner" || query.qui === "clients" ? query.qui : "tous";
   const locale = (await getLocale()) as Locale;
   const today = parisToday();
-  const all = await listOrganizationTasks({ organizationId, today, horizonDays: null, includeDone: view === "toutes" });
-  const labelOf = await responsibleLabels(organizationId, locale);
-  const tasks = all.filter((task) => (owner === "tous" || task.responsible === owner) && (view !== "en-retard" || task.overdue));
+  const withDone = view === "toutes" || view === "faites";
+  const all = await listOrganizationTasks({ organizationId, today, horizonDays: null, includeDone: withDone });
+  const tasks = all.filter((task) => (owner === "tous" || task.responsible === owner) && (view !== "en-retard" || task.overdue) && (view !== "faites" || task.done));
   // Lot 32b (CHR-03, D11) : liste ou calendrier du mois ; le filtre « qui » vaut pour les deux.
   const calendar = query.affichage === "calendrier";
   const month = query.mois && /^\d{4}-(0[1-9]|1[0-2])$/.test(query.mois) ? query.mois : today.slice(0, 7);
@@ -59,28 +65,32 @@ export default async function TasksPage({ searchParams }: { searchParams: Promis
   const categories = await ensureTaskCategories(organizationId, locale);
   // Lot 70a (CHR-02 ; A1) : les collègues de « Qui s'en charge ».
   const members = await taskMemberOptions(organizationId, auth.user.id);
-  // La tâche ouverte dans la fenêtre : cherchée aussi parmi les faites (cochée depuis « Toutes »).
-  const openId = query.tache && isValidId(query.tache) ? query.tache : null;
-  const opened = openId
-    ? (all.find((task) => task.id === openId) ??
-      (await listOrganizationTasks({ organizationId, today, horizonDays: null, includeDone: true })).find((task) => task.id === openId) ??
-      null)
-    : null;
-  const openedVendors = opened
-    ? (await listVendorCandidates(organizationId, opened.eventId)).filter((candidate) => ENGAGED_CANDIDATE_STATUSES.includes(candidate.status)).map((candidate) => ({ candidateId: candidate.id, name: candidate.vendorName }))
-    : [];
-  // Lot 53 (CHR-10, D6) : les tâches hors évènement (TVA, assurance…), avec leur répétition.
-  const standalone = await listStandaloneTasks(organizationId, { includeDone: view === "toutes" });
-  const tStandalone = await getTranslations("StandaloneTasks");
+  // Lot 53 (CHR-10, D6) : les tâches hors évènement (TVA, assurance…), avec leur répétition ; lot 70c :
+  // lues par la liste unique du lot 70a, en lignes types.
+  const viewer = await taskListViewer({ user: { id: auth.user.id, role: auth.user.role, organizationId } });
+  const standalone = (await listTasks({ organizationId, today, viewer, filters: { event: { kind: "none" }, state: view === "faites" ? "done" : withDone ? "all" : "todo", ...(view === "en-retard" ? { period: { kind: "late" } } : {}) } })).tasks;
   // Lot 67b (HUB-08, CHR-10 ; R01) : l'en-tête compte les tâches d'évènement et hors évènement.
-  const counts = countTasks(all, standalone, today);
+  const openStandalone = view === "a-faire" ? standalone : (await listTasks({ organizationId, today, viewer, filters: { event: { kind: "none" }, state: "todo" } })).tasks;
+  const counts = countTasks(all, openStandalone, today);
+  const eventLines = await buildTaskLines({ organizationId, locale, tasks, members, href: (task) => href({ tache: task.id }) });
+  const standaloneLines = await buildTaskLines({ organizationId, locale, tasks: standalone, members, href: (task) => href({ tache: task.id }) });
+  const panel = panelFromQuery(query, isValidId);
+  const memberOptions = members.filter((member) => !member.removed).map((member) => ({ value: `member:${member.id}`, label: member.me ? tLine("you") : member.name }));
+  const categoryOptions = categories.map((category) => ({ value: category.id, label: category.label }));
 
   return (
     <main>
       <PageHeader
         title={t("allTasksTitle")}
         subtitle={<span>{t("allTasksSummary", { count: counts.todo, overdue: counts.overdue })}</span>}
-        actions={<SettingsLink href="/events/modeles" back="tasks" label={t("taskTemplatesSettings")} />}
+        actions={
+          <>
+            <Link href={href({ nouvelle: "1" })} scroll={false} className="button-link button-link-primary">
+              {tLine("newTask")}
+            </Link>
+            <SettingsLink href="/events/modeles" back="tasks" label={t("taskTemplatesSettings")} />
+          </>
+        }
       />
       <ScreenHelp title={tHelp("allTasks.title")} body={tHelp("allTasks.body")} />
       <section className="card" aria-labelledby="all-tasks-title">
@@ -97,13 +107,13 @@ export default async function TasksPage({ searchParams }: { searchParams: Promis
         </nav>
         <div className="toolbar">
           <nav aria-label={t("tasksViewFilter")} className="pills">
-            {(["a-faire", "en-retard", "toutes"] as const).map((key) => (
+            {VIEWS.map((key) => (
               <Link key={key} href={href({ vue: key })} aria-current={view === key ? "true" : undefined}>
-                {t(key === "toutes" ? "tasksViewAll" : key === "a-faire" ? "tasksViewTodo" : "tasksViewOverdue")}
+                {key === "faites" ? tLine("stateDone") : t(key === "toutes" ? "tasksViewAll" : key === "a-faire" ? "tasksViewTodo" : "tasksViewOverdue")}
               </Link>
             ))}
           </nav>
-          <nav aria-label={t("tasksOwnerFilter")} className="pills">
+          <nav aria-label={tLine("filterWho")} className="pills">
             {(["tous", "planner", "clients"] as const).map((key) => (
               <Link key={key} href={href({ qui: key })} aria-current={owner === key ? "true" : undefined}>
                 {t(key === "tous" ? "tasksOwnerAll" : key === "planner" ? "responsiblePlanner" : "responsibleClients")}
@@ -113,70 +123,42 @@ export default async function TasksPage({ searchParams }: { searchParams: Promis
         </div>
         {calendar ? <TaskCalendar month={month} tasks={tasks} today={today} locale={locale} href={(next) => href({ mois: next })} taskHref={(task) => href({ tache: task.id })} categories={categories} /> : null}
         {/* Lot 39c (UX-08) : l'écran vide enseigne. */}
-        {!calendar && tasks.length === 0 ? all.length === 0 && view !== "toutes" ? <EmptyState screen="tasks" title={t("allTasksEmpty")} actionHref="/events" /> : <p>{t("noTasksForFilter")}</p> : null}
+        {!calendar && tasks.length === 0 ? all.length === 0 && view === "a-faire" ? <EmptyState screen="tasks" title={t("allTasksEmpty")} actionHref="/events" /> : <p>{t("noTasksForFilter")}</p> : null}
         {!calendar && tasks.length > 0 ? (
-          <TaskTable
-            tasks={tasks}
-            locale={locale}
-            today={today}
-            caption={t("allTasksTitle")}
-            showEvent
-            selectedTaskId={opened?.id ?? null}
-            openHref={(task) => href({ tache: task.id })}
-            responsibleLabel={(task) => labelOf(task.eventId, task.responsible)}
-            categories={categories}
-            members={members}
+          <TaskLineBoard
+            groups={linesByMonth(eventLines.lines, locale)}
+            form="list"
+            label={t("allTasksTitle")}
+            shortcuts={eventLines.shortcuts}
+            assignOptions={eventLines.assignOptions}
+            categories={categoryOptions}
+            members={memberOptions}
           />
         ) : null}
       </section>
-      {opened ? (
-        <TaskDialog
-          key={`${opened.id}-${opened.dueDate}-${opened.label}`}
-          task={{ id: opened.id, label: opened.label, dueDate: opened.dueDate, responsible: responsibleValue(opened), categoryId: opened.categoryId, priority: opened.priority }}
+      {panel ? (
+        <TaskPanelLoader
+          organizationId={organizationId}
+          userId={auth.user.id}
+          role={auth.user.role}
+          locale={locale}
+          today={today}
+          open={panel}
           closeHref={href({})}
-          categories={categories.map((category) => ({ id: category.id, label: category.label }))}
-          vendors={openedVendors}
-          members={members}
-          eventLink={{ href: `/events/${opened.eventId}?onglet=retroplanning&tache=${opened.id}`, label: t("taskDialogOpenEvent"), names: opened.event.names }}
+          backLabel={t("allTasksTitle")}
+          screenHref={(params) => href(params)}
         />
       ) : null}
       <section className="card" aria-labelledby="standalone-tasks-title" id="hors-evenement">
-        <h2 id="standalone-tasks-title">{tStandalone("title")}</h2>
-        <ScreenHelp title={tHelp("standaloneTasks.title")} body={tHelp("standaloneTasks.body")} />
-        <p>{tStandalone("intro")}</p>
-        <AddStandaloneTaskForm today={today} />
-        {standalone.length === 0 ? (
-          <p>{tStandalone("empty")}</p>
-        ) : (
-          <ul className="standalone-task-list" aria-label={tStandalone("listLabel")}>
-            {standalone.map((task) => (
-              <li key={task.id} className="standalone-task" data-overdue={!task.done && task.dueDate < today ? "true" : undefined}>
-                <span className="standalone-task-label">{task.label}</span>
-                <span className="standalone-task-meta">
-                  {formatCalendarDate(task.dueDate, locale)}
-                  {task.recurrence ? ` · ${tStandalone(`recurrenceValue.${task.recurrence}`)}` : ""}
-                </span>
-                {task.done ? (
-                  <span className="badge badge-sauge">{tStandalone("done")}</span>
-                ) : (
-                  <form action={completeStandaloneTaskAction}>
-                    <input type="hidden" name="taskId" value={task.id} />
-                    <button type="submit" aria-label={tStandalone("doneLabel", { label: task.label })}>
-                      {tStandalone("done")}
-                    </button>
-                  </form>
-                )}
-                {/* Lot 67b (CHR-10 ; R02) : une tâche à faire se modifie. */}
-                {task.done ? null : <EditStandaloneTask task={{ id: task.id, label: task.label, dueDate: task.dueDate, recurrence: task.recurrence }} />}
-                <form action={deleteStandaloneTaskAction}>
-                  <input type="hidden" name="taskId" value={task.id} />
-                  <button type="submit" className="button-secondary" aria-label={tStandalone("removeLabel", { label: task.label })}>
-                    {tStandalone("remove")}
-                  </button>
-                </form>
-              </li>
-            ))}
-          </ul>
+        <div className="section-head">
+          <h2 id="standalone-tasks-title">{tLine("noEvent")}</h2>
+          <Link href={href({ nouvelle: "1" })} scroll={false} className="button-link">
+            {tLine("newTask")}
+          </Link>
+        </div>
+        <p>{tLine("noEventHint")}</p>
+        {standaloneLines.lines.length === 0 ? null : (
+          <TaskLineList groups={linesByMonth(standaloneLines.lines, locale)} form="list" label={tLine("noEvent")} shortcuts={standaloneLines.shortcuts} assignOptions={standaloneLines.assignOptions} />
         )}
       </section>
     </main>
