@@ -1,7 +1,7 @@
 # Lot 72 — Réaliser le volet 3 des maquettes : « Aujourd'hui » et « Évènements »
 
-**Statut** : **spécification à valider par Julien** ; décisions J1 à J14 ouvertes (§ 7). Le lot change
-le schéma de données du module `events` (une migration, 0224) et deux parcours P0 (PAR-03, et PAR-02
+**Statut** : **spécification à valider par Julien** ; J1 tranchée le 27/11, J2 à J14 ouvertes (§ 7). Le lot change
+le schéma de données du module `events` (deux migrations, 0224 et 0225) et deux parcours P0 (PAR-03, et PAR-02
 par la frise et la liste) : la validation vaut accord pour cette migration.
 **Branche de la spécification** : `lot-72-aujourdhui-et-evenements` (une PR vers `main`, ce fichier et
 `docs/QUESTIONS.md` seulement). Chaque paquet aura ensuite sa branche `lot-72<x>-…` et sa PR.
@@ -212,15 +212,15 @@ Dernière migration de `main` : **0217** ; le lot 71 réserve 0218 à 0223 ; ce 
 (numéros indicatifs, à reprendre au moment du code). Chaque migration a son retour arrière dans
 `packages/db/drizzle-rollback/` (ADR 0036) et ne touche que le schéma de son module (DAT-09).
 
-### 4.1 Une seule migration
+### 4.1 Deux migrations
 
 | N° | Fichier | Ce qu'elle fait | Pourquoi |
 | --- | --- | --- | --- |
 | 0224 | `0224_lot72a_events_status_effective_date.sql` | Ajoute `events.event_status_history.effective_on date` (nullable). Rempli par « Le contrat est signé… » (la date choisie, au plus aujourd'hui) et par le passage à « Annulé » (le jour) ; nul pour les lignes d'avant, qui se lisent alors à `changed_at` dans le fuseau de l'évènement. Aucune étape de données | E2 : « Signé le » peut être antérieur au jour (la planner avait signé sur papier) ; la frise dit « Signé, en préparation depuis le 2 avr. ». Le lot 71 ajoute `date_known` à la même table (0220) : colonnes distinctes, aucun conflit |
+| 0225 | `0225_lot72a_events_drop_in_preparation.sql` | **Retire le statut « En préparation »** (J1, tranchée le 27/11). Étape de données : `events.events.status`, `postponed_from_status` et `events.event_status_history.from_status` / `to_status` passent de `in_preparation` à `confirmed` ; puis l'énumération `events.event_status` est recréée sans la valeur (PostgreSQL ne sait pas retirer une valeur : nouveau type, colonnes converties, ancien type supprimé). Retour arrière : recrée la valeur dans l'énumération ; les lignes converties restent « Confirmé » (aucune donnée réelle concernée : rien en production, staging remis à zéro au besoin) | E1 : une seule étape « Signé, en préparation » ; aucune règle de l'app ne distinguait les deux statuts. Un seul statut en base, un seul à l'écran : plus de correspondance à tenir entre les deux |
 
-**Ce qui ne demande pas de migration** (décisions J1, J3, J4, J5) :
+**Ce qui ne demande pas de migration** (décisions J3, J4, J5) :
 
-- « Confirmé » et « En préparation » restent deux statuts en base (J1) ; seul l'affichage les fond.
 - « Masquer » de « Pour bien démarrer » écrit `hub.users.first_steps_hidden` (existant, par personne,
   `hideFirstSteps`), par le service du hub.
 - La bascule « Moi · L'agence » se garde dans l'adresse (`?vue=agence`) et un cookie de l'appareil,
@@ -242,10 +242,10 @@ Changements **compatibles** (ajouts) :
   `sameDayCount` ; la ligne d'historique de statut gagne `effectiveOn` ; une nouvelle fonction
   `listAgencyOverview` rend `{ byPerson[], byEvent[] }` (§ 5.3) ;
 - `EVENT_DISPLAY_STEPS` : les quatre étapes de la frise et la règle qui associe un statut à son étape
-  (`option` → demande ; `confirmed`, `in_preparation` → signé ; phase `day_of` → Jour J ; `closed` →
+  (`option` → demande ; `confirmed` → signé ; phase `day_of` → Jour J ; `closed` →
   clôturé).
 
-Rien d'incompatible : les valeurs d'avant restent lues ; l'énumération des statuts ne change pas.
+**Un changement incompatible, accordé par J1** : `EventStatus` (`packages/contracts/src/events/events.ts`) perd `in_preparation` ; tout le code qui le lit (27 fichiers, dont `lifecycle.ts`, `next-step.ts`, `event-status.ts`, `closing.ts`, `privacy-retention.ts`, `day-of-view.ts`, le jeu de recette `lib/recette/load.ts`, les synonymes d'import `import-synonyms.json` où « En préparation » mène désormais à `confirmed`, `import/fields.ts`, deux tests e2e) est mis à jour dans le même paquet. Le reste est compatible.
 
 ### 4.3 Événements internes (`domain_events`)
 
@@ -303,7 +303,7 @@ Le socle : tout ce qui se calcule, sans changer la forme des écrans (ils lisent
 | `lib/today/load.ts` (lignes d'attente) | Pour un prestataire, son nom seulement | `contact` rempli pour une ligne dont `actor.kind` est `client` ou `vendor` : pour les mariés, le premier client de l'évènement (`event_clients`, son contact du hub : nom, téléphone, e-mail) ; pour un prestataire, `contact_name` et `phone` de sa fiche ; sans téléphone, l'e-mail ; sans rien, aucun contact (aucun « — »). Lu par les services `events` et `vendors`, en une requête par source, jamais par ligne |
 | Portée « Moi » (nouveau, `lib/today/scope.ts`) | Tous les évènements visibles | Dans une organisation de plus d'un membre actif, « Moi » garde : les tâches confiées à la personne (`assignee_user_id`, 70a) ; les lignes des évènements dont elle est planner principale (`event_team_members.role = 'lead'`) qui ne sont pas confiées à une collègue (tâches des mariés ou d'un prestataire, paiements, relances, décisions, alertes) ; les lignes des évènements **sans planner principal** (J3) ; les tâches hors évènement qui lui sont confiées ou n'ont personne. Une personne seule : tout |
 | `modules/events/service.ts`, `repository.ts` | `listEvents` sans compte ; `lib/task-counts.ts` par organisation | `taskProgressByEvent(organizationId, eventIds)` : une requête groupée (faites, total, en retard selon l'état d'échéance unique de 70a, `due-state.ts`), hors tâches supprimées ; `listEvents` le joint pour la liste. `listAgencyOverview` (§ 5.3) |
-| `modules/events/lifecycle.ts` | Cinq étapes affichées ; `MANUAL_STATUSES` comprend `in_preparation` | `displayStep(status, phase)` (quatre étapes, J1) ; `MANUAL_STATUSES` réduit à ce que la frise propose (`option` → signé par « Le contrat est signé… », `closed` par « Clôturer ») ; `in_preparation` n'est plus posé à la main mais reste lu |
+| `modules/events/lifecycle.ts`, `packages/db/src/schema/events.ts` | Six statuts ; cinq étapes affichées ; `MANUAL_STATUSES` comprend `in_preparation` | Cinq statuts (`in_preparation` retiré, 0225, J1) ; `displayStep(status, phase)` (quatre étapes) ; `LIVE_STATUSES` = `confirmed` ; `MANUAL_STATUSES` réduit à ce que la frise propose (`option` → `confirmed` par « Le contrat est signé… », `closed` par « Clôturer ») |
 | `modules/events/service.ts` (`changeEventStatus`) | Pas de date de signature | `markContractSigned(organizationId, eventId, signedOn)` : passe une option en `confirmed`, écrit `effective_on` (0224) ; l'automatisation `quote_signed_confirm_event` écrit la date de signature du devis (`quote_signers.signed_at`) |
 | `app/events/[id]/next-step.ts` | Quatre étapes en bandeau | Les mêmes règles, rendues comme une **ligne de la suite** (`nature: step`) : « Préparer le programme du baptême · Le baptême est dans 39 jours et son programme est vide · Ouvrir le programme » ; aucune règle ne change (programme à trois mois, liens des mariés) |
 
@@ -327,14 +327,15 @@ Le socle : tout ce qui se calcule, sans changer la forme des écrans (ils lisent
 7. **Isolation** : une Planner restreinte (lot 52) ne voit ni ligne, ni alerte du radar, ni nombre d'un
    évènement hors de son équipe ; l'organisation A ne lit ni contact ni compte de B.
 8. « Le contrat est signé… » au 2 avril pose « Confirmé » et la date du 2 avril ; une date future est
-   refusée sous le champ ; un statut `in_preparation` existant s'affiche « Signé, en préparation ».
+   refusée sous le champ. Après 0225, aucun évènement ni aucune ligne d'historique n'est en
+   `in_preparation` ; un import qui lit « En préparation » crée un évènement « Confirmé ».
 9. Le compte des tâches par évènement d'une agence de 40 évènements et 1 600 tâches tient sous le seuil
    de l'ADR 0115 (mesuré comme lui).
 
 **Tests** : Vitest (`rank.test.ts` et `parts.test.ts` réécrits : ordre, comptes, `shown`/`total` ;
 `scope.test.ts` ; `display-step.test.ts`, une ligne par statut et phase) ; intégration
 (`today-72a.integration.test.ts` : contact par source, portée « Moi », radar filtré ; `markContractSigned`
-et 0224, son retour arrière) ; isolation et abus (critère 7 ; `?vue=agence` d'une autre organisation ;
+0224 et 0225, leurs retours arrière, la conversion des lignes `in_preparation`) ; isolation et abus (critère 7 ; `?vue=agence` d'une autre organisation ;
 date de signature d'un évènement de B) ; performance (critère 9).
 
 ### 5.2 Paquet 72b — L'écran « Aujourd'hui » (page 13 et le haut de la page 14)
@@ -541,7 +542,7 @@ Sept paquets ; chacun laisse l'app cohérente, a sa PR, ses tests et son rejeu c
 
 | Paquet | Contenu | Dépend de | Migrations |
 | --- | --- | --- | --- |
-| **72a** Règles et comptes | Point = ligne, ordre, radar en lignes (et filtré), contact, portée « Moi », comptes par évènement, étapes affichées, « Le contrat est signé » côté service | **70a** (fusionné) | 0224 |
+| **72a** Règles et comptes | Statut « En préparation » retiré ; point = ligne, ordre, radar en lignes (et filtré), contact, portée « Moi », comptes par évènement, étapes affichées, « Le contrat est signé » côté service | **70a** (fusionné) | 0224, 0225 |
 | **72b** Écran « Aujourd'hui » | Vide, rempli, repris ; ordre des blocs ; ligne allégée ; panneau sur place ; « Tout afficher » ; « Pour bien démarrer » en ligne | 72a ; **70c** (ligne type `today`, panneau) ; **71f** pour « Reprises en cours » (sinon la section s'ajoute à 71f) ; **71b** pour le lien `/reprise` | — |
 | **72c** « Moi · L'agence » | Bascule, vue d'agence | 72b ; **70d** pour « Voir ses tâches » (sinon le lien mène à `/taches` sans filtre) | — |
 | **72d** En-tête, onglets, frise | En-tête en 200 px, menu « ⋯ », onglets, barre fine, frise en lecture, lignes d'état | 72a ; **70c** (onglet renommé `taches`) | — |
@@ -591,7 +592,7 @@ ma recommandation. Je les pose une par une. Celles qui touchent le cahier des ch
 
 | # | Question | Où regarder | Proposition | L'autre voie | Recommandation |
 | --- | --- | --- | --- | --- | --- |
-| J1 | **« Confirmé » et « En préparation » en base** (E1 les fond à l'écran et laisse ce point au lot de réalisation). EVT-05 cite les deux. | Page 15, « La frise » ; `lifecycle.ts` ; note 09 § 3 (E1) | Garder les deux statuts en base, une seule étape affichée ; « Le contrat est signé… » pose « Confirmé » ; « En préparation » n'est plus posé à la main mais reste lu (aucune règle ne les distingue) | Une migration qui passe les « En préparation » en « Confirmé » et retire la valeur de l'énumération | **La proposition** : aucune donnée touchée, aucun contrat cassé, et rien ne les distingue aujourd'hui. Écart avec EVT-05 dans `gap.csv` (Q49) |
+| J1 | **« Confirmé » et « En préparation » en base** (E1 les fond à l'écran). | Page 15, « La frise » ; `lifecycle.ts` | Garder les deux en base, une seule étape affichée | Migrer « En préparation » vers « Confirmé » et retirer la valeur | **Tranché le 27/11 par Julien : retirer « En préparation »** (« Je n'ai rien en production… le staging sera remis à zéro si besoin »). Migration 0225, contrat `EventStatus` modifié (§ 4.2), ADR au paquet 72a |
 | J2 | **La date de signature** : « Signé le » peut être passée (contrat signé sur papier). Jusqu'où en arrière ? | Page 15, « Le contrat est signé… » ; § 4.1 | Une colonne `effective_on` (0224) ; aujourd'hui par défaut ; jusqu'à un an avant la création de l'évènement ; jamais dans le futur | Pas de date : la signature est le jour du clic (« depuis le 25 nov. » pour un contrat d'avril) | **La proposition** : la frise dit une date vraie, et c'est ce que montre la maquette |
 | J3 | **« Moi » et les évènements sans planner principal** | Page 14, « La vue d'une agence » ; `event_team_members` | Leurs lignes (paiements, attentes, tâches sans personne) vont dans le « Moi » de tout le monde | Elles ne vont dans le « Moi » de personne, seulement dans « L'agence » | **La proposition** : sinon un paiement en retard d'un mariage sans planner principal ne se voit plus que si l'on pense à basculer |
 | J4 | **La bascule « Moi · L'agence » : par défaut, et gardée où ?** | Page 14 | « Moi » par défaut pour tous ; le dernier choix gardé sur l'appareil (cookie), sans migration | Gardé par personne en base (une colonne de plus dans `hub.memberships`), le même sur tous ses appareils | **La proposition** : un choix d'affichage, comme le menu réduit ; on peut passer en base plus tard si Nadia le demande |
@@ -633,9 +634,9 @@ ma recommandation. Je les pose une par une. Celles qui touchent le cahier des ch
 À signaler ; **aucun ADR n'est écrit dans cette PR**.
 
 1. **Statuts affichés en quatre étapes (EVT-05 en cite sept)** : « Confirmé » et « En préparation »
-   fondus à l'écran, « Jour J » restant une phase. → `gap.csv` et Q49 ; **ADR à écrire** au paquet 72a
-   si Julien retient J1 (le statut affiché n'est plus le statut en base, décision structurante pour les
-   écrans, les exports et le portail).
+   réunis en un seul statut (« Confirmé » en base, « Signé, en préparation » à l'écran ; « En
+   préparation » retiré, J1 tranchée le 27/11), « Jour J » restant une phase. → `gap.csv` et Q49 ;
+   **ADR à écrire** au paquet 72a (un statut du cahier des charges disparaît de la base).
 2. **HUB-08 « tri par urgence »** : l'ordre retenu (A2) est « les retards, puis par date, quel que soit
    qui agit ». C'est une lecture de l'urgence, pas un écart ; à écrire dans `gap.csv`.
 3. **Onglets du cockpit** (patrons d'interface : « Synthèse, Planning, Budget, Prestataires, Invités,

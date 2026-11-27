@@ -995,9 +995,10 @@ Ouverts ; chacun a sa recommandation. (Q48 est celle du lot 71, pas encore fusio
 1. **Les statuts d'un évènement (EVT-05)**. Le cahier des charges cite « Option, Confirmé, En
    préparation, Jour J, Clôturé, Reporté, Annulé ». La frise retenue (E1) n'affiche que quatre étapes :
    « Une demande en cours », « Signé, en préparation », « Jour J », « Clôturé », Reporté et Annulé étant
-   des lignes d'état. Proposition (décision J1 du lot) : garder « Confirmé » et « En préparation » en
-   base, fondus à l'écran (aucune règle de l'app ne les distingue), écart noté dans `gap.csv`, ADR au
-   paquet 72a.
+   des lignes d'état. **Tranché le 27/11 par Julien (J1)** : « En préparation » est retiré de la base
+   (migration 0225, les évènements passent en « Confirmé ») ; un seul statut, affiché « Signé, en
+   préparation ». Aucune règle de l'app ne distinguait les deux, et rien n'est en production. Écart
+   noté dans `gap.csv`, ADR au paquet 72a.
 2. **Les onglets du cockpit (patrons d'interface)**. Le cahier des charges cite « Synthèse, Planning,
    Budget, Prestataires, Invités, Documents, Jour J ». L'app aura « Synthèse, Budget et prestataires,
    Tâches, Programme, Devis et factures, Mariés, Documents, Invités » (« Tâches » tranché en Q47 ;
