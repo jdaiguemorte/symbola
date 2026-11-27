@@ -12,7 +12,7 @@ import { createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
 import { createVendor, createVendorTag, createVendorType, listVendorTypes, seedStarterVendorCatalog } from "../modules/vendors/service";
 import { vendorCatalogInput } from "../lib/vendors/catalog";
-import { readyOrganization, signIn as signInByLink } from "./helpers";
+import { feedback, readyOrganization, signIn as signInByLink } from "./helpers";
 
 async function loginAndSetupMfa(page: Page, email: string, _password: string) {
   // Lot 33 : lien magique et fournisseur d'identité (e2e/helpers.ts).
@@ -191,7 +191,7 @@ test("L21-EVT-21 — Programme du jour J : la liste des modèles, puis le détai
   await expect(page.getByRole("heading", { name: "Mariage laïque", level: 1 })).toBeVisible();
   await page.getByRole("button", { name: "Supprimer ce modèle" }).click();
   await expect(page).toHaveURL(/\/events\/modeles-programme$/);
-  await expect(page.getByRole("status").filter({ hasText: "Modèle mis à la corbeille." })).toBeVisible();
+  await expect(feedback(page).filter({ hasText: "Modèle mis à la corbeille." })).toBeVisible();
   await expect(page.getByText("Aucun modèle de programme pour l'instant.")).toBeVisible();
 });
 

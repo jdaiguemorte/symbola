@@ -114,8 +114,12 @@ test("EVT-01, EVT-07, CHR-01 — « Nouveau » sur les trois vues ; un mariage c
   // Retour au mariage, sans client (facultatif pour un évènement confirmé) : il faut alors un nom (Q43).
   await types.selectOption({ value: weddingTypeId });
   await page.getByRole("button", { name: "Créer l'évènement" }).click();
-  await expect(page.getByRole("alert").filter({ hasText: "Sans client, donnez un nom à l'évènement." })).toBeVisible({ timeout: 20_000 });
-  await page.getByLabel(/Nom de l'évènement/).fill("Mariage Bernard");
+  // Lot 70b (UX-10) : l'erreur s'écrit sous le champ, liée à lui ; le focus y va.
+  const eventName = page.getByLabel(/Nom de l'évènement/);
+  await expect(eventName).toHaveAttribute("aria-invalid", "true");
+  await expect(eventName).toHaveAccessibleDescription(/Donnez un nom à l'évènement, ou indiquez son client\./);
+  await expect(eventName).toBeFocused();
+  await eventName.fill("Mariage Bernard");
   await page.getByRole("button", { name: "Créer l'évènement" }).click();
   await expect(page).toHaveURL(/\/events\/[0-9a-f-]{36}/, { timeout: 20_000 });
   const eventId = /\/events\/([0-9a-f-]{36})/.exec(page.url())![1]!;

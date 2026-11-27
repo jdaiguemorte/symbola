@@ -4,6 +4,8 @@
 // cocher une tâche (avec « Annuler » pendant dix secondes), la rétablir, la reporter, noter la relance
 // d'un prestataire (lot 65d). Contrôles côté serveur : session planner, organisation, module
 // Évènements souscrit, identifiants valides ; le retour ne mène qu'à l'accueil ou à la fiche.
+import { fieldErrors, translatedFieldErrors } from "@/lib/forms/field-validation";
+import { postponeFieldsSchema } from "@/lib/forms/postpone-fields";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
@@ -68,7 +70,8 @@ export async function undoTaskAction(formData: FormData): Promise<void> {
   redirect(returnPath(formData, eventId));
 }
 
-export type PostponeState = { error?: string; message?: string };
+// Lot 70b (UX-10) : `fieldErrors`, les erreurs de saisie traduites, sous le champ.
+export type PostponeState = { error?: string; message?: string; fieldErrors?: Record<string, string> };
 
 // Cockpit : « Reporter » une tâche à une nouvelle date.
 export async function postponeTaskAction(_prev: PostponeState, formData: FormData): Promise<PostponeState> {
@@ -79,7 +82,8 @@ export async function postponeTaskAction(_prev: PostponeState, formData: FormDat
   const taskId = String(formData.get("taskId") ?? "");
   const dueDate = String(formData.get("dueDate") ?? "");
   if (!isValidId(eventId) || !isValidId(taskId)) return { error: t("taskNotFound") };
-  if (!DATE_PATTERN.test(dueDate)) return { error: t("invalidDate") };
+  const invalid = fieldErrors(postponeFieldsSchema, { dueDate });
+  if (invalid.length > 0) return { fieldErrors: translatedFieldErrors(invalid, await getTranslations("Validation")) };
   try {
     await updateEventTask({ organizationId: allowed.organizationId, taskId, dueDate });
   } catch (error) {

@@ -112,7 +112,8 @@ export async function organizationMessages(locale: Locale): Promise<typeof frMes
 
 // Création d'un événement : les champs des clients changent de libellé avec le
 // type choisi (« Prénom du premier marié » ou « Prénom du premier contact »).
-const CLIENT_FIELD_KEYS = ["client1FirstName", "client1LastName", "client2FirstName", "client2LastName"] as const;
+// Lot 70b (ADR 0045) : avec le message du prénom manquant, dit lui aussi dans le vocabulaire du type.
+const CLIENT_FIELD_KEYS = ["client1FirstName", "client1LastName", "client2FirstName", "client2LastName", "missingFirstName"] as const;
 export type ClientFieldLabels = Record<(typeof CLIENT_FIELD_KEYS)[number], string>;
 
 export function clientFieldLabelsByAudience(locale: Locale): Record<Audience, ClientFieldLabels> {

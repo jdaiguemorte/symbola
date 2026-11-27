@@ -64,6 +64,7 @@ import { TutorialPanel, type TutorialSuggestion } from "./tutorial-panel";
 import { loadTutorialPanel, type TutorialPanelState } from "@/lib/help/tutorial-panel";
 import { journeyStates } from "@/lib/help/journey";
 import { UndoNotice } from "./undo-notice";
+import { FeedbackProvider } from "./ui/feedback";
 import { NetworkStatus } from "./ui/network-status";
 import { NavigationSkeleton } from "./ui/navigation-skeleton";
 import { TaskUndoProvider } from "./taches/task-undo";
@@ -500,17 +501,20 @@ export async function AppShell({ children }: { children: ReactNode }) {
         </AppSidebar>
         <HelpProvider>
           <div className="app-main">
-            <section className="app-topbar" aria-label={t("topBar")}>
-              <HelpButton />
-            </section>
-            {/* Lot 39b (NFR-16) : la coupure réseau est annoncée, la saisie gardée. */}
-            <NetworkStatus />
-            {/* Lot 39a (UX-07) : « Annuler » pendant dix secondes après une suppression. */}
-            <UndoNotice />
-            {/* Lot 39c (UX-15) : squelette d'écran au passage d'un écran à l'autre. */}
-            <NavigationSkeleton label={tLoading("label")} />
-            <span id="contenu" className="skip-target" tabIndex={-1} />
-            {children}
+            {/* Lot 70b (UX-07, M5) : le message de retour unique, en bas à gauche du contenu. */}
+            <FeedbackProvider>
+              <section className="app-topbar" aria-label={t("topBar")}>
+                <HelpButton />
+              </section>
+              {/* Lot 39b (NFR-16) : la coupure réseau est annoncée, la saisie gardée. */}
+              <NetworkStatus />
+              {/* Lot 39a (UX-07) : « Annuler » pendant dix secondes après une suppression. */}
+              <UndoNotice />
+              {/* Lot 39c (UX-15) : squelette d'écran au passage d'un écran à l'autre. */}
+              <NavigationSkeleton label={tLoading("label")} />
+              <span id="contenu" className="skip-target" tabIndex={-1} />
+              {children}
+            </FeedbackProvider>
           </div>
         </HelpProvider>
       </div>
@@ -634,37 +638,41 @@ export async function AppShell({ children }: { children: ReactNode }) {
       </AppSidebar>
       <HelpProvider>
         <div className="app-main">
-          {/* Lot 16 (L16-HUB-19, ADR 0039) : recherche à gauche, le seul « ? » à droite. */}
-          <section className="app-topbar" aria-label={t("topBar")}>
-            {isTeam ? <SearchBox actions={paletteActions} /> : null}
-            {/* Lot 32b (HUB-07, D9) : création rapide, touche N ; ses entrées suivent les modules. */}
-            {isTeam ? <QuickCreate modules={{ events, quotes, budget }} /> : null}
-            {/* Lot 53 (HUB-15, UX-16) : la cloche des notifications, avant le « ? ». */}
-            {isTeam && organizationId ? <NotificationBell organizationId={organizationId} userId={auth.user.id} /> : null}
-            <HelpButton />
-          </section>
-          {settingsSections.length > 0 ? (
-            <SettingsNav
-              groups={settingsSections}
-              label={t("settingsSections")}
-            />
-          ) : null}
-          {/* L'invitation à un tutoriel s'affiche dans la page, plus en surimpression. */}
-          {helpBar ? (
-            <HelpBar tutorial={helpBar.tutorial} invites={helpBar.invites} />
-          ) : null}
-          {helpBar ? <TutorialPanel panel={helpBar.panel} done={helpBar.done} suggestion={helpBar.suggestion} /> : null}
-          <NetworkStatus />
-          {showMfaPrompt ? <MfaPromptBanner accountCenter={accountCenterUrl()} /> : null}
-          {/* Lot 54 (HUB-27, DOC-06) : essai, lecture seule, résiliation, quota de stockage. */}
-          {isTeam && organizationId && selfService ? <SubscriptionBanner organizationId={organizationId} isOwner={isOwner} /> : null}
-          {/* Lot 39a (UX-07) : « Annuler » pendant dix secondes après une suppression. */}
-          <UndoNotice />
-          {/* Lot 39c (UX-15) : squelette d'écran au passage d'un écran à l'autre. */}
-          <NavigationSkeleton label={tLoading("label")} />
-          <span id="contenu" className="skip-target" tabIndex={-1} />
-          {/* Lot 39c (UX-07) : « Annuler » pendant dix secondes après une tâche cochée dans un tableau. */}
-          <TaskUndoProvider undoLabel={tToday("undo.action")}>{children}</TaskUndoProvider>
+          {/* Lot 70b (UX-07, M5) : le message de retour unique, en bas à gauche du contenu ; le fournisseur
+              n'ajoute aucun élément : la zone du message est le dernier enfant de « app-main ». */}
+          <FeedbackProvider>
+            {/* Lot 16 (L16-HUB-19, ADR 0039) : recherche à gauche, le seul « ? » à droite. */}
+            <section className="app-topbar" aria-label={t("topBar")}>
+              {isTeam ? <SearchBox actions={paletteActions} /> : null}
+              {/* Lot 32b (HUB-07, D9) : création rapide, touche N ; ses entrées suivent les modules. */}
+              {isTeam ? <QuickCreate modules={{ events, quotes, budget }} /> : null}
+              {/* Lot 53 (HUB-15, UX-16) : la cloche des notifications, avant le « ? ». */}
+              {isTeam && organizationId ? <NotificationBell organizationId={organizationId} userId={auth.user.id} /> : null}
+              <HelpButton />
+            </section>
+            {settingsSections.length > 0 ? (
+              <SettingsNav
+                groups={settingsSections}
+                label={t("settingsSections")}
+              />
+            ) : null}
+            {/* L'invitation à un tutoriel s'affiche dans la page, plus en surimpression. */}
+            {helpBar ? (
+              <HelpBar tutorial={helpBar.tutorial} invites={helpBar.invites} />
+            ) : null}
+            {helpBar ? <TutorialPanel panel={helpBar.panel} done={helpBar.done} suggestion={helpBar.suggestion} /> : null}
+            <NetworkStatus />
+            {showMfaPrompt ? <MfaPromptBanner accountCenter={accountCenterUrl()} /> : null}
+            {/* Lot 54 (HUB-27, DOC-06) : essai, lecture seule, résiliation, quota de stockage. */}
+            {isTeam && organizationId && selfService ? <SubscriptionBanner organizationId={organizationId} isOwner={isOwner} /> : null}
+            {/* Lot 39a (UX-07) : « Annuler » pendant dix secondes après une suppression. */}
+            <UndoNotice />
+            {/* Lot 39c (UX-15) : squelette d'écran au passage d'un écran à l'autre. */}
+            <NavigationSkeleton label={tLoading("label")} />
+            <span id="contenu" className="skip-target" tabIndex={-1} />
+            {/* Lot 39c (UX-07) : « Annuler » pendant dix secondes après une tâche cochée dans un tableau. */}
+            <TaskUndoProvider undoLabel={tToday("undo.action")}>{children}</TaskUndoProvider>
+          </FeedbackProvider>
         </div>
       </HelpProvider>
     </div>

@@ -1,6 +1,6 @@
 // Aides communes aux parcours e2e (ADR 0025).
 import { createHash } from "node:crypto";
-import { expect, type Page } from "@playwright/test";
+import { expect, type Locator, type Page } from "@playwright/test";
 import { and, eq, inArray, isNull } from "drizzle-orm";
 import { Secret, TOTP } from "otpauth";
 import { createManagementClient, createOrganization } from "@symbola/auth";
@@ -12,6 +12,12 @@ import { fillRequiredMentions } from "../lib/test-fixtures/legal-mentions";
 // Sur téléphone, le menu latéral est replié derrière le bouton « Menu » :
 // l'ouvrir avant de cliquer un lien du menu ou « Se déconnecter ». Sur
 // ordinateur, le bouton est masqué et le menu toujours visible : rien à faire.
+// Lot 70b (UX-07, M5) — le message de retour unique du gabarit (app/ui/feedback.tsx) : une zone
+// `aria-live`, pas un `status`, pour ne pas se confondre avec les messages des formulaires.
+export function feedback(page: Page): Locator {
+  return page.locator(".feedback-region .feedback");
+}
+
 export async function openMenu(page: Page): Promise<void> {
   // Le libellé change (« Menu » / « Fermer le menu ») : cibler le bouton par
   // ce qu'il commande.

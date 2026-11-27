@@ -14,6 +14,12 @@ import { RequiredLegend, RequiredMark } from "@/app/ui/required-mark";
 import { ResponsibleSelect, type TaskVendorOption } from "@/app/events/[id]/task-forms";
 import type { TaskMemberOption } from "@/app/events/[id]/task-responsible";
 import { deleteTaskAction, saveTaskAction, type TaskRowState } from "./task-row-actions";
+import { ErrorSummary } from "@/app/ui/error-summary";
+import { FieldError } from "@/app/ui/field-error";
+import { useFeedback } from "@/app/ui/feedback";
+import { useFieldValidation } from "@/app/ui/use-field-validation";
+import { useRetryableAction } from "@/app/ui/use-retryable-action";
+import { taskFieldsSchema } from "@/lib/forms/task-fields";
 
 export type TaskDialogTask = {
   id: string;
@@ -54,7 +60,27 @@ export function TaskDialog({
   const router = useRouter();
   const dialog = useRef<HTMLDialogElement>(null);
   const titleId = useId();
-  const [state, action, pending] = useActionState(saveTaskAction, {} as TaskRowState);
+  const tFeedback = useTranslations("Feedback");
+  const feedback = useFeedback();
+  const formRef = useRef<HTMLFormElement>(null);
+  // Lot 70b (NFR-16) : la connexion coupée à l'envoi ne perd rien ; le message propose « Réessayer ».
+  // Enregistrée : la fenêtre se ferme et le message le dit, dès la réponse (la page qui suit remonte
+  // la fenêtre avec les nouvelles valeurs : un effet sur l'état n'aurait pas le temps de partir).
+  const saveAction = useRetryableAction(
+    async (previous: TaskRowState, formData: FormData) => {
+      const result = await saveTaskAction(previous, formData);
+      if (result.success) {
+        feedback?.show({ title: tFeedback("taskSaved", { label: String(formData.get("label") ?? "").trim() }) });
+        close();
+      }
+      return result;
+    },
+    formRef,
+    tFeedback("taskNotSaved"),
+  );
+  const [state, action, pending] = useActionState(saveAction, {} as TaskRowState);
+  // Lot 70b (UX-10) : validation écrite par Symbola, le même schéma qu'au serveur.
+  const validation = useFieldValidation(taskFieldsSchema, state.fieldErrors);
   const [label, setLabel] = useState(task.label);
   const [dueDate, setDueDate] = useState(task.dueDate);
   const [responsible, setResponsible] = useState(task.responsible);
@@ -74,10 +100,6 @@ export function TaskDialog({
     router.replace(closeHref, { scroll: false });
   };
 
-  // Enregistrée : la fenêtre se ferme, la ligne montre les nouvelles valeurs.
-  useEffect(() => {
-    if (state.success) close();
-  }, [state]);
 
   const long = sections.length > 0;
   return (
@@ -114,14 +136,16 @@ export function TaskDialog({
                 {eventLink.names} · <Link href={eventLink.href}>{eventLink.label}</Link>
               </p>
             ) : null}
-            <form action={action} id={`${titleId}-form`} className="task-dialog-form">
+            <form ref={formRef} action={action} id={`${titleId}-form`} className="task-dialog-form" noValidate onSubmit={validation.onSubmit} onInput={validation.onInput}>
+              <ErrorSummary errors={validation.errors} labels={{ label: t("taskColumnLabel"), dueDate: t("taskDueDate") }} fieldId={validation.fieldId} summaryKey="summaryTask" />
               <input type="hidden" name="taskId" value={task.id} />
               <label>
                 <span>
                   {t("taskColumnLabel")}
                   <RequiredMark />
                 </span>
-                <input type="text" name="label" required maxLength={300} autoFocus value={label} onChange={(event) => setLabel(event.target.value)} />
+                <input type="text" name="label" required maxLength={300} autoFocus value={label} onChange={(event) => setLabel(event.target.value)} {...validation.fieldProps("label")} />
+                <FieldError id={validation.errorId("label")} message={validation.errorFor("label")} />
               </label>
               <div className="field-row">
                 <label className="field-fit">
@@ -129,7 +153,8 @@ export function TaskDialog({
                     {t("taskDueDate")}
                     <RequiredMark />
                   </span>
-                  <input type="date" name="dueDate" className="field-date" required value={dueDate} onChange={(event) => setDueDate(event.target.value)} />
+                  <input type="date" name="dueDate" className="field-date" required value={dueDate} onChange={(event) => setDueDate(event.target.value)} {...validation.fieldProps("dueDate")} />
+                  <FieldError id={validation.errorId("dueDate")} message={validation.errorFor("dueDate")} />
                 </label>
                 <ResponsibleSelect value={responsible} onChange={setResponsible} vendors={vendors} members={members} />
               </div>

@@ -10,7 +10,7 @@ import { expect, test, type Page } from "@playwright/test";
 import { createUser } from "@symbola/auth";
 import { createAppConnection } from "@symbola/db/client";
 import { addProgramItem, createProspect, createProspectSource } from "../modules/events/service";
-import { openSettingsTab, readyOrganization, signIn } from "./helpers";
+import { feedback, openSettingsTab, readyOrganization, signIn } from "./helpers";
 
 async function expectNoAxeViolation(page: Page) {
   const result = await new AxeBuilder({ page }).analyze();
@@ -84,7 +84,7 @@ test("HUB-21 — Modèles de messages : modèles de départ, une version à chaq
   await page.getByRole("button", { name: "Dupliquer le modèle" }).click();
   await expect(page.getByRole("heading", { name: "Copie de Proposer un rendez-vous", level: 1 })).toBeVisible();
   await page.getByRole("button", { name: "Supprimer le modèle" }).click();
-  await expect(page.getByRole("status").filter({ hasText: "Modèle mis à la corbeille." })).toBeVisible();
+  await expect(feedback(page).filter({ hasText: "Modèle mis à la corbeille." })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Modèles de messages", level: 1 })).toBeVisible();
   await expect(page.getByRole("link", { name: "Copie de Proposer un rendez-vous" })).toHaveCount(0);
   await expectNoHorizontalScroll(page);

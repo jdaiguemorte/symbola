@@ -584,7 +584,7 @@
     },
     "eventsDetail": {
       "title": "Fiche de l'évènement",
-      "body": "Tout l'évènement, en onglets. La « Synthèse » s'ouvre sur la prochaine action et qui doit agir, puis la santé de l'évènement (planning, budget, décisions du client) et les quatorze prochains jours ; « Modifier les informations », en tête de la fiche d'identité, ouvre un panneau où elles se modifient, fuseau de l'évènement compris. La frise du haut montre où il en est : Option, Confirmé, En préparation, Jour J, Clôturé. Cliquez une étape pour la poser ; « Jour J » s'applique de lui-même le jour de l'évènement, et la clôture vous est proposée dès le lendemain. « Reporter l'évènement… » demande la nouvelle date : à la confirmation du report, les échéances du rétroplanning suivent, sauf les tâches faites et celles dont vous avez fixé la date ; celles qui tomberaient dans le passé sont listées avant. « Annuler l'évènement… » demande un motif : les données restent, les liens se ferment, les rappels et les factures d'acompte programmées s'arrêtent, et un avoir vous est proposé pour chaque facture émise. La « Fiche d'identité » rassemble les invités estimés et confirmés, les lieux, les interlocuteurs, le style et les notes ; les lieux se gèrent dans l'onglet « Programme du jour J » (adresse, ville, horaires, contact sur place), le premier étant le lieu de réception. Dans ce même onglet, chaque séquence du programme est une ligne : « Modifier » l'ouvre sur place, « Ajouter une séquence » en crée une ; rien ne part tant que vous n'avez pas cliqué « Enregistrer le programme », qui dit combien de lignes attendent, et « Annuler les modifications » rend le programme enregistré. Les chevauchements signalés ne concernent pas vos clients, présents à toutes les séquences, et se lisent jour par jour. Les PDF séparent les jours d'un programme de plusieurs jours ; la version équipe place la note interne sous chaque séquence. Une tâche se confie à vous, aux mariés ou à un prestataire retenu, qui la coche dans son espace ; ses pièces jointes et ses commentaires restent dans l'équipe. Cochée par erreur, une tâche se rétablit par « Annuler », pendant dix secondes. Le bandeau « Prochaine étape » propose l'étape du parcours (envoyer le devis, appliquer le rétroplanning, créer les liens des mariés). Dans « Budget et prestataires », chaque ligne dit où en est le choix (« Retenu », « 2 en comparaison », « À trouver ») ; « + Ajouter des prestataires » propose, pour chaque fiche du carnet du métier, « Comparer » ou « Retenir », jamais d'office. La fenêtre du poste compare les prestataires côte à côte (devis, disponibilité, déjà travaillé ensemble, dernière relance, note) : « Retenir », « Écarter », puis « Changer de prestataire » ou « Ne plus retenir », sans supprimer la ligne ; « Poste suivant » enchaîne. « Reprendre les prestataires retenus (PDF) » lit l'export des prestataires de votre ancien logiciel : chaque prestataire est retrouvé dans le carnet ou créé, puis retenu sur la ligne de son métier, après votre contrôle. Chaque onglet a son lien « Réglages » vers ses modèles.",
+      "body": "Tout l'évènement, en onglets. La « Synthèse » s'ouvre sur la prochaine action et qui doit agir, puis la santé de l'évènement (planning, budget, décisions du client) et les quatorze prochains jours ; « Modifier les informations », en tête de la fiche d'identité, ouvre un panneau où elles se modifient, fuseau de l'évènement compris. La frise du haut montre où il en est : Option, Confirmé, En préparation, Jour J, Clôturé. Cliquez une étape pour la poser ; « Jour J » s'applique de lui-même le jour de l'évènement, et la clôture vous est proposée dès le lendemain. « Reporter l'évènement… » demande la nouvelle date : à la confirmation du report, les échéances du rétroplanning suivent, sauf les tâches faites et celles dont vous avez fixé la date ; celles qui tomberaient dans le passé sont listées avant. « Annuler l'évènement… » ouvre une fenêtre qui dit ce qui va se passer et demande un motif : les données restent, les liens se ferment, les rappels et les factures d'acompte programmées s'arrêtent, et un avoir vous est proposé pour chaque facture émise ; « Garder l'évènement » renonce. Un évènement annulé se rétablit depuis sa fiche (« Rétablir l'évènement ») : il revient en « Option ». La « Fiche d'identité » rassemble les invités estimés et confirmés, les lieux, les interlocuteurs, le style et les notes ; les lieux se gèrent dans l'onglet « Programme du jour J » (adresse, ville, horaires, contact sur place), le premier étant le lieu de réception. Dans ce même onglet, chaque séquence du programme est une ligne : « Modifier » l'ouvre sur place, « Ajouter une séquence » en crée une ; rien ne part tant que vous n'avez pas cliqué « Enregistrer le programme », qui dit combien de lignes attendent, et « Annuler les modifications » rend le programme enregistré. Les chevauchements signalés ne concernent pas vos clients, présents à toutes les séquences, et se lisent jour par jour. Les PDF séparent les jours d'un programme de plusieurs jours ; la version équipe place la note interne sous chaque séquence. Une tâche se confie à vous, aux mariés ou à un prestataire retenu, qui la coche dans son espace ; ses pièces jointes et ses commentaires restent dans l'équipe. Cochée par erreur, une tâche se rétablit par « Annuler », pendant dix secondes. Le bandeau « Prochaine étape » propose l'étape du parcours (envoyer le devis, appliquer le rétroplanning, créer les liens des mariés). Dans « Budget et prestataires », chaque ligne dit où en est le choix (« Retenu », « 2 en comparaison », « À trouver ») ; « + Ajouter des prestataires » propose, pour chaque fiche du carnet du métier, « Comparer » ou « Retenir », jamais d'office. La fenêtre du poste compare les prestataires côte à côte (devis, disponibilité, déjà travaillé ensemble, dernière relance, note) : « Retenir », « Écarter », puis « Changer de prestataire » ou « Ne plus retenir », sans supprimer la ligne ; « Poste suivant » enchaîne. « Reprendre les prestataires retenus (PDF) » lit l'export des prestataires de votre ancien logiciel : chaque prestataire est retrouvé dans le carnet ou créé, puis retenu sur la ligne de son métier, après votre contrôle. Chaque onglet a son lien « Réglages » vers ses modèles.",
       "faq": [
         {
           "q": "Comment marquer un évènement perdu ?",
@@ -1166,7 +1166,7 @@
     },
     "trash": {
       "title": "Corbeille",
-      "body": "Ce que vous supprimez reste ici 30 jours : un évènement avec tout son contenu, un contact, un document, un modèle. « Restaurer » le remet tel qu'il était. Passé 30 jours, il est effacé pour de bon, fichiers compris ; seule la titulaire du compte peut l'effacer plus tôt. Les éléments d'une fiche (tâche, ligne, séquence, note…) ne passent pas par ici : ils s'annulent pendant dix secondes après leur suppression."
+      "body": "Ce que vous supprimez reste ici 30 jours : un évènement avec tout son contenu, un contact, un document, un modèle. « Restaurer » le remet tel qu'il était. Passé 30 jours, il est effacé pour de bon, fichiers compris ; seule la titulaire du compte peut l'effacer plus tôt, après avoir coché « Je comprends que … ne pourra pas être récupéré ». Les éléments d'une fiche (tâche, ligne, séquence, note…) ne passent pas par ici : ils s'annulent pendant dix secondes après leur suppression."
     },
     "guests": {
       "title": "Invités",
@@ -1615,14 +1615,13 @@
     "postponeNewDate": "Nouvelle date",
     "postponeUndecided": "Date à définir",
     "postponeHint": "Les échéances du rétroplanning se recalculeront quand vous confirmerez le report.",
-    "confirmPostpone": "Reporter",
+    "confirmPostpone": "Reporter l'évènement",
     "postponedBadge": "Reporté — prévu le {date}",
     "postponeDateRequired": "Indiquez la nouvelle date, ou cochez « Date à définir ».",
     "cancelAsk": "Annuler l'évènement…",
-    "cancelTitle": "Annuler l'évènement {names} ?",
-    "cancelBody": "Les données restent. Les liens des clients et des prestataires se ferment, les rappels s'arrêtent, et les factures d'acompte programmées ne partent plus. Les factures déjà émises restent : un avoir vous est proposé pour chacune.",
+    "cancelTitle": "Annuler l'évènement « {names} » ?",
+    "cancelBody": "Le statut passe à « Annulé ». Ses données restent.",
     "confirmCancel": "Annuler l'évènement",
-    "reactivate": "Réactiver (repasse en Option)",
     "postponementTitle": "Confirmer le report",
     "postponementBody": "Nouvelle date : {date}. En confirmant, les échéances relatives suivent ; les tâches faites et celles fixées à la main ne bougent pas.",
     "postponementNoDate": "Choisissez la nouvelle date (champ « Date de l'évènement ») pour confirmer le report.",
@@ -2442,6 +2441,21 @@
     "taskDialogOpenEvent": "Ouvrir le rétroplanning de l'évènement",
     "activityEmailSent": "{actor} a envoyé « {kind} » de sa messagerie.",
     "activityFormerMember": "Une personne de l'équipe",
+    "cancelRestore": "Vous pourrez le rétablir depuis sa fiche : il revient en « Option », comme demande en cours, à confirmer de nouveau.",
+    "cancelLinks": "Les clients et les prestataires ne peuvent plus ouvrir leur lien personnel ; il se rouvre si vous le rétablissez.",
+    "cancelReminders": "Les rappels s'arrêtent ; les factures d'acompte programmées ne partent plus.",
+    "cancelInvoices": "Les factures déjà émises restent : un avoir vous est proposé pour chacune.",
+    "cancelNobody": "Personne n'est prévenu par Symbola.",
+    "cancelReason": "Motif (pour vous)",
+    "keepEvent": "Garder l'évènement",
+    "restoreEvent": "Rétablir l'évènement",
+    "postponeTitle": "Reporter l'évènement « {names} » ?",
+    "postponeBody": "Le statut passe à « Reporté ». Les clients et les prestataires gardent leur lien ; personne n'est prévenu par Symbola.",
+    "keepDate": "Garder la date",
+    "statusCancelledMessage": "Évènement annulé : {names}",
+    "statusPostponedMessage": "Évènement reporté : {names}",
+    "statusRestoredMessage": "Évènement rétabli : {names}",
+    "statusRestoredDetail": "Il est revenu en « Option », à confirmer de nouveau.",
     "responsibleYou": "Vous",
     "responsibleMemberRemoved": "{name} (accès retiré)",
     "responsibleNobody": "Personne pour l’instant"
@@ -7334,8 +7348,8 @@
     "points": "{count, plural, one {# point à traiter} other {# points à traiter}}",
     "upToDate": "À jour",
     "undo": {
-      "taskDone": "Tâche « {label} » faite.",
-      "taskReopened": "Tâche « {label} » remise à faire.",
+      "taskDone": "Tâche faite : {label}",
+      "taskReopened": "Tâche remise à faire : {label}",
       "action": "Annuler"
     },
     "remind": {
@@ -8282,7 +8296,8 @@
     "buttonLabelHint": "Le texte du bouton qui ouvre le lien, dans votre vocabulaire. Laissé vide : « {label} ».",
     "errorButtonLabelTooLong": "Le libellé du bouton dépasse {max} caractères.",
     "brandingLink": "Marque et signature des e-mails",
-    "brandingLinkHint": "Police, ligne de pied, nom affiché de l'expéditeur et modèle des signatures de l'équipe."
+    "brandingLinkHint": "Police, ligne de pied, nom affiché de l'expéditeur et modèle des signatures de l'équipe.",
+    "resetKeep": "Garder mon texte"
   },
   "Calendar": {
     "personFeed": "{organization} — évènements",
@@ -8908,7 +8923,6 @@
       "restored": "C'est rétabli.",
       "gone": "Ce n'est plus possible : c'est déjà effacé.",
       "conflict": "Un autre contact porte déjà cette adresse e-mail : le contact reste dans la corbeille.",
-      "seeTrash": "Voir la corbeille",
       "task": "Tâche supprimée.",
       "taskBatch": "Tâches supprimées.",
       "programItem": "Séquence supprimée.",
@@ -8927,9 +8941,12 @@
       "messageTemplate": "Modèle mis à la corbeille.",
       "vendor": "Prestataire archivé.",
       "appointmentType": "Type de rendez-vous mis à la corbeille.",
-      "appointment": "Rendez-vous mis à la corbeille."
+      "appointment": "Rendez-vous mis à la corbeille.",
+      "inTrash": "À retrouver dans la Corbeille des Paramètres pendant 30 jours."
     },
     "eventAssistant": "Comme assistant de cet évènement, vous ne pouvez pas le supprimer : demandez à son planner principal ou à la Propriétaire.",
+    "deleteForGoodKeep": "Garder dans la Corbeille",
+    "deleteForGoodAcknowledge": "Je comprends que « {name} » ne pourra pas être récupéré.",
     "taskBatch": "{count} tâches de {event}",
     "taskBatchNoEvent": "{count} tâches"
   },
@@ -12759,7 +12776,7 @@
     "removeSlotTitle": "Supprimer le poste « {slot} » ?",
     "removeSlotBody": "Ce poste n'a ni prestataire, ni montant, ni échéance : il disparaît de cet évènement. Pour le garder sans le chercher, cochez plutôt « Non requis » dans ses réglages.",
     "removeSlotConfirm": "Supprimer le poste",
-    "removeSlotCancel": "Annuler"
+    "removeSlotCancel": "Garder le poste"
   },
   "TaskCategories": {
     "title": "Catégories des tâches",
@@ -12906,5 +12923,35 @@
     "profileBody": "Votre nom, votre fonction et vos liens à la fin des e-mails que vous envoyez.",
     "profileLink": "Remplir ma signature",
     "previewLabel": "Aperçu de ma signature"
+  },
+  "Validation": {
+    "errorPrefix": "Erreur :",
+    "summary": "{count, plural, one {# champ à remplir ou à corriger} other {# champs à remplir ou à corriger}} avant de continuer.",
+    "summaryTask": "{count, plural, one {# champ à remplir} other {# champs à remplir}} avant d'enregistrer la tâche.",
+    "summaryEvent": "{count, plural, one {# champ à remplir} other {# champs à remplir}} avant de créer l'évènement.",
+    "summaryLink": "Aller au champ « {field} »",
+    "taskLabelRequired": "Donnez un nom à la tâche, par exemple « Réserver la navette ».",
+    "taskLabelTooLong": "Le nom de la tâche tient en 300 caractères au plus.",
+    "dueDateRequired": "Choisissez une date d'échéance.",
+    "dateInvalid": "Écrivez une date qui existe, au format jj/mm/aaaa.",
+    "clientFirstNameRequired": "Indiquez le prénom du client, ou choisissez-le dans vos contacts.",
+    "existingContactRequired": "Choisissez le client dans vos contacts.",
+    "eventNameRequired": "Donnez un nom à l'évènement, ou indiquez son client.",
+    "sourceRequired": "Choisissez d'où vient la demande.",
+    "datePlaceholder": "jj/mm/aaaa"
+  },
+  "Feedback": {
+    "close": "Fermer le message",
+    "undo": "Annuler",
+    "retry": "Réessayer",
+    "errorPrefix": "Erreur :",
+    "connectionLost": "Connexion perdue. Votre saisie est gardée.",
+    "taskNotSaved": "la tâche n'a pas été enregistrée",
+    "eventNotCreated": "l'évènement n'a pas été créé",
+    "dateNotChanged": "la date n'a pas été changée",
+    "taskSaved": "Tâche enregistrée : {label}",
+    "taskAdded": "Tâche ajoutée : {label}",
+    "dateChanged": "Date changée : {date}",
+    "restored": "C'est rétabli."
   }
 }

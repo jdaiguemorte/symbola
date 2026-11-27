@@ -231,7 +231,7 @@ export function BudgetVendorsTable({
                             title={t("removeSlotTitle", { slot: row.label })}
                             body={t("removeSlotBody")}
                             confirmLabel={t("removeSlotConfirm")}
-                            cancelLabel={t("removeSlotCancel")}
+                            keepLabel={t("removeSlotCancel")}
                             action={removeVendorSlotAction}
                             fields={{ eventId, vendorSlotId: row.slotId }}
                           />

@@ -12,9 +12,12 @@ import { makeCreatorLead, changeEventStatus, countOrganizationRealEvents, create
 import { getPlannerAuthContext } from "@/lib/auth-context";
 import { eventsMessageFor } from "@/lib/vocabulary";
 import { isEventsModuleEnabled } from "../module-access";
+import { fieldErrors, formValues, translatedFieldErrors } from "@/lib/forms/field-validation";
+import { newEventFieldsSchema } from "@/lib/forms/new-event-fields";
 import { isConfirmedChoice, NEW_EVENT_MODES, newEventRules, type NewEventMode } from "./new-event-mode";
 
-export type NewProspectFormState = { error?: string };
+// Lot 70b (UX-10) : `fieldErrors`, les erreurs de saisie traduites, sous les champs.
+export type NewProspectFormState = { error?: string; fieldErrors?: Record<string, string> };
 
 export async function createProspectAction(
   _prevState: NewProspectFormState,
@@ -53,6 +56,14 @@ export async function createProspectAction(
   const mode: NewEventMode = (NEW_EVENT_MODES as readonly string[]).includes(rawMode) ? (rawMode as NewEventMode) : formData.get("confirmed") === "1" ? "confirmed" : "prospect";
   const confirmed = isConfirmedChoice(mode, String(formData.get("status") ?? ""));
   const rules = newEventRules(mode, confirmed);
+  // Lot 70b (UX-10) : le même schéma qu'à l'écran ; les erreurs vont sous les champs.
+  const invalid = fieldErrors(newEventFieldsSchema({ ...rules, nameRequiredWithoutClient: !rules.clientRequired }), formValues(formData));
+  if (invalid.length > 0) {
+    // Le prénom manquant se dit dans le vocabulaire du type (ADR 0045).
+    const tValidation = await getTranslations("Validation");
+    const locale = (await getLocale()) as Locale;
+    return { fieldErrors: translatedFieldErrors(invalid, (key) => (key === "clientFirstNameRequired" ? eventsMessageFor(locale, eventType.audience, "missingFirstName") : tValidation(key))) };
+  }
   if (rules.existingContactOnly && !contactId1) return { error: t("missingExistingContact") };
   if (rules.clientRequired && !firstName1 && !contactId1) return { error: eventsMessageFor((await getLocale()) as Locale, eventType.audience, "missingFirstName") };
   if (rules.sourceRequired && !prospectSourceId) return { error: t("missingSource") };

@@ -584,7 +584,7 @@
     },
     "eventsDetail": {
       "title": "Event page",
-      "body": "The whole event, in tabs. The « Summary » opens on the next action and who has to act, then the event's health (planning, budget, client decisions) and the next fourteen days; « Edit the details », at the top of the event profile, opens a panel where they are edited, the event's time zone included. The top timeline shows where it stands: Option, Confirmed, In preparation, Event day, Closed. Click a step to set it; « Event day » applies by itself on the day of the event, and closing is offered from the next day. « Postpone the event… » asks for the new date: once you confirm the postponement, the planning's due dates follow, except tasks already done and those whose date you set by hand; the ones that would fall in the past are listed first. « Cancel the event… » asks for a reason: the data stays, links close, reminders and scheduled deposit invoices stop, and a credit note is offered for each issued invoice. The « Event profile » gathers estimated and confirmed guests, venues, contacts, style and notes; venues are managed in the « Day programme » tab (address, town, times, on-site contact), the first being the reception venue. In the same tab, each sequence of the schedule is a line: “Edit” opens it in place, “Add a sequence” creates one; nothing is sent until you click “Save the schedule”, which says how many lines are waiting, and “Discard changes” brings back the saved schedule. A task can be given to you, to the couple or to a retained vendor, who ticks it in their space; its attachments and comments stay within the team. Ticked by mistake, a task comes back with « Undo », for ten seconds. The « Next step » banner suggests the next stage (send the quote, apply the planning, create the couple's links). In « Budget and vendors », each row says where the choice stands (« Selected », « 2 being compared », « To find »); « + Add vendors » offers, for each record of the trade in your directory, « Compare » or « Select », never automatically. The item window compares vendors side by side (quote, availability, worked together before, last follow-up, note): « Select », « Set aside », then « Change vendor » or « Unselect », without deleting the line; « Next item » moves on. « Take over the selected vendors (PDF) » reads the vendors export from your previous software: each vendor is found in the directory or created, then selected on the line of their trade, after your check. Each tab has a « Settings » link to its templates. Overlap warnings leave out your clients, who attend every sequence, and are read day by day. PDFs separate the days of a multi-day schedule; the team version puts the internal note under each sequence.",
+      "body": "The whole event, in tabs. The « Summary » opens on the next action and who has to act, then the event's health (planning, budget, client decisions) and the next fourteen days; « Edit the details », at the top of the event profile, opens a panel where they are edited, the event's time zone included. The top timeline shows where it stands: Option, Confirmed, In preparation, Event day, Closed. Click a step to set it; « Event day » applies by itself on the day of the event, and closing is offered from the next day. « Postpone the event… » asks for the new date: once you confirm the postponement, the planning's due dates follow, except tasks already done and those whose date you set by hand; the ones that would fall in the past are listed first. « Cancel the event… » opens a window that says what will happen and asks for a reason: the data stays, links close, reminders and scheduled deposit invoices stop, and a credit note is offered for each issued invoice; « Keep the event » backs out. A cancelled event is restored from its page (« Restore the event »): it goes back to « Option ». The « Event profile » gathers estimated and confirmed guests, venues, contacts, style and notes; venues are managed in the « Day programme » tab (address, town, times, on-site contact), the first being the reception venue. In the same tab, each sequence of the schedule is a line: “Edit” opens it in place, “Add a sequence” creates one; nothing is sent until you click “Save the schedule”, which says how many lines are waiting, and “Discard changes” brings back the saved schedule. A task can be given to you, to the couple or to a retained vendor, who ticks it in their space; its attachments and comments stay within the team. Ticked by mistake, a task comes back with « Undo », for ten seconds. The « Next step » banner suggests the next stage (send the quote, apply the planning, create the couple's links). In « Budget and vendors », each row says where the choice stands (« Selected », « 2 being compared », « To find »); « + Add vendors » offers, for each record of the trade in your directory, « Compare » or « Select », never automatically. The item window compares vendors side by side (quote, availability, worked together before, last follow-up, note): « Select », « Set aside », then « Change vendor » or « Unselect », without deleting the line; « Next item » moves on. « Take over the selected vendors (PDF) » reads the vendors export from your previous software: each vendor is found in the directory or created, then selected on the line of their trade, after your check. Each tab has a « Settings » link to its templates. Overlap warnings leave out your clients, who attend every sequence, and are read day by day. PDFs separate the days of a multi-day schedule; the team version puts the internal note under each sequence.",
       "faq": [
         {
           "q": "How do I mark an event as lost?",
@@ -1166,7 +1166,7 @@
     },
     "trash": {
       "title": "Trash",
-      "body": "What you delete stays here for 30 days: an event with all its content, a contact, a document, a template. \"Restore\" puts it back as it was. After 30 days it is erased for good, files included; only the account owner can erase it sooner. Items on a record (task, line, sequence, note…) do not come here: they can be undone for ten seconds after you delete them."
+      "body": "What you delete stays here for 30 days: an event with all its content, a contact, a document, a template. \"Restore\" puts it back as it was. After 30 days it is erased for good, files included; only the account owner can erase it sooner, after ticking “I understand that … can't be recovered”. Items on a record (task, line, sequence, note…) do not come here: they can be undone for ten seconds after you delete them."
     },
     "guests": {
       "title": "Guests",
@@ -1615,14 +1615,13 @@
     "postponeNewDate": "New date",
     "postponeUndecided": "Date to be set",
     "postponeHint": "The planning due dates will be recalculated when you confirm the postponement.",
-    "confirmPostpone": "Postpone",
+    "confirmPostpone": "Postpone the event",
     "postponedBadge": "Postponed — was planned on {date}",
     "postponeDateRequired": "Enter the new date, or tick \"Date to be set\".",
     "cancelAsk": "Cancel the event…",
-    "cancelTitle": "Cancel the event {names}?",
-    "cancelBody": "The data stays. Client and vendor links close, reminders stop, and scheduled deposit invoices are no longer issued. Invoices already issued stay: a credit note is suggested for each one.",
+    "cancelTitle": "Cancel the event “{names}”?",
+    "cancelBody": "Its status becomes “Cancelled”. Its data stays.",
     "confirmCancel": "Cancel the event",
-    "reactivate": "Reactivate (back to Option)",
     "postponementTitle": "Confirm the postponement",
     "postponementBody": "New date: {date}. When you confirm, relative due dates follow; done tasks and tasks fixed by hand do not move.",
     "postponementNoDate": "Choose the new date (\"Event date\" field) to confirm the postponement.",
@@ -2442,6 +2441,21 @@
     "taskDialogOpenEvent": "Open the event's planning",
     "activityEmailSent": "{actor} sent “{kind}” from their mailbox.",
     "activityFormerMember": "A team member",
+    "cancelRestore": "You can restore it from its page: it goes back to “Option”, as an ongoing enquiry, to be confirmed again.",
+    "cancelLinks": "Clients and vendors can no longer open their personal link; it reopens if you restore the event.",
+    "cancelReminders": "Reminders stop; scheduled deposit invoices are no longer issued.",
+    "cancelInvoices": "Invoices already issued stay: a credit note is suggested for each one.",
+    "cancelNobody": "Nobody is told by Symbola.",
+    "cancelReason": "Reason (for you)",
+    "keepEvent": "Keep the event",
+    "restoreEvent": "Restore the event",
+    "postponeTitle": "Postpone the event “{names}”?",
+    "postponeBody": "Its status becomes “Postponed”. Clients and vendors keep their link; nobody is told by Symbola.",
+    "keepDate": "Keep the date",
+    "statusCancelledMessage": "Event cancelled: {names}",
+    "statusPostponedMessage": "Event postponed: {names}",
+    "statusRestoredMessage": "Event restored: {names}",
+    "statusRestoredDetail": "It went back to “Option”, to be confirmed again.",
     "responsibleYou": "You",
     "responsibleMemberRemoved": "{name} (access removed)",
     "responsibleNobody": "Nobody yet"
@@ -7334,8 +7348,8 @@
     "points": "{count, plural, one {# item to deal with} other {# items to deal with}}",
     "upToDate": "Up to date",
     "undo": {
-      "taskDone": "Task “{label}” done.",
-      "taskReopened": "Task “{label}” back to do.",
+      "taskDone": "Task done: {label}",
+      "taskReopened": "Task back to do: {label}",
       "action": "Undo"
     },
     "remind": {
@@ -8282,7 +8296,8 @@
     "buttonLabelHint": "The text of the button that opens the link, in your own words. Left empty: “{label}”.",
     "errorButtonLabelTooLong": "The button label is longer than {max} characters.",
     "brandingLink": "E-mail branding and signature",
-    "brandingLinkHint": "Font, footer line, sender display name and the team's signature template."
+    "brandingLinkHint": "Font, footer line, sender display name and the team's signature template.",
+    "resetKeep": "Keep my text"
   },
   "Calendar": {
     "personFeed": "{organization} — events",
@@ -8908,7 +8923,6 @@
       "restored": "Restored.",
       "gone": "No longer possible: it has already been erased.",
       "conflict": "Another contact already uses this email address: the contact stays in the trash.",
-      "seeTrash": "View trash",
       "task": "Task deleted.",
       "taskBatch": "Tasks deleted.",
       "programItem": "Sequence deleted.",
@@ -8927,9 +8941,12 @@
       "messageTemplate": "Template moved to the trash.",
       "vendor": "Supplier archived.",
       "appointmentType": "Appointment type moved to the bin.",
-      "appointment": "Appointment moved to the bin."
+      "appointment": "Appointment moved to the bin.",
+      "inTrash": "You'll find it in the Bin in Settings for 30 days."
     },
     "eventAssistant": "As an assistant on this event, you cannot delete it: ask its lead planner or the Owner.",
+    "deleteForGoodKeep": "Keep in the Bin",
+    "deleteForGoodAcknowledge": "I understand that “{name}” can't be recovered.",
     "taskBatch": "{count} tasks from {event}",
     "taskBatchNoEvent": "{count} tasks"
   },
@@ -12759,7 +12776,7 @@
     "removeSlotTitle": "Delete the “{slot}” item?",
     "removeSlotBody": "This item has no vendor, amount or instalment: it disappears from this event. To keep it without looking for a vendor, tick “Not required” in its settings instead.",
     "removeSlotConfirm": "Delete the item",
-    "removeSlotCancel": "Cancel"
+    "removeSlotCancel": "Keep the item"
   },
   "TaskCategories": {
     "title": "Task categories",
@@ -12906,5 +12923,35 @@
     "profileBody": "Your name, job title and links at the end of the e-mails you send.",
     "profileLink": "Fill in my signature",
     "previewLabel": "Preview of my signature"
+  },
+  "Validation": {
+    "errorPrefix": "Error:",
+    "summary": "{count, plural, one {# field to fill in or correct} other {# fields to fill in or correct}} before going on.",
+    "summaryTask": "{count, plural, one {# field to fill in} other {# fields to fill in}} before saving the task.",
+    "summaryEvent": "{count, plural, one {# field to fill in} other {# fields to fill in}} before creating the event.",
+    "summaryLink": "Go to the “{field}” field",
+    "taskLabelRequired": "Give the task a name, for example “Book the shuttle”.",
+    "taskLabelTooLong": "The task name fits in 300 characters at most.",
+    "dueDateRequired": "Choose a due date.",
+    "dateInvalid": "Enter a date that exists, as dd/mm/yyyy.",
+    "clientFirstNameRequired": "Enter the client's first name, or pick them from your contacts.",
+    "existingContactRequired": "Pick the client from your contacts.",
+    "eventNameRequired": "Give the event a name, or enter its client.",
+    "sourceRequired": "Choose where the enquiry came from.",
+    "datePlaceholder": "dd/mm/yyyy"
+  },
+  "Feedback": {
+    "close": "Close the message",
+    "undo": "Undo",
+    "retry": "Try again",
+    "errorPrefix": "Error:",
+    "connectionLost": "Connection lost. Your input is kept.",
+    "taskNotSaved": "the task wasn't saved",
+    "eventNotCreated": "the event wasn't created",
+    "dateNotChanged": "the date wasn't changed",
+    "taskSaved": "Task saved: {label}",
+    "taskAdded": "Task added: {label}",
+    "dateChanged": "Date changed: {date}",
+    "restored": "Restored."
   }
 }

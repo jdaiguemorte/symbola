@@ -1,7 +1,8 @@
 // Lot 39a (HUB-17, DAT-03, UX-07 ; D2, D5 ; ADR 0073) — Paramètres › Corbeille : ce qui a été
 // supprimé depuis moins de 30 jours (évènements avec tout leur contenu, contacts, documents,
 // modèles), qui l'a supprimé, quand la purge l'effacera ; « Restaurer » pour toute l'équipe,
-// « Supprimer définitivement » (confirmé, l'objet nommé) pour la titulaire seule.
+// « Supprimer définitivement » (confirmé, l'objet nommé) pour la titulaire seule. Lot 70b (UX-07 ; M6) :
+// niveau 3 du danger, une case « Je comprends que … ne pourra pas être récupéré » à cocher d'abord.
 import { getLocale, getTranslations } from "next-intl/server";
 import { EmptyState } from "@/app/ui/empty-state";
 import { listTeam } from "@symbola/auth";
@@ -23,7 +24,6 @@ export default async function TrashPage({ searchParams }: { searchParams: Promis
   const organizationId = auth.user.organizationId;
   const t = await getTranslations("Trash");
   const tHelp = await getTranslations("Help");
-  const tCommon = await getTranslations("Common");
   const locale = (await getLocale()) as Locale;
   const isOwner = auth.user.role === "owner";
   const [items, team] = await Promise.all([listTrash(organizationId), listTeam(appDatabase(), organizationId)]);
@@ -63,13 +63,15 @@ export default async function TrashPage({ searchParams }: { searchParams: Promis
                   </form>
                   {isOwner ? (
                     <ConfirmDialog
+                      level={3}
                       trigger={t("deleteForGood")}
                       triggerLabel={t("deleteForGoodNamed", { name })}
                       triggerClassName="link-button"
                       title={t("deleteForGoodTitle", { kind: t(`kinds.${item.kind}`), name })}
                       body={t("deleteForGoodBody")}
                       confirmLabel={t("deleteForGood")}
-                      cancelLabel={tCommon("cancel")}
+                      keepLabel={t("deleteForGoodKeep")}
+                      acknowledgeLabel={t("deleteForGoodAcknowledge", { name })}
                       action={deleteTrashItemForGoodAction}
                       fields={{ kind: item.kind, id: item.id }}
                     />

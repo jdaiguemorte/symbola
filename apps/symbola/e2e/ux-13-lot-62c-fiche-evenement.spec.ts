@@ -22,7 +22,7 @@ import {
   listEventVendorSlots,
 } from "../modules/events/service";
 import { addBudgetLine, createAllocationModel, getEventBudget, listBudgetLines, simulateEventBudget, updateBudgetLine } from "../modules/budget/service";
-import { openEventTab, readyOrganization, signIn } from "./helpers";
+import { feedback, openEventTab, readyOrganization, signIn } from "./helpers";
 import { measureScreen } from "./lot-62c-mesures";
 
 const SLOTS = ["Lieu de réception", "Traiteur", "Photographe", "Fleurs et décoration", "Musique", "Tenues et beauté", "Papeterie", "Hébergement et transport", "Imprévus"];
@@ -366,7 +366,7 @@ test("UX-05, UX-07 — rétroplanning : cibles de 44 px ; cocher une tâche gard
   await check.click();
   await expect(page.getByRole("button", { name: "Marquer « Choisir le traiteur » comme à faire" })).toBeVisible();
   await expect.poll(async () => (await listEventTasks(setup.organizationId, setup.eventId)).find((task) => task.label === "Choisir le traiteur")?.done).toBe(true);
-  const undo = page.getByRole("status").filter({ hasText: "Tâche « Choisir le traiteur » faite." });
+  const undo = feedback(page).filter({ hasText: "Tâche faite : Choisir le traiteur" });
   await undo.getByRole("button", { name: "Annuler" }).click();
   await expect(page.getByRole("button", { name: "Marquer « Choisir le traiteur » comme faite" })).toBeVisible();
   await expect.poll(async () => (await listEventTasks(setup.organizationId, setup.eventId)).find((task) => task.label === "Choisir le traiteur")?.done).toBe(false);

@@ -13,7 +13,7 @@ import { expect, test, type Page } from "@playwright/test";
 import { starterEventTypes } from "@symbola/starter-templates";
 import { addEventTask, addStarterEventTypes, createProspect, createProspectSource, listEventTypes } from "../modules/events/service";
 import { createVendor, createVendorFamily, createVendorTag, createVendorType } from "../modules/vendors/service";
-import { helpPanel, readyOrganization, signIn as signInByLink } from "./helpers";
+import { feedback, helpPanel, readyOrganization, signIn as signInByLink } from "./helpers";
 
 async function loginAndSetupMfa(page: Page, email: string, _password: string) {
   // Lot 33 : lien magique et fournisseur d'identité (e2e/helpers.ts).
@@ -85,7 +85,7 @@ test("L20-PRE-17 — archiver un prestataire depuis le carnet, après confirmati
   await expect(results.getByRole("link", { name: "Domaine des Saules" })).toHaveCount(0);
   await expect(results.getByRole("link", { name: "Fleurs de Lys" })).toBeVisible();
   await expect(page).toHaveURL(/\/prestataires$/);
-  const banner = page.getByRole("status").filter({ hasText: "Prestataire archivé." });
+  const banner = feedback(page).filter({ hasText: "Prestataire archivé." });
   await expect(banner).toBeVisible();
   await expectNoAxeViolation(page);
   await banner.getByRole("button", { name: "Annuler" }).click();

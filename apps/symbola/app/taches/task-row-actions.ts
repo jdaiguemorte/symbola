@@ -25,10 +25,14 @@ import {
 import { readResponsibleEdit, readResponsibleValue, UNCHANGED_RESPONSIBLE } from "@/app/events/[id]/task-responsible";
 import { getPlannerAuthContext } from "@/lib/auth-context";
 import { offerUndo } from "@/lib/undo";
+import { fieldErrors, formValues, translatedFieldErrors } from "@/lib/forms/field-validation";
+import { taskFieldsSchema } from "@/lib/forms/task-fields";
 import { isPostponeChoice, postponedDueDate } from "@/lib/tasks/postpone";
 import { isEventsModuleEnabled, isValidId } from "@/app/events/module-access";
 
-export type TaskRowState = { error?: string; success?: string; done?: number };
+// Lot 70b (UX-10) : `fieldErrors`, les erreurs de saisie traduites, champ par champ ; `undoOffered`, une
+// offre « Annuler » posée pour le message de retour (il ne faut pas la remplacer).
+export type TaskRowState = { error?: string; success?: string; done?: number; fieldErrors?: Record<string, string>; undoOffered?: boolean };
 
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -86,6 +90,9 @@ export async function saveTaskAction(_prev: TaskRowState, formData: FormData): P
   const t = await getTranslations("Events");
   const organizationId = await organizationOrNull();
   if (!organizationId) return { error: t("unauthenticated") };
+  // Lot 70b (UX-10) : le même schéma qu'à l'écran ; les erreurs vont sous les champs.
+  const invalid = fieldErrors(taskFieldsSchema, formValues(formData));
+  if (invalid.length > 0) return { fieldErrors: translatedFieldErrors(invalid, await getTranslations("Validation")) };
   const parsed = saveSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { error: saveErrorMessage(parsed.error.issues.map((issue) => issue.path[0]), t) };
   const responsible = readResponsibleEdit(parsed.data.responsible);
@@ -161,7 +168,7 @@ export async function bulkTasksAction(_prev: TaskRowState, formData: FormData): 
       const count = await removeEventTasks(organizationId, taskIds);
       if (count > 0) await offerUndo({ kind: count === 1 ? "task" : "taskBatch", id: taskIds[0]! });
       refresh();
-      return { success: t("tasksBulkDeleted", { count }), done: count };
+      return { success: t("tasksBulkDeleted", { count }), done: count, undoOffered: count > 0 };
     }
     let change: BulkTaskChange;
     if (op === "shift") {
