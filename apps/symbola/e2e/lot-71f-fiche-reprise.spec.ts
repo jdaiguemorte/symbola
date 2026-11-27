@@ -206,4 +206,44 @@ test.describe("EVT-02 — La fiche d'un mariage repris (lot 71f)", () => {
     await expectNoSideScroll(page);
     await expectNoAxeViolation(page);
   });
+
+  // NFR-02 (ADR 0115) : la liste d'une agence de 200 évènements, dont cinq repris, avec la marque et le
+  // filtre « Origine » : la médiane des 95e centiles de trois séries reste sous 300 ms.
+  test("NFR-02 — la liste de 200 évènements, marque et filtre « Origine », sous 300 ms", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "desktop", "une mesure du serveur, une seule fois");
+    test.setTimeout(300_000);
+    const setup = await agency(page);
+    for (let index = 0; index < 196; index += 1) {
+      await createProspect({ organizationId: setup.organizationId, createdByUserId: setup.userId, clients: [{ firstName: `Client ${index}`, lastName: "Fictif" }], prospectSourceId: null, eventDate: `2027-${String((index % 12) + 1).padStart(2, "0")}-${String((index % 27) + 1).padStart(2, "0")}` });
+    }
+    for (let index = 0; index < 3; index += 1) {
+      await enterTakeoverEvent(setup, { takeoverId: null, name: "", eventDate: "2027-05-15", clients: [{ firstName: `Repris ${index}`, lastName: "Fictif" }] });
+    }
+    const urls = ["/events", "/events?origine=repris", "/events?origine=crees"];
+    // Les 200 créations viennent de lancer leurs traitements de fond (événements internes) : on attend
+    // qu'ils soient passés, comme le premier passage du parcours NFR-02, qui ne compte pas.
+    for (let warm = 0; warm < 40; warm += 1) {
+      const start = performance.now();
+      await (await page.request.get(urls[warm % urls.length]!)).body();
+      if (warm >= 6 && performance.now() - start < 200) break;
+      await page.waitForTimeout(500);
+    }
+    const series: number[] = [];
+    for (let round = 0; round < 3; round += 1) {
+      const times: number[] = [];
+      for (let repeat = 0; repeat < 8; repeat += 1) {
+        for (const url of urls) {
+          const start = performance.now();
+          const response = await page.request.get(url);
+          await response.body();
+          times.push(performance.now() - start);
+          expect(response.status(), url).toBe(200);
+        }
+      }
+      times.sort((a, b) => a - b);
+      series.push(Math.round(times[Math.ceil(times.length * 0.95) - 1]!));
+    }
+    const median = [...series].sort((a, b) => a - b)[1]!;
+    expect(median, `95e centiles : ${series.join(", ")} ms`).toBeLessThan(300);
+  });
 });
