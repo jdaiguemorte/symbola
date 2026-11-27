@@ -293,6 +293,8 @@ test.describe("lot 70e — la recherche typée", () => {
     await box.press("Enter");
     await expect(page).toHaveURL(new RegExp(`/events/${setup.lea}$`));
     // Une tâche : son groupe passe en premier, compté ; elle dit son mariage et son échéance.
+    // Lot 70f : arrivée sur le résultat, la recherche en page entière s'est refermée (téléphone).
+    await openSearch(page);
     await box.fill("menu");
     await expect(page.getByText("Tâches · 1")).toBeVisible();
     await expect(options.first()).toContainText("Choisir le menu");

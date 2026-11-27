@@ -55,6 +55,8 @@ test("AIDE-08 — rechercher un évènement par le nom du client, et une aide pa
   await expect(page).toHaveURL(new RegExp(`/events/${eventId}$`));
 
   // Le lieu suffit aussi, sans accent ni majuscule.
+  // Lot 70f : arrivée sur le résultat, la recherche en page entière s'est refermée (téléphone).
+  await openSearch(page);
   await box.fill("domaine oliviers");
   await expect(page.getByRole("option").first()).toContainText(`${firstName} & Julien`);
 
@@ -70,7 +72,9 @@ test("AIDE-08 — rechercher un évènement par le nom du client, et une aide pa
   await expect(page.getByText("Aucun résultat pour « xyzintrouvable ».", { exact: false })).toBeVisible();
   // Lot 20 (L20-HUB-27) : un seul champ de recherche, celui du haut, qui garde la
   // recherche faite, sans ouvrir sa liste au chargement.
-  await expect(page.getByRole("searchbox").or(page.getByRole("combobox"))).toHaveCount(1);
-  await expect(box).toHaveValue("xyzintrouvable");
-  await expect(box).toHaveAttribute("aria-expanded", "false");
+  // Lot 70f : sur téléphone, ce champ est derrière la loupe (présent, masqué) : on compte les champs de la page.
+  await expect(page.locator('main input[type="search"], .app-topbar input[type="search"]')).toHaveCount(1);
+  const field = page.locator('.app-topbar input[type="search"]');
+  await expect(field).toHaveValue("xyzintrouvable");
+  await expect(field).toHaveAttribute("aria-expanded", "false");
 });
