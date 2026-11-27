@@ -18,7 +18,8 @@ import { PageHeader } from "@/app/ui/page-header";
 import { ScreenHelp } from "@/app/screen-help";
 import { eventNames, listEvents, listTasks } from "@/modules/events/service";
 import type { TaskListItem } from "@symbola/contracts";
-import { listImportedEvents } from "@/modules/hub/service";
+import { listTakeovers } from "@/modules/hub/service";
+import { appDatabase } from "@symbola/db/client";
 import { eventIdsWithoutTasks } from "@/modules/events/service";
 import { ensureTaskCategories } from "@/lib/events/task-categories";
 import { isEventsModuleEnabled, isValidId } from "@/app/events/module-access";
@@ -103,7 +104,9 @@ export default async function TasksPage({ searchParams }: { searchParams: Promis
     ensureTaskCategories(organizationId, locale),
     visibleEventScope({ user: { id: auth.user.id, role: auth.user.role, organizationId } }),
     listEvents({ organizationId }),
-    listImportedEvents(organizationId),
+    // Lot 71f : l'origine posée par le lot 71a (`events.origin`) remplace le repérage provisoire du 70d
+    // (le journal des imports) ; la date est celle de la reprise du mariage.
+    listTakeovers(appDatabase(), organizationId, viewer),
     clientsTerms(organizationId, locale),
   ]);
   const visibleEvents = events.filter((event) => IN_PROGRESS.has(event.status) && (!scope || scope.has(event.id)));
@@ -119,8 +122,8 @@ export default async function TasksPage({ searchParams }: { searchParams: Promis
   const categoryOptions = categories.map((category) => ({ value: category.id, label: category.label }));
 
   // C-55 : un mariage repris dont les tâches sont restées dans l'ancien outil.
-  const importedById = new Map(imported.map((item) => [item.eventId, item.importedAt]));
-  const importedVisible = visibleEvents.filter((event) => importedById.has(event.id));
+  const importedById = new Map(imported.flatMap((takeover) => (takeover.eventId ? [[takeover.eventId, takeover.createdAt.toISOString()] as const] : [])));
+  const importedVisible = visibleEvents.filter((event) => event.origin === "takeover" && importedById.has(event.id));
   const withoutTasks = new Set(await eventIdsWithoutTasks(organizationId, importedVisible.map((event) => event.id)));
   const toCheck = importedVisible.filter((event) => withoutTasks.has(event.id));
 

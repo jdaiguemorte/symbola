@@ -853,3 +853,13 @@ export async function undoImportedEventsElements(
 export function importedEventIds(items: { kind: string; elementId: string; action: string }[]): string[] {
   return items.filter((item) => item.kind === "event" && item.action === "created").map((item) => item.elementId);
 }
+
+// Lot 71f (R7, I9) : « D'où viennent ces valeurs ? » — parmi les champs qu'un import a écrits sur un
+// évènement, ceux qui ont encore la valeur écrite ; une valeur modifiée depuis à la main ne porte plus de
+// marque. Sans les valeurs écrites (effacées après 90 jours), les champs restent attribués à leur fichier.
+export async function unchangedImportedEventFields(organizationId: string, eventId: string, fields: readonly string[], written: Values | null): Promise<string[]> {
+  if (!written) return [...fields];
+  const current = await withOrganization(appDatabase(), organizationId, (tx) => eventState(tx, eventId));
+  if (!current) return [];
+  return fields.filter((key) => !(key in written) || same(current[key], written[key]));
+}

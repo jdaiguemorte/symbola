@@ -9,9 +9,9 @@ import AxeBuilder from "./axe";
 import { expect as baseExpect, test, type Page } from "@playwright/test";
 import { createOrganization, createUser } from "@symbola/auth";
 import { appDatabase, createAppConnection } from "@symbola/db/client";
-import { importItems, imports } from "@symbola/db/schema/hub";
+import { imports } from "@symbola/db/schema/hub";
 import { withOrganization } from "@symbola/db/with-organization";
-import { completeSetup, saveOnboardingStep, settleTakeoverStep } from "../modules/hub/service";
+import { completeSetup, createTakeover, saveOnboardingStep, settleTakeoverStep } from "../modules/hub/service";
 import { createProspect } from "../modules/events/service";
 import { enterTakeoverEvent, type TakeoverActor } from "../lib/takeover/flow";
 import { feedback, readyOrganization, signIn } from "./helpers";
@@ -214,25 +214,18 @@ test.describe("HUB-14 — La page de reprise et ses portes (lot 71b)", () => {
     const groups = (await search.json()) as { groups: { items: { href: string }[] }[] };
     expect(groups.groups.flatMap((group) => group.items).some((item) => item.href === "/reprise")).toBe(true);
 
-    // Un mariage repris par un import, sans tâches : « Reprendre la liste de votre tableur » ouvre sa
-    // reprise, ligne 5, et y crée la reprise au premier geste.
-    const { id: eventId } = await createProspect({ organizationId: actor.organizationId, createdByUserId: actor.userId, prospectSourceId: null, clients: [{ firstName: "Hugo", lastName: "Exemple" }], name: "Léa & Hugo", eventDate: "2027-06-12" });
-    await withOrganization(appDatabase(), actor.organizationId, async (tx) => {
-      const [row] = await tx
-        .insert(imports)
-        .values({ organizationId: actor.organizationId, createdByUserId: actor.userId, entityType: "events", status: "applied", fileName: "mariages.csv", fileFormat: "csv", fileSizeBytes: 10, headerRowIndex: 0, headers: ["Nom"], rowCount: 1, expiresAt: new Date(Date.now() + 86_400_000), appliedAt: new Date() })
-        .returning({ id: imports.id });
-      await tx.insert(importItems).values({ organizationId: actor.organizationId, importId: row!.id, position: 0, module: "events", kind: "event", elementId: eventId, action: "created", previous: null, written: {} });
-    });
+    // Un mariage repris, sans tâches (lot 71f : repéré par son origine, posée par la reprise) :
+    // « Reprendre la liste de votre tableur » ouvre sa reprise, ligne 5.
+    const { id: eventId } = await createProspect({ organizationId: actor.organizationId, createdByUserId: actor.userId, prospectSourceId: null, clients: [{ firstName: "Hugo", lastName: "Exemple" }], name: "Léa & Hugo", eventDate: "2027-06-12", takeover: true });
+    await createTakeover(appDatabase(), { organizationId: actor.organizationId, userId: actor.userId, eventId });
     await page.goto("/taches");
+    await expect(page.getByRole("region", { name: "À vérifier : Léa & Hugo" }).getByRole("link", { name: "Reprendre la liste de votre tableur" })).toHaveAttribute("href", `/reprise?evenement=${eventId}&ligne=tasks`);
     await page.getByRole("region", { name: "À vérifier : Léa & Hugo" }).getByRole("link", { name: "Reprendre la liste de votre tableur" }).click();
-    await expect(page).toHaveURL(new RegExp(`/reprise\\?evenement=${eventId}&ligne=tasks`));
+    await expect(page).toHaveURL(/\/reprise\/[0-9a-f-]{36}#ligne-tasks$/);
     await expect(page.getByRole("heading", { level: 1, name: "Reprendre « Léa & Hugo »" })).toBeVisible();
     await expect(step(page, "event")).toContainText("Signé, en préparation");
     await page.getByRole("button", { name: "Déposer le fichier : Liste « à faire »" }).click();
     await expect(page).toHaveURL(/\/import\?type=tasks&reprise=[0-9a-f-]{36}/);
-    await page.goto(`/reprise?evenement=${eventId}&ligne=tasks`);
-    await expect(page).toHaveURL(/\/reprise\/[0-9a-f-]{36}#ligne-tasks$/);
   });
 
   test("critères 8 et 9 — la fin de l'assistant de démarrage, après « un tableur » : « Reprendre un mariage en cours » en bouton plein, collé en bas sur téléphone", async ({ page }) => {

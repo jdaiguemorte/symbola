@@ -54,13 +54,13 @@ test("PRD-EVT-03 — lignes du budget par défaut, barre d'avancement et prestat
   await createEventByForm(page, { name: "Camille", clientFirstName: "Camille" });
   await expect(page).toHaveURL(/\/events\/[0-9a-f-]{36}$/);
   await page.waitForLoadState("networkidle");
-  await expect(page.getByText("Aucune ligne pourvue sur 11")).toBeVisible();
+  await expect(page.getByText("Aucun poste complet sur 11")).toBeVisible();
   await expectNoAxeViolation(page);
 
   // Onglet Budget : un clic sur une ligne ouvre sa fenêtre (lot 65b, M14) ; ses réglages sont dans
   // « Réglages du poste ».
   await openEventTab(page, "Budget");
-  await expect(page.getByText("Aucune ligne pourvue sur 11")).toBeVisible();
+  await expect(page.getByText("Aucun poste complet sur 11")).toBeVisible();
   await page.getByRole("button", { name: "Photographe", exact: true }).click();
   await openSlotRubric(page, "Photographe", "Réglages du poste");
 
@@ -74,7 +74,9 @@ test("PRD-EVT-03 — lignes du budget par défaut, barre d'avancement et prestat
   await photographer.getByRole("button", { name: "Enregistrer la ligne" }).click();
   await expect(photographer.getByText("Ligne enregistrée.")).toBeVisible();
   await closeSlotWindow(page, "Photographe");
-  await expect(page.getByText("1 ligne pourvue sur 11")).toBeVisible();
+  // Lot 71f (I7) : un poste est complet quand un prestataire y est retenu et que son prévu est connu ; le
+  // devis du photographe est un réel, pas un prévu.
+  await expect(page.getByText("Aucun poste complet sur 11")).toBeVisible();
   const photographerRow = page.getByRole("row", { name: /^Photographe/ });
   await expect(photographerRow).toContainText("Studio Lumière");
   await expect(photographerRow).toContainText("Retenu");
@@ -88,7 +90,7 @@ test("PRD-EVT-03 — lignes du budget par défaut, barre d'avancement et prestat
   await videographer.getByRole("button", { name: "Enregistrer la ligne" }).click();
   await expect(videographer.getByText("Ligne enregistrée.")).toBeVisible();
   await closeSlotWindow(page, "Vidéaste");
-  await expect(page.getByText("1 ligne pourvue sur 10")).toBeVisible();
+  await expect(page.getByText("Aucun poste complet sur 10")).toBeVisible();
 
   // Lignes modifiables évènement par évènement.
   await page.getByLabel("Nouvelle ligne du budget pour cet évènement").fill("Wedding designer");
@@ -98,6 +100,6 @@ test("PRD-EVT-03 — lignes du budget par défaut, barre d'avancement et prestat
   await openSlotRubric(page, "Papeterie", "Réglages du poste");
   await slotWindow(page, "Papeterie").getByRole("button", { name: "Retirer la ligne « Papeterie »" }).click();
   await expect(page.getByRole("button", { name: "Papeterie", exact: true })).toHaveCount(0);
-  await expect(page.getByText("1 ligne pourvue sur 10")).toBeVisible();
+  await expect(page.getByText("Aucun poste complet sur 10")).toBeVisible();
   await expectNoAxeViolation(page);
 });

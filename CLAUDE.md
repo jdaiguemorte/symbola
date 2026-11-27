@@ -249,7 +249,7 @@ interne ; Julien passe par l'équivalent Docker donné à droite. Sur le VPS : `
 | Installer un poste neuf, du clone à l'app avec le jeu fictif, en moins de trente minutes (NFR-23, lot 40a) | `docs/INSTALLATION.md` (rejoué par le workflow « Installation ») | — (Node requis : sinon, l'équivalent Docker de chaque commande ci-dessous) |
 | Démarrer le socle + l'app en dev | `pnpm dev` | `cp .env.example .env` (une fois, puis remplir les mots de passe, les trois secrets `GARAGE_*` et `LOGTO_M2M_SECRET`, générés par `openssl rand` ; après le bootstrap, `configure-identity` règle Logto) puis `docker compose -f infra/compose/docker-compose.dev.yml --env-file .env up -d && pnpm dev`, depuis la racine du dépôt |
 | Lint | `pnpm lint` | `docker run --rm -v "$PWD":/app -w /app node:22-slim pnpm lint` |
-| Vérification des types | `pnpm typecheck` | `docker run --rm -v "$PWD":/app -w /app node:22-slim pnpm typecheck` |
+| Vérification des types (lot 75 : lance d'abord `next typegen`, qui réécrit `apps/symbola/next-env.d.ts`, ignoré par Git) | `pnpm typecheck` | `docker run --rm -v "$PWD":/app -w /app node:22-slim pnpm typecheck` |
 | Tests | `pnpm test` | `docker run --rm -v "$PWD":/app -w /app node:22-slim pnpm test` |
 | Couverture des règles métier, seuil de 80 % (NFR-21, lot 40b, ADR 0076 ; aussi en CI) | `pnpm --filter @symbola/app test:coverage` | `docker run --rm -v "$PWD":/app -w /app node:22-slim pnpm --filter @symbola/app test:coverage` |
 | Ouvrir l'écran du suivi des erreurs (Q27, lot 40b, ADR 0077 ; **Julien**, une fois GlitchTip mis en service) | — | `ssh -L 8090:127.0.0.1:8090 symbola` puis <http://localhost:8090> (staging : 8091) |

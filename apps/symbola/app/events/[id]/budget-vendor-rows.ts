@@ -15,6 +15,9 @@ export type BudgetVendorRow = {
   icon: string | null;
   status: EventVendorSlot["status"];
   vendorNames: string[];
+  // Lot 71f (§ 0 du lot 71, C-53) : le contrat de chaque prestataire retenu par une reprise, dit en mots
+  // sous son nom ; vide hors reprise.
+  contracts: { name: string; contract: "signed" | "unsigned" | "unknown" }[];
   lines: BudgetLine[];
   plannedCents: number | null;
   // Réel (« Devisé » jusqu'au lot 63) : le devis des lignes, à défaut l'engagé, à défaut le devis des
@@ -66,6 +69,7 @@ export function buildBudgetVendorRows(slots: EventVendorSlot[], categories: { ev
       icon: slot.icon,
       status: slot.status,
       vendorNames: [...new Set([...slot.retainedVendors.map((vendor) => vendor.vendorName), ...lines.flatMap((line) => (line.vendorName ? [line.vendorName] : []))])],
+      contracts: slot.retainedVendors.flatMap((vendor) => (vendor.takeoverContract ? [{ name: vendor.vendorName, contract: vendor.takeoverContract }] : [])),
       lines,
       plannedCents,
       actualCents,
