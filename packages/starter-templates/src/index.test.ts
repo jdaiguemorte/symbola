@@ -615,11 +615,13 @@ describe("FAC-07 / JUR-01 — Conditions de paiement selon le client (lot 31c, e
 });
 
 describe("HUB-09 — Questionnaire d'accueil : réponses de départ (lot 33b, D9, D11)", () => {
-  it("chaque question a sa valeur par défaut, et les volumes et outils proposés existent en français et en anglais", () => {
+  // Lot 74a (HUB-09 ; M13, B2 à B5) : seul le métier est proposé (les types suivent le métier) ; aucune
+  // valeur de départ pour un fait sur la planner : TVA, volume, mariages en cours, outils.
+  it("seul le métier a une réponse proposée, et les volumes et outils existent en français et en anglais", () => {
     for (const locale of ["fr", "en"] as const) {
       const questionnaire = starterOnboarding(locale);
-      expect(questionnaire.defaults).toEqual({ metier: "wedding_planner", vatRegime: "franchise", volume: "11_to_25", tools: [] });
-      expect(questionnaire.volumes.map((volume) => volume.key)).toContain(questionnaire.defaults.volume);
+      expect(questionnaire.defaults).toEqual({ metier: "wedding_planner" });
+      expect(questionnaire.volumes.map((volume) => volume.key)).toContain("11_to_25");
       expect(questionnaire.tools.length).toBeGreaterThan(2);
       for (const entry of [...questionnaire.volumes, ...questionnaire.tools]) expect(entry.label.length).toBeGreaterThan(0);
     }
