@@ -81,3 +81,11 @@
     @apply m-0 mt-2 text-label font-semibold md:hidden;
   }
 }
+
+/* Lot 71c (rejeu à 375 px) : sur téléphone, la barre d'action de l'assistant (« Retour », « Continuer »)
+   se tient au-dessus de la barre du bas du lot 70f, qui la recouvrait : « Continuer » ne répondait plus. */
+@media (max-width: 767px) {
+  .has-tabbar .action-bar {
+    bottom: var(--app-tabbar-height);
+  }
+}

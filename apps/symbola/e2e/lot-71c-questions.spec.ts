@@ -45,6 +45,15 @@ async function expectPhoneRules(page: Page) {
   });
   expect(small).toEqual([]);
   expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(0);
+  // La barre d'action de l'étape n'est recouverte par rien, la barre du bas du téléphone comprise.
+  const covered = await page.evaluate(() =>
+    [...document.querySelectorAll<HTMLElement>(".action-bar button, .action-bar a")].filter((element) => {
+      const box = element.getBoundingClientRect();
+      const hit = document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2);
+      return !(hit && element.contains(hit));
+    }).length,
+  );
+  expect(covered).toBe(0);
 }
 
 // Une agence prête, sans postes de départ (les doublons des postes sont le paquet 71d), sa titulaire
