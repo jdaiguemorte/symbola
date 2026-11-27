@@ -26,15 +26,15 @@ function parisDay(offsetDays = 0): string {
 }
 
 // L'atelier de Camille Roussel : Léa et Maxime confirmés (30 tâches, pour que la fiche défile).
-async function atelier(options: { without?: "vendors"[] } = {}) {
+async function atelier(options: { without?: "vendors"[]; unnamed?: boolean } = {}) {
   const { sql, db } = createAppConnection();
   try {
     const organizationId = (await readyOrganization(db, `Atelier Roussel ${randomUUID().slice(0, 6)}`)).id;
     await saveOnboardingStep(db, organizationId, { vatRegime: "franchise", vatRateDefaultBasisPoints: null, metier: "wedding_planner" });
     for (const moduleKey of options.without ?? []) await setModuleEnabled(db, { adminUserId: randomUUID(), organizationId, moduleKey, enabled: false });
-    const email = `camille-${randomUUID()}@symbola.test`;
+    const email = options.unnamed ? `une-adresse-tres-longue-sans-nom-${randomUUID()}@symbola.test` : `camille-${randomUUID()}@symbola.test`;
     const owner = await createUser(db, { organizationId, email, role: "owner" });
-    await setUserNames(db, owner.id, { firstName: "Camille", lastName: "Roussel" });
+    if (!options.unnamed) await setUserNames(db, owner.id, { firstName: "Camille", lastName: "Roussel" });
     const source = await createProspectSource(organizationId, "Salon");
     const lea = (await createProspect({ organizationId, createdByUserId: owner.id, prospectSourceId: source.id, clients: [{ firstName: "Léa" }, { firstName: "Maxime" }], eventDate: parisDay(68) })).id;
     await changeEventStatus({ organizationId, eventId: lea, changedByUserId: owner.id, toStatus: "confirmed" });
@@ -135,6 +135,18 @@ test.describe("lot 70e — la barre du haut", () => {
     await accountButton(page).click();
     await page.getByRole("heading", { level: 1 }).first().click({ position: { x: 5, y: 5 } });
     await expect(menu).toBeHidden();
+  });
+
+  test("un compte sans nom et à longue adresse : le bouton du compte se tronque, la page ne déborde pas à 853 px", async ({ page }) => {
+    const setup = await atelier({ unnamed: true });
+    await page.setViewportSize({ width: 853, height: 533 });
+    await signInByLink(page, setup.email);
+    const measure = await page.evaluate(() => ({
+      page: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+      bar: document.querySelector<HTMLElement>(".app-topbar")!.scrollWidth - document.querySelector<HTMLElement>(".app-topbar")!.clientWidth,
+    }));
+    expect(measure.page).toBeLessThanOrEqual(0);
+    expect(measure.bar).toBeLessThanOrEqual(0);
   });
 
   test("« Tous les modules » remplace « Apps » dans le menu latéral", async ({ page }) => {

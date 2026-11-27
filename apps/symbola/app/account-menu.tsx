@@ -83,7 +83,7 @@ export function AccountMenu({
           {initials}
         </span>
         <span className="account-menu-name">
-          {shortName}
+          <span>{shortName}</span>
           {organization ? <span className="account-menu-organization">{organization}</span> : null}
         </span>
         <ChevronDown size={16} aria-hidden="true" />
