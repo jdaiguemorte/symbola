@@ -92,13 +92,6 @@
     "signingLinksHint": "A signer did not receive the e-mail? Send them their link above (right-click, “Copy link”). Each link is personal.",
     "quoteEventColumn": "Event"
   },
-  "Import": {
-    "takeover": {
-      "event_sheets": {
-        "what": "Each sheet becomes an event: the client and their contact details, date, places and times, wished budget. The status is suggested from the date; you can change it in the preview."
-      }
-    }
-  },
   "Privacy": {
     "setting": {
       "clientRetentionMonths": "Client: kept after the end of the relationship (months)",
