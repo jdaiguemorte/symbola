@@ -110,7 +110,8 @@ test("IMP-08 — reprendre ses évènements depuis les fiches PDF de l'outil act
   // Lot 63b (HUB-14, UX-07) : l'annulation est repliée sous le bilan.
   await page.getByText("Annuler cet import", { exact: true }).click();
   await page.getByRole("button", { name: "Annuler l'import" }).click();
-  await expect(page.getByText("1 élément annulé ; 1 gardé car modifié à la main ; aucun gardé car utilisé.")).toBeVisible();
+  // Lot 71a : les totaux « à répartir » des fiches partent aussi avec l'import (plus d'un élément annulé).
+  await expect(page.getByText(/\d+ éléments annulés ; 1 gardé car modifié à la main ; aucun gardé car utilisé\./)).toBeVisible();
   await expectNoAxeViolation(page);
   await page.goto("/events");
   await expect(page.getByText("Chloé & Antoine")).toHaveCount(0);
