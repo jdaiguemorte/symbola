@@ -118,3 +118,4 @@ Un fichier par décision structurante, numéroté. Pour changer une décision : 
 - [0117 — Les tâches vont à la Corbeille (avenant à l'ADR 0073)](0117-taches-dans-la-corbeille.md)
 - [0118 — Les états d'une tâche : sans « En cours », avec « Bientôt »](0118-etats-d-une-tache.md)
 - [0120 — Le panneau d'une tâche s'enregistre d'un bouton, et demande avant de fermer](0120-panneau-de-tache-enregistrer.md)
+- [0121 — Le statut « En préparation » est retiré ; la date de signature est gardée](0121-statut-en-preparation-retire.md)

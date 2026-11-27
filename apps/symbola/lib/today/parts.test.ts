@@ -1,7 +1,7 @@
 // Lot 65c (HUB-08, UX-01 ; maquette M15) — « À traiter en premier » : sept lignes au plus, par nature.
 import { describe, expect, it } from "vitest";
 import { rankToday, type TodayItem, type TodayItemKind } from "./rank";
-import { HOME_FIRST_COUNT, natureOf, todayParts } from "./parts";
+import { HOME_FIRST_COUNT, natureOf, todayParts, todayRest } from "./parts";
 
 const TODAY = "2026-11-23";
 const item = (key: string, kind: TodayItemKind, dueOn: string | null, eventId: string | null = "e1"): TodayItem => ({
@@ -29,6 +29,8 @@ describe("HUB-08, UX-01 — À traiter en premier : sept lignes au plus, découp
     const tasks = parts.find((part) => part.nature === "tasks")!;
     expect(tasks.items).toHaveLength(6);
     expect(tasks.total).toBe(7);
+    // Lot 72a (M15) : « Tâches 6 sur 7 ».
+    expect(tasks.shown).toBe(6);
     expect(tasks.link).toEqual({ kind: "tasks", href: "/taches" });
     expect(parts.find((part) => part.nature === "follow_ups")?.items.map((entry) => entry.key)).toEqual(["relance"]);
     // Le paiement est au-delà des sept : sa partie n'apparaît pas.
@@ -59,5 +61,38 @@ describe("HUB-08, UX-01 — À traiter en premier : sept lignes au plus, découp
     expect(natureOf("vendor_answer")).toBe("decisions");
     expect(natureOf("prospect_request")).toBe("prospects");
     expect(natureOf("appointment")).toBe("others");
+    // Lot 72a : une alerte du radar est une ligne « À regarder ».
+    expect(natureOf("watch")).toBe("watch");
+  });
+});
+
+// Lot 72a (HUB-08, UX-01 ; A1, M15 ; critère 1) : le compte du haut est la somme des lignes de la carte
+// et de « Tout afficher ».
+describe("HUB-08 — Le compte du haut est la somme des lignes (lot 72a, critère 1)", () => {
+  it("Atelier Roussel : 7 points = 5 tâches + 1 relance + 1 paiement, tous dans la carte", () => {
+    const ranked = rankToday(
+      [...Array.from({ length: 5 }, (_, index) => item(`t${index}`, "task", `2026-11-2${index + 3}`)), item("relance", "quote_follow_up", null), item("paiement", "client_payment", "2026-11-28")],
+      TODAY,
+    );
+    const parts = todayParts(ranked, { quotes: true, events: true });
+    expect(ranked.points).toBe(7);
+    expect(parts.map((part) => [part.nature, part.shown, part.total])).toEqual([
+      ["follow_ups", 1, 1],
+      ["tasks", 5, 5],
+      ["payments", 1, 1],
+    ]);
+    expect(todayRest(ranked)).toHaveLength(0);
+  });
+
+  it("Nadia : 11 points = 7 dans la carte + 4 dans « Tout afficher » ; une partie incomplète dit « N sur M »", () => {
+    const ranked = rankToday([...Array.from({ length: 9 }, (_, index) => item(`t${index}`, "task", `2026-11-2${index}`)), item("p1", "client_payment", "2026-12-01"), item("w", "watch", null)], TODAY);
+    const parts = todayParts(ranked, { quotes: true, events: true });
+    const shown = parts.reduce((sum, part) => sum + part.shown, 0);
+    expect(ranked.points).toBe(11);
+    expect(shown).toBe(HOME_FIRST_COUNT);
+    expect(shown + todayRest(ranked).length).toBe(ranked.points);
+    const tasks = parts.find((part) => part.nature === "tasks")!;
+    expect([tasks.shown, tasks.total]).toEqual([6, 9]);
+    expect(parts.find((part) => part.nature === "watch")).toMatchObject({ shown: 1, total: 1 });
   });
 });

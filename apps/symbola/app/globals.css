@@ -4813,7 +4813,6 @@
   .notification-list,
   .device-list,
   .standalone-task-list,
-  .today-risk-list,
   .health-contributors,
   .automation-journal {
     @apply m-0 list-none p-0;

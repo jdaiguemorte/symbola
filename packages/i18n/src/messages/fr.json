@@ -467,7 +467,7 @@
     },
     "home": {
       "title": "Aujourd'hui",
-      "body": "Ce qui demande votre attention, tous évènements confondus, trié par urgence : en retard, aujourd'hui, en attente d'un tiers (le client ou un prestataire), puis les quatorze prochains jours. « À traiter en premier » en garde les sept premiers points, regroupés par nature (relances et messages, tâches, paiements, décisions et signatures, prospects) ; chaque partie dit son nombre et mène à sa page (« Voir dans Tâches », « Voir les encaissements »…), chaque ligne dit qui doit agir et mène à l'action en un clic ; une tâche y prend la même ligne que dans « Tâches », sans menu : son titre ouvre son panneau, le nom du mariage mène à sa fiche, « Fait » la coche, et « Les revoir » montre les tâches faites aujourd'hui. Dessous, sur toute la largeur, le calendrier : vos évènements, vos rendez-vous, vos tâches de la couleur de leur catégorie et les échéances de paiement des prestataires non réglées ; « ‹ », « Aujourd'hui » et « › » le feuillettent, « Mois », « Semaine » et « Liste » changent la vue, un clic sur un jour en montre le détail. Sur téléphone, la semaine en cours. Puis le reste des points, et vos évènements en cours, avec le compte à rebours. « À envoyer » : un message de la relation préparé par Symbola (relance, rappel, brief…), à envoyer de votre messagerie ; un clic ouvre la fenêtre « Préparer l'e-mail ».",
+      "body": "Ce qui demande votre attention, tous évènements confondus, d'ici quatorze jours : un point est une ligne, une chose à faire ou à surveiller, et le nombre du haut les compte toutes. Les retards viennent d'abord, du plus ancien au plus récent, puis tout le reste par date, quel que soit qui doit agir. « À traiter en premier » en garde les sept premiers points, regroupés par nature (relances et messages, tâches, paiements, décisions et signatures, prospects, « À regarder » pour les alertes du radar) ; quand la ligne attend les mariés ou un prestataire, le nom et les coordonnées de la personne à joindre sont sous son titre ; chaque partie dit son nombre et mène à sa page (« Voir dans Tâches », « Voir les encaissements »…), chaque ligne dit qui doit agir et mène à l'action en un clic ; une tâche y prend la même ligne que dans « Tâches », sans menu : son titre ouvre son panneau, le nom du mariage mène à sa fiche, « Fait » la coche, et « Les revoir » montre les tâches faites aujourd'hui. Dessous, sur toute la largeur, le calendrier : vos évènements, vos rendez-vous, vos tâches de la couleur de leur catégorie et les échéances de paiement des prestataires non réglées ; « ‹ », « Aujourd'hui » et « › » le feuillettent, « Mois », « Semaine » et « Liste » changent la vue, un clic sur un jour en montre le détail. Sur téléphone, la semaine en cours. Puis le reste des points, et vos évènements en cours, avec le compte à rebours. « À envoyer » : un message de la relation préparé par Symbola (relance, rappel, brief…), à envoyer de votre messagerie ; un clic ouvre la fenêtre « Préparer l'e-mail ».",
       "faq": [
         {
           "q": "Comment changer les délais de relance des devis et des prospects ?",
@@ -1417,7 +1417,7 @@
     },
     "riskRadar": {
       "title": "Radar des risques",
-      "body": "Le radar passe chaque matin. Chaque règle a un seuil en jours ; une alerte dit la règle qui l'a déclenchée et mène à l'écran où agir. La santé du planning se règle ici aussi."
+      "body": "Le radar passe chaque matin. Chaque règle a un seuil en jours ; une alerte devient une ligne « À regarder » d'« Aujourd'hui », qui dit la règle qui l'a déclenchée et mène à l'écran où agir. La santé du planning se règle ici aussi."
     },
     "clientTerms": {
       "title": "Termes des clients",
@@ -7453,7 +7453,8 @@
       "payments": "Paiements ({count})",
       "decisions": "Décisions et signatures ({count})",
       "prospects": "Prospects et demandes ({count})",
-      "others": "À regarder ({count})"
+      "others": "Autres points ({count})",
+      "watch": "À regarder ({count})"
     },
     "partLink": {
       "tasks": "Voir toutes les tâches",
