@@ -381,3 +381,80 @@ export async function listTakeovers(db: AppDatabase, organizationId: string, vie
   }
   return views;
 }
+
+// —— Lot 71b : la page de reprise ————————————————————————————————————————————————————————————
+
+// La page avant sa première action (R1) : rien n'est écrit tant que la planner n'a rien fait. La ligne
+// du carnet est déjà faite au deuxième mariage (R2) ; la ligne du mariage, quand la page s'ouvre
+// depuis un mariage (l'état vide de « Tâches »). Le mariage est contrôlé comme pour une reprise.
+export async function previewTakeover(
+  db: AppDatabase,
+  input: { organizationId: string; eventId?: string | null; viewer?: TakeoverViewer | null; now?: Date },
+): Promise<Omit<TakeoverView, "id"> & { id: null }> {
+  const now = input.now ?? new Date();
+  const eventId = input.eventId ?? null;
+  if (eventId) await assertTakeoverEvent(input.organizationId, eventId, input.viewer ?? null);
+  const vendorBook = await withOrganization(db, input.organizationId, (tx) => appliedVendorBookImport(tx));
+  const steps: TakeoverStepView[] = TAKEOVER_STEP_KINDS.map((kind) => {
+    const done = (kind === "vendor_book" && vendorBook !== null) || (kind === "event" && eventId !== null);
+    return { id: kind, kind, state: done ? "done" : "todo", importId: kind === "vendor_book" ? vendorBook : null, coveredByStepId: null, decidedAt: done ? now : null };
+  });
+  return { id: null, eventId, createdAt: now, completedAt: null, checklistClosedAt: null, steps, progress: takeoverProgress(steps) };
+}
+
+// Le champ du budget qui nomme le prestataire d'une ligne (contrat des champs d'import).
+const BUDGET_VENDOR_FIELD = "vendorName";
+
+function distinctVendorNames(row: { rows: string[][] | null; mapping: { columnIndex: number; fieldKey: string | null; target: string }[] | null }): number {
+  const column = row.mapping?.find((choice) => choice.target === "field" && choice.fieldKey === BUDGET_VENDOR_FIELD)?.columnIndex;
+  if (column === undefined || !row.rows) return 0;
+  return new Set(row.rows.map((cells) => (cells[column] ?? "").trim().toLocaleLowerCase("fr")).filter((name) => name !== "")).size;
+}
+
+// Critère 4 du paquet 71b : un budget de reprise dont une colonne nomme les prestataires couvre la ligne
+// des prestataires retenus dès que ses colonnes sont enregistrées (« Avec le budget »), si la planner
+// n'y a rien décidé d'autre. Appelé par l'enregistrement des colonnes ; sans effet hors reprise.
+export async function coverTakeoverFromBudgetImport(db: AppDatabase, organizationId: string, importId: string, now: Date = new Date()): Promise<boolean> {
+  return withOrganization(db, organizationId, async (tx) => {
+    const [row] = await tx
+      .select({ takeoverId: imports.takeoverId, entityType: imports.entityType, rows: imports.rows, mapping: imports.mapping, createdByUserId: imports.createdByUserId })
+      .from(imports)
+      .where(eq(imports.id, importId));
+    if (!row?.takeoverId || row.entityType !== "budget_lines" || distinctVendorNames(row) === 0) return false;
+    const steps = await tx.select().from(takeoverSteps).where(eq(takeoverSteps.takeoverId, row.takeoverId));
+    const budget = steps.find((step) => step.kind === "budget");
+    const vendors = steps.find((step) => step.kind === "event_vendors");
+    if (!budget || !vendors || vendors.state !== "todo" || vendors.decidedAt !== null) return false;
+    await tx
+      .update(takeoverSteps)
+      .set({ state: "covered", coveredByStepId: budget.id, importId: null, decidedAt: now, decidedBy: row.createdByUserId, updatedAt: now })
+      .where(eq(takeoverSteps.id, vendors.id));
+    return true;
+  });
+}
+
+// « Votre budget nomme 7 prestataires : ils seront retenus avec lui. »
+export async function countImportVendorNames(db: AppDatabase, organizationId: string, importId: string): Promise<number> {
+  return withOrganization(db, organizationId, async (tx) => {
+    const [row] = await tx.select({ rows: imports.rows, mapping: imports.mapping }).from(imports).where(eq(imports.id, importId));
+    return row ? distinctVendorNames(row) : 0;
+  });
+}
+
+// Provisoire jusqu'au paquet 71e : les PDF des prestataires retenus et du programme passent encore par
+// leur envoi sur la fiche du mariage, hors du journal commun. Ouverts depuis la page de reprise, ils
+// cochent leur ligne une fois écrits, sans bilan.
+export async function markTakeoverStepImported(
+  db: AppDatabase,
+  input: { organizationId: string; userId: string; takeoverId: string; kind: "event_vendors" | "program"; eventId: string; viewer?: TakeoverViewer | null; now?: Date },
+): Promise<TakeoverView> {
+  const now = input.now ?? new Date();
+  const current = await requireVisibleTakeover(db, input.organizationId, input.takeoverId, input.viewer ?? null);
+  if (current.eventId !== input.eventId) throw new TakeoverNotFoundError();
+  return withOrganization(db, input.organizationId, async (tx) => {
+    const takeover = await requireTakeover(tx, input.takeoverId);
+    const step = await requireStep(tx, input.takeoverId, input.kind);
+    await tx.update(takeoverSteps).set({ state: "done", importId: null, coveredByStepId: null, decidedAt: now, decidedBy: input.userId, updatedAt: now }).where(eq(takeoverSteps.id, step.id));
+    return readView(tx, takeover);
+  });
+}

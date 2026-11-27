@@ -318,11 +318,13 @@ export {
   type StartImportResult,
   type StartEventSheetsImportResult,
   listImportedEvents,
+  listImportSummaries,
 } from "./imports";
 export {
   allStepsSettled,
   attachImportToTakeoverStep,
   attachTakeoverEvent,
+  countImportVendorNames,
   coverTakeoverStep,
   createTakeover,
   discardImportLeftovers,
@@ -332,6 +334,8 @@ export {
   getTakeover,
   listTakeovers,
   markTakeoverCompleted,
+  markTakeoverStepImported,
+  previewTakeover,
   settleTakeoverStep,
   TakeoverDemoEventError,
   TakeoverEventTakenError,

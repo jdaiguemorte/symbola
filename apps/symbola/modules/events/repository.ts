@@ -203,6 +203,8 @@ export async function insertProspect(input: {
   guestsEstimated?: number | null | undefined;
   wantedBudgetCents?: number | null | undefined;
   pipelineStageId?: string | null | undefined;
+  // Lot 71b (HUB-14) : un mariage saisi sur la page de reprise, Confirmé, d'origine « reprise ».
+  takeover?: boolean | undefined;
   // Écritures de l'appelant dans la même transaction (la demande reçue et son événement interne).
   afterInsert?: ((tx: Tx, event: EventRow) => Promise<void>) | undefined;
 }): Promise<EventRow> {
@@ -212,7 +214,8 @@ export async function insertProspect(input: {
       .insert(events)
       .values({
         organizationId: input.organizationId,
-        status: "option",
+        status: input.takeover ? "confirmed" : "option",
+        origin: input.takeover ? "takeover" : "created",
         name: input.name ?? null,
         eventDate: input.eventDate ?? null,
         prospectSourceId: input.prospectSourceId,
@@ -250,8 +253,10 @@ export async function insertProspect(input: {
       organizationId: input.organizationId,
       eventId: event.id,
       fromStatus: null,
-      toStatus: "option",
+      toStatus: input.takeover ? "confirmed" : "option",
       changedByUserId: input.createdByUserId,
+      // Lot 71b (C-64) : signé avant la reprise, à une date que la planner n'a pas dite.
+      dateKnown: !input.takeover,
     });
 
     await emitDomainEvent(tx, {

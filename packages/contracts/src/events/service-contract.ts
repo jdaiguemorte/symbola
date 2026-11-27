@@ -160,6 +160,10 @@ export type CreateProspectInput = {
   // Lot 63c (EVT-01, CHR-01 ; ADR 0106, qui remplace D8 du lot 34a) : aucun rétroplanning d'office ;
   // seulement le modèle choisi à la création (case cochée), daté depuis la date de l'évènement.
   taskTemplateId?: string | null;
+  // Lot 71b (HUB-14, C-67 ; maquette 06) : un mariage saisi sur la page de reprise. Il est « Signé, en
+  // préparation » (Confirmé), d'origine « reprise », à une date de signature que la planner n'a pas
+  // dite ; aucun modèle de rétroplanning ne s'applique (ses tâches viendront de sa liste).
+  takeover?: boolean;
 };
 
 export type CreateProspectResult = {
