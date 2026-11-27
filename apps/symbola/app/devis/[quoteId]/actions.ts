@@ -14,6 +14,7 @@ import {
   QuoteScheduleExceedsTotalError,
   QuoteSectionNotFoundError,
   QuoteTemplateNotFoundError,
+  QuoteVatAnswerPendingError,
   QuoteVatRegimeRequiredError,
   QuoteVersionLockedError,
   RequiredMentionsMissingError,
@@ -37,6 +38,9 @@ import {
 } from "@/modules/quotes/service";
 import type { RecipientsReview } from "@symbola/contracts";
 import { getEvent, eventNames } from "@/modules/events/service";
+import { answerPendingVat } from "@/modules/hub/service";
+import { appDatabase } from "@symbola/db/client";
+import { parisToday } from "@symbola/i18n";
 import { parseDecimal } from "../decimal-input";
 import { isValidId } from "../module-access";
 import { authorizedPlanner } from "../planner-access";
@@ -47,6 +51,8 @@ export type QuoteFormState = {
   error?: string;
   success?: boolean;
   vatRegimeRequired?: boolean;
+  // Lot 74a (L74-D4) : « Envoyer » ouvre la question de la TVA, laissée à « Je ne sais pas encore ».
+  vatQuestion?: boolean;
   missingMentions?: MissingMention[];
   confirmRecipients?: RecipientsReview;
   signers?: SignerInput[];
@@ -65,6 +71,7 @@ function errorState(error: unknown, t: Translate): QuoteFormState {
   // Lot 31c (D22) : des arrhes se versent en une seule échéance.
   if (error instanceof EarnestSingleInstalmentError) return { error: t("earnestSingleInstalment") };
   if (error instanceof QuoteVatRegimeRequiredError) return { error: t("vatRegimeRequired"), vatRegimeRequired: true };
+  if (error instanceof QuoteVatAnswerPendingError) return { vatQuestion: true };
   // Lot 31a (FAC-07, D4) : le refus nomme chaque mention manquante (liens vers où la remplir).
   if (error instanceof RequiredMentionsMissingError) return { error: t("mentionsMissing"), missingMentions: error.fields };
   if (error instanceof QuoteSectionNotFoundError) return { error: t("sectionNotFound") };
@@ -214,7 +221,16 @@ export async function setGlobalDiscountAction(_prevState: QuoteFormState, formDa
 }
 
 export async function sendQuoteAction(_prevState: QuoteFormState, formData: FormData): Promise<QuoteFormState> {
-  return run(formData, async (organizationId, quoteId) => {
+  return run(formData, async (organizationId, quoteId, t) => {
+    // Lot 74a (L74-D4) : la réponse à la question de la TVA, puis l'envoi reprend. « Non » ou « Oui »
+    // seulement ; la même personne peut changer le régime dans les Paramètres (contrôle de run).
+    const vat = formData.get("vatAnswer");
+    if (vat !== null) {
+      if (vat !== "no" && vat !== "yes") return { vatQuestion: true, error: t("vatAnswerRequired") };
+      const planner = await authorizedPlanner();
+      if (!planner) return { error: t("unauthenticated") };
+      await answerPendingVat(appDatabase(), { organizationId, userId: planner.userId, regime: vat === "yes" ? "assujetti" : "franchise", effectiveDate: parisToday() });
+    }
     await sendQuote({ organizationId, quoteId });
   });
 }

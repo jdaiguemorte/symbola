@@ -11,7 +11,7 @@ import { getTranslations } from "next-intl/server";
 import { parisToday } from "@symbola/i18n";
 import { appDatabase } from "@symbola/db/client";
 import {
-  changeVatRegime,
+  answerPendingVat,
   completeOnboarding,
   getOrganizationProfile,
   InvalidDocumentDetailsError,
@@ -64,7 +64,8 @@ async function saveStep(step: EssentialStep, formData: FormData, organizationId:
       const chosen = text(formData, "vatRegime");
       const regime = chosen === "assujetti" || chosen === "franchise" ? chosen : null;
       await saveCompanyEssentials(db, organizationId, { vatNumber: optional(formData, "vatNumber") });
-      if (regime && regime !== profile.vatRegime) await changeVatRegime(db, { organizationId, userId, newRegime: regime, effectiveDate: parisToday() });
+      // Lot 74a (L74-D4) : une réponse donnée ici fait aussi tomber « Je ne sais pas encore ».
+      if (regime && (regime !== profile.vatRegime || profile.vatAnswerPending)) await answerPendingVat(db, { organizationId, userId, regime, effectiveDate: parisToday() });
       break;
     }
     case "bank": {
