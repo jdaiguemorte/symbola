@@ -41,6 +41,12 @@ export function filtersQuery(filters: EventTaskFilters): Record<string, string> 
   return query;
 }
 
+// Les valeurs des listes du formulaire (vide : la valeur par défaut).
+export function filterFormValues(filters: EventTaskFilters): { who: string; period: string; category: string; state: string } {
+  const query = filtersQuery(filters);
+  return { who: query.qui ?? "", period: query.periode ?? "", category: query.categorie ?? "", state: query.etat ?? "" };
+}
+
 export function activeFilterCount(filters: EventTaskFilters): number {
   return Object.keys(filtersQuery(filters)).length;
 }

@@ -47,7 +47,6 @@
   "app/events/[id]/relances/[followUpId]/follow-up-form.tsx",
   "app/events/[id]/scenarios/scenario-forms.tsx",
   "app/events/[id]/task-extra-forms.tsx",
-  "app/events/[id]/task-forms.tsx",
   "app/events/[id]/vendor-slot-forms.tsx",
   "app/events/modeles-evenement/create-form.tsx",
   "app/events/modeles-programme/template-forms.tsx",

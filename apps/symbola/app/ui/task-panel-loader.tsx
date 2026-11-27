@@ -123,7 +123,7 @@ export async function TaskPanelLoader({
   let doneText: string | null = null;
   if (task.done && task.doneAt) {
     const instant = new Date(task.doneAt);
-    const date = formatShortCalendarDate(parisDay(instant), locale);
+    const date = new Intl.DateTimeFormat(locale === "fr" ? "fr-FR" : "en-GB", { day: "numeric", month: "short", timeZone: "Europe/Paris" }).format(instant).replace(/[\u00a0\u202f]/g, " ");
     const time = timeLabel(instant, locale);
     const by = task.doneBy;
     const who =

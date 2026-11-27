@@ -148,7 +148,7 @@ test("HUB-11 / AIDE-06 — tutoriel dans le panneau latéral : proposé à la pr
   await panel.getByRole("button", { name: "Étape suivante" }).click();
 
   // « Étape suivante » mène au bon écran : le rétroplanning de l'exemple.
-  await expect(page).toHaveURL(/\/events\/[0-9a-f-]{36}\?onglet=retroplanning$/);
+  await expect(page).toHaveURL(/\/events\/[0-9a-f-]{36}\?onglet=taches$/);
   await expect(panel.getByRole("heading", { name: "Appliquer le modèle", level: 3 })).toBeVisible();
   await expect(panel).toContainText("L'étape se coche seule quand l'action est faite.");
   await page.waitForLoadState("networkidle");

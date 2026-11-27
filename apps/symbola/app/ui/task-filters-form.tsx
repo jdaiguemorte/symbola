@@ -5,7 +5,6 @@
 // (l'adresse change, la page garde sa place) ; sans script, le bouton « Filtrer » envoie le formulaire.
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import type { EventTaskFilters } from "@/lib/tasks/event-task-filters";
 
 type Option = { value: string; label: string };
 
@@ -78,8 +77,4 @@ export function TaskFiltersForm({
       </noscript>
     </form>
   );
-}
-
-export function filterValues(filters: EventTaskFilters, query: Record<string, string>): { who: string; period: string; category: string; state: string } {
-  return { who: query.qui ?? (filters.who === "all" ? "" : filters.who), period: query.periode ?? "", category: query.categorie ?? "", state: query.etat ?? "" };
 }

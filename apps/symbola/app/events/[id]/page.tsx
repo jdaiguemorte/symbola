@@ -54,9 +54,9 @@ import { resolveRecalculationAction } from "./task-actions";
 import { ApplyTaskTemplateForm, EventDateForm } from "./task-forms";
 import { TaskPanelLoader, panelFromQuery } from "@/app/ui/task-panel-loader";
 import { TaskLineBoard } from "@/app/ui/task-line-board";
-import { TaskFiltersForm, filterValues } from "@/app/ui/task-filters-form";
+import { TaskFiltersForm } from "@/app/ui/task-filters-form";
 import { buildTaskLines, clientsTerms, engagedVendors, linesByMonth } from "@/lib/tasks/task-lines";
-import { filterEventTasks, filtersQuery, readEventTaskFilters } from "@/lib/tasks/event-task-filters";
+import { filterEventTasks, filterFormValues, filtersQuery, readEventTaskFilters } from "@/lib/tasks/event-task-filters";
 import { legacyTaskTabRedirect } from "@/lib/tasks/task-tab";
 import { ensureTaskCategories } from "@/lib/events/task-categories";
 import { PageTour } from "../../page-tour";
@@ -1138,7 +1138,7 @@ export default async function EventDetailPage({
             <TaskFiltersForm
               action={`/events/${event.id}`}
               hidden={{ onglet: "taches" }}
-              filters={filterValues(taskFilters, filtersQuery(taskFilters))}
+              filters={filterFormValues(taskFilters)}
               who={[
                 { value: "moi", label: tLine("you") },
                 ...taskMembers.filter((member) => !member.me && !member.removed).map((member) => ({ value: `member:${member.id}`, label: member.name })),

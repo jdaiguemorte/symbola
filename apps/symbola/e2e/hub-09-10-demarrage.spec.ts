@@ -140,7 +140,7 @@ test("HUB-10 / PAR-01 — l'exemple est étiqueté « Exemple » et ne contacte 
   await page.getByRole("button", { name: "Supprimer l'exemple" }).click();
   await expect(page.getByRole("status").filter({ hasText: "L'exemple et ses données fictives ont été supprimés." })).toBeVisible();
 
-  await page.goto(`${eventUrl}?onglet=retroplanning`);
+  await page.goto(`${eventUrl}?onglet=taches`);
   await expect(page.getByText("Définir le budget global").first()).toBeVisible();
   await page.goto(`${eventUrl}?onglet=budget`);
   await expect(page.getByText("Lieu de réception").first()).toBeVisible();

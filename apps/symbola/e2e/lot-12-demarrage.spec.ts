@@ -47,7 +47,7 @@ test("L12-EVT-12 / L12-EVT-13 / L12-EVT-15 / EVT-01 — statut en boutons, rétr
   await login(page, account.email, account.password, /\/$/);
 
   // Lot 34a (EVT-01, D8) : le rétroplanning est ouvert dès l'option ; ce modèle vide n'a rien créé.
-  await page.goto(`/events/${event.id}?onglet=retroplanning`);
+  await page.goto(`/events/${event.id}?onglet=taches`);
   await expect(page.getByRole("button", { name: "Appliquer le modèle" })).toBeVisible();
 
   // Lot 13 (L13-EVT-19) : frise du statut ; l'étape choisie se confirme, puis

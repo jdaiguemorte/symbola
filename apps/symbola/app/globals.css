@@ -6065,26 +6065,23 @@
   .task-lines-head,
   .task-line {
     @apply grid items-center gap-x-4;
-    grid-template-columns: minmax(0, 1fr) minmax(7rem, 0.32fr) minmax(12rem, 0.42fr) minmax(8rem, 0.3fr) auto;
+    grid-template-columns: minmax(0, 2.2fr) minmax(0, 0.9fr) minmax(0, 1.2fr) minmax(0, 0.9fr) 8.5rem;
   }
   .task-lines[data-form="event"] .task-lines-head,
   .task-lines[data-form="event"] .task-line {
-    grid-template-columns: minmax(0, 1fr) minmax(12rem, 0.42fr) minmax(8rem, 0.3fr) auto;
+    grid-template-columns: minmax(0, 2.4fr) minmax(0, 1.2fr) minmax(0, 0.9fr) 8.5rem;
   }
   .task-line:has(> .task-line-select) {
-    grid-template-columns: 2.75rem minmax(0, 1fr) minmax(7rem, 0.32fr) minmax(12rem, 0.42fr) minmax(8rem, 0.3fr);
+    grid-template-columns: 2.75rem minmax(0, 2.2fr) minmax(0, 0.9fr) minmax(0, 1.2fr) minmax(0, 0.9fr);
   }
   .task-lines[data-form="event"] .task-line:has(> .task-line-select) {
-    grid-template-columns: 2.75rem minmax(0, 1fr) minmax(12rem, 0.42fr) minmax(8rem, 0.3fr);
+    grid-template-columns: 2.75rem minmax(0, 2.4fr) minmax(0, 1.2fr) minmax(0, 0.9fr);
   }
   .task-lines-head {
     @apply border-b border-line px-3 pb-2 text-label text-ink-muted;
   }
-  .task-lines-head > span:last-child {
-    grid-column: span 2;
-  }
   .task-lines-month {
-    @apply mt-5 mb-1 flex items-baseline gap-2 font-display text-heading;
+    @apply mt-6 mb-1 flex items-baseline gap-2 font-display text-heading;
   }
   .task-lines-count {
     @apply text-label font-normal text-ink-muted;
@@ -6144,13 +6141,13 @@
     @apply flex items-center justify-end gap-2;
   }
   .task-done-button {
-    @apply min-h-10 border-line-strong bg-surface px-4 text-label font-semibold text-ink hover:border-ink hover:bg-ground;
+    @apply min-h-11 border-line-strong bg-surface px-4 text-label font-semibold text-ink hover:border-ink hover:bg-ground;
   }
   .task-done-button[data-done="true"] {
     @apply font-medium text-ink-muted;
   }
   .task-menu-button {
-    @apply inline-flex min-h-10 min-w-10 items-center justify-center border-transparent bg-transparent px-2 text-heading text-ink hover:border-line-strong hover:bg-ground;
+    @apply inline-flex min-h-11 min-w-11 items-center justify-center border-transparent bg-transparent px-2 text-heading text-ink hover:border-line-strong hover:bg-ground;
   }
   .task-line-select {
     @apply inline-flex h-11 w-11 max-w-none cursor-pointer items-center justify-center;
@@ -6158,8 +6155,17 @@
   .task-board-tools {
     @apply flex justify-end;
   }
-  .task-done-today {
+  .today-done-today {
     @apply mt-2 text-body text-ink-muted;
+  }
+  .task-board {
+    @apply my-2;
+  }
+  .task-lines-group + .task-lines-group {
+    @apply mt-2;
+  }
+  .task-date-panel .task-popover-choices {
+    @apply mb-2;
   }
 
   @media (max-width: 639px) {
@@ -6221,7 +6227,7 @@
     }
     .task-line-due {
       grid-area: due;
-      @apply text-label;
+      @apply min-w-0 flex-nowrap gap-x-1 overflow-hidden text-label;
     }
     .task-line-due .task-state {
       order: -1;
@@ -6266,7 +6272,7 @@
     @apply justify-start;
   }
   .task-popover-choice-hint {
-    @apply text-label text-ink-muted;
+    @apply ml-auto text-label text-ink-muted;
   }
   .task-popover-other {
     @apply m-0 flex max-w-none flex-row flex-wrap items-end gap-2 border-t border-line px-2 pt-2;

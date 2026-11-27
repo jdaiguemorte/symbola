@@ -27,6 +27,7 @@ import { useRetryableAction } from "./use-retryable-action";
 import { TaskPopover, usePopover } from "./task-popover";
 import { TaskDatePanel, type DateShortcutOption } from "./task-date-panel";
 import { taskFieldsSchema } from "@/lib/forms/task-fields";
+import { formatShortCalendarDate } from "@symbola/i18n";
 import { changedFields, closeDecision, daysBeforeEvent, dueFromDaysBefore, repetitionOffered, type TaskDraft } from "@/lib/tasks/task-panel-model";
 import { responsibleSelection, UNCHANGED_RESPONSIBLE, type TaskMemberOption } from "@/app/events/[id]/task-responsible";
 import { createTaskPanelAction, saveTaskPanelAction, setTaskDoneAction, type TaskPanelState } from "@/app/taches/task-line-actions";
@@ -299,8 +300,10 @@ export function TaskPanel({
 
           <div className="task-panel-field">
             <label htmlFor={validation.fieldId("dueDate")}>
-              {t("fieldDue")}
-              <RequiredMark />
+              <span>
+                {t("fieldDue")}
+                <RequiredMark />
+              </span>
             </label>
             <span className="task-panel-due">
               <input type="date" name="dueDate" className="field-date" value={draft.dueDate} onChange={(change) => set("dueDate", change.target.value)} {...validation.fieldProps("dueDate")} />
@@ -332,7 +335,7 @@ export function TaskPanel({
           </div>
           <TaskDatePanel
             handle={dates}
-            task={{ id: task?.id ?? "", label: draft.label || t("newTask"), dueDate: draft.dueDate, dateLabel: task?.dateLabel ?? draft.dueDate }}
+            task={{ id: task?.id ?? "", label: draft.label.trim() || t("newTask"), dueDate: draft.dueDate, dateLabel: /^\d{4}-\d{2}-\d{2}$/.test(draft.dueDate) ? formatShortCalendarDate(draft.dueDate, locale === "en" ? "en" : "fr") : "—" }}
             shortcuts={shortcuts}
             onPick={(date) => set("dueDate", date)}
           />
