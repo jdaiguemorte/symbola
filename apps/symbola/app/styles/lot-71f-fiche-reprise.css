@@ -1,0 +1,104 @@
+/* Lot 71f (EVT-02, EVT-07, HUB-08 ; maquette 09 du lot 68) — la fiche d'un mariage repris et ses reflets :
+   la marque « Repris le … » sous l'en-tête, « À compléter après la reprise », la provenance d'une valeur,
+   le bandeau « à répartir » du budget, la marque de la liste et « Reprises en cours » sur l'accueil.
+   Jetons de DESIGN.md seulement (ADR 0057), aucun style en ligne (CSP). La marque de provenance et la
+   marque « Repris » sont neutres (icône de fichier, gris) : ce n'est pas un état. Un point fait se lit sans
+   la couleur (coche et mot « Fait »). */
+@layer components {
+  .takeover-origin {
+    @apply m-0 mb-3 inline-flex flex-wrap items-center gap-1 text-label text-ink-muted;
+  }
+  .takeover-origin a {
+    @apply inline-flex min-h-11 items-center font-semibold;
+  }
+
+  .takeover-checklist .section-head .meta {
+    @apply m-0;
+  }
+  .takeover-points {
+    @apply m-0 list-none p-0;
+  }
+  .takeover-point {
+    @apply grid items-start gap-3 border-b border-line py-3;
+    grid-template-columns: 1.25rem minmax(0, 1fr) auto;
+  }
+  .takeover-point:last-child {
+    @apply border-b-0;
+  }
+  .takeover-point-icon {
+    @apply mt-1 text-ink-muted;
+  }
+  .takeover-point-done .takeover-point-icon {
+    @apply text-primary;
+  }
+  .takeover-point-text {
+    @apply flex min-w-0 flex-col gap-1;
+  }
+  .takeover-point-text strong {
+    @apply text-ink;
+  }
+  .takeover-point-done .takeover-point-text strong {
+    @apply font-medium text-ink-muted;
+  }
+  .takeover-point-text .badge {
+    @apply self-start;
+  }
+  .takeover-point-actions {
+    @apply justify-end;
+  }
+  .takeover-point-actions .button-link {
+    @apply min-h-11;
+  }
+  .takeover-completed p {
+    @apply m-0 inline-flex flex-wrap items-center gap-1;
+  }
+  .takeover-completed a {
+    @apply inline-flex min-h-11 items-center;
+  }
+
+  .provenance-mark {
+    @apply ml-2 inline-flex items-center gap-1 text-label text-ink-muted;
+  }
+
+  .takeover-unallocated p {
+    @apply m-0;
+  }
+  .takeover-unallocated p + p {
+    @apply mt-1;
+  }
+
+  .takeover-mark {
+    @apply ml-2 no-underline;
+  }
+
+  .takeovers-in-progress ul {
+    @apply m-0 list-none p-0;
+  }
+  .takeovers-in-progress li {
+    @apply flex flex-wrap items-center gap-x-2 gap-y-1 border-b border-line py-2;
+  }
+  .takeovers-in-progress li:last-child {
+    @apply border-b-0;
+  }
+  .takeovers-in-progress li a {
+    @apply inline-flex min-h-11 items-center;
+  }
+  .takeovers-in-progress .takeover-in-progress-action {
+    @apply ml-auto;
+  }
+
+  @media (max-width: 640px) {
+    .takeover-point {
+      grid-template-columns: 1.25rem minmax(0, 1fr);
+    }
+    .takeover-point-actions {
+      @apply col-start-2 justify-start;
+    }
+    .provenance-mark {
+      @apply ml-0 flex;
+    }
+    .takeovers-in-progress .takeover-in-progress-action {
+      @apply ml-0;
+    }
+  }
+}

@@ -34,3 +34,6 @@ propres tests ne contrôlent que ce que nous savons vérifier.
 - Monter de version un validateur = changer l'empreinte dans `.github/workflows/ci.yml` et
   `docs/conformite/licences.md`, après un rejeu local.
 - Le rejeu local suit `docs/recette/SC-11.md` (mêmes commandes Docker).
+- Lot 75 : l'archive Mustang est gardée en cache de CI (clé = version + empreinte) et ne se
+  télécharge qu'en cas d'absence, avec de nouvelles tentatives espacées ; l'empreinte SHA-256 est
+  vérifiée à chaque passage, cache compris. L'image veraPDF est tirée avec les mêmes tentatives.

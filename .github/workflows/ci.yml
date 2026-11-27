@@ -290,16 +290,47 @@ jobs:
           FACTURX_SAMPLES_DIR: ${{ runner.temp }}/facturx
       - name: veraPDF — chaque fichier est un PDF/A-3 B
         run: |
+          # Lot 75 : l'image (figée par empreinte) est tirée avec de nouvelles tentatives espacées, car
+          # Docker Hub refuse parfois un tirage anonyme ; l'empreinte reste vérifiée par Docker.
+          for attempt in 1 2 3 4 5; do
+            docker pull "$VERAPDF_IMAGE" && break
+            if [ "$attempt" -eq 5 ]; then echo "Tirage de veraPDF impossible après 5 essais" >&2; exit 1; fi
+            sleep $((attempt * 15))
+          done
           count=$(ls "$RUNNER_TEMP"/facturx/*.pdf | wc -l)
           test "$count" -gt 0
           docker run --rm -v "$RUNNER_TEMP/facturx:/data:ro" "$VERAPDF_IMAGE" --flavour 3b --format text /data | tee "$RUNNER_TEMP/verapdf.txt"
           test "$(grep -c '^PASS ' "$RUNNER_TEMP/verapdf.txt")" -eq "$count"
+      # Lot 75 : Mustang est gardé en cache (clé = version + empreinte) et ne se télécharge qu'en cas
+      # d'absence, avec de nouvelles tentatives espacées (Maven Central répond parfois « 429 »). Son
+      # empreinte SHA-256 est vérifiée à chaque passage, cache compris : un fichier altéré échoue.
+      - name: Mustang — cache du validateur
+        id: mustang-cache
+        uses: actions/cache/restore@v4
+        with:
+          path: ~/.cache/mustang/mustang.jar
+          key: mustang-${{ env.MUSTANG_VERSION }}-${{ env.MUSTANG_SHA256 }}
+      - name: Mustang — téléchargement (seulement si absent du cache)
+        if: steps.mustang-cache.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p ~/.cache/mustang
+          for attempt in 1 2 3 4 5 6; do
+            curl -fsSL -o ~/.cache/mustang/mustang.jar "https://repo1.maven.org/maven2/org/mustangproject/Mustang-CLI/$MUSTANG_VERSION/Mustang-CLI-$MUSTANG_VERSION.jar" && break
+            if [ "$attempt" -eq 6 ]; then echo "Téléchargement de Mustang impossible après 6 essais" >&2; exit 1; fi
+            sleep $((attempt * 20))
+          done
+      - name: Mustang — empreinte SHA-256 (à chaque passage)
+        run: echo "$MUSTANG_SHA256  $HOME/.cache/mustang/mustang.jar" | sha256sum -c -
+      - name: Mustang — mise en cache de l'archive vérifiée
+        if: steps.mustang-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: ~/.cache/mustang/mustang.jar
+          key: mustang-${{ env.MUSTANG_VERSION }}-${{ env.MUSTANG_SHA256 }}
       - name: Mustang — fichier structuré EN 16931 et Factur-X valides
         run: |
-          curl -fsSL -o "$RUNNER_TEMP/mustang.jar" "https://repo1.maven.org/maven2/org/mustangproject/Mustang-CLI/$MUSTANG_VERSION/Mustang-CLI-$MUSTANG_VERSION.jar"
-          echo "$MUSTANG_SHA256  $RUNNER_TEMP/mustang.jar" | sha256sum -c -
           for file in "$RUNNER_TEMP"/facturx/*.pdf; do
-            java -jar "$RUNNER_TEMP/mustang.jar" --action validate --no-notices --source "$file" > "$RUNNER_TEMP/report.xml" 2> /dev/null
+            java -jar "$HOME/.cache/mustang/mustang.jar" --action validate --no-notices --source "$file" > "$RUNNER_TEMP/report.xml" 2> /dev/null
             status=$(grep -o '<summary status="[a-z]*"/>' "$RUNNER_TEMP/report.xml" | tail -n 1)
             echo "$(basename "$file") $status"
             if [ "$status" != '<summary status="valid"/>' ]; then cat "$RUNNER_TEMP/report.xml"; exit 1; fi

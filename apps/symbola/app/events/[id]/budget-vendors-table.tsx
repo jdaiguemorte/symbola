@@ -48,6 +48,7 @@ export function BudgetVendorsTable({
   slotVendors,
   statusLabels,
   statusClasses,
+  takenOver = false,
 }: {
   eventId: string;
   rows: BudgetVendorRow[];
@@ -67,8 +68,11 @@ export function BudgetVendorsTable({
   // Le statut de chaque poste, libellé et classe de la charte (vendor-slot-status.ts).
   statusLabels: Record<string, string>;
   statusClasses: Record<string, string>;
+  // Lot 71f (C-55, P-06) : un mariage repris dit « non renseigné » au lieu de « — » seul.
+  takenOver?: boolean;
 }) {
   const t = useTranslations("BudgetVendors");
+  const tSheet = useTranslations("TakeoverSheet");
   const tBudget = useTranslations("Budget");
   const [unfolded, setUnfolded] = useState<Set<string>>(new Set());
   // Le poste ouvert, par son identifiant : un poste retiré ferme sa fenêtre, sans en ouvrir un autre.
@@ -86,7 +90,8 @@ export function BudgetVendorsTable({
     open(index);
   };
   const money = (cents: number) => formatAmount(cents, locale);
-  const shown = (cents: number | null) => (cents === null ? "—" : money(cents));
+  const missing = takenOver ? tSheet("notProvided") : "—";
+  const shown = (cents: number | null) => (cents === null ? missing : money(cents));
   const toggle = (slotId: string) => {
     const next = new Set(unfolded);
     if (next.has(slotId)) next.delete(slotId);
@@ -148,7 +153,16 @@ export function BudgetVendorsTable({
                       </div>
                       <div className="budget-vendor-who">
                         {row.vendorNames.length > 0 ? (
-                          <span>{row.vendorNames.join(", ")}</span>
+                          <>
+                            <span>{row.vendorNames.join(", ")}</span>
+                            {/* Lot 71f (§ 0) : l'état du contrat d'un prestataire repris, en mots, sous son nom. */}
+                            {row.contracts.map((entry) => (
+                              <span key={entry.name} className={entry.contract === "signed" ? "meta" : "meta text-attention"} data-contract={entry.contract}>
+                                {row.contracts.length > 1 ? `${entry.name} · ` : ""}
+                                {tSheet(`contract.${entry.contract}`)}
+                              </span>
+                            ))}
+                          </>
                         ) : (
                           // La liste « + Ajouter » reste à la même place quand un prestataire entre en
                           // comparaison : elle ne se ferme pas entre deux « Comparer ».
@@ -189,7 +203,7 @@ export function BudgetVendorsTable({
                       {shown(row.actualCents)}
                     </td>
                     <td className={row.varianceCents === null ? "num" : row.varianceCents > 0 ? "num text-attention" : row.varianceCents < 0 ? "num text-paid" : "num"} data-label={t("columnVariance")}>
-                      {row.varianceCents === null ? "—" : signedAmount(row.varianceCents, money)}
+                      {row.varianceCents === null ? missing : signedAmount(row.varianceCents, money)}
                     </td>
                     <td className="num" data-label={t("columnPaid")}>
                       {money(row.paidCents)}
