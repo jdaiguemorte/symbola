@@ -170,10 +170,11 @@ test.describe("Lot 65f — Menu latéral réductible", () => {
     await context.addCookies([{ name: "symbola_menu_reduit", value: "1", domain: "localhost", path: "/", sameSite: "Lax" }]);
     await signIn(page, await planner(), /\/$/);
     await expect(page.getByRole("button", { name: /^(Réduire|Agrandir) le menu$/ })).toBeHidden();
-    const toggle = page.getByRole("button", { name: "Menu", exact: true });
+    // Lot 70f : le menu du téléphone s'ouvre par « Plus », dans la barre du bas, en panneau de toute la largeur.
+    const toggle = page.getByRole("navigation", { name: "Navigation principale" }).getByRole("button", { name: "Plus", exact: true });
     await expect(toggle).toBeVisible();
-    expect(await width(page.locator(".app-sidebar"))).toBe(375);
     await openMenu(page);
+    expect(await width(page.locator(".app-sidebar"))).toBe(375);
     const contacts = mainMenu(page).getByRole("link", { name: "Contacts", exact: true });
     await expect(contacts).toBeVisible();
     // Les noms s'affichent à côté des icônes, comme avant le lot 65f.

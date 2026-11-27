@@ -27,6 +27,7 @@ import {
   ShieldCheck,
   Tags,
   ToggleRight,
+  UserRound,
   Wallet,
 } from "lucide-react";
 import { getTranslations } from "next-intl/server";
@@ -49,6 +50,8 @@ import { getAuthContext } from "@/lib/auth-context";
 import { currentLinkAccess } from "@/lib/link-session";
 import { AppNavLink } from "./app-nav-link";
 import { AppSidebar } from "./app-sidebar";
+import { phoneTabs, type PhoneEntry } from "./phone-tabs";
+import { PhoneScreenTitle, type PhoneScreen } from "./phone-screen-title";
 import { LogoutButton } from "./logout-button";
 import { OfflineGuard } from "./offline-guard";
 import { SettingsNav, type SettingsGroup } from "./settings-nav";
@@ -528,8 +531,74 @@ export async function AppShell({ children }: { children: ReactNode }) {
     );
   }
 
+  // Lot 70f (UX-05, ARC-06 ; D4, A17) : sur téléphone, la barre du bas (quatre entrées et « Plus ») ; une
+  // entrée non souscrite laisse sa place à la première de « Plus » (phone-tabs.ts). Les entrées de la barre
+  // ne se répètent pas dans « Plus » (`app-nav-tabbed`, masquées sur téléphone seulement).
+  const phone = phoneTabs({ events, vendors, appointments, quotes });
+  const tabbed = (entry: PhoneEntry) => (phone.tabs.includes(entry) ? "app-nav-tabbed" : undefined);
+  const tabIcon = { size: 22, "aria-hidden": true as const, strokeWidth: 1.75 };
+  const tabEntries: Record<PhoneEntry, { href: string; label: string; icon: ReactNode; except?: string[] }> = {
+    today: { href: "/", label: t("agenda"), icon: <CalendarDays {...tabIcon} /> },
+    events: { href: "/events", label: t("events"), icon: <CalendarHeart {...tabIcon} /> },
+    tasks: { href: "/taches", label: t("tasks"), icon: <ListChecks {...tabIcon} /> },
+    vendors: { href: "/prestataires", label: t("vendorBook"), icon: <BookUser {...tabIcon} /> },
+    contacts: { href: "/contacts", label: t("contacts"), icon: <Contact {...tabIcon} /> },
+    appointments: { href: "/rendez-vous", label: t("appointments"), icon: <CalendarClock {...tabIcon} />, except: ["/rendez-vous/reglages", "/rendez-vous/disponibilites"] },
+    quotes: { href: "/devis", label: t("navQuotesGroup"), icon: <FileText {...tabIcon} />, except: ["/devis/encaissements"] },
+    payments: { href: "/devis/encaissements", label: t("quotePayments"), icon: <Wallet {...tabIcon} /> },
+  };
+  const tabs = phone.tabs.map((entry) => {
+    const item = tabEntries[entry];
+    return (
+      <li key={entry}>
+        <AppNavLink href={item.href} icon={item.icon} label={item.label} {...(item.except ? { except: item.except } : {})}>
+          {entry === "tasks" && overdue > 0 ? (
+            <>
+              <span className="app-tabbar-badge" aria-hidden="true">
+                {overdue}
+              </span>
+              <span className="sr-only"> {t("tasksOverdue", { count: overdue })}</span>
+            </>
+          ) : null}
+        </AppNavLink>
+      </li>
+    );
+  });
+  // Le nom de l'écran dans la barre du haut du téléphone : celui de son entrée du menu.
+  const phoneScreens: PhoneScreen[] = [
+    ...Object.values(tabEntries).map((item) => ({ href: item.href, label: item.label, ...(item.except ? { except: item.except } : {}) })),
+    { href: "/apps", label: t("apps") },
+    { href: "/parametres", label: t("settings"), settings: true },
+    { href: "/tutoriels", label: tAide("tutorialsLink") },
+    { href: "/aide", label: tAide("link") },
+    { href: "/profil", label: tAccount("profile") },
+  ];
+  const currentOrganizationName = organizationsOfUser.find((organization) => organization.organizationId === organizationId)?.name ?? "";
+  // Le compte, en bas de « Plus » : « Camille · Atelier Roussel » (Mon compte), changer d'organisation
+  // (replié), puis à part « Se déconnecter », en encre.
+  const phoneAccount =
+    isTeam && accountPerson ? (
+      <>
+        <ul className="app-nav app-sheet-identity">
+          <li>
+            <AppNavLink href="/profil" icon={<UserRound {...iconProps} />} label={currentOrganizationName ? tAccount("phoneIdentity", { name: personShortName(accountPerson), organization: currentOrganizationName }) : personShortName(accountPerson)} />
+          </li>
+        </ul>
+        <details className="app-sheet-switch">
+          <summary>
+            <span>{tAccount("switch")}</span>
+            <span className="meta">{tAccount("switchHint")}</span>
+          </summary>
+          <OrganizationSwitcher organizations={organizationsOfUser} current={organizationId} />
+        </details>
+        <div className="app-sheet-logout">
+          <LogoutButton label={t("logout")} menu />
+        </div>
+      </>
+    ) : null;
+
   return (
-    <div className="app-shell">
+    <div className="app-shell has-tabbar">
       {/* Lot 40c (NFR-17, WCAG 2.4.1) : passer le menu au clavier. */}
       <a className="skip-link" href="#contenu">
         {t("skipToContent")}
@@ -537,18 +606,22 @@ export async function AppShell({ children }: { children: ReactNode }) {
       <AppSidebar
         brand={<Brand href="/" />}
         {...sidebarProps}
+        tabs={tabs}
+        tabsLabel={t("tabBarLabel")}
+        moreLabel={t("more")}
+        account={phoneAccount}
       >
           <nav aria-label={t("navLabel")}>
             <ul className="app-nav">
-              <li>
+              <li className={tabbed("today")}>
                 <AppNavLink href="/" icon={<CalendarDays {...iconProps} />} label={t("agenda")} />
               </li>
               {events ? (
                 <>
-                  <li>
+                  <li className={tabbed("events")}>
                     <AppNavLink href="/events" icon={<CalendarHeart {...iconProps} />} label={t("events")} />
                   </li>
-                  <li>
+                  <li className={tabbed("tasks")}>
                     <AppNavLink href="/taches" icon={<ListChecks {...iconProps} />} label={t("tasks")}>
                       {overdue > 0 ? (
                         <span className="nav-count nav-count-alert">
@@ -561,27 +634,27 @@ export async function AppShell({ children }: { children: ReactNode }) {
               ) : null}
               {/* Lot 36a (CRM-03, ADR 0069) : les contacts, dans le noyau du hub, pour toute l'équipe. */}
               {organizationId ? (
-                <li>
+                <li className={tabbed("contacts")}>
                   <AppNavLink href="/contacts" icon={<Contact {...iconProps} />} label={t("contacts")} />
                 </li>
               ) : null}
               {/* Lot 46 (RDV-01 à RDV-04, ADR 0082) : les rendez-vous, juste après les contacts. */}
               {appointments ? (
-                <li>
+                <li className={tabbed("appointments")}>
                   <AppNavLink href="/rendez-vous" except={["/rendez-vous/reglages", "/rendez-vous/disponibilites"]} icon={<CalendarClock {...iconProps} />} label={t("appointments")} />
                 </li>
               ) : null}
               {vendors ? (
-                <li>
+                <li className={tabbed("vendors")}>
                   <AppNavLink href="/prestataires" tour="nav-vendors" icon={<BookUser {...iconProps} />} label={t("vendorBook")} />
                 </li>
               ) : null}
               {quotes ? (
                 <>
-                  <li>
+                  <li className={tabbed("quotes")}>
                     <AppNavLink href="/devis" except={["/devis/encaissements"]} icon={<FileText {...iconProps} />} label={t("navQuotesGroup")} />
                   </li>
-                  <li>
+                  <li className={tabbed("payments")}>
                     <AppNavLink href="/devis/encaissements" icon={<Wallet {...iconProps} />} label={t("quotePayments")} />
                   </li>
                 </>
@@ -653,6 +726,8 @@ export async function AppShell({ children }: { children: ReactNode }) {
           <FeedbackProvider>
             {/* Lot 16 (L16-HUB-19, ADR 0039) : recherche à gauche, le seul « ? » à droite. */}
             <section className="app-topbar" aria-label={t("topBar")}>
+              {/* Lot 70f : sur téléphone, le nom de l'écran ouvre la barre de 60 px. */}
+              <PhoneScreenTitle screens={phoneScreens} />
               {isTeam ? <SearchBox actions={paletteActions} /> : null}
               {/* Lot 32b (HUB-07, D9) : création rapide, touche N ; ses entrées suivent les modules. */}
               {isTeam ? <QuickCreate modules={{ events, quotes, budget, vendors }} /> : null}
