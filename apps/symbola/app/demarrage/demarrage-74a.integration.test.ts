@@ -153,6 +153,8 @@ describe("HUB-09 / L74-D4 — « Je ne sais pas encore » pour la TVA : la franc
     // « Envoyer » ouvre la question ; « Je ne sais pas encore » n'y est pas une réponse.
     expect(await sendQuoteAction({}, form({ quoteId }))).toEqual({ vatQuestion: true });
     expect(await sendQuoteAction({}, form({ quoteId, vatAnswer: "unknown" }))).toEqual({ vatQuestion: true, error: "vatAnswerRequired" });
+    // La question posée, « Répondre et envoyer » sans choix le dit.
+    expect(await sendQuoteAction({}, form({ quoteId, vatQuestion: "1" }))).toEqual({ vatQuestion: true, error: "vatAnswerRequired" });
     expect((await getQuote(organizationId, quoteId)).status).toBe("draft");
   });
 

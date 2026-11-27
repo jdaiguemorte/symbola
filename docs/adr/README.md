@@ -121,3 +121,4 @@ Un fichier par décision structurante, numéroté. Pour changer une décision : 
 - [0120 — Le panneau d'une tâche s'enregistre d'un bouton, et demande avant de fermer](0120-panneau-de-tache-enregistrer.md)
 - [0121 — Le statut « En préparation » est retiré ; la date de signature est gardée](0121-statut-en-preparation-retire.md)
 - [0122 — Les mots des prestataires et du budget](0122-mots-des-prestataires-et-du-budget.md)
+- [0123 — L'assistant de démarrage ne demande plus le volume annuel](0123-assistant-de-demarrage-sans-volume.md)

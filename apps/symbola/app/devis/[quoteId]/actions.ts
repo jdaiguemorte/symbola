@@ -225,7 +225,7 @@ export async function sendQuoteAction(_prevState: QuoteFormState, formData: Form
     // Lot 74a (L74-D4) : la réponse à la question de la TVA, puis l'envoi reprend. « Non » ou « Oui »
     // seulement ; la même personne peut changer le régime dans les Paramètres (contrôle de run).
     const vat = formData.get("vatAnswer");
-    if (vat !== null) {
+    if (formData.get("vatQuestion") === "1" || vat !== null) {
       if (vat !== "no" && vat !== "yes") return { vatQuestion: true, error: t("vatAnswerRequired") };
       const planner = await authorizedPlanner();
       if (!planner) return { error: t("unauthenticated") };

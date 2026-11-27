@@ -41,7 +41,7 @@ export function NextActionButton({ quoteId, label }: { quoteId: string; label: s
 export function NextActionFeedback({ label, successMessage, quoteId }: { label: string; successMessage: string; quoteId?: string }) {
   const t = useTranslations("Quotes");
   const { state } = useNextAction();
-  if (state.vatQuestion && quoteId) return <VatQuestion quoteId={quoteId} label={label} />;
+  if (state.vatQuestion && quoteId) return <VatQuestion quoteId={quoteId} />;
   if (!state.error && !state.success) return null;
   return (
     <div role="group" aria-label={label} className="quote-next-feedback">
@@ -64,15 +64,16 @@ export function NextActionFeedback({ label, successMessage, quoteId }: { label: 
 
 // Lot 74a (HUB-09 ; B5, L74-D4) — « Je ne sais pas encore » à la question de la TVA de l'assistant : avant le
 // premier envoi, la même question, sans « Je ne sais pas encore ». La réponse donnée, l'envoi reprend.
-function VatQuestion({ quoteId, label }: { quoteId: string; label: string }) {
+function VatQuestion({ quoteId }: { quoteId: string }) {
   const t = useTranslations("Quotes");
   const tOnboarding = useTranslations("Onboarding");
   const { state, formAction, pending } = useNextAction();
   return (
-    <form action={formAction} aria-label={label} className="quote-next-feedback stack">
+    <form action={formAction} aria-labelledby="quote-vat-question-title" className="quote-next-feedback stack">
       <input type="hidden" name="quoteId" value={quoteId} />
+      <input type="hidden" name="vatQuestion" value="1" />
       <fieldset className="choice-list" aria-describedby={state.error ? "quote-vat-question-error" : undefined}>
-        <legend>{t("vatQuestionTitle")}</legend>
+        <legend id="quote-vat-question-title">{t("vatQuestionTitle")}</legend>
         <p className="field-hint">{t("vatQuestionHint")}</p>
         {(["no", "yes"] as const).map((answer) => (
           <label key={answer} className="choice-card">

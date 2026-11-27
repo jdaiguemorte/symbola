@@ -19,6 +19,7 @@ import { isEventsModuleEnabled } from "@/app/events/module-access";
 import { onboardingSuggestsTakeover, starterOnboarding } from "@symbola/starter-templates";
 import { readyOutcome, type ReadyOutcome } from "@/lib/onboarding/questionnaire";
 import { exploreExampleAction } from "./actions";
+import { ScrollToTop } from "./scroll-to-top";
 
 // Où mène le bouton plein de chaque issue. « Entrer un mariage en cours » ouvre « Nouvel évènement » réglé sur
 // « Signé, en préparation » (déduit des réponses, pas un fait coché pour elle).
@@ -73,6 +74,7 @@ export default async function ReadyPage() {
 
   return (
     <main className="setup onboarding-ready">
+      <ScrollToTop />
       <p className="onboarding-progress">{t("ready.progress")}</p>
       <h1>{title}</h1>
       <ScreenHelp title={tHelp("setupReady.title")} body={tHelp("setupReady.body")} />
