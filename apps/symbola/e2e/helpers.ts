@@ -9,18 +9,18 @@ import { memberships, users } from "@symbola/db/schema/hub";
 import { completeSetup } from "../modules/hub/service";
 import { fillRequiredMentions } from "../lib/test-fixtures/legal-mentions";
 
-// Sur téléphone, le menu latéral est replié derrière le bouton « Menu » :
-// l'ouvrir avant de cliquer un lien du menu ou « Se déconnecter ». Sur
-// ordinateur, le bouton est masqué et le menu toujours visible : rien à faire.
 // Lot 70b (UX-07, M5) — le message de retour unique du gabarit (app/ui/feedback.tsx) : une zone
 // `aria-live`, pas un `status`, pour ne pas se confondre avec les messages des formulaires.
 export function feedback(page: Page): Locator {
   return page.locator(".feedback-region .feedback");
 }
 
+// Sur téléphone, le menu latéral est replié derrière un bouton qui le commande (`aria-controls`) : pour
+// l'équipe, « Plus » de la barre du bas (lot 70f), qui l'ouvre en panneau du bas ; pour l'Administration et
+// le Comptable, « Menu ». L'ouvrir avant de cliquer un lien du menu ; sur ordinateur, le bouton est masqué
+// et le menu toujours visible : rien à faire.
 export async function openMenu(page: Page): Promise<void> {
-  // Le libellé change (« Menu » / « Fermer le menu ») : cibler le bouton par
-  // ce qu'il commande.
+  // Le libellé change (« Menu » / « Fermer le menu », « Plus ») : cibler le bouton par ce qu'il commande.
   const toggle = page.locator('button[aria-controls="app-menu"]');
   if ((await toggle.count()) === 0 || !(await toggle.isVisible())) return;
   if ((await toggle.getAttribute("aria-expanded")) === "true") return;
@@ -28,27 +28,67 @@ export async function openMenu(page: Page): Promise<void> {
   await expect(toggle).toHaveAttribute("aria-expanded", "true");
 }
 
-// Le menu latéral (navigation), pour cibler ses liens sans
-// confusion avec un lien de même nom dans la page.
+// Lot 70f : « Plus » se pose au-dessus de la page ; le refermer (Échap) avant d'agir sur la page.
+export async function closeMenu(page: Page): Promise<void> {
+  const toggle = page.locator('button[aria-controls="app-menu"]');
+  if ((await toggle.count()) === 0 || !(await toggle.isVisible())) return;
+  if ((await toggle.getAttribute("aria-expanded")) !== "true") return;
+  await page.keyboard.press("Escape");
+  await expect(toggle).toHaveAttribute("aria-expanded", "false");
+}
+
+// Le menu latéral (navigation), pour cibler ses liens sans confusion avec un lien de même nom dans la
+// page. Sur téléphone, c'est aussi le panneau « Plus » : il porte toutes les entrées, celles de la barre
+// du bas y sont masquées.
 export function mainMenu(page: Page) {
   return page.locator("#app-menu");
 }
 
-// Ouvre le menu si besoin puis clique le lien du menu portant exactement ce nom.
+// Lot 70f : la barre du bas du téléphone (quatre entrées et « Plus »), masquée sur ordinateur.
+export function tabBar(page: Page) {
+  return page.locator(".app-tabbar");
+}
+
+// Clique le lien du menu portant exactement ce nom : sur téléphone, dans la barre du bas s'il y est, sinon
+// dans « Plus » ; sur ordinateur, dans le menu latéral.
 export async function clickMenuLink(page: Page, name: string): Promise<void> {
+  const inTabBar = tabBar(page).getByRole("link", { name, exact: true });
+  if ((await inTabBar.count()) > 0 && (await inTabBar.isVisible())) {
+    await inTabBar.click();
+    return;
+  }
   await openMenu(page);
   await mainMenu(page).getByRole("link", { name, exact: true }).click();
+}
+
+// Lot 70f : sur téléphone, la recherche du haut s'ouvre en page entière par la loupe ; sur ordinateur, le
+// champ est déjà là.
+export async function openSearch(page: Page): Promise<void> {
+  const opener = page.locator(".app-topbar .search-box-open");
+  if ((await opener.count()) > 0 && (await opener.isVisible())) await opener.click();
+}
+
+// Ouvre le menu du compte : sous le prénom dans la barre du haut (lot 70e) ; sur téléphone, le compte est
+// en bas de « Plus » (lot 70f), déjà visible une fois « Plus » ouvert.
+export async function openAccountMenu(page: Page): Promise<void> {
+  const account = page.locator(".account-menu-button");
+  if ((await account.count()) > 0 && (await account.isVisible())) {
+    if ((await account.getAttribute("aria-expanded")) !== "true") await account.click();
+    return;
+  }
+  await openMenu(page);
 }
 
 // Ouvre le menu si besoin puis se déconnecte. Lot 33 : la déconnexion passe par le fournisseur
 // d'identité, qui ramène sur /login ; attendre ce retour, sinon la navigation suivante du parcours
 // est interrompue par lui.
 // Lot 70e (M7) : pour l'équipe, « Se déconnecter » est dans le menu du compte, sous le prénom, dans la
-// barre du haut ; l'Administration et le Comptable le gardent dans leur menu latéral.
+// barre du haut ; l'Administration et le Comptable le gardent dans leur menu latéral. Lot 70f : sur
+// téléphone, il est en dernier dans « Plus ».
 export async function logout(page: Page): Promise<void> {
   await openMenu(page);
   const account = page.locator(".account-menu-button");
-  if ((await account.count()) > 0) await account.click();
+  if ((await account.count()) > 0 && (await account.isVisible())) await account.click();
   await page.getByRole("button", { name: "Se déconnecter" }).click();
   await page.waitForURL((url) => url.origin === APP_ORIGIN && url.pathname === "/login", { timeout: 30_000 });
 }

@@ -30,7 +30,8 @@ async function checkScreen(page: Page, url: string | null, problems: string[], l
   const heading = page.getByRole("heading", { level: 1 });
   await expect(heading).toBeVisible();
   if (await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1)) problems.push(`${label} : défilement horizontal`);
-  if (menu && !(await page.getByRole("button", { name: "Menu" }).isVisible()) && !(await page.getByRole("navigation", { name: "Menu principal" }).isVisible())) problems.push(`${label} : menu injoignable`);
+  // Lot 70f : sous 768 px, le menu de l'équipe est la barre du bas (« Navigation principale ») et son « Plus ».
+  if (menu && !(await page.getByRole("button", { name: "Menu" }).isVisible()) && !(await page.getByRole("navigation", { name: "Menu principal" }).isVisible()) && !(await page.getByRole("navigation", { name: "Navigation principale" }).isVisible())) problems.push(`${label} : menu injoignable`);
   const result = await new AxeBuilder({ page }).analyze();
   for (const violation of result.violations) problems.push(`${label} : ${violation.id} (${violation.nodes.length})`);
 }

@@ -5,6 +5,7 @@
 // ⌘K / Ctrl+K pour y aller, Entrée pour ouvrir, Échap pour fermer. Sans
 // JavaScript, le formulaire mène à la page /recherche.
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { Search, X } from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import type { SearchGroup } from "@/lib/search/run-search";
@@ -15,6 +16,10 @@ import type { SearchGroup } from "@/lib/search/run-search";
 // premier résultat surligné et ouvert par Entrée, les actions après les résultats et seulement si elles
 // répondent au texte, « Tous les résultats pour … » en dernière ligne ; sous 760 px de barre, le texte
 // d'aide devient « Rechercher… ».
+// Lot 70f (C-81 ; page 3 des maquettes du lot 68) — sur téléphone, la barre de 60 px ne montre qu'une loupe
+// de 44 px : elle ouvre la même recherche en page entière (le champ reçoit le focus) ; « Fermer la
+// recherche », ou Échap champ vide et liste fermée, la referme et rend le focus à la loupe. Ni « ⌘K » ni
+// texte coupé sur téléphone.
 export type PaletteAction = { label: string; href: string };
 
 function fold(text: string): string {
@@ -43,6 +48,9 @@ export function SearchBox({ actions = [] }: { actions?: PaletteAction[] }) {
   const [groups, setGroups] = useState<SearchGroup[]>([]);
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(0);
+  // Lot 70f : la recherche en page entière du téléphone.
+  const [fullScreen, setFullScreen] = useState(false);
+  const openerRef = useRef<HTMLButtonElement>(null);
   // Sous 760 px de barre (911 px d'écran à côté du menu latéral), le texte d'aide long passait sur trois lignes.
   const [compact, setCompact] = useState(false);
   // L16-SEC-02 (ADR 0044) : message traduit d'une recherche refusée (trop de requêtes).
@@ -110,8 +118,24 @@ export function SearchBox({ actions = [] }: { actions?: PaletteAction[] }) {
     };
   }, [term]);
 
+  // La page entière se ferme à l'arrivée sur un résultat.
+  useEffect(() => {
+    setFullScreen(false);
+  }, [pathname]);
+  useEffect(() => {
+    if (fullScreen) inputRef.current?.focus();
+  }, [fullScreen]);
+
+  function closeFullScreen() {
+    setFullScreen(false);
+    setOpen(false);
+    openerRef.current?.focus();
+  }
+
   function onKeyDown(event: React.KeyboardEvent<HTMLInputElement>) {
     if (event.key === "Escape") {
+      // Une première fois la liste se ferme ; une seconde, la page entière du téléphone.
+      if (fullScreen && !(open && term.trim().length >= 2)) closeFullScreen();
       setOpen(false);
       return;
     }
@@ -133,7 +157,16 @@ export function SearchBox({ actions = [] }: { actions?: PaletteAction[] }) {
   let index = -1;
 
   return (
-    <form action="/recherche" role="search" aria-label={t("globalLabel")} className="search-box" data-tour="global-search" onSubmit={() => setOpen(false)}>
+    <>
+    <button ref={openerRef} type="button" className="search-box-open" aria-label={t("openFullScreen")} aria-expanded={fullScreen} onClick={() => setFullScreen(true)}>
+      <Search size={22} aria-hidden="true" strokeWidth={1.75} />
+    </button>
+    <form action="/recherche" role="search" aria-label={t("globalLabel")} className="search-box" data-full-screen={fullScreen ? "true" : undefined} data-tour="global-search" onSubmit={() => setOpen(false)}>
+      {fullScreen ? (
+        <button type="button" className="search-box-close" aria-label={t("closeFullScreen")} onClick={closeFullScreen}>
+          <X size={22} aria-hidden="true" strokeWidth={1.75} />
+        </button>
+      ) : null}
       <label className="sr-only" htmlFor={`${listId}-input`}>
         {t("label")}
       </label>
@@ -222,5 +255,6 @@ export function SearchBox({ actions = [] }: { actions?: PaletteAction[] }) {
         </div>
       ) : null}
     </form>
+    </>
   );
 }
