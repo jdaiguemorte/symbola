@@ -14,6 +14,7 @@ import { starterEventTypes } from "@symbola/starter-templates";
 import { addEventTask, addStarterEventTypes, createProspect, createProspectSource, listEventTypes } from "../modules/events/service";
 import { createVendor, createVendorFamily, createVendorTag, createVendorType } from "../modules/vendors/service";
 import { feedback, helpPanel, readyOrganization, signIn as signInByLink } from "./helpers";
+import { bookResults } from "./vendor-book";
 
 async function loginAndSetupMfa(page: Page, email: string, _password: string) {
   // Lot 33 : lien magique et fournisseur d'identité (e2e/helpers.ts).
@@ -76,26 +77,35 @@ test("L20-PRE-17 — archiver un prestataire depuis le carnet, après confirmati
   test.setTimeout(90_000);
   await newPlanner(page, ["Domaine des Saules", "Fleurs de Lys"]);
   await page.goto("/prestataires");
-  const results = page.locator(".vendor-results");
-  await expect(results.getByRole("link", { name: "Domaine des Saules" })).toBeVisible();
+  const results = bookResults(page);
+  await expect(results.getByRole("link", { name: "Domaine des Saules", exact: true })).toBeVisible();
 
   // Lot 39a (UX-07 ; D6) : archiver s'exécute tout de suite (l'autre fiche reste) et s'annule pendant
-  // dix secondes ; plus de confirmation.
-  await page.getByRole("button", { name: "Archiver Domaine des Saules" }).click();
-  await expect(results.getByRole("link", { name: "Domaine des Saules" })).toHaveCount(0);
-  await expect(results.getByRole("link", { name: "Fleurs de Lys" })).toBeVisible();
+  // dix secondes ; plus de confirmation. Lot 73b : « Archiver… » est au menu « ⋯ » de la ligne, à part.
+  await page.getByRole("button", { name: "Autres actions pour Domaine des Saules" }).click();
+  await page.getByRole("menuitem", { name: /^Archiver…/ }).click();
+  await expect(results.getByRole("link", { name: "Domaine des Saules", exact: true })).toHaveCount(0);
+  await expect(results.getByRole("link", { name: "Fleurs de Lys", exact: true })).toBeVisible();
   await expect(page).toHaveURL(/\/prestataires$/);
   const banner = feedback(page).filter({ hasText: "Prestataire archivé." });
   await expect(banner).toBeVisible();
-  await expectNoAxeViolation(page);
+  // Lot 73b : sur téléphone, le message de retour (dix secondes) est posé au-dessus de la barre du bas ; axe
+  // fait lui-même défiler la page et le trouve alors sur le « ⋯ » d'une fiche. Ce recouvrement passager
+  // n'est pas une taille de cible : la règle « target-size » est écartée pour cette seule vérification, le
+  // temps du message (les tailles du carnet sont vérifiées par lot-73b-carnet.spec.ts).
+  const axe = new AxeBuilder({ page });
+  if (page.viewportSize()!.width < 640) axe.disableRules(["target-size"]);
+  const result = await axe.analyze();
+  expect(result.violations, JSON.stringify(result.violations, null, 2)).toEqual([]);
   await banner.getByRole("button", { name: "Annuler" }).click();
   await expect(page.getByText("C'est rétabli.")).toBeVisible();
   await page.reload();
-  await expect(results.getByRole("link", { name: "Domaine des Saules" })).toBeVisible();
+  await expect(results.getByRole("link", { name: "Domaine des Saules", exact: true })).toBeVisible();
 
   // Archivée à nouveau, la fiche quitte le carnet.
-  await page.getByRole("button", { name: "Archiver Domaine des Saules" }).click();
-  await expect(results.getByRole("link", { name: "Domaine des Saules" })).toHaveCount(0);
+  await page.getByRole("button", { name: "Autres actions pour Domaine des Saules" }).click();
+  await page.getByRole("menuitem", { name: /^Archiver…/ }).click();
+  await expect(results.getByRole("link", { name: "Domaine des Saules", exact: true })).toHaveCount(0);
 });
 
 test("Décision 5 — étiquettes : paliers repérés puis rangés, choix unique sur la fiche, étiquettes de la famille seulement", async ({ page }) => {

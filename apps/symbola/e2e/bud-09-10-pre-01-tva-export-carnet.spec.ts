@@ -128,16 +128,15 @@ test("PRE-01 — évaluation et tarifs indicatifs d'une fiche du carnet, filtre 
   // Dans le carnet : « au moins 4 sur 5 » ne garde que les fiches notées 4 ou 5.
   await page.goto("/prestataires?note=4");
   await expect(page.getByLabel("Évaluation")).toHaveValue("4");
-  const names = page.locator("[data-vendor-id] > a");
+  const names = page.locator("[data-vendor-id] .vendor-name-link");
   await expect(names).toHaveText(["Fleurs d'Élodie", "Studio Lumière"]);
   await expect(page.locator(`[data-vendor-id="${studio.id}"]`)).toContainText("4 sur 5");
   await expectNoAxeViolation(page);
 
-  // La fiche ouverte montre l'évaluation et les tarifs.
-  await page.goto(`/prestataires?note=4&fiche=${studio.id}`);
-  const panel = page.getByRole("complementary").filter({ has: page.getByRole("heading", { name: "Studio Lumière" }) });
-  await expect(panel).toContainText("Tarifs indicatifs");
-  await expect(panel).toContainText("Forfait journée 1 900 €");
-  await expect(panel).toContainText("4 sur 5");
+  // Lot 73b (V3) : le nom ouvre la fiche, qui montre l'évaluation et les tarifs.
+  await names.filter({ hasText: "Studio Lumière" }).click();
+  await expect(page).toHaveURL(new RegExp(`/prestataires/${studio.id}$`));
+  await expect(page.locator("main")).toContainText("Forfait journée 1 900 €");
+  await expect(page.locator("main")).toContainText("4 sur 5");
   await expectNoAxeViolation(page);
 });
