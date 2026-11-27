@@ -11,7 +11,7 @@
 // danger (sur téléphone, la fenêtre prend la page et « Garder … » est le plus bas, près du pouce).
 // Niveau 3 (ne se défait pas) : en plus, une case « Je comprends que … » à cocher avant que le bouton
 // de danger réponde. « Annuler » seul n'y figure jamais : il ne sert qu'à défaire.
-import { useId, useRef, useState, type ReactNode } from "react";
+import { useId, useRef, useState, type ReactNode, type RefObject } from "react";
 
 export type DangerLevel = 2 | 3;
 
@@ -30,6 +30,9 @@ export function ConfirmDialog({
   level = 2,
   pending = false,
   triggerDisabled = false,
+  dialogRef: externalRef,
+  hideTrigger = false,
+  onClosed,
   children,
 }: {
   trigger: ReactNode;
@@ -50,9 +53,15 @@ export function ConfirmDialog({
   // L'action part (useActionState) : le bouton de danger attend sa réponse.
   pending?: boolean;
   triggerDisabled?: boolean;
+  // Lot 72d : la fenêtre s'ouvre d'ailleurs (le menu « ⋯ » de l'en-tête) ; sans bouton à elle, le focus
+  // revient où l'appelant le dit (onClosed).
+  dialogRef?: RefObject<HTMLDialogElement | null>;
+  hideTrigger?: boolean;
+  onClosed?: () => void;
   children?: ReactNode;
 }) {
-  const dialogRef = useRef<HTMLDialogElement>(null);
+  const ownRef = useRef<HTMLDialogElement>(null);
+  const dialogRef = externalRef ?? ownRef;
   const titleId = useId();
   const bodyId = useId();
   const [acknowledged, setAcknowledged] = useState(false);
@@ -63,16 +72,21 @@ export function ConfirmDialog({
   };
   return (
     <>
-      <button type="button" className={triggerClassName} aria-label={triggerLabel} aria-haspopup="dialog" disabled={triggerDisabled} onClick={() => dialogRef.current?.showModal()}>
-        {trigger}
-      </button>
+      {hideTrigger ? null : (
+        <button type="button" className={triggerClassName} aria-label={triggerLabel} aria-haspopup="dialog" disabled={triggerDisabled} onClick={() => dialogRef.current?.showModal()}>
+          {trigger}
+        </button>
+      )}
       <dialog
         ref={dialogRef}
         className={tone === "danger" ? "confirm-dialog confirm-dialog-danger" : "confirm-dialog"}
         data-danger-level={tone === "danger" ? String(level) : undefined}
         aria-labelledby={titleId}
         aria-describedby={bodyId}
-        onClose={() => setAcknowledged(false)}
+        onClose={() => {
+          setAcknowledged(false);
+          onClosed?.();
+        }}
       >
         <h2 id={titleId}>{title}</h2>
         <p id={bodyId}>{body}</p>

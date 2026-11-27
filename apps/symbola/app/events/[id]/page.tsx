@@ -2,19 +2,18 @@ import Link from "next/link";
 import { venueChecksFor } from "@/lib/events/venue-checks";
 import { EventNotesForbiddenError, readEventConfidentialNotes } from "@/modules/events/service";
 import { VenueCapacityNotice, VenueFindings } from "./venue-findings";
-import { PageHeader } from "@/app/ui/page-header";
 import { listCalendarFeeds, listPreparedEmails } from "@/modules/hub/service";
 import { ImportedFields } from "../../imported-fields";
 import { notFound, redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
-import { formatAmount, formatCalendarDate, formatDate, formatDateTimeIn, parisToday, type Locale } from "@symbola/i18n";
+import { dateInTimeZone, formatAmount, formatCalendarDate, formatDate, formatDateTimeIn, parisToday, type Locale } from "@symbola/i18n";
 import { ENGAGED_CANDIDATE_STATUSES } from "@symbola/contracts";
 import { listTeam } from "@symbola/auth";
 import { EventAppointments } from "./event-appointments";
 import { isFloorplansAvailable } from "@/app/plans-de-salle/access";
 import { ProspectExchanges } from "./prospect-exchanges";
 import { appDatabase } from "@symbola/db/client";
-import { clientTermForEvent, getEvent, getEventProgram, getEventProgramPublication, listProgramRecipients, proposeProgramShift, getEventStatusDates, closingDue, eventNames, getTaskRecalculation, previewTaskRecalculation, getActiveEventsTrial, listEventActivity, getEventProspectRequest, listEventDecisions, listEventDocuments, listEventDayContacts, listDayDocumentChoices, listEventLinks, listLinkProfiles, listEventTasks, periodRange, listEventVendorSlots, listVendorCandidates, listVendorFollowUps, listEventPlaces, listTaskTemplates, listLossReasons, listProgramTemplates, listProspectSources, summarizeVendorSlots, type EventVendorSlot, getEventIdentityState } from "@/modules/events/service";
+import { clientTermForEvent, getEvent, getEventProgram, getEventProgramPublication, listProgramRecipients, proposeProgramShift, getEventStatusDates, closingDue, eventNames, getTaskRecalculation, previewTaskRecalculation, getActiveEventsTrial, listEventActivity, getEventProspectRequest, listEventDecisions, listEventDocuments, listEventDayContacts, listDayDocumentChoices, listEventLinks, listLinkProfiles, listEventTasks, periodRange, listEventVendorSlots, listVendorCandidates, listVendorFollowUps, listEventPlaces, listTaskTemplates, listLossReasons, listProgramTemplates, listProspectSources, summarizeVendorSlots, type EventVendorSlot, getEventIdentityState, getDayOfLeadDays, canPostpone } from "@/modules/events/service";
 import { getEventBudget, listBudgetLines } from "@/modules/budget/service";
 import { confirmEventBudgetAction } from "@/app/budget/[eventId]/actions";
 import { listEventQuotes, listQuoteInvoices, listQuoteTemplates } from "@/modules/quotes/service";
@@ -26,10 +25,13 @@ import { taskMemberOptions } from "@/lib/tasks/members";
 import { EventTeamCard } from "./team-card";
 import { EventBusyCard } from "./busy-card";
 import { ensureEventTypes } from "@/lib/events/event-types";
-import { setEventTypeAction } from "./actions";
 import { isEventsModuleEnabled, isValidId } from "../module-access";
-import { ChangeStatusForm } from "./change-status-form";
-import { ConfirmPostponementForm, TimeZoneForm } from "./lifecycle-forms";
+import { StatusTimeline } from "./status-timeline";
+import { EventCommands, EventMenuButton } from "./event-commands";
+import { EventTabs, type EventTab } from "./event-tabs";
+import { EventBack } from "./event-back";
+import { eventTimeline, headerAction } from "@/lib/events/event-header";
+import { TimeZoneForm } from "./lifecycle-forms";
 import { isDayOfOpen } from "@/app/jour-j/[eventId]/day-of-view";
 import { DocumentsTab } from "./documents-tab";
 import { NextStepBanner } from "./next-step-banner";
@@ -64,7 +66,6 @@ import { ensureTaskCategories } from "@/lib/events/task-categories";
 import { PageTour } from "../../page-tour";
 import { loadPageTour } from "@/lib/help/page-tour";
 import { SettingsLink } from "@/app/settings-link";
-import { EVENT_STATUS_CLASSES, STATUS_LABEL_KEYS } from "../event-status";
 import { removeVendorSlotAction } from "./vendor-slot-actions";
 import { AddVendorSlotForm, VendorSlotForm } from "./vendor-slot-forms";
 import { VendorCandidates } from "./vendor-candidates";
@@ -83,7 +84,7 @@ import {
   VENDOR_STATUS_CLASSES,
   VENDOR_STATUS_LABEL_KEYS,
 } from "./vendor-slot-status";
-import { countdownLabel, EventCockpit } from "./cockpit";
+import { EventCockpit } from "./cockpit";
 import { UndoTaskNotice } from "@/app/accueil/today-client";
 import { deleteEventAction } from "./trash-actions";
 import { SidePanel } from "@/app/ui/side-panel";
@@ -133,8 +134,6 @@ export default async function EventDetailPage({
   const { id } = await params;
   const query = await searchParams;
   const t = await getTranslations("Events");
-  const tClosing = await getTranslations("Closing");
-  const tMessages = await getTranslations("Messages");
   const tTrash = await getTranslations("Trash");
   const tHelp = await getTranslations("Help");
   const tCommon = await getTranslations("Common");
@@ -195,9 +194,6 @@ export default async function EventDetailPage({
   const locale = (await getLocale()) as Locale;
   const eventTypes = await ensureEventTypes(organizationId, locale);
   const progress = summarizeVendorSlots(vendorSlots);
-  const sourceLabel = sources.find(
-    (candidate) => candidate.id === event.prospectSourceId,
-  )?.label;
 
   // Lot 63c (EVT-01, Q43) : un évènement sans client (un shooting photo) prend le nom de son type.
   const clientNames = event.name
@@ -460,7 +456,6 @@ export default async function EventDetailPage({
     today,
   });
   // Lot 32a (EVT-02, D5) : compte à rebours, aperçu du portail, « Annuler » après une tâche cochée.
-  const countdown = await countdownLabel(event.eventDate, today);
   const clientPreviewLink = links.find((link) => link.audience === "client" && link.status === "active") ?? null;
   // Lot 32b (UX-03), lot 38b (D10) : « Écrire au client » mène au message depuis un modèle ; la
   // messagerie de la planner l'envoie (Symbola n'envoie rien).
@@ -478,22 +473,6 @@ export default async function EventDetailPage({
   const eventDocuments = await listEventDocuments(organizationId, id);
   const embeddedDocumentIds =
     tab === "documents" ? new Set((await listDayDocumentChoices(organizationId, id)).filter((choice) => choice.source === "event_document").map((choice) => choice.sourceId)) : new Set<string>();
-  const tabs: { key: Tab; label: string; href: string; count?: string; alert?: boolean }[] = [
-    { key: "apercu", label: t("tabOverview"), href: tabHref("apercu") },
-    { key: "budget", label: t("vendorSlotsTitle"), href: tabHref("budget"), count: `${progress.booked}/${progress.required}` },
-    {
-      key: "taches",
-      label: tLine("tabTitle"),
-      href: tabHref("taches"),
-      ...(overdueCount > 0 ? { count: t("tasksOverdueCount", { count: overdueCount }), alert: true } : {}),
-    },
-    { key: "programme", label: t("programTitle"), href: tabHref("programme") },
-    ...(quotesAvailable ? [{ key: "devis" as const, label: tQuotes("eventQuotesTitle"), href: tabHref("devis"), count: String(quotes.length) }] : []),
-    // Lot 53 (HUB-24, D8) : le terme réglé pour le type de l'évènement remplace « Mariés » ou « Clients ».
-    { key: "maries", label: clientTerm.custom ? clientTerm.term.charAt(0).toLocaleUpperCase(locale) + clientTerm.term.slice(1) : t("tabClients"), href: tabHref("maries") },
-    { key: "documents", label: t("tabDocuments"), href: tabHref("documents"), count: String(eventDocuments.length) },
-    ...(guests ? [{ key: "invites" as const, label: t("tabGuests"), href: tabHref("invites") }] : []),
-  ];
 
   // Lot 32a (UX-01, D5) : sur la synthèse, la prochaine action vient d'abord ; le bandeau de la
   // prochaine étape passe juste dessous. Sur les autres onglets, il reste au-dessus des onglets.
@@ -519,81 +498,119 @@ export default async function EventDetailPage({
       </NextStepBanner>
     ) : null;
 
+  // Lot 72d (EVT-02, EVT-05 ; C-22, C-23, C-27 ; E1 à E4, J9 à J12 ; page 15) — l'en-tête de la fiche :
+  // retour, nom, une ligne de faits, la frise en lecture, une action et le menu « ⋯ » ; puis les onglets.
+  const tHeader = await getTranslations("EventHeader");
+  const leadDays = await getDayOfLeadDays(organizationId);
+  const dayOfOpen = isDayOfOpen(event);
+  const writeLabel = clientTerm.custom ? tHeader("writeToTerm", { term: clientTerm.term, gender: clientTerm.gender, number: clientTerm.number }) : tHeader("writeToClients");
+  const write = clientEmails.length > 0 ? { href: `/events/${event.id}/ecrire`, label: writeLabel } : null;
+  const dayOf = dayOfOpen ? { href: `/jour-j/${event.id}`, label: tHeader("openDayOf") } : null;
+  const shownAction: "write" | "day_of" | null = dayOf && headerAction(event, leadDays) === "day_of" ? "day_of" : write ? "write" : null;
+  const archived = Boolean(event.archivedAt);
+  const timeline = eventTimeline({ status: event.status, phase: event.phase, dates: statusDates, eventDate: event.eventDate, postponedFromDate: event.postponedFromDate, archived, closingDue: closingDue(event) });
+  const typeLabel = eventTypes.find((type) => type.id === event.eventTypeId)?.label ?? null;
+  const dateWords = (options: Intl.DateTimeFormatOptions) => (event.eventDate ? new Intl.DateTimeFormat(locale === "en" ? "en-GB" : "fr-FR", { ...options, timeZone: "UTC" }).format(new Date(`${event.eventDate}T00:00:00Z`)) : tHeader("dateUnset"));
+  const daysLeft = event.eventDate ? Math.round((Date.parse(`${event.eventDate}T00:00:00Z`) - Date.parse(`${today}T00:00:00Z`)) / 86_400_000) : null;
+  const countdownWords = daysLeft === null ? null : daysLeft >= 0 ? tHeader("countdown", { days: daysLeft }) : tHeader("countdownPast", { days: -daysLeft });
+  const venueWords = [event.venueName, event.venueCity].filter(Boolean).join(", ");
+  const statusWords = timeline.line ? tHeader(`timeline.${timeline.line.kind}`) : timeline.current ? tHeader(`timeline.${timeline.current}`) : "";
+  const reasonOf = reasons.find((candidate) => candidate.id === event.lossReasonId);
+  const reasonWords = reasonOf ? (reasonOf.isFreeText && event.lossReasonNote ? event.lossReasonNote : reasonOf.label) : null;
+  const tasksDone = tasks.filter((task) => task.done).length;
+  const guestCounts = guests && (await getGuestModuleState(organizationId)).impactAssessmentConfirmedAt ? (guestSummary ?? (await getGuestEventSummary(organizationId, id))) : null;
+  // J11 : le nombre d'un onglet dit ce qui demande attention, avec son mot.
+  const tabsView: EventTab[] = [
+    { key: "apercu", label: t("tabOverview"), href: tabHref("apercu") },
+    { key: "budget", label: t("vendorSlotsTitle"), short: tHeader("tabs.budgetShort"), href: tabHref("budget"), count: { text: tHeader("tabs.countOf", { done: progress.booked, total: progress.required }), short: tHeader("tabs.countOfShort", { done: progress.booked, total: progress.required }), alert: false } },
+    {
+      key: "taches",
+      label: tLine("tabTitle"),
+      href: tabHref("taches"),
+      ...(overdueCount > 0
+        ? { count: { text: tHeader("tabs.late", { count: overdueCount }), short: tHeader("tabs.lateShort", { count: overdueCount }), alert: true } }
+        : tasks.length > 0
+          ? { count: { text: tHeader("tabs.countOf", { done: tasksDone, total: tasks.length }), short: tHeader("tabs.countOfShort", { done: tasksDone, total: tasks.length }), alert: false } }
+          : {}),
+    },
+    { key: "programme", label: tHeader("tabs.program"), href: tabHref("programme") },
+    ...(quotesAvailable ? [{ key: "devis", label: tHeader("tabs.quotes"), short: tHeader("tabs.quotesShort"), href: tabHref("devis"), count: { text: String(quotes.length), short: String(quotes.length), alert: false } }] : []),
+    // Lot 53 (HUB-24, D8) : le terme réglé pour le type de l'évènement remplace « Mariés » ou « Clients ».
+    { key: "maries", label: clientTerm.custom ? clientTerm.term.charAt(0).toLocaleUpperCase(locale) + clientTerm.term.slice(1) : t("tabClients"), href: tabHref("maries") },
+    { key: "documents", label: t("tabDocuments"), href: tabHref("documents"), count: { text: String(eventDocuments.length), short: String(eventDocuments.length), alert: false } },
+    ...(guests
+      ? [{ key: "invites", label: t("tabGuests"), href: tabHref("invites"), ...(guestCounts && guestCounts.households > 0 ? { count: { text: tHeader("tabs.replies", { answered: guestCounts.answered, total: guestCounts.households }), short: tHeader("tabs.repliesShort", { answered: guestCounts.answered, total: guestCounts.households }), alert: false } } : {}) }]
+      : []),
+  ];
+
   return (
     <main className="event-sheet">
-      <p>
-        <Link href="/events">{t("backToEvents")}</Link>
-      </p>
-      <PageHeader
-        title={clientNames}
-        badge={<span className={EVENT_STATUS_CLASSES[event.status]}>{t(STATUS_LABEL_KEYS[event.status])}</span>}
-        subtitle={
-          <>
-            <span>
-              {t("eventDate")} : {event.eventDate ? formatCalendarDate(event.eventDate, locale) : t("dateUnset")}
-            </span>
-            {countdown ? <span className="countdown">{countdown}</span> : null}
-            <span>
-              {t("venueName")} : {event.venueName ?? "—"} {event.venueCity ? `(${event.venueCity})` : ""}
-            </span>
-            <span>
-              {t("source")} : {sourceLabel ?? "—"}
-            </span>
-            {/* Lot 16 (ADR 0045) : le type dit comment parler des clients sur toute la fiche. */}
-            <form action={setEventTypeAction} className="inline-form compact-form">
-              <input type="hidden" name="eventId" value={event.id} />
-              <label>
-                {t("eventType")} :{" "}
-                <select name="eventTypeId" defaultValue={event.eventTypeId ?? ""} aria-label={t("eventTypeOf", { names: clientNames })}>
-                  {event.eventTypeId ? null : (
-                    <option value="" disabled>
-                      {t("eventTypeNone")}
-                    </option>
-                  )}
-                  {eventTypes.map((type) => (
-                    <option key={type.id} value={type.id}>
-                      {type.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <button type="submit" className="button-ghost">
-                {t("changeEventType")}
-              </button>
-            </form>
-          </>
-        }
-        actions={
-          <>
-            {/* Lot 55 (MSG-03) : les fils de discussion de l'évènement, par sujet. */}
-            <Link href={`/events/${event.id}/messages`} className="button-link">
-              {tMessages("eventLink")}
-            </Link>
-            {isDayOfOpen(event) || clientPreviewLink || clientEmails.length > 0 ? (
-            <>
-              {clientEmails.length > 0 ? (
-                // Lot 38b (HUB-21, D10) : le message depuis un modèle, rempli avec la fiche ; la messagerie de la planner l'envoie.
-                <Link href={`/events/${event.id}/ecrire`} className="button-link">
-                  {t("writeToClient")}
-                </Link>
-              ) : null}
-              {/* Lot 32a (EVT-02) : « Voir comme le client », l'aperçu du portail. */}
-              {clientPreviewLink ? (
-                <Link href={`/events/${event.id}/liens/${clientPreviewLink.id}/apercu`} className="button-link">
-                  {t("linkPreview", { name: clientPreviewLink.personName })}
-                </Link>
-              ) : null}
-              {/* Lot 29a (ARC-09, JRJ-02) : l'écran du jour J, à garder sur le téléphone la veille. */}
-              {isDayOfOpen(event) ? (
-                <a href={`/jour-j/${event.id}`} className="button-link">
-                  {t("dayOfLink")}
+      <EventCommands
+        eventId={event.id}
+        names={clientNames}
+        headerAction={shownAction}
+        write={write}
+        dayOf={dayOf}
+        messages={{ href: `/events/${event.id}/messages`, label: tHeader("messages") }}
+        viewAs={clientPreviewLink ? { href: `/events/${event.id}/liens/${clientPreviewLink.id}/apercu`, label: tHeader("viewAs", { name: clientPreviewLink.personName }) } : null}
+        types={archived ? null : { current: event.eventTypeId, options: eventTypes.map((type) => ({ id: type.id, label: type.label })) }}
+        canPostpone={!archived && canPostpone(event.status)}
+        canCancel={!archived && event.status !== "cancelled" && event.status !== "closed"}
+        reasons={reasons}
+      >
+        <header id="event-header" className="object-header" data-tour="event-header">
+          <EventBack names={clientNames} />
+          <div className="object-header-row">
+            <div className="object-header-main">
+              <h1>{clientNames}</h1>
+              <p className="object-header-facts">
+                {typeLabel ? <span className="object-header-type">{typeLabel}</span> : null}
+                <span className="object-header-date-long">{dateWords({ weekday: "long", day: "numeric", month: "long", year: "numeric" })}</span>
+                <span className="object-header-date-short">{dateWords({ day: "numeric", month: "long", year: "numeric" })}</span>
+                {countdownWords ? <span className="countdown">{countdownWords}</span> : null}
+                {venueWords ? <span className="object-header-venue">{venueWords}</span> : null}
+              </p>
+              {/* Lot 71f : « Repris le … · Voir la reprise » d'un mariage repris se pose ici, sous la ligne de faits. */}
+            </div>
+            <div className="object-header-actions">
+              {shownAction === "day_of" && dayOf ? (
+                // L'écran du jour J est servi hors de l'app (service worker) : un lien plein.
+                <a href={dayOf.href} className="button-link object-header-action">
+                  {dayOf.label}
                 </a>
+              ) : shownAction === "write" && write ? (
+                // Lot 38b (HUB-21, D10) : le message depuis un modèle ; la messagerie de la planner l'envoie.
+                <Link href={write.href} className="button-link object-header-action">
+                  {write.label}
+                </Link>
               ) : null}
-            </>
-            ) : null}
-          </>
-        }
-      />
+              <EventMenuButton />
+            </div>
+          </div>
+          <StatusTimeline
+            eventId={event.id}
+            names={eventNames(event.clients, event.name)}
+            view={timeline}
+            locale={locale}
+            today={dateInTimeZone(new Date(), event.timeZone)}
+            closingHref={`/events/${event.id}/cloture`}
+            editInfoHref={tabHref("apercu", { modifier: "infos" })}
+            quotesHref={tabHref("devis")}
+            reason={reasonWords}
+            postponement={event.status === "postponed" ? { newDate: event.eventDate, moves: preview?.moves.length ?? 0, inThePast: preview?.inThePast.map((task) => ({ taskId: task.taskId, label: task.label, toDate: task.toDate })) ?? [] } : null}
+            hasSignedQuote={quotes.some((quote) => quote.status === "signed")}
+            invoicesToCredit={invoicesToCredit.map((invoice) => ({ id: invoice.id, number: invoice.number ?? "", amountCents: invoice.amountCents - invoice.creditedCents, quoteId: invoice.quoteId }))}
+          />
+        </header>
+        <EventTabs
+          tabs={tabsView}
+          current={tab}
+          panelId="event-tab-panel"
+          summary={{ names: clientNames, date: dateWords({ weekday: "short", day: "numeric", month: "short", year: "numeric" }), status: statusWords }}
+        />
+      </EventCommands>
+
+      <div id="event-tab-panel" role="tabpanel" aria-labelledby={`event-tab-${tab}`} className="event-tab-panel">
       {undoneTask ? (
         <UndoTaskNotice key={undoneTask.id} eventId={event.id} taskId={undoneTask.id} message={tToday("undo.taskDone", { label: undoneTask.label })} undoLabel={tToday("undo.action")} returnTo="event" />
       ) : null}
@@ -641,88 +658,7 @@ export default async function EventDetailPage({
         </section>
       ) : null}
 
-      {/* Lot 13 (L13-EVT-19) : frise datée du statut, visible sur tous les onglets. */}
-      <ChangeStatusForm
-        eventId={event.id}
-        eventNames={eventNames(event.clients, event.name)}
-        currentStatus={event.status}
-        phase={event.phase}
-        reasons={reasons}
-        dates={statusDates}
-        eventDate={event.eventDate}
-        postponedFromDate={event.postponedFromDate}
-        locale={locale}
-      />
-      {/* Lot 34a (EVT-05, D4, D7) : un report se confirme après la liste des tâches qui tomberaient dans le passé. */}
-      {event.status === "postponed" ? (
-        <section className="card notice" aria-labelledby="postponement-title">
-          <h2 id="postponement-title">{t("postponementTitle")}</h2>
-          {event.eventDate && preview ? (
-            <>
-              <p>{t("postponementBody", { date: formatCalendarDate(event.eventDate, locale) })}</p>
-              <p>{t("postponementMoves", { count: preview.moves.length })}</p>
-              {preview.inThePast.length > 0 ? (
-                <>
-                  <p>{t("postponementPastTitle", { count: preview.inThePast.length })}</p>
-                  <ul>
-                    {preview.inThePast.map((task) => (
-                      <li key={task.taskId}>{t("postponementPastItem", { label: task.label, date: formatCalendarDate(task.toDate, locale) })}</li>
-                    ))}
-                  </ul>
-                </>
-              ) : null}
-              <ConfirmPostponementForm eventId={event.id} hasSignedQuote={quotes.some((quote) => quote.status === "signed")} />
-            </>
-          ) : (
-            <p>{t("postponementNoDate")}</p>
-          )}
-        </section>
-      ) : null}
-      {/* Lot 58 (PAR-09 ; ADR 0097) : un évènement archivé est en lecture seule ; il se désarchive depuis sa clôture. */}
-      {event.archivedAt ? (
-        <section className="card notice" aria-labelledby="archived-title">
-          <h2 id="archived-title">{tClosing("archivedBanner")}</h2>
-          <Link href={`/events/${event.id}/cloture`}>{tClosing("closingLink")}</Link>
-        </section>
-      ) : null}
-      {/* D3 : la clôture se propose dès le lendemain ; lot 58 (PAR-09) : par la liste de clôture. */}
-      {closingDue(event) && !event.archivedAt ? (
-        <section className="card notice" aria-labelledby="closing-title">
-          <h2 id="closing-title">{t("closeProposal")}</h2>
-          <p>{tClosing("dueBanner")}</p>
-          <Link className="button-link" href={`/events/${event.id}/cloture`}>
-            {tClosing("openChecklist")}
-          </Link>
-        </section>
-      ) : event.status === "closed" || event.status === "cancelled" ? (
-        <p>
-          <Link href={`/events/${event.id}/cloture`}>{tClosing("closingLink")}</Link>
-        </p>
-      ) : null}
-      {/* FAC-13, D7 : à l'annulation, un avoir est proposé pour chaque facture émise ; la planner décide. */}
-      {event.status === "cancelled" && invoicesToCredit.length > 0 ? (
-        <section className="card notice" aria-labelledby="cancelled-invoices-title">
-          <h2 id="cancelled-invoices-title">{t("cancelledInvoicesTitle")}</h2>
-          <p>{t("cancelledInvoicesBody")}</p>
-          <ul>
-            {invoicesToCredit.map((invoice) => (
-              <li key={invoice.id}>
-                {invoice.number} — {formatAmount(invoice.amountCents - invoice.creditedCents, locale)} <Link href={`/devis/${invoice.quoteId}`}>{t("issueCreditNote")}</Link>
-              </li>
-            ))}
-          </ul>
-        </section>
-      ) : null}
       {tab !== "apercu" ? stepBanner : null}
-
-      <nav aria-label={t("eventTabsLabel")} className="tabs" data-tour="event-tabs">
-        {tabs.map((item) => (
-          <Link key={item.key} href={item.href} aria-current={item.key === tab ? "page" : undefined} data-tour={`tab-${item.key}`}>
-            {item.label}
-            {item.count ? <span className={item.alert ? "tab-count tab-count-alert" : "tab-count"}>{item.count}</span> : null}
-          </Link>
-        ))}
-      </nav>
 
       {tab === "apercu" ? (
         <>
@@ -1678,6 +1614,7 @@ export default async function EventDetailPage({
           </form>
         </section>
       ) : null}
+      </div>
     </main>
   );
 }

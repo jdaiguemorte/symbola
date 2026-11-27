@@ -133,5 +133,9 @@
   },
   "TaskLine": {
     "theClients": "The clients"
+  },
+  "EventHeader": {
+    "writeToClients": "Write to the client",
+    "messagesHint": "This event's threads"
   }
 }

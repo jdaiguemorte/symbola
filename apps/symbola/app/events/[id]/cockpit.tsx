@@ -12,7 +12,7 @@ import { getPlanningHealth, listEventDecisions } from "@/modules/events/service"
 import { listBudgetLines } from "@/modules/budget/service";
 import { isBudgetModuleEnabled } from "@/app/budget/module-access";
 import { loadTodayItems } from "@/lib/today/load";
-import { daysUntil, rankToday, TODAY_HORIZON_DAYS, type RankedItem } from "@/lib/today/rank";
+import { rankToday, TODAY_HORIZON_DAYS, type RankedItem } from "@/lib/today/rank";
 import { TodayItemLine, todayWords, UnavailableNotice } from "@/app/accueil/today-view";
 import { PostponeTaskForm } from "@/app/accueil/today-client";
 
@@ -199,10 +199,3 @@ export async function EventCockpit({
   );
 }
 
-// En-tête : « 68 jours avant le jour J ».
-export async function countdownLabel(eventDate: string | null, today: string): Promise<string | null> {
-  if (!eventDate) return null;
-  const t = await getTranslations("Today");
-  const days = daysUntil(eventDate, today);
-  return days >= 0 ? t("cockpit.countdown", { days }) : t("cockpit.countdownPast");
-}

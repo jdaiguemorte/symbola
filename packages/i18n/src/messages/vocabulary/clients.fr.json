@@ -133,5 +133,9 @@
   },
   "TaskLine": {
     "theClients": "Les clients"
+  },
+  "EventHeader": {
+    "writeToClients": "Écrire au client",
+    "messagesHint": "Les fils de discussion de cet évènement"
   }
 }

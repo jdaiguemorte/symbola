@@ -1,0 +1,296 @@
+/* Lot 72d (EVT-02, EVT-05, UX-05, UX-06 ; C-22, C-23, C-27, C-80, C-82 ; E1 à E4 ; page 15 des maquettes du
+   lot 68) — l'en-tête de la fiche d'un évènement tenu en 200 px : retour, nom, une ligne de faits, la frise en
+   lecture sur une ligne, une action et le menu « ⋯ » ; les onglets, la barre fine collée sous la barre du
+   haut, la frise et les lignes d'état. Jetons de DESIGN.md seulement (ADR 0057), aucun style en ligne (CSP).
+   Un état se lit sans la couleur : coche (franchie), anneau et gras (en cours), numéro (à venir) ; « ! » et
+   le mot pour un retard. Sur téléphone (sous 768 px) : pas de bouton dans l'en-tête (tout au menu, en
+   panneau du bas), « Les étapes » en panneau du bas, onglets qui défilent de côté dans leur barre seule. */
+@layer components {
+  :root {
+    /* La barre du haut d'ordinateur (68 px et son filet) et la barre fine au-dessus des onglets. */
+    --event-topbar: 69px;
+    --event-summary: 44px;
+  }
+  @media (min-width: 768px) {
+    /* WCAG 2.4.11 : ce que le clavier atteint n'est caché ni sous la barre du haut, ni sous la barre fine et
+       ses onglets. */
+    html:has(.event-tabbar) {
+      scroll-padding-top: calc(var(--event-topbar) + var(--event-summary) + 3.5rem);
+    }
+  }
+
+  /* L'en-tête d'un objet. */
+  .object-header {
+    @apply flex flex-col gap-1;
+  }
+  .object-header-back {
+    @apply -mt-2.5 -mb-2.5 inline-flex min-h-11 items-center gap-1 self-start text-body font-semibold no-underline;
+  }
+  .object-header-row {
+    @apply flex flex-wrap items-start justify-between gap-x-4 gap-y-2;
+  }
+  .object-header-main {
+    @apply min-w-0 flex-1;
+  }
+  .object-header-main h1 {
+    @apply m-0 font-display text-title;
+  }
+  .object-header-facts {
+    @apply m-0 mt-1 flex flex-wrap gap-x-2 text-body text-ink-muted;
+  }
+  .object-header-facts > span + span::before {
+    content: "·";
+    @apply mr-2;
+  }
+  .object-header-facts .countdown {
+    @apply m-0 p-0 font-normal text-ink-muted;
+    background: none;
+  }
+  .object-header-date-short {
+    @apply hidden;
+  }
+  .object-header-actions {
+    @apply flex flex-none items-center gap-2;
+  }
+
+  /* La frise, en lecture, sur une ligne ; le geste de l'étape suivante au bout. */
+  .event-timeline-wide {
+    @apply mt-1 flex flex-wrap items-center gap-x-4 gap-y-2;
+  }
+  .event-timeline-compact {
+    @apply hidden;
+  }
+  .event-steps {
+    @apply m-0 flex list-none flex-wrap items-center gap-x-2 gap-y-1 p-0;
+  }
+  .event-steps > li {
+    @apply m-0;
+  }
+  .event-step {
+    @apply inline-flex min-h-6 items-center gap-2 text-body leading-6 text-ink-muted;
+  }
+  .event-step + .event-step::before {
+    content: "";
+    @apply mr-1 inline-block h-px w-6 bg-line-strong;
+  }
+  .event-step-dot {
+    @apply inline-flex h-6 w-6 flex-none items-center justify-center rounded-full border border-line-strong bg-surface text-label text-ink-muted;
+  }
+  .event-step-passed .event-step-dot {
+    @apply border-ink bg-ink text-on-primary;
+  }
+  .event-step-current .event-step-dot {
+    @apply border-[3px] border-ink;
+  }
+  .event-step-passed .event-step-label {
+    @apply text-ink;
+  }
+  .event-step-current .event-step-label {
+    @apply font-semibold text-ink;
+  }
+  .event-step-date {
+    @apply text-label text-ink-muted;
+  }
+  .event-gesture {
+    @apply flex flex-col gap-2;
+  }
+  .event-sign-question {
+    @apply mt-1 flex max-w-xl flex-col gap-2 rounded-md border border-line bg-surface p-4;
+  }
+  .event-sign-question p {
+    @apply m-0;
+  }
+  .event-sign-title {
+    @apply m-0 text-heading;
+  }
+
+  /* Reporté, annulé, archivé : une ligne d'état et la seule suite ; l'état se lit au mot (teinte neutre). */
+  .event-status-line {
+    @apply mt-2 flex flex-col gap-2;
+  }
+  p.event-status-line,
+  .event-status-line > p {
+    @apply m-0;
+  }
+  .event-invoices-check {
+    @apply rounded-md bg-attention-soft px-4 py-3;
+  }
+  .event-invoices-check p,
+  .event-invoices-check ul {
+    @apply m-0;
+  }
+
+  /* Les onglets, collés sous la barre du haut ; la barre fine au-dessus quand l'en-tête est sorti. */
+  .event-tabbar {
+    @apply sticky z-30 mt-1 -mx-4 bg-ground px-4 sm:-mx-8 sm:px-8;
+    top: calc(var(--event-topbar) + var(--event-summary));
+  }
+  .event-tabbar-summary {
+    @apply absolute right-0 bottom-full left-0 hidden items-center gap-3 border-b border-line bg-surface px-4 sm:px-8;
+    height: var(--event-summary);
+  }
+  .event-tabbar[data-stuck] {
+    @apply bg-surface;
+  }
+  .event-tabbar[data-stuck] .event-tabbar-summary {
+    @apply flex;
+  }
+  .event-tabbar-names {
+    @apply truncate font-display text-heading;
+  }
+  .event-tabbar-facts {
+    @apply truncate text-label text-ink-muted;
+  }
+  .event-tabbar-summary .event-menu-button {
+    @apply ml-auto;
+  }
+  .event-tabs-nav {
+    @apply flex items-stretch border-b border-line;
+  }
+  .event-tabs {
+    @apply flex min-w-0 flex-1 overflow-hidden;
+  }
+  .event-tab {
+    @apply -mb-px inline-flex min-h-11 flex-none items-center gap-2 border-b-[3px] border-transparent px-3 text-body whitespace-nowrap text-ink-muted no-underline hover:text-ink;
+  }
+  .event-tab[aria-selected="true"] {
+    @apply border-primary font-semibold text-ink;
+  }
+  .event-tab-overflow {
+    @apply hidden;
+  }
+  .event-tab-short {
+    @apply hidden;
+  }
+  .event-tab-count {
+    @apply text-label font-normal text-ink-muted;
+  }
+  .event-tab-count-alert {
+    @apply font-semibold text-critical;
+  }
+  .event-tab-count-mark {
+    @apply mr-1;
+  }
+  .event-tabs-more {
+    @apply inline-flex min-h-11 flex-none items-center gap-1 border-0 !bg-transparent px-3 text-body font-medium !text-ink hover:underline;
+  }
+  .event-tabs-scroll {
+    @apply hidden;
+  }
+  /* Le premier bloc de l'onglet commence juste sous la barre (sa marge ne s'ajoute pas à celle du panneau). */
+  .event-tab-panel {
+    @apply mt-0 pt-3;
+  }
+  .event-tab-panel > :first-child {
+    @apply mt-0;
+  }
+
+  /* Le menu « ⋯ » : le nom du mariage en tête du panneau du bas, sur téléphone seulement. */
+  .event-menu-title {
+    @apply hidden;
+  }
+  @media (min-width: 768px) {
+    .event-menu-phone-only {
+      display: none !important;
+    }
+  }
+  .event-steps-sheet .event-steps {
+    @apply my-2 flex-col items-start gap-3;
+  }
+  .event-steps-sheet .event-step + .event-step::before {
+    @apply hidden;
+  }
+
+  /* 911 × 512 (portable à 150 %) et ordinateur étroit : la frise ne garde la date que de l'étape en cours. */
+  .event-step-label-short {
+    @apply hidden;
+  }
+  @media (max-width: 1199px) {
+    .event-timeline-wide .event-step:not(.event-step-current) .event-step-date,
+    .event-timeline-wide .event-step:not(.event-step-current) .event-step-label-long {
+      @apply hidden;
+    }
+    .event-timeline-wide .event-step:not(.event-step-current) .event-step-label-short {
+      @apply inline;
+    }
+    .event-timeline-wide .event-steps {
+      @apply gap-x-1;
+    }
+    .event-timeline-wide .event-step {
+      @apply gap-1 text-label;
+    }
+    .event-timeline-wide .event-step + .event-step::before {
+      @apply w-3;
+    }
+    .event-timeline-wide .event-step-dot {
+      @apply h-5 w-5;
+    }
+    /* L'en-tête passe sur deux lignes de faits : le lieu dessous, sans point. */
+    .object-header-venue {
+      @apply basis-full;
+    }
+    .object-header-facts .object-header-venue::before {
+      @apply hidden;
+    }
+  }
+
+  @media (max-width: 767px) {
+    .event-sheet .object-header-back,
+    .event-sheet .object-header-action,
+    .event-sheet .object-header-type,
+    .event-sheet .object-header-date-long,
+    .event-sheet .event-timeline-wide {
+      display: none;
+    }
+    .object-header-date-short {
+      @apply inline;
+    }
+    .object-header-facts .object-header-date-short::before {
+      @apply hidden;
+    }
+    .event-timeline-compact {
+      @apply m-0 mt-1 flex flex-wrap items-center gap-x-1 text-body;
+    }
+    .event-steps-open {
+      @apply !px-1;
+    }
+    .event-menu-title {
+      @apply m-0 block px-2 pb-2 text-body-strong;
+    }
+
+    .event-tabbar {
+      top: var(--app-topbar-height);
+    }
+    .event-tabbar-summary {
+      display: none !important;
+    }
+    .event-tabs {
+      @apply overflow-x-auto;
+      scrollbar-width: none;
+    }
+    .event-tab-long {
+      @apply hidden;
+    }
+    .event-tab-short {
+      @apply inline;
+    }
+    .event-tabs-scroll:not([hidden]) {
+      @apply inline-flex min-h-11 w-11 flex-none items-center justify-center border-0 border-l border-line !bg-ground p-0 text-heading !text-ink;
+    }
+    html:has(.app-shell.has-tabbar):has(.event-tabbar) {
+      scroll-padding-top: calc(var(--app-topbar-height) + 3.5rem);
+    }
+
+    /* La barre du haut d'une fiche : « ← » et le nom du mariage. */
+    .has-tabbar .app-topbar-title-back {
+      @apply flex items-center gap-1;
+    }
+  }
+
+  .app-topbar-back {
+    @apply inline-flex min-h-11 min-w-11 flex-none items-center justify-center rounded-full text-title text-ink no-underline hover:bg-ground;
+  }
+  .app-topbar-back-title {
+    @apply min-w-0 truncate;
+  }
+}
