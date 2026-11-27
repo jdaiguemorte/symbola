@@ -49,9 +49,9 @@ test("IMP-05 — aperçu, confirmation, champ libre sur la fiche, journal et ann
   await loginAndSetupMfa(page, email, password);
 
   // Le menu mène à l'import.
-  await openSettingsTab(page, "Importer");
-  // Lot 16 (IMP-11) : « Un autre fichier », puis le contenu.
-  await page.getByRole("navigation", { name: "Que voulez-vous reprendre ?" }).getByRole("link", { name: /Un autre fichier/ }).click();
+  await openSettingsTab(page, "Reprendre et importer");
+  // Lot 16 (IMP-11) : « Un autre fichier », puis le contenu. Lot 71b (I6) : « Une autre liste ».
+  await page.getByRole("navigation", { name: "Que voulez-vous importer ?" }).getByRole("link", { name: /Une autre liste/ }).click();
   await page.getByLabel("Évènements et leurs clients (une ligne par évènement)").check();
   await page.getByLabel("Fichier (CSV, Excel .xlsx ou JSON)").setInputFiles({
     name: "mariages.csv",

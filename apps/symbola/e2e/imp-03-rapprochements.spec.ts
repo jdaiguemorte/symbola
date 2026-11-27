@@ -49,8 +49,8 @@ test("IMP-03 — rapprochements validés, refusés et ajoutés à la main", asyn
   await loginAndSetupMfa(page, email, password);
 
   await page.goto("/import");
-  // Lot 16 (IMP-11) : « Un autre fichier », puis le contenu.
-  await page.getByRole("navigation", { name: "Que voulez-vous reprendre ?" }).getByRole("link", { name: /Un autre fichier/ }).click();
+  // Lot 16 (IMP-11) : « Un autre fichier », puis le contenu. Lot 71b (I6) : « Une autre liste ».
+  await page.getByRole("navigation", { name: "Que voulez-vous importer ?" }).getByRole("link", { name: /Une autre liste/ }).click();
   await page.getByLabel("Articles du catalogue").check();
   await page.getByLabel("Fichier (CSV, Excel .xlsx ou JSON)").setInputFiles({
     name: "tarifs-2027.csv",

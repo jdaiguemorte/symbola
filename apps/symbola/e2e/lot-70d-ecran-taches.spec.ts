@@ -354,7 +354,8 @@ test.describe("Lot 70d — l'écran « Tâches »", () => {
     await page.reload();
     const banner = page.getByRole("region", { name: "À vérifier : Léa & Hugo" });
     await expect(banner).toContainText("À vérifier : « Léa & Hugo », repris le 24 nov., n'a pas encore de tâches.");
-    await expect(banner.getByRole("link", { name: "Reprendre la liste de votre tableur" })).toHaveAttribute("href", `/import?type=tasks&evenement=${hugoId}#import-form`);
+    // Lot 71b (HUB-14) : la ligne 5 de la page de reprise du mariage.
+    await expect(banner.getByRole("link", { name: "Reprendre la liste de votre tableur" })).toHaveAttribute("href", `/reprise?evenement=${hugoId}&ligne=tasks`);
     await expect(banner.getByRole("link", { name: "Partir d'un modèle Symbola" })).toHaveAttribute("href", `/events/${hugoId}?onglet=taches`);
     await expect(page.locator(".task-count")).toContainText("1 évènement sans tâches");
     await expectNoAxeViolation(page);

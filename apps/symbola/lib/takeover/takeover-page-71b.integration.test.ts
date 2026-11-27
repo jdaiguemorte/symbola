@@ -121,6 +121,9 @@ describe("HUB-14 — La page de reprise et ses portes (lot 71b)", () => {
     const planner = await createPlanner();
     const { takeoverId } = await enterTakeoverEvent(planner, { takeoverId: null, name: "Juliette & Romain", eventDate: "2027-03-20", clients: [] });
     const importId = await dropFile(planner, takeoverId, "budget", "budget.csv");
+    // Dès le dépôt, avant le choix des colonnes (la colonne « Prestataire » est proposée).
+    const dropped = (await loadTakeoverPage(planner, takeoverId))!;
+    expect(dropped.rows.find((row) => row.kind === "event_vendors")).toMatchObject({ state: "covered", coveredVendorCount: 7 });
     await saveProposedColumns(planner, importId);
     const model = (await loadTakeoverPage(planner, takeoverId))!;
     expect(model.rows.find((row) => row.kind === "budget")).toMatchObject({ state: "in_progress", importId });

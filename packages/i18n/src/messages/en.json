@@ -2356,7 +2356,7 @@
     "archivedTag": "Archived",
     "archivedEmpty": "No archived event.",
     "floorplanLink": "Event floor plan",
-    "importHere": "Import and take over",
+    "importHere": "Import",
     "viewColumns": "Columns",
     "sourceNone": "None",
     "taskTemplateUnavailable": "This retroplanning is no longer available for this type. Reload the page.",
@@ -2458,7 +2458,8 @@
     "addClientTitle": "Add a client",
     "addClientSubmit": "Add this client",
     "clientAdded": "Client added.",
-    "clientsFull": "This event already has two clients."
+    "clientsFull": "This event already has two clients.",
+    "importAndTakeOver": "Import and take over"
   },
   "Budget": {
     "title": "Budget",

@@ -319,12 +319,13 @@ export {
   type StartEventSheetsImportResult,
   listImportedEvents,
   listImportSummaries,
+  countBudgetVendorNames,
+  coverTakeoverFromBudgetProposal,
 } from "./imports";
 export {
   allStepsSettled,
   attachImportToTakeoverStep,
   attachTakeoverEvent,
-  countImportVendorNames,
   coverTakeoverStep,
   createTakeover,
   discardImportLeftovers,

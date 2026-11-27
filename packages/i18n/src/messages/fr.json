@@ -2356,7 +2356,7 @@
     "archivedTag": "Archivé",
     "archivedEmpty": "Aucun évènement archivé.",
     "floorplanLink": "Plan de salle de l'évènement",
-    "importHere": "Reprendre et importer",
+    "importHere": "Importer",
     "viewColumns": "Colonnes",
     "sourceNone": "Aucune",
     "taskTemplateUnavailable": "Ce rétroplanning n'est plus disponible pour ce type. Rechargez la page.",
@@ -2458,7 +2458,8 @@
     "addClientTitle": "Ajouter un client",
     "addClientSubmit": "Ajouter ce client",
     "clientAdded": "Client ajouté.",
-    "clientsFull": "Cet évènement a déjà deux clients."
+    "clientsFull": "Cet évènement a déjà deux clients.",
+    "importAndTakeOver": "Reprendre et importer"
   },
   "Budget": {
     "title": "Budget",

@@ -403,24 +403,34 @@ export async function previewTakeover(
 }
 
 // Le champ du budget qui nomme le prestataire d'une ligne (contrat des champs d'import).
-const BUDGET_VENDOR_FIELD = "vendorName";
+export const BUDGET_VENDOR_FIELD = "vendorName";
 
-function distinctVendorNames(row: { rows: string[][] | null; mapping: { columnIndex: number; fieldKey: string | null; target: string }[] | null }): number {
-  const column = row.mapping?.find((choice) => choice.target === "field" && choice.fieldKey === BUDGET_VENDOR_FIELD)?.columnIndex;
-  if (column === undefined || !row.rows) return 0;
+type BudgetRows = { rows: string[][] | null; mapping: { columnIndex: number; fieldKey: string | null; target: string }[] | null };
+
+// La colonne des prestataires : celle choisie à l'étape « Colonnes », sinon celle proposée (donnée par
+// l'appelant, qui lit les propositions).
+function vendorColumnOf(row: BudgetRows, proposed: number | null): number | null {
+  if (row.mapping) return row.mapping.find((choice) => choice.target === "field" && choice.fieldKey === BUDGET_VENDOR_FIELD)?.columnIndex ?? null;
+  return proposed;
+}
+
+function distinctVendorNames(row: BudgetRows, proposed: number | null): number {
+  const column = vendorColumnOf(row, proposed);
+  if (column === null || !row.rows) return 0;
   return new Set(row.rows.map((cells) => (cells[column] ?? "").trim().toLocaleLowerCase("fr")).filter((name) => name !== "")).size;
 }
 
 // Critère 4 du paquet 71b : un budget de reprise dont une colonne nomme les prestataires couvre la ligne
-// des prestataires retenus dès que ses colonnes sont enregistrées (« Avec le budget »), si la planner
-// n'y a rien décidé d'autre. Appelé par l'enregistrement des colonnes ; sans effet hors reprise.
-export async function coverTakeoverFromBudgetImport(db: AppDatabase, organizationId: string, importId: string, now: Date = new Date()): Promise<boolean> {
+// des prestataires retenus dès qu'il est en cours (« Avec le budget ») : à son dépôt, d'après la colonne
+// proposée, puis à l'enregistrement des colonnes ; si la planner n'y a rien décidé d'autre. Sans effet
+// hors reprise.
+export async function coverTakeoverFromBudgetImport(db: AppDatabase, organizationId: string, importId: string, now: Date = new Date(), proposedVendorColumn: number | null = null): Promise<boolean> {
   return withOrganization(db, organizationId, async (tx) => {
     const [row] = await tx
       .select({ takeoverId: imports.takeoverId, entityType: imports.entityType, rows: imports.rows, mapping: imports.mapping, createdByUserId: imports.createdByUserId })
       .from(imports)
       .where(eq(imports.id, importId));
-    if (!row?.takeoverId || row.entityType !== "budget_lines" || distinctVendorNames(row) === 0) return false;
+    if (!row?.takeoverId || row.entityType !== "budget_lines" || distinctVendorNames(row, proposedVendorColumn) === 0) return false;
     const steps = await tx.select().from(takeoverSteps).where(eq(takeoverSteps.takeoverId, row.takeoverId));
     const budget = steps.find((step) => step.kind === "budget");
     const vendors = steps.find((step) => step.kind === "event_vendors");
@@ -434,10 +444,10 @@ export async function coverTakeoverFromBudgetImport(db: AppDatabase, organizatio
 }
 
 // « Votre budget nomme 7 prestataires : ils seront retenus avec lui. »
-export async function countImportVendorNames(db: AppDatabase, organizationId: string, importId: string): Promise<number> {
+export async function countImportVendorNames(db: AppDatabase, organizationId: string, importId: string, proposedVendorColumn: number | null = null): Promise<number> {
   return withOrganization(db, organizationId, async (tx) => {
     const [row] = await tx.select({ rows: imports.rows, mapping: imports.mapping }).from(imports).where(eq(imports.id, importId));
-    return row ? distinctVendorNames(row) : 0;
+    return row ? distinctVendorNames(row, proposedVendorColumn) : 0;
   });
 }
 

@@ -22,7 +22,8 @@ import {
   attachImportToTakeoverStep,
   attachTakeoverEvent,
   cancelImport,
-  countImportVendorNames,
+  countBudgetVendorNames,
+  coverTakeoverFromBudgetProposal,
   createTakeover,
   getEventTakeover,
   getImportLimits,
@@ -126,7 +127,7 @@ async function buildModel(actor: TakeoverActor, view: Omit<TakeoverView, "id"> &
       at: summary ? (row.state === "done" ? (summary.appliedAt ?? summary.createdAt) : summary.createdAt) : row.state === "done" ? row.decidedAt : null,
       figure: summary && row.state === "done" && summary.result ? { key: importFigureKey(summary.entityType), count: summary.result.created + summary.result.updated } : null,
       stoppedAt,
-      coveredVendorCount: row.state === "covered" && budgetImport ? await countImportVendorNames(db(), actor.organizationId, budgetImport) : null,
+      coveredVendorCount: row.state === "covered" && budgetImport ? await countBudgetVendorNames(db(), actor.organizationId, budgetImport) : null,
     });
   }
   const state = takeoverPageState(view.steps);
@@ -268,6 +269,8 @@ export async function takeoverForUpload(
     targetEventId: entityType === "budget_lines" || entityType === "tasks" ? view.eventId : null,
     attach: async (importId) => {
       await attachImportToTakeoverStep(db(), { organizationId: actor.organizationId, userId: actor.userId, takeoverId: view.id, kind, importId, viewer: actor.viewer });
+      // Critère 4 : un budget qui nomme ses prestataires couvre leur ligne dès son dépôt.
+      if (kind === "budget") await coverTakeoverFromBudgetProposal(db(), actor.organizationId, importId);
     },
   };
 }

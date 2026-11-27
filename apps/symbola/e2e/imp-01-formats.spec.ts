@@ -42,13 +42,13 @@ test("IMP-01 — un CSV Excel est lu, un .xls refusé, l'import en cours abandon
   await loginAndSetupMfa(page, email, password);
 
   await page.goto("/import");
-  await expect(page.getByRole("heading", { name: "Importer des données" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Reprendre et importer" })).toBeVisible();
   await expect(page.getByText("Aucun import pour l'instant.")).toBeVisible();
   await expectNoAxeViolation(page);
 
   // Un ancien fichier Excel est refusé avec un message qui dit quoi faire.
   // Lot 16 (IMP-11) : « Un autre fichier » propose le choix détaillé des contenus.
-  await page.getByRole("navigation", { name: "Que voulez-vous reprendre ?" }).getByRole("link", { name: /Un autre fichier/ }).click();
+  await page.getByRole("navigation", { name: "Que voulez-vous importer ?" }).getByRole("link", { name: /Une autre liste/ }).click();
   await page.getByLabel("Évènements et leurs clients (une ligne par évènement)").check();
   await page.getByLabel("Fichier (CSV, Excel .xlsx ou JSON)").setInputFiles(corpusFile("libreoffice.xls", "application/vnd.ms-excel"));
   await page.getByRole("button", { name: "Lire le fichier" }).click();

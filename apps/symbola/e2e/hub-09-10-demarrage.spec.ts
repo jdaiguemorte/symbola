@@ -78,7 +78,12 @@ test("HUB-09 / PAR-01 — une wedding planner répond aux cinq questions, une pa
   await expect(prepared).toContainText(/\d+ tâches de rétroplanning/);
   await expect(prepared).toContainText(/\d+ postes de budget/);
   await expect(prepared).toContainText("Votre régime de TVA : franchise en base de TVA");
-  await expect(page.getByRole("heading", { name: "Créer mon premier évènement" })).toBeVisible();
+  // Lot 71b (PAR-01 ; I5, R3) : elle suit ses mariages dans un tableur : « Reprendre un mariage en cours »
+  // d'abord, en bouton plein ; la création en second.
+  const takeover = page.getByRole("region", { name: "Reprendre un mariage en cours" });
+  await expect(takeover).toContainText("Vous suivez aujourd'hui vos mariages dans un tableur (Excel, Google Sheets…).");
+  await expect(takeover.getByRole("link", { name: "Reprendre un mariage en cours" })).toHaveAttribute("href", "/reprise");
+  await expect(page.getByRole("heading", { name: "Créer un nouveau mariage" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Explorer avec un exemple" })).toBeVisible();
   await expectNoAxeViolation(page);
 

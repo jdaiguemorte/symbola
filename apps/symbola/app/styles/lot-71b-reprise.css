@@ -159,6 +159,11 @@
   .ready-takeover-actions {
     @apply mt-4 flex flex-wrap gap-3;
   }
+  /* Critère 9 du paquet 71b : aucune commande de la fin de l'assistant sous 44 px (« Ouvrir l'exemple »
+     était un formulaire d'un seul bouton, compact par règle). */
+  .ready-choices form button {
+    @apply !min-h-11;
+  }
   .ready-takeover-elsewhere a {
     @apply inline-flex min-h-11 items-center;
   }
@@ -183,7 +188,10 @@
     }
     /* Sur téléphone, les deux boutons de la fin de l'assistant collés en bas, le principal en haut. */
     .ready-takeover-actions {
-      @apply sticky bottom-0 z-10 -mx-4 flex-col border-t border-line bg-surface px-4 py-3;
+      @apply fixed inset-x-0 bottom-0 z-20 m-0 flex-col border-t border-line bg-surface px-4 py-3;
+    }
+    main:has(.ready-takeover-actions) {
+      @apply pb-40;
     }
     .ready-takeover-actions > * {
       @apply w-full justify-center;
