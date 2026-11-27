@@ -6,7 +6,7 @@ import { formatDateTime, type Locale } from "@symbola/i18n";
 import { organizationMailQuota } from "@symbola/mail";
 import { appDatabase } from "@symbola/db/client";
 import { getOrganizationProfile, getSetupState, isModuleEnabled, recentEmailVariableProblems } from "@/modules/hub/service";
-import { listEventTasks, listOrganizationTasks, listStandaloneTasks } from "@/modules/events/service";
+import { getTaskSoonDays, listEventTasks, listOrganizationTasks, listStandaloneTasks } from "@/modules/events/service";
 import { buildTaskLines } from "@/lib/tasks/task-lines";
 import { taskMemberOptions } from "@/lib/tasks/members";
 import { TaskPanelLoader } from "./ui/task-panel-loader";
@@ -19,13 +19,17 @@ import { isValidId } from "./events/module-access";
 import { PrivacyPurgeAlertBlock, PrivacyRequestsAlertBlock } from "./rgpd/dashboard-block";
 import { PageTour } from "./page-tour";
 import { loadPageTour } from "@/lib/help/page-tour";
-import { longDate, MyEvents, TodayFirst, TodayRest, todayWords, UnavailableNotice } from "./accueil/today-view";
+import { todayWords, UnavailableNotice } from "./accueil/today-view";
+import { EmptyHome, FirstStepsView, MyEventsView, TodayCardView, TodayHeader } from "./accueil/home-view";
 import { UndoTaskNotice } from "./accueil/today-client";
-import { OnboardingChecklist } from "./accueil/onboarding-checklist";
+import { TodayScrollKeeper } from "./accueil/today-card-client";
 import { NamesPrompt } from "./accueil/names-prompt";
 import { SetupNotReadyLine } from "./accueil/setup-line";
 import { resumedThisSession } from "@/lib/onboarding/resume";
 import { loadOnboardingChecklist } from "@/lib/onboarding/checklist";
+import { firstStepsLine } from "@/lib/onboarding/first-steps";
+import { homeState, todayCard } from "@/lib/today/home";
+import { onboardingSuggestsTakeover } from "@symbola/starter-templates";
 import { TodayCalendar } from "./accueil/today-calendar";
 import { isCalendarView, isMonthKey, isWeekKey, mondayOf, type CalendarView } from "@/lib/today/calendar";
 import { ensureTaskCategories } from "@/lib/events/task-categories";
@@ -35,7 +39,7 @@ import { ensureTaskCategories } from "@/lib/events/task-categories";
 // tâches, encaissements, relances, alertes de liens et de règlements) passent dans la liste ;
 // l'agenda passe à « Évènements ». Les alertes du titulaire et le plafond d'envois gardent leur
 // bandeau en tête.
-export default async function HomePage({ searchParams }: { searchParams: Promise<{ fait?: string; evenement?: string; visite?: string; mois?: string; vue?: string; semaine?: string; tache?: string }> }) {
+export default async function HomePage({ searchParams }: { searchParams: Promise<{ fait?: string; evenement?: string; visite?: string; mois?: string; vue?: string; semaine?: string; tache?: string; tout?: string }> }) {
   const auth = await requireSignedIn();
   // Lot 13 (L13-HUB-17) : l'Admin arrive sur la console, pas sur un accueil vide.
   if (auth.user.role === "admin") redirect("/exploitation");
@@ -88,9 +92,9 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   // Lot 74a (HUB-09, PAR-01 ; C-68 ; critères 1 et 2) : l'assistant d'abord. Pas encore commencé, la titulaire y
   // est menée à chaque fois ; commencé, une fois par session (puis la ligne « pas tout à fait prêt »).
   if (resumeQuestionnaire && (setup.step === 1 || !(await resumedThisSession()))) redirect(setup.step === 1 ? "/demarrage" : "/demarrage/reprendre");
-  // ONB-01 : guide vers la fiche entreprise sans jamais bloquer l'entrée ; lot 33b (PAR-01, « à
-  // éviter ») : seulement une fois le questionnaire fini et l'espace prêt, jamais avant.
-  const onboardingIncomplete = setup.completed && (await getOrganizationProfile(db, organizationId)).completedAt === null;
+  // Lot 72b (C-18) : le bandeau « fiche entreprise » quitte le haut de l'accueil ; l'étape est dans « Pour bien
+  // démarrer ». Le profil dit aussi quelle voie l'état vide propose d'abord (R3, I5 du lot 71).
+  const profile = await getOrganizationProfile(db, organizationId);
   // Lot 38a (MSG-01, D5) : des rappels automatiques arrêtés par une variable sans valeur (24 heures).
   const mailProblems = modules.events ? await recentEmailVariableProblems(organizationId) : null;
   const tTemplates = await getTranslations("EmailTemplates");
@@ -142,7 +146,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   const taskLines =
     modules.events && taskSources.length > 0
       ? Object.fromEntries(
-          (await buildTaskLines({ organizationId, locale, tasks: taskSources, members: await taskMemberOptions(organizationId, auth.user.id), href: (task) => `/?tache=${task.id}` })).lines.map((line) => [line.id, line]),
+          (await buildTaskLines({ organizationId, locale, tasks: taskSources, members: await taskMemberOptions(organizationId, auth.user.id), href: (task) => (query.tout === "1" ? `/?tout=1&tache=${task.id}` : `/?tache=${task.id}`) })).lines.map((line) => [line.id, line]),
         )
       : {};
   const parisDay = (instant: string) => new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Paris", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date(instant));
@@ -152,20 +156,21 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
     : 0;
   const openTask = modules.events && query.tache && isValidId(query.tache) ? query.tache : null;
 
+  // Lot 72b (HUB-08, UX-01 ; § 5.2) : l'état de l'accueil, la carte entière (les sept lignes et le reste), la
+  // ligne « Pour bien démarrer » de la personne.
+  const state = homeState({ eventsEnabled: modules.events, events, points: ranked.points });
+  const card = todayCard(ranked, { quotes: modules.quotes, events: modules.events });
+  const firstSteps = firstStepsLine(checklist, auth.user.firstStepsHidden);
+  const soonDays = modules.events ? await getTaskSoonDays(organizationId) : 7;
+  // « Tout afficher » ouvert, ou une tâche du reste ouverte depuis la carte allongée : la carte reste entière
+  // derrière le panneau, et « Fermer » la rend telle quelle (critère 3).
+  const expanded = query.tout === "1" || (openTask !== null && card.parts.some((part) => part.lines.some((line) => line.rest && line.item.task?.id === openTask)));
+  const closeHref = expanded ? "/?tout=1" : "/";
   return (
-    <main>
-      <div className="page-header today-header">
-        <h1>{t("title")}</h1>
-        <p className="today-summary">{t("summary", { date: longDate(now, locale), events: activeEvents, points: ranked.points })}</p>
-      </div>
-      {resumeQuestionnaire ? <SetupNotReadyLine organizationId={organizationId} step={setup.step} /> : null}
-      {onboardingIncomplete ? (
-        <p role="status">
-          {tHome("onboardingIncomplete")} <Link href="/parametres">{tHome("completeProfile")}</Link>
-        </p>
-      ) : null}
-      {/* Lot 70a (A1) : le prénom, pour que l'équipe reconnaisse la personne. */}
-      <NamesPrompt userId={auth.user.id} />
+    <main data-state={state.kind}>
+      <TodayHeader now={now} locale={locale} activeEvents={state.kind === "empty" ? null : activeEvents} ranked={ranked} state={state} />
+      {/* Lot 72b (C-18) : seules les alertes qui bloquent un envoi ou une obligation passent avant la liste ;
+          puis « Votre espace n'est pas tout à fait prêt » (lot 74a), le message de retour et « Une partie des urgences ne répond pas ». */}
       {mailQuota?.reached && mailQuota.resumesAt ? (
         <p className="notice" role="alert">
           {tHome("mailQuotaReached", { sent: mailQuota.sent, cap: mailQuota.cap, time: formatDateTime(mailQuota.resumesAt, locale) })}
@@ -180,30 +185,52 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
       {/* RGPD-04 : demandes dont l'échéance approche et purges annoncées, titulaire seulement. */}
       {auth.user.role === "owner" ? <PrivacyRequestsAlertBlock organizationId={organizationId} /> : null}
       {auth.user.role === "owner" ? <PrivacyPurgeAlertBlock organizationId={organizationId} /> : null}
+      {resumeQuestionnaire ? <SetupNotReadyLine organizationId={organizationId} step={setup.step} /> : null}
+      {/* Lot 70a (A1) : le prénom, pour que l'équipe reconnaisse la personne. */}
+      <NamesPrompt userId={auth.user.id} />
       {undone ? (
         <UndoTaskNotice key={undone.taskId} eventId={undone.eventId} taskId={undone.taskId} message={t("undo.taskDone", { label: undone.label })} undoLabel={t("undo.action")} returnTo="home" />
       ) : null}
       <UnavailableNotice sources={unavailable} />
-      {/* Lot 65c (HUB-08, UX-01 ; maquette M15) : les sept lignes à traiter en premier, par nature, puis
-          le calendrier sur toute la largeur (visible sans défiler sur un écran courant), puis le reste. */}
-      <TodayFirst ranked={ranked} locale={locale} modules={{ quotes: modules.quotes, events: modules.events }} taskLines={taskLines} doneToday={doneToday} />
-      {showCalendar ? (
-        <div id="calendrier">
-          <TodayCalendar
-            organizationId={organizationId}
-            modules={{ events: modules.events, budget: modules.budget, appointments: modules.appointments }}
-            month={calendarMonth}
-            today={today}
+      {/* « Reprises en cours » (lot 71f) se posera ici, entre les alertes et « À traiter en premier ». */}
+      {state.kind === "empty" ? (
+        <>
+          <EmptyHome takeoverFirst={onboardingSuggestsTakeover(profile.replacedTools)} />
+          {firstSteps && checklist ? <FirstStepsView line={firstSteps} items={checklist} listed /> : null}
+        </>
+      ) : (
+        <>
+          <TodayCardView
+            card={card}
+            ranked={ranked}
             locale={locale}
-            scope={scope}
-            categories={taskCategories}
-            view={calendarView}
-            week={calendarWeek}
-            href={calendarHref}
+            today={today}
+            soonDays={soonDays}
+            taskLines={taskLines}
+            doneToday={doneToday}
+            expanded={expanded}
+            quiet={state.kind === "quiet" ? { eventId: state.withoutTasks[0]! } : null}
           />
-        </div>
-      ) : null}
-      <TodayRest ranked={ranked} locale={locale} taskLines={taskLines} />
+          {modules.events ? <MyEventsView events={events} ranked={ranked} today={today} locale={locale} /> : null}
+          {showCalendar ? (
+            <div id="calendrier">
+              <TodayCalendar
+                organizationId={organizationId}
+                modules={{ events: modules.events, budget: modules.budget, appointments: modules.appointments }}
+                month={calendarMonth}
+                today={today}
+                locale={locale}
+                scope={scope}
+                categories={taskCategories}
+                view={calendarView}
+                week={calendarWeek}
+                href={calendarHref}
+              />
+            </div>
+          ) : null}
+          {firstSteps && checklist ? <FirstStepsView line={firstSteps} items={checklist} listed={false} /> : null}
+        </>
+      )}
       {openTask ? (
         <TaskPanelLoader
           organizationId={organizationId}
@@ -212,14 +239,12 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
           locale={locale}
           today={today}
           open={{ kind: "edit", taskId: openTask }}
-          closeHref="/"
+          closeHref={closeHref}
           backLabel={t("title")}
           screenHref={(params) => `/taches?${new URLSearchParams(params).toString()}`}
         />
       ) : null}
-      {/* Lot 33b (PAR-01, étape 6) : après ce qui demande une action (UX-01 : la prochaine action d'abord). */}
-      {checklist ? <OnboardingChecklist items={checklist} /> : null}
-      {modules.events ? <MyEvents events={events} ranked={ranked} today={today} locale={locale} /> : null}
+      {state.kind === "empty" ? null : <TodayScrollKeeper panelOpen={openTask !== null} />}
       <PageTour {...tour} helpTitle={tHelp("home.title")} helpBody={tHelp("home.body")} />
     </main>
   );

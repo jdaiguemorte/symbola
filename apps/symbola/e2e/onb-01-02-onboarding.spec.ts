@@ -3,7 +3,8 @@
 import { randomUUID } from "node:crypto";
 import AxeBuilder from "./axe";
 import { createAppConnection } from "@symbola/db/client";
-import { createUser } from "@symbola/auth";
+import { createOrganization, createUser } from "@symbola/auth";
+import { completeSetup } from "../modules/hub/service";
 import { expect, test, type Page } from "@playwright/test";
 import { readyOrganization, signIn as signInByLink } from "./helpers";
 
@@ -12,13 +13,16 @@ async function loginAndSetupMfa(page: Page, email: string, _password: string) {
   await signInByLink(page, email, /\/(exploitation)?$/);
 }
 
-test("ONB-01-01 — le bandeau guide vers la fiche entreprise incomplète, sans bloquer l'accès", async ({ page }) => {
+// Lot 72b (C-18 ; J5) : le bandeau du haut de l'accueil est devenu l'étape « Régler l'essentiel » de « Pour
+// bien démarrer », qui guide vers la fiche entreprise sans jamais bloquer l'entrée.
+test("ONB-01-01 — « Pour bien démarrer » guide vers la fiche entreprise incomplète, sans bloquer l'accès", async ({ page }) => {
   const email = `titulaire-onb-${randomUUID()}@symbola.test`;
   const password = "mot-de-passe-onb-e2e";
 
   const { sql, db } = createAppConnection();
   try {
-    const organization = await readyOrganization(db, `Org ${randomUUID()}`);
+    const organization = await createOrganization(db, `Org ${randomUUID()}`);
+    await completeSetup(db, organization.id);
     await createUser(db, { organizationId: organization.id, email, password, role: "owner" });
   } finally {
     await sql.end();
@@ -27,15 +31,17 @@ test("ONB-01-01 — le bandeau guide vers la fiche entreprise incomplète, sans 
   await loginAndSetupMfa(page, email, password);
   // L'accueil reste accessible : aucune redirection forcée (PRD : ne
   // jamais bloquer l'entrée dans la plateforme).
-  await expect(page.getByText("Votre fiche entreprise n'est pas encore complète.")).toBeVisible();
+  const firstSteps = page.getByRole("region", { name: "Pour bien démarrer" });
+  await expect(firstSteps).toContainText("0 sur 2");
+  await expect(page.getByText("Votre fiche entreprise n'est pas encore complète.")).toHaveCount(0);
 
-  await page.getByRole("link", { name: "La compléter" }).click();
-  await expect(page).toHaveURL(/\/parametres$/);
+  await firstSteps.getByRole("link", { name: "Régler l'essentiel : société, adresse, TVA" }).click();
+  await expect(page).toHaveURL(/\/demarrage\/essentiel$/, { timeout: 20_000 });
   const violations = await new AxeBuilder({ page }).analyze();
   expect(violations.violations, JSON.stringify(violations.violations, null, 2)).toEqual([]);
 });
 
-test("ONB-01-02 — chaque étape sauvegardée survit à une interruption, et le bandeau disparaît une fois complet", async ({
+test("ONB-01-02 — chaque étape sauvegardée survit à une interruption", async ({
   page,
 }) => {
   const email = `titulaire-onb2-${randomUUID()}@symbola.test`;
@@ -59,10 +65,6 @@ test("ONB-01-02 — chaque étape sauvegardée survit à une interruption, et le
   await page.getByRole("button", { name: "Enregistrer" }).first().click();
   await expect(page.getByText("Fiche entreprise enregistrée.")).toBeVisible();
 
-  await page.goto("/");
-  // Toujours incomplet : le régime de TVA manque encore.
-  await expect(page.getByText("Votre fiche entreprise n'est pas encore complète.")).toBeVisible();
-
   // Reprend plus tard : le SIREN déjà saisi est toujours là.
   await page.goto("/parametres");
   await expect(page.getByLabel("SIREN")).toHaveValue("123456789");
@@ -70,9 +72,6 @@ test("ONB-01-02 — chaque étape sauvegardée survit à une interruption, et le
   await page.getByLabel("Date d'effet").fill("2027-01-01");
   await page.getByRole("button", { name: "Changer de régime" }).click();
   await expect(page.getByText("Régime de TVA mis à jour.")).toBeVisible();
-
-  await page.goto("/");
-  await expect(page.getByText("Votre fiche entreprise n'est pas encore complète.")).toHaveCount(0);
 });
 
 test("ONB-02-01 — l'Admin fixe les seuils de franchise, jamais codés en dur", async ({ page }) => {

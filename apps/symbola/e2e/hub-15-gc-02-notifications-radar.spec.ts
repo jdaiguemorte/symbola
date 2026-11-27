@@ -53,7 +53,9 @@ test("SC-03 / HUB-15 / UX-16 / GC-02 / CHR-05 / CHR-10 / HUB-24 / HUB-28 — not
   await expect(page.getByRole("heading", { level: 1, name: "Aujourd'hui" })).toBeVisible();
   await expect(page.getByText("Déclaration de TVA").first()).toBeVisible();
   // Lot 72a (critère 6) : l'alerte du radar est une ligne « À regarder » de la liste.
-  const risks = page.locator(".today-item").filter({ hasText: "Jalon en retard" }).first();
+  // Lot 72b : dans l'anatomie de la ligne allégée, avec « Agir ».
+  const risks = page.getByRole("region", { name: /^À traiter en premier/ }).getByRole("listitem").filter({ hasText: "Jalon en retard" }).first();
+  await expect(risks.getByRole("link", { name: /^Agir/ })).toBeVisible();
   await expect(risks).toContainText("Jalon en retard");
   await expect(risks).toContainText("Le jalon « Contrat traiteur signé » est en retard de 3 jours ; seuil : 0 jour.");
   await expectNoAxeViolation(page);
