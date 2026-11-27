@@ -294,9 +294,18 @@ for (const size of [
       expect(small).toBe(0);
     });
 
-    test.fixme("UX-14 crit. 9 — à 375 px, la première tâche de « Tâches » arrive à 200 px au plus", async () => {
-      // Dépend de la barre du haut de 60 px (paquet 70f) et de l'en-tête de « Tâches » avec son bouton
-      // « Filtres » (paquet 70d) : mesuré à la livraison de ces paquets.
+    test("UX-14 crit. 9 — à 375 px, la première tâche de « Tâches » arrive à 200 px au plus", async ({ page }) => {
+      test.skip(size.width !== 375, "critère du téléphone");
+      const setup = await atelier();
+      await signIn(page, setup.email, /\/$/);
+      await page.goto("/taches");
+      const first = page.locator(".task-lines .task-line").first();
+      await expect(first).toBeVisible();
+      await page.evaluate(() => window.scrollTo(0, 0));
+      // Lot 70f : la barre du haut tient en 60 px ; avec l'en-tête de « Tâches » du 70d (122 px au-dessus
+      // de la première tâche), celle-ci arrive sous 200 px, page non défilée.
+      const top = await first.evaluate((element) => Math.round(element.getBoundingClientRect().top));
+      expect(top).toBeLessThanOrEqual(200);
     });
 
     test("EVT-03 crit. 10 — l'ancienne adresse du rétroplanning ouvre l'onglet « Tâches » et la bonne tâche ; clavier", async ({ page }) => {

@@ -358,7 +358,7 @@ test.describe("ARC-06 — La barre du bas quand un module n'est pas souscrit (A1
     await expect(moreSheet(page).locator('a[href="/prestataires"]')).toHaveCount(0);
     // La route du module non souscrit reste fermée.
     await page.goto("/prestataires");
-    await expect(page.getByText(/n'est pas activé pour votre organisation/)).toBeVisible();
+    await expect(page.getByText("Le carnet de prestataires n'est pas disponible pour votre organisation.")).toBeVisible();
   });
 
   test("Évènements non souscrit : ni Évènements ni Tâches ; Contacts et Rendez-vous montent", async ({ page }) => {
@@ -390,7 +390,9 @@ test.describe("UX-05 — Sur ordinateur, la mise en page d'ordinateur reste", ()
       await expect(page.locator(".app-topbar").getByRole("combobox", { name: "Rechercher" })).toBeVisible();
       await expect(page.locator(".app-topbar").getByRole("button", { name: "Rechercher", exact: true })).toBeHidden();
       const top = (await box(page, ".app-topbar"))!;
-      expect(Math.round(top.height)).toBe(68);
+      // 68 px et son trait du bas (lot 70e) : inchangée.
+      expect(Math.round(top.height)).toBeGreaterThanOrEqual(68);
+      expect(Math.round(top.height)).toBeLessThanOrEqual(69);
       await expectNoAxeViolation(page);
     });
   }
