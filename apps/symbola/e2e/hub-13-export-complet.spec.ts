@@ -38,7 +38,7 @@ test("HUB-13 — la Propriétaire prépare l'export complet, suit sa préparatio
   await signIn(page, ownerEmail, /\/$/);
 
   // La rubrique est dans Paramètres, groupe « Prestataires et données ».
-  await openSettingsTab(page, "Exporter mes données");
+  await openSettingsTab(page, "Copie de toutes vos données");
   await expect(page).toHaveURL(/\/parametres\/export$/);
   await expect(page.getByRole("heading", { level: 1, name: "Exporter mes données" })).toBeVisible();
   await expect(page.getByText("Aucun export pour l'instant.")).toBeVisible();
@@ -72,8 +72,11 @@ test("HUB-13 — la Propriétaire prépare l'export complet, suit sa préparatio
 test("HUB-13 (D5) — une Planner n'a ni la rubrique, ni l'écran, ni le téléchargement", async ({ page }) => {
   const { plannerEmail } = await atelier();
   await signIn(page, plannerEmail, /\/$/);
+  // Lot 74g : la copie des données est dans « Vos données », réservée à la titulaire comme avant.
   await clickMenuLink(page, "Paramètres");
-  await expect(page.getByRole("navigation", { name: "Rubriques des paramètres" }).getByRole("link", { name: "Exporter mes données" })).toHaveCount(0);
+  await page.getByRole("link", { name: "Ouvrir « Vos données »" }).click();
+  await expect(page.getByRole("heading", { level: 1, name: "Vos données" })).toBeVisible();
+  await expect(page.getByRole("main").getByRole("link", { name: "Ouvrir « Copie de toutes vos données »" })).toHaveCount(0);
 
   await page.goto("/parametres/export");
   await expect(page.getByText("Cet écran est réservé à la Propriétaire du compte.")).toBeVisible();

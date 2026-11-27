@@ -175,7 +175,7 @@ test("MSG-04, MSG-05 (SU-01) — l'adresse d'envoi de l'atelier, le journal des 
 
   await signIn(page, w.email);
   await page.goto("/parametres/adresse-envoi");
-  await expect(page.getByRole("heading", { level: 1, name: "Adresse d'envoi des e-mails" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "Adresse d'envoi et réponses" })).toBeVisible();
   await expect(page.getByText(/^atelier-camille-[0-9a-f]{6}@envoi\./)).toBeVisible();
   await expectAccessible(page);
   await expectNoHorizontalScroll(page);

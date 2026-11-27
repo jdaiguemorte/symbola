@@ -119,58 +119,48 @@ async function atelier() {
   return { email };
 }
 
-test("UX-13 — Menu des Paramètres : groupes repliables, rubrique ouverte visible, « Chercher un réglage » (D2)", async ({ page }) => {
+// Lot 74g (G1, G2, G7) : les groupes repliables laissent place à l'accueil, groupes ouverts ; « Chercher un
+// réglage » y reste jusqu'au 74k ; une rubrique ouverte garde le menu de son groupe (1 100 px et plus).
+test("UX-13 — Menu des Paramètres : l'accueil, « Chercher un réglage », le menu du groupe (D2, lot 74g)", async ({ page }) => {
   test.setTimeout(240_000);
   const setup = await atelier();
   await signIn(page, setup.email, /\/$/);
   await desktopSize(page);
   await page.goto("/parametres");
-  const rubrics = page.getByRole("navigation", { name: "Rubriques des paramètres" });
-
-  // Le groupe de la rubrique ouverte est déplié, les autres repliés.
-  await expect(rubrics.getByRole("button", { name: "Mon entreprise", exact: true })).toHaveAttribute("aria-expanded", "true");
-  await expect(rubrics.getByRole("button", { name: "Ventes", exact: true })).toHaveAttribute("aria-expanded", "false");
-  await expect(rubrics.getByRole("link", { name: "Entreprise et TVA", exact: true })).toHaveAttribute("aria-current", "page");
-  await expect(rubrics.getByRole("link", { name: "Catalogue", exact: true })).toBeHidden();
-
-  // Un groupe replié s'ouvre d'un clic, et se replie de même.
-  await rubrics.getByRole("button", { name: "Ventes", exact: true }).click();
-  await expect(rubrics.getByRole("link", { name: "Catalogue", exact: true })).toBeVisible();
-  await rubrics.getByRole("button", { name: "Ventes", exact: true }).click();
-  await expect(rubrics.getByRole("link", { name: "Catalogue", exact: true })).toBeHidden();
+  const home = page.getByRole("main");
 
   // « Chercher un réglage » filtre les rubriques par leur nom, sans tenir compte des accents.
-  const search = rubrics.getByRole("searchbox", { name: "Chercher un réglage" });
-  await search.fill("relances");
-  await expect(rubrics.getByRole("link")).toHaveText(["Relances des prospects", "Relances de devis et de paiement"]);
-  await expect(rubrics.getByRole("status")).toHaveText("2 réglages trouvés");
+  const search = home.getByRole("searchbox", { name: "Chercher un réglage" });
+  await search.fill("relance");
+  await expect(home.locator(".settings-home-label")).toHaveText(["Prospects : délai avant relance", "Paiements et propositions : relances"]);
+  await expect(home.getByRole("status")).toHaveText("2 réglages trouvés");
   await search.fill("evenement");
-  await expect(rubrics.getByRole("link", { name: "Types d'évènements", exact: true })).toBeVisible();
-  await expect(rubrics.getByRole("link", { name: "Modèles d'évènement", exact: true })).toBeVisible();
+  await expect(home.locator(".settings-home-label", { hasText: "Types d'évènements et termes des clients" })).toBeVisible();
+  await expect(home.locator(".settings-home-label", { hasText: "Modèles d'évènement" })).toBeVisible();
   await search.fill("zzz");
-  await expect(rubrics.getByRole("link")).toHaveCount(0);
-  await expect(rubrics.getByText("Aucun réglage ne porte ce nom.")).toBeVisible();
+  await expect(home.locator(".settings-home-link")).toHaveCount(0);
+  await expect(home.getByText("Aucun réglage ne porte ce nom.")).toBeVisible();
   await expectNoAxeViolation(page);
 
-  // Une rubrique trouvée s'ouvre ; la recherche s'efface, son groupe est déplié, elle est allumée.
+  // Une rubrique trouvée s'ouvre ; son titre est son libellé.
   await search.fill("catalogue");
-  await rubrics.getByRole("link", { name: "Catalogue", exact: true }).click();
+  await home.locator(".settings-home-link", { hasText: "Catalogue des prestations" }).click();
   await expect(page).toHaveURL(/\/devis\/catalogue$/);
-  await expect(search).toHaveValue("");
-  await expect(rubrics.getByRole("button", { name: "Ventes", exact: true })).toHaveAttribute("aria-expanded", "true");
-  await expect(rubrics.getByRole("button", { name: "Mon entreprise", exact: true })).toHaveAttribute("aria-expanded", "false");
-  await expect(rubrics.getByRole("link", { name: "Catalogue", exact: true })).toHaveAttribute("aria-current", "page");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Catalogue des prestations");
   await expectNoAxeViolation(page);
   const found = await measure(page);
   if (isPhone(page)) {
     expect(found.overflow).toBeLessThanOrEqual(0);
     expect(found.smallTargets).toEqual([]);
+    await expect(page.getByRole("navigation", { name: "Paramètres · Devis et factures" })).toBeVisible();
     return;
   }
 
-  // En 1440 × 900, la rubrique ouverte est visible et allumée sans faire défiler, pour chaque rubrique.
-  const hrefs = await rubrics.getByRole("link", { includeHidden: true }).evaluateAll((links) => links.map((link) => link.getAttribute("href")!));
-  expect(hrefs.length).toBeGreaterThan(40);
+  // En 1440 × 900, chaque rubrique est allumée dans le menu de son groupe, visible sans faire défiler.
+  const rubrics = page.getByRole("navigation", { name: "Rubriques des paramètres" });
+  await page.goto("/parametres");
+  const hrefs = await home.locator(".settings-home-link").evaluateAll((links) => links.map((link) => link.getAttribute("href")!));
+  expect(hrefs.length).toBeGreaterThan(30);
   for (const href of hrefs) {
     await page.goto(href);
     const current = rubrics.locator('a[aria-current="page"]');
@@ -180,12 +170,12 @@ test("UX-13 — Menu des Paramètres : groupes repliables, rubrique ouverte visi
   }
 });
 
-test("UX-12 — Entreprise et TVA : trois cartes, un seul « Enregistrer la fiche », la TVA en ligne", async ({ page }) => {
+test("UX-12 — Fiche de l'entreprise (lot 74g) : trois cartes, un seul « Enregistrer la fiche », la TVA en ligne", async ({ page }) => {
   test.setTimeout(180_000);
   const setup = await atelier();
   await signIn(page, setup.email, /\/$/);
   await desktopSize(page);
-  await page.goto("/parametres");
+  await page.goto("/parametres/entreprise");
   await page.waitForLoadState("networkidle");
 
   const sheet = page.getByRole("form", { name: "Fiche entreprise" });
@@ -201,7 +191,7 @@ test("UX-12 — Entreprise et TVA : trois cartes, un seul « Enregistrer la fich
   await expect(sheet.getByLabel("SIREN")).toHaveValue("987654321");
   await expect(sheet.getByLabel("SIRET (14 chiffres)")).toHaveValue("1234");
   await page.goto("/");
-  await page.goto("/parametres");
+  await page.goto("/parametres/entreprise");
   await expect(sheet.getByLabel("SIREN")).toHaveValue(storedSiren);
 
   // Identité, adresse et coordonnées partent ensemble.
@@ -214,7 +204,7 @@ test("UX-12 — Entreprise et TVA : trois cartes, un seul « Enregistrer la fich
   await sheet.getByLabel("E-mail de contact").fill("bonjour@atelier.example");
   await sheet.getByRole("button", { name: "Enregistrer la fiche" }).click();
   await expect(sheet.getByRole("status")).toHaveText("Fiche entreprise enregistrée.");
-  await page.goto("/parametres");
+  await page.goto("/parametres/entreprise");
   await expect(sheet.getByLabel("SIRET (14 chiffres)")).toHaveValue("12345678900012");
   await expect(sheet.getByLabel("Ville")).toHaveValue("Lille");
   await expect(sheet.getByLabel("E-mail de contact")).toHaveValue("bonjour@atelier.example");
@@ -236,23 +226,20 @@ test("UX-12 — Entreprise et TVA : trois cartes, un seul « Enregistrer la fich
   await expect(debits.getByRole("status")).toHaveText("Option enregistrée.");
 
   // L'écran au repos, pour une entreprise assujettie (le cas le plus haut).
-  await page.goto("/parametres");
+  await page.goto("/parametres/entreprise");
   await page.waitForLoadState("networkidle");
-  const found = await expectCommonCriteria(page, "/parametres");
+  const found = await expectCommonCriteria(page, "/parametres/entreprise");
   expect(found.primary).toEqual(["Enregistrer la fiche"]);
 
-  // Deuxième rubrique : les mentions des devis et le logo. Une ancre d'un de ses blocs l'ouvre.
-  const sections = page.getByRole("navigation", { name: "Rubriques de l'entreprise" });
-  await expect(sections.getByRole("link", { name: "Fiche et TVA" })).toHaveAttribute("aria-current", "page");
-  await expect(page.getByRole("form", { name: "Informations du professionnel" })).toBeHidden();
-  await sections.getByRole("link", { name: "Mentions et logo" }).click();
+  // Deuxième rubrique (lot 74g) : « Mentions et logo des documents », à sa propre adresse ; l'ancienne
+  // ancre d'un de ses blocs y mène.
+  await page.goto("/parametres/mentions");
   await expect(page.getByRole("form", { name: "Informations du professionnel" })).toBeVisible();
-  await expect(sheet).toBeHidden();
-  await expectCommonCriteria(page, "/parametres#documents");
+  await expectCommonCriteria(page, "/parametres/mentions");
   await page.goto("/");
   await page.goto("/parametres#informations-professionnel");
+  await expect(page).toHaveURL(/\/parametres\/mentions#informations-professionnel$/);
   await expect(page.getByRole("form", { name: "Informations du professionnel" })).toBeVisible();
-  await expect(sections.getByRole("link", { name: "Mentions et logo" })).toHaveAttribute("aria-current", "page");
   // Deux écrans au plus en 1440 px (4,3 avant le lot).
   if (!isPhone(page)) expect(found.screens).toBeLessThanOrEqual(2);
 });
@@ -352,30 +339,33 @@ test("UX-13 / UX-09 / UX-07 — Listes éditables : enregistrement à la sortie 
   await desktopSize(page);
   const status = page.getByRole("main").getByRole("status");
 
-  // Termes des clients : un tableau, une ligne par type et par langue, plus aucun « Enregistrer ».
+  // Termes des clients : un tableau, une ligne par type et par langue, plus aucun « Enregistrer ». Lot 74g :
+  // le second bloc de « Types d'évènements et termes des clients » (#termes).
   await page.goto("/events/parametres/termes");
+  await expect(page).toHaveURL(/\/events\/parametres\/types#termes$/);
+  const termsBlock = page.locator("#termes");
   await page.waitForLoadState("networkidle");
   const terms = page.getByRole("table", { name: "Tableau des termes, par type et par langue" });
-  await expect(page.getByRole("main").getByRole("button", { name: /^Enregistrer/ })).toHaveCount(0);
+  await expect(termsBlock.getByRole("button", { name: /^Enregistrer/ })).toHaveCount(0);
   const term = terms.getByLabel("Terme pour Mariage (FR)", { exact: true });
   const before = await term.inputValue();
   await term.fill("les fiancés");
   await term.blur();
-  await expect(status.filter({ hasText: SAVED })).toBeVisible();
-  await page.goto("/events/parametres/termes");
+  await expect(status.filter({ hasText: SAVED }).first()).toBeVisible();
+  await page.goto("/events/parametres/types#termes");
   await expect(term).toHaveValue("les fiancés");
   // « Annuler la dernière modification » rend la valeur d'avant.
   await term.fill("les amoureux");
   await terms.getByLabel("Genre du terme pour Mariage (FR)").focus();
-  await expect(status.filter({ hasText: SAVED })).toBeVisible();
-  await page.getByRole("button", { name: UNDO }).click();
-  await expect(status.filter({ hasText: "Modification annulée." })).toBeVisible();
+  await expect(status.filter({ hasText: SAVED }).first()).toBeVisible();
+  await termsBlock.getByRole("button", { name: UNDO }).click();
+  await expect(status.filter({ hasText: "Modification annulée." }).first()).toBeVisible();
   await expect(term).toHaveValue("les fiancés");
   // « Rétablir » revient au terme du type.
   await terms.getByRole("button", { name: "Rétablir le terme par défaut pour Mariage (FR)" }).click();
   await expect(term).toHaveValue(before);
   await expect(terms.getByRole("button", { name: "Rétablir le terme par défaut pour Mariage (FR)" })).toHaveCount(0);
-  await expectCommonCriteria(page, "/events/parametres/termes");
+  await expectCommonCriteria(page, "/events/parametres/types#termes");
 
   // Types d'évènements : le nom et « vos clients sont » s'enregistrent en quittant le champ.
   await page.goto("/events/parametres/types");
@@ -432,8 +422,11 @@ test("UX-13 / UX-09 / UX-07 — Listes éditables : enregistrement à la sortie 
   await expect(stages.getByRole("rowheader")).toHaveCount(stageCount);
   await expectCommonCriteria(page, "/events/parametres/etapes");
 
-  // Types de repas : « Renommer », « Masquer » et « Afficher » en actions de ligne.
+  // Types de repas : « Renommer », « Masquer » et « Afficher » en actions de ligne. Lot 74g : le second bloc
+  // de « Invités : régimes et repas » (#repas).
   await page.goto("/events/parametres/repas");
+  await expect(page).toHaveURL(/\/events\/parametres\/regimes#repas$/);
+  const mealsBlock = page.locator("#repas");
   await page.waitForLoadState("networkidle");
   const meals = page.getByRole("table", { name: "Types de repas" });
   await meals.getByRole("button", { name: "Renommer Adulte" }).click();
@@ -444,14 +437,14 @@ test("UX-13 / UX-09 / UX-07 — Listes éditables : enregistrement à la sortie 
   await meals.getByRole("button", { name: "Masquer Enfant" }).click();
   await expect(meals.getByRole("button", { name: "Afficher Enfant" })).toBeVisible();
   await expect(meals.getByRole("row").filter({ has: page.getByRole("rowheader", { name: "Enfant" }) })).toContainText("Masqué");
-  await page.getByRole("button", { name: UNDO }).click();
+  await mealsBlock.getByRole("button", { name: UNDO }).click();
   await expect(meals.getByRole("button", { name: "Masquer Enfant" })).toBeVisible();
   await meals.getByRole("button", { name: "Rétablir le libellé de départ de Adulte (menu complet)" }).click();
   await expect(meals.getByRole("rowheader", { name: "Adulte", exact: true })).toBeVisible();
-  await page.getByRole("region", { name: "Ajouter un type" }).getByLabel("Libellé").fill("Végétarien");
-  await page.getByRole("button", { name: "Ajouter", exact: true }).click();
+  await mealsBlock.getByRole("region", { name: "Ajouter un type" }).getByLabel("Libellé").fill("Végétarien");
+  await mealsBlock.getByRole("button", { name: "Ajouter", exact: true }).click();
   await expect(meals.getByRole("rowheader", { name: "Végétarien" })).toBeVisible();
-  await expectCommonCriteria(page, "/events/parametres/repas");
+  await expectCommonCriteria(page, "/events/parametres/regimes#repas");
 
   // Catalogue : un tableau ; « Modifier » ouvre l'article dans sa ligne, une seule à la fois.
   await page.goto("/devis/catalogue");
@@ -491,7 +484,7 @@ test("UX-13 — Journal d'activité : la colonne « Quoi » à la largeur de son
   await desktopSize(page);
   // Quelques gestes journalisés (un réglage enregistré, une rubrique ouverte par la recherche).
   await page.goto("/parametres");
-  await openSettingsRubric(page, "Journal d'activité");
+  await openSettingsRubric(page, "Historique des actions");
   await expect(page.getByRole("heading", { level: 1, name: "Journal d'activité" })).toBeVisible();
   const log = page.getByRole("region", { name: "Activité de l'organisation" });
   await expect(log.getByRole("row").nth(1)).toBeVisible();

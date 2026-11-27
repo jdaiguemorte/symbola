@@ -141,7 +141,7 @@ test("FAC-07 / JUR-09 / JUR-08 — sans assurance ni médiateur, l'envoi est ref
   // Lot 62d : le bouton est dans l'en-tête, son refus s'affiche juste dessous.
   const refusal = page.getByRole("group", { name: "Envoyer le devis" });
   await expect(refusal.getByRole("alert")).toHaveText("Mentions requises manquantes : remplissez-les, puis recommencez.");
-  await expect(refusal.getByRole("link", { name: "Assurance de responsabilité civile professionnelle (assureur et contrat)" })).toHaveAttribute("href", "/parametres#informations-professionnel");
+  await expect(refusal.getByRole("link", { name: "Assurance de responsabilité civile professionnelle (assureur et contrat)" })).toHaveAttribute("href", "/parametres/mentions#informations-professionnel");
   await expectNoAxeViolation(page);
 
   // Arrhes sur ce devis (rubrique « Paiement et acompte »), puis les informations du professionnel.
@@ -152,7 +152,7 @@ test("FAC-07 / JUR-09 / JUR-08 — sans assurance ni médiateur, l'envoi est ref
   await expect(advance.getByRole("status")).toHaveText("Enregistré.");
   await openQuoteRubric(page, "lignes");
   await page.getByRole("note").filter({ hasText: "Avant l'envoi, il manque :" }).getByRole("link", { name: "Assurance de responsabilité civile professionnelle (assureur et contrat)" }).click();
-  await expect(page).toHaveURL(/\/parametres#informations-professionnel$/);
+  await expect(page).toHaveURL(/\/parametres\/mentions#informations-professionnel$/);
   const form = page.getByRole("form", { name: "Informations du professionnel" });
   await form.getByLabel("Assureur (responsabilité civile professionnelle)").fill("Assurances du Périgord");
   await form.getByLabel("Numéro de contrat").fill("RCP-2027-001");

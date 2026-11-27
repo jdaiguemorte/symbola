@@ -103,23 +103,31 @@ export async function openEventTab(page: Page, name: string): Promise<void> {
 }
 
 // Réglages regroupés sous « Paramètres » (lot 13 : menu latéral par rubrique).
+// Lot 74g (G1, G5) : « Paramètres » ouvre l'accueil, qui liste les 38 rubriques par leur libellé ; ce qui
+// n'est pas un réglage (copie, corbeille, historiques, données personnelles, import, fermeture) s'ouvre
+// depuis « Vos données », en bas de l'accueil.
 export async function openSettingsTab(page: Page, name: string): Promise<void> {
   await clickMenuLink(page, "Paramètres");
-  // Lot 62b : attendre l'arrivée sur les Paramètres. Partie d'un autre écran de réglage, la rubrique
-  // visée pouvait être visible un instant, puis repliée avec son groupe.
   await page.waitForURL((url) => url.pathname === "/parametres");
   await openSettingsRubric(page, name);
 }
 
-// Lot 62b (UX-13, D2) : les groupes du menu des Paramètres se replient, seul celui de la rubrique
-// ouverte est déplié. Une rubrique d'un autre groupe s'atteint par « Chercher un réglage ».
 export async function openSettingsRubric(page: Page, name: string): Promise<void> {
-  const rubrics = page.getByRole("navigation", { name: "Rubriques des paramètres" });
-  const link = rubrics.getByRole("link", { name, exact: true });
-  await expect(async () => {
-    if (!(await link.isVisible())) await rubrics.getByRole("searchbox", { name: "Chercher un réglage" }).fill(name);
-    await link.click({ timeout: 3_000 });
-  }).toPass({ timeout: 30_000 });
+  if (new URL(page.url()).pathname !== "/parametres") await page.goto("/parametres");
+  const rubric = page.locator(".settings-home-link").filter({ has: page.locator(".settings-home-label").getByText(name, { exact: true }) });
+  if ((await rubric.count()) > 0) {
+    await rubric.click();
+    return;
+  }
+  await page.getByRole("link", { name: "Ouvrir « Vos données »" }).click();
+  await page.waitForURL((url) => url.pathname === "/donnees");
+  const main = page.getByRole("main");
+  const line = main.getByRole("link", { name: `Ouvrir « ${name} »`, exact: true });
+  if ((await line.count()) > 0) {
+    await line.click();
+    return;
+  }
+  await main.getByRole("link", { name: new RegExp(`^${name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`) }).first().click();
 }
 
 // Lot 12 (ONB-03) : une organisation dont l'assistant de démarrage est déjà

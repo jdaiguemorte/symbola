@@ -128,7 +128,7 @@ test("CHR-03, HUB-20 — catégories des tâches : celles de départ, ajout, dan
   const setup = await wedding();
   await signIn(page, setup.email);
   await page.goto("/events/parametres/taches");
-  await expect(page.getByRole("heading", { level: 1, name: "Catégories des tâches" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "Tâches : catégories et échéances" })).toBeVisible();
   for (const label of ["Client", "Prestataires", "Administratif", "Jour J"]) await expect(page.getByLabel(`Nom de la catégorie ${label}`)).toHaveValue(label);
   const add = page.getByRole("region", { name: "Ajouter la catégorie" });
   await add.getByLabel("Nom de la catégorie").fill("Mairie");

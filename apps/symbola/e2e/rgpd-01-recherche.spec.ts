@@ -52,7 +52,7 @@ test("RGPD-01 — la titulaire retrouve une personne et les données de son év�
   }
 
   await loginAndSetupMfa(page, ownerEmail, password);
-  await openSettingsTab(page, "Données personnelles");
+  await openSettingsTab(page, "Demandes sur les données personnelles");
   await expect(page.getByRole("heading", { name: "Données personnelles" })).toBeVisible();
   await expectNoAxeViolation(page);
   // Lot 18 (RGPD-07) : la recherche a son onglet.
