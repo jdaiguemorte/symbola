@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { ScreenHelp } from "@/app/screen-help";
 import { importStepHref } from "@/lib/import/wizard";
+import { wakeImportJobs } from "@/modules/hub/service";
 import { retryImportJobAction } from "../actions";
 import { ImportHeader } from "../import-header";
 import { JobProgress } from "../job-progress";
@@ -18,13 +19,17 @@ export default async function ImportDraftPage({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const { importId } = await params;
-  const { wizard } = await importStepContext(importId);
+  const { organizationId, wizard } = await importStepContext(importId);
   const query = await searchParams;
   if (wizard.steps[0]!.done && !wantsAbandon(query)) redirect(importStepHref(wizard.importId, wizard.next));
 
   const t = await getTranslations("Import");
   const tHelp = await getTranslations("Help");
   const readJob = wizard.draft.jobs.find((job) => job.kind === "read_sheets");
+  // Lecture pas finie : l'écran qui l'attend (rafraîchi toutes les deux secondes) signale de nouveau
+  // l'organisation au traitement de fond, qui ne dépend plus d'un seul signal (rejeu du lot 71c à 375 px :
+  // « 0 sur 3 » resté affiché).
+  if (readJob && (readJob.status === "pending" || readJob.status === "running")) wakeImportJobs(organizationId);
 
   return (
     <main className="import-assistant">
