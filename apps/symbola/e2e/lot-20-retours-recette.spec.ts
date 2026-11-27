@@ -177,10 +177,13 @@ test("Décision 6 — Tâches : vocabulaire neutre quand les évènements sont d
   }
   await loginAndSetupMfa(page, email, password);
   await page.goto("/taches");
-  // Lot 63d (maquette M6) : l'évènement s'écrit sous la tâche, plus dans une colonne à part.
-  await expect(page.getByRole("columnheader", { name: "Catégorie" })).toBeVisible();
+  // Lot 70c (D3) : la ligne type — titre, évènement, échéance, « Qui s'en charge » — remplace le tableau.
+  const line = (label: string) => page.locator(".task-line").filter({ has: page.getByRole("link", { name: label, exact: true }) });
+  await expect(page.locator(".task-lines-head")).toContainText("Qui s'en charge");
+  // Le filtre qui mêle tous les évènements emploie le mot neutre.
   await expect(page.getByRole("link", { name: "Clients", exact: true })).toBeVisible();
-  await expect(page.getByRole("row", { name: /Choisir les alliances/ })).toContainText("Mariés");
-  await expect(page.getByRole("row", { name: /Valider le traiteur/ })).toContainText("Clients");
+  // Chaque ligne, le terme de son évènement : « Les mariés » pour un mariage, « Les clients » pour un séminaire.
+  await expect(line("Choisir les alliances").locator(".task-line-who")).toHaveText(/Les mariés$/);
+  await expect(line("Valider le traiteur").locator(".task-line-who")).toHaveText(/Les clients$/);
   await expectNoAxeViolation(page);
 });

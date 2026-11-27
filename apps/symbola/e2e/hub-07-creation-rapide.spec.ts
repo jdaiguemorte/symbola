@@ -135,8 +135,8 @@ test("HUB-07 / UX-03 / CRM-04 — créer un prospect, une tâche, une dépense e
   await expect(page).toHaveURL(/\/devis\/[0-9a-f-]{36}$/);
 
   // Tout est arrivé : la tâche au rétroplanning, la dépense au budget avec le montant du devis.
-  await page.goto(`/events/${setup.lea}?onglet=retroplanning`);
-  await expect(page.getByRole("rowheader", { name: "Réserver la navette" })).toBeVisible();
+  await page.goto(`/events/${setup.lea}?onglet=taches`);
+  await expect(page.getByRole("link", { name: "Réserver la navette", exact: true })).toBeVisible();
   await page.goto(`/budget/${setup.lea}/detail`);
   await expect(page.getByText("Dîner, 120 couverts").first()).toBeVisible();
   await expect(page.locator("main")).toContainText(/9\s600,00\s€/);
@@ -202,7 +202,7 @@ test("EVT-07 / CHR-03 — le portefeuille en liste et en calendrier, la charge p
   await expectNoAxeViolation(page);
   await calendar.getByRole("link", { name: "Choisir le menu" }).click();
   await expect(page).toHaveURL(/\/taches\?.*tache=/);
-  await expect(page.getByRole("dialog", { name: "Modifier la tâche" }).getByLabel(/^Tâche/)).toHaveValue("Choisir le menu");
+  await expect(page.getByRole("dialog", { name: "Choisir le menu" }).getByLabel(/^Tâche/)).toHaveValue("Choisir le menu");
 });
 
 // Une autre agence : Zoé en prospect à J+200, rien d'autre.

@@ -23,7 +23,7 @@ Sources, dans l'ordre où elles font foi :
 5. `docs/audits/2026-11-ux-parcours/04-synthese.md` (constats C-nn, principes P-nn) et
    `13-design-system.md` (liste de contrôle du § 4.1, points S1 à S15) ;
 6. `docs/CAHIER_DES_CHARGES.md` pour les exigences ; les lots 70 (`docs/lots/lot-70-taches-et-transverse.md`)
-   et 71 (`docs/lots/lot-71-reprise-et-import.md`, branche `origin/lot-71-reprise-et-import`) pour ce
+   et 71 (`docs/lots/lot-71-reprise-et-import.md`) pour ce
    qu'ils laissent à ce lot (leur § 8).
 
 Règle de lecture (décision de Julien du 26/11) : quand une maquette plus récente (volets 4 à 6) dessine
@@ -561,15 +561,15 @@ fusionné.
 
 ### 6.2 Ce qui dépend des lots 70 et 71, pas encore fusionnés
 
-| Paquet amont | État au 27/11 | Ce que ce lot en attend | Fichiers partagés |
+| Paquet amont | État au 27/11 (mis à jour à la fusion de `main`) | Ce que ce lot en attend | Fichiers partagés |
 | --- | --- | --- | --- |
 | 70a Données des tâches | Fusionné (#190) | Personne d'une tâche, état d'échéance unique, prénoms | — |
 | 70b Retour, danger, erreur | Fusionné (#189) | Message de retour, niveaux de danger, erreurs sous le champ | — |
-| 70c Ligne type et panneau | En cours | La forme `today` et la forme `event` de la ligne ; le panneau ouvert par `?tache=` ; l'onglet `taches` | **Mêmes fichiers** : `app/accueil/today-view.tsx` (`TodayItemLine`), `app/events/[id]/page.tsx` (onglets), `cockpit.tsx`, `next-step.ts`, `lib/today/load.ts` (liens profonds). **72b, 72d, 72e partent après sa fusion** et reprennent ses composants sans les redessiner |
-| 70d Écran « Tâches » | Pas commencé | Filtres `qui` et `grouper` pour « Voir ses tâches » | — |
-| 70e Barre du haut et « + Créer » | En cours | « Nouvel évènement » (fenêtre unique) ; la carte « Source et clients » ajoutée à l'onglet « Mariés » | `app/events/[id]/page.tsx` (deux ajouts dans l'onglet `maries`) ; `new-event-menu.tsx` (que 72f remplace par le bouton du 70e) |
+| 70c Ligne type et panneau | Fusionné (#199, ADR 0120) | La forme `today` et la forme `event` de la ligne ; le panneau ouvert par `?tache=` ; l'onglet `taches` | **Mêmes fichiers** : `app/accueil/today-view.tsx` (`TodayItemLine`), `app/events/[id]/page.tsx` (onglets), `cockpit.tsx`, `next-step.ts`, `lib/today/load.ts` (liens profonds). 72b, 72d, 72e (fusionné : ils partent de `main`) reprennent ses composants sans les redessiner |
+| 70d Écran « Tâches » | Lancé | Filtres `qui` et `grouper` pour « Voir ses tâches » | — |
+| 70e Barre du haut et « + Créer » | PR #196, en mise à jour | « Nouvel évènement » (fenêtre unique) ; la carte « Source et clients » ajoutée à l'onglet « Mariés » | `app/events/[id]/page.tsx` (deux ajouts dans l'onglet `maries`) ; `new-event-menu.tsx` (que 72f remplace par le bouton du 70e) |
 | 70g Lexique | Pas commencé | Le contrôle en cliquet : 72 retire les exceptions « Programme du jour J », « séquence », « le radar », « Plage occupée », « Source du prospect », « Mariés » comme nom de colonne | `packages/i18n/src/lexique-exceptions.json` |
-| 71a Socle de la reprise | Spécification validée, pas codé | « Aucune ligne née d'un import » ; `program_items.timing` ; `event_status_history.date_known` (même table que 0224) | Migrations : 71 a 0218-0223, ce lot 0224 |
+| 71a Socle de la reprise | Lancé | « Aucune ligne née d'un import » ; `program_items.timing` ; `event_status_history.date_known` (même table que 0224) | Migrations : 71 a 0218-0223, ce lot 0224 |
 | 71b Page de reprise | Attend 71a | Le lien « Reprendre un mariage » de l'état vide | — |
 | 71e Prestataires retenus et programme | Attend 71d | « Partager… » et « Ponctuel » | **Mêmes fichiers** : l'onglet `programme` de `page.tsx`, `program-editor.tsx`. **72g part après 71e** |
 | 71f Fiche d'un mariage repris | Attend 71a | « À compléter après la reprise », « Repris », filtre « Origine », « Reprises en cours », santé sans avis | **Mêmes fichiers** : `cockpit.tsx`, `page.tsx` (en-tête : « Repris le … · Voir la reprise »), `app/events/page.tsx`, `today-view.tsx`, `lib/today/load.ts`. Si 71f passe avant, 72 reprend ses blocs à leur nouvelle place ; si 72 passe avant, 71f pose ses blocs dans les nouveaux écrans (la place est écrite ici) |
@@ -640,7 +640,9 @@ regarder, la proposition, l'autre voie, la décision. Celles qui touchent le cah
 1. **Statuts affichés en quatre étapes (EVT-05 en cite sept)** : « Confirmé » et « En préparation »
    réunis en un seul statut (« Confirmé » en base, « Signé, en préparation » à l'écran ; « En
    préparation » retiré, J1 tranchée le 27/11), « Jour J » restant une phase. → `gap.csv` et Q49 ;
-   **ADR à écrire** au paquet 72a (un statut du cahier des charges disparaît de la base).
+   **ADR à écrire** au paquet 72a (un statut du cahier des charges disparaît de la base), au premier
+   numéro libre au moment du code (0119 est réservé au lot 71, 0120 pris par le 70c ; aucun numéro n'est
+   réservé ici).
 2. **HUB-08 « tri par urgence »** : l'ordre retenu (A2) est « les retards, puis par date, quel que soit
    qui agit ». C'est une lecture de l'urgence, pas un écart ; à écrire dans `gap.csv`.
 3. **Onglets du cockpit** (patrons d'interface : « Synthèse, Planning, Budget, Prestataires, Invités,

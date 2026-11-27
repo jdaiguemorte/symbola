@@ -185,7 +185,7 @@ export async function quickCreateTaskAction(_prev: QuickCreateState, formData: F
     return { error: await unexpectedActionError(error) };
   }
   refresh(eventId);
-  return { done: { message: t("taskDone", { label }), href: `/events/${eventId}?onglet=retroplanning` }, nonce: Date.now() };
+  return { done: { message: t("taskDone", { label }), href: `/events/${eventId}?onglet=taches` }, nonce: Date.now() };
 }
 
 export async function quickCreateExpenseAction(_prev: QuickCreateState, formData: FormData): Promise<QuickCreateState> {

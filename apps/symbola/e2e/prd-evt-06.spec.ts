@@ -74,13 +74,15 @@ test("PRD-EVT-06 / UX-11 / SEC-17 — le marié ouvre son lien sans inscription,
   const eventId = planner.url().split("/").pop()!;
   await planner.waitForLoadState("networkidle");
 
-  await openEventTab(planner, "Rétroplanning");
-  const newTask = planner.getByRole("group", { name: "Nouvelle tâche" });
-  await newTask.getByLabel("Intitulé de la tâche").fill("Choisir les alliances");
-  await newTask.getByLabel("Échéance").fill("2027-03-10");
-  await newTask.getByLabel("Responsable").selectOption("clients");
-  await newTask.getByRole("button", { name: "Ajouter la tâche" }).click();
-  await expect(feedback(planner).getByText(/^Tâche ajoutée : /)).toBeVisible();
+  // Lot 70c : l'onglet « Tâches » et le panneau unique, en création.
+  await openEventTab(planner, "Tâches");
+  await planner.getByRole("link", { name: "Nouvelle tâche" }).click();
+  const newTask = planner.getByRole("dialog", { name: "Nouvelle tâche" });
+  await newTask.getByLabel(/^Tâche/).fill("Choisir les alliances");
+  await newTask.getByLabel(/^Échéance/).fill("2027-03-10");
+  await newTask.getByLabel("Qui s'en charge").selectOption("clients");
+  await newTask.getByRole("button", { name: "Créer la tâche" }).click();
+  await expect(feedback(planner).getByText(/^Tâche créée : /)).toBeVisible();
 
   await openEventTab(planner, "Programme du jour J");
   // Lot 62c (D1) : la séquence s'ajoute dans la liste, puis « Enregistrer le programme ».

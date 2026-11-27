@@ -77,7 +77,8 @@ async function lundiMatin() {
       [chloe, "Réserver l'hôtel", 13, "planner"],
       [emma, "Rappeler Emma", 0, "planner"],
     ];
-    for (const [eventId, label, days, responsible] of tasks) await addEventTask(organizationId, eventId, { label, dueDate: parisDay(days), responsible });
+    // Lot 70a (A3) : une tâche de l'agence est à la personne qui la crée, ici la titulaire (« Vous »).
+    for (const [eventId, label, days, responsible] of tasks) await addEventTask(organizationId, eventId, { label, dueDate: parisDay(days), responsible, ...(responsible === "planner" ? { assigneeUserId: owner.id } : {}) });
 
     const flowers = await addEventVendorSlot(organizationId, lea, "Fleuriste");
     for (const vendorName of ["Atelier Pivoine", "Jardin d'hiver"]) {
@@ -137,7 +138,7 @@ test("SC-03 / HUB-08 / UX-01 / UX-06 / EVT-02 — lundi matin : les urgences, an
   await expectNoAxeViolation(page);
 
   // Étape 3 (D7) : cochée par erreur, la tâche est faite tout de suite ; « Annuler » la rétablit.
-  await items.nth(0).getByRole("button", { name: "Fait : « Relancer la mairie »" }).click();
+  await items.nth(0).getByRole("button", { name: "Fait « Relancer la mairie »" }).click();
   const undo = feedback(page).filter({ hasText: "Tâche faite : Relancer la mairie" });
   await expect(undo).toBeVisible();
   await expect(first).not.toContainText("Relancer la mairie");

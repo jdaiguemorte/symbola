@@ -986,11 +986,29 @@ Ouverts ; chacun a sa recommandation.
    Proposition : le champ « Type » n'apparaît que si l'organisation a plusieurs types. **Tranché le
    26/11 par Julien : « Oui, si plusieurs ».**
 
+### Q48 — Lot 71 : la reprise d'un mariage en cours n'a pas de scénario Synthetic User (27 novembre 2026)
+
+Relevé en écrivant la spécification `docs/lots/lot-71-reprise-et-import.md` (décision I11, § 9).
+**Tranché en partie le 27/11 par Julien : le scénario local `SC-R1` est accepté.** Reste ouvert :
+son entrée au § 17 du cahier des charges.
+
+Le cahier des charges veut qu'une exigence soit terminée quand « le scénario Synthetic User concerné
+passe sans blocage » (§ 1), et la règle C4 un rejeu par lot. Or aucun scénario du § 17 ne reprend un
+mariage en cours : SC-10 reprend 600 contacts, SC-01 crée un mariage. La reprise (HUB-14, PAR-01)
+n'a donc pas de preuve de bout en bout.
+
+Proposition : un scénario local `SC-R1 · Reprendre un mariage en cours` dans `docs/recette/`
+(Camille, SU-01, reprend « Juliette & Romain » depuis les tableurs fictifs du lot 68 ; puis Sophie,
+SU-04, écran à 150 %, reprend « Léa & Hugo » depuis les fichiers du logiciel de planning ; mesures :
+aucun retard ni relance né de l'import, mêmes nombres à « Vérifier » et au bilan, ce qui reste à
+compléter cité sans hésiter, retrait possible), rejoué à chaque paquet du lot 71. À trancher : le
+scénario reste-t-il local, ou entre-t-il au § 17 du cahier des charges comme SC-13 ?
+
 ### Q49 — Lot 72 : réaliser le volet 3 des maquettes, trois écarts avec le cahier des charges (27 novembre 2026)
 
 Relevés en écrivant la spécification `docs/lots/lot-72-aujourdhui-et-evenements.md` (§ 7 et § 8), à
 partir des maquettes validées le 26/11 (`docs/audits/2026-11-ux-parcours/09-maquettes-aujourdhui-evenements.md`).
-Tous tranchés le 27/11 par Julien. (Q48 est celle du lot 71, pas encore fusionnée.)
+Tous tranchés le 27/11 par Julien.
 
 1. **Les statuts d'un évènement (EVT-05)**. Le cahier des charges cite « Option, Confirmé, En
    préparation, Jour J, Clôturé, Reporté, Annulé ». La frise retenue (E1) n'affiche que quatre étapes :
@@ -1009,6 +1027,28 @@ Tous tranchés le 27/11 par Julien. (Q48 est celle du lot 71, pas encore fusionn
    suite, avec les mêmes lignes et les mêmes nombres que l'accueil (E9). Les trois actions les plus
    urgentes restent visibles sans défiler sur un écran de 13 pouces. Proposition : noté dans `gap.csv`,
    sans ADR. **Tranché le 27/11 par Julien** (validation de la spécification).
+
+### Q51 — Lot 74 : réaliser les volets 5 et 6 des maquettes, trois écarts avec le cahier des charges (27 novembre 2026, tranchée)
+
+Relevés en écrivant la spécification `docs/lots/lot-74-premiers-pas-aide-parametres.md` (§ 9 et
+§ 10). **Tous trois tranchés le 27/11 par Julien**, qui pose la règle : une divergence se tranche
+en faveur de la décision la plus récente. (Numéro choisi après Q48 du lot 71, en laissant Q49 et
+Q50 aux lots 72 et 73 écrits en même temps ; à renuméroter à la fusion si besoin.)
+
+1. **Le volume annuel quitte le questionnaire d'accueil (B2)**. HUB-09 cite le volume parmi les
+   questions, et l'étape 2 de SC-01 dit « douze par an ». La maquette validée (B2) le sort de
+   l'assistant, puisqu'il n'est lu nulle part, et le met dans la fiche de l'entreprise. Proposition :
+   accepter l'écart (HUB-09 dit aussi « tout reste modifiable dans les réglages »), ADR court au
+   paquet 74a, `gap.csv` (HUB-09) et compte rendu de SC-01. Décision L74-D5 du lot. **Tranché : écart accepté** (B2, plus récente, l'emporte).
+2. **Les formulaires de réglage à champs liés s'enregistrent par un bouton (D7)**. Même écart avec
+   UX-09 que M1 (Q47, point 1) : barre collée en bas, jamais grisée, question à la sortie, brouillon
+   gardé. Proposition : un avenant à l'ADR de M1, au paquet 74h. **Tranché : D7 l'emporte**, avenant
+   écrit au paquet 74h.
+3. **« Je ne sais pas encore » pour la TVA (B5)**. Point fiscal : en attendant la réponse, la note 11
+   garde la franchise en base, dont la mention part sur les devis. Je ne tranche pas. Proposition :
+   aucun devis envoyé tant que la réponse manque (le brouillon reste possible), à faire confirmer par
+   l'expert-comptable. Décision L74-D4 du lot. **Tranché : « il faut qu'elle choisisse »** : aucun devis envoyé tant
+   que la réponse manque, le brouillon reste possible.
 
 ## Remarques sur le nouveau document lui-même
 

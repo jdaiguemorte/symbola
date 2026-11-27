@@ -79,7 +79,7 @@ test("PRD-EVT-04 — modèle de rétroplanning appliqué, recalcul des échéanc
   await page.waitForLoadState("networkidle");
   await changeEventStatus(page, "Confirmé");
   await expect(page.getByText("Statut mis à jour.")).toBeVisible();
-  await openEventTab(page, "Rétroplanning");
+  await openEventTab(page, "Tâches");
   await expect(page.getByText("Ajoutez une date à l'évènement pour appliquer un modèle de rétroplanning.")).toBeVisible();
   await expect(page.getByRole("button", { name: "Appliquer le modèle" })).toHaveCount(0);
 
@@ -94,25 +94,28 @@ test("PRD-EVT-04 — modèle de rétroplanning appliqué, recalcul des échéanc
   await expect(page.getByText("Date mise à jour.")).toBeVisible();
   await page.getByRole("link", { name: "Fermer le panneau" }).click();
   await expect(page.getByRole("complementary", { name: "Modifier les informations" })).toHaveCount(0);
-  await openEventTab(page, "Rétroplanning");
-  await expect(page.getByRole("columnheader", { name: "juin 2026" })).toHaveCount(0);
+  await openEventTab(page, "Tâches");
+  await expect(page.getByRole("heading", { name: /^juin 2026/ })).toHaveCount(0);
   await page.waitForLoadState("networkidle");
   await page.getByLabel("Modèle à appliquer").selectOption({ label: "Mariage court" });
   await page.getByRole("button", { name: "Appliquer le modèle" }).click();
   await expect(page.getByText("Modèle appliqué : les tâches ont été créées.")).toBeVisible();
-  const row = (label: string) => page.getByRole("row", { name: new RegExp(label) });
-  await expect(page.getByRole("columnheader", { name: "juin 2026" })).toBeVisible();
+  // Lot 70c : la ligne type ; l'onglet montre aussi les tâches faites (État « Toutes »).
+  const row = (label: string) => page.locator(".task-line").filter({ has: page.getByRole("link", { name: label, exact: true }) });
+  await page.getByLabel("État").selectOption({ label: "Toutes" });
+  await expect(page).toHaveURL(/etat=toutes/);
+  await expect(page.getByRole("heading", { name: /^juin 2026/ })).toBeVisible();
   await expect(row("Réserver le lieu")).toContainText("ven. 12 juin");
   // Lot 70a (A3) : une tâche créée par un modèle est à qui l'applique : « Vous ».
   await expect(row("Réserver le lieu")).toContainText("Vous");
-  await expect(page.getByRole("columnheader", { name: "février 2027" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /^février 2027/ })).toBeVisible();
   await expect(row("Envoyer les faire-part")).toContainText("ven. 12 févr.");
-  await expect(row("Envoyer les faire-part")).toContainText("Mariés");
+  await expect(row("Envoyer les faire-part")).toContainText("Les mariés");
   await expectNoAxeViolation(page);
 
   // Une tâche faite n'est pas décalée ; les autres le sont si la planner accepte.
-  await page.getByRole("button", { name: "Marquer « Réserver le lieu » comme faite" }).click();
-  await expect(page.getByRole("button", { name: "Marquer « Réserver le lieu » comme à faire" })).toBeVisible();
+  await row("Réserver le lieu").getByRole("button", { name: /^Fait/ }).click();
+  await expect(row("Réserver le lieu").getByRole("button", { name: /^Rouvrir/ })).toBeVisible();
   await openEventTab(page, "Synthèse");
   await page.getByRole("link", { name: "Modifier les informations" }).click();
   await page.getByLabel("Date de l'évènement", { exact: true }).fill("2027-06-19");
@@ -120,7 +123,9 @@ test("PRD-EVT-04 — modèle de rétroplanning appliqué, recalcul des échéanc
   await expect(page.getByText("Date mise à jour.")).toBeVisible();
   await page.getByRole("link", { name: "Fermer le panneau" }).click();
   await expect(page.getByRole("complementary", { name: "Modifier les informations" })).toHaveCount(0);
-  await openEventTab(page, "Rétroplanning");
+  await openEventTab(page, "Tâches");
+  await page.getByLabel("État").selectOption({ label: "Toutes" });
+  await expect(page).toHaveURL(/etat=toutes/);
   const proposal = page.getByRole("region", { name: "Recalcul des échéances" });
   await expect(proposal).toContainText("repoussée de 7 jours. Décaler d'autant la tâche non faite ?");
   await expectNoAxeViolation(page);
@@ -129,18 +134,19 @@ test("PRD-EVT-04 — modèle de rétroplanning appliqué, recalcul des échéanc
   await expect(row("Envoyer les faire-part")).toContainText("ven. 19 févr.");
   await expect(row("Réserver le lieu")).toContainText("ven. 12 juin");
 
-  // Ajout d'une tâche des mariés, puis réordonnancement dans le mois (fenêtre de la tâche, lot 63d).
-  const newTask = page.getByRole("group", { name: "Nouvelle tâche" });
-  await newTask.getByLabel("Intitulé de la tâche").fill("Essayage");
-  await newTask.getByLabel("Échéance").fill("2027-02-25");
-  await newTask.getByLabel("Responsable").selectOption("clients");
-  await newTask.getByRole("button", { name: "Ajouter la tâche" }).click();
-  await expect(feedback(page).getByText(/^Tâche ajoutée : /)).toBeVisible();
-  const order = async () => (await page.getByRole("rowheader").allTextContents()).filter((text) => ["Essayage", "Envoyer les faire-part"].includes(text));
+  // Ajout d'une tâche des mariés (panneau unique en création, lot 70c), puis réordonnancement dans le mois.
+  await page.getByRole("link", { name: "Nouvelle tâche" }).click();
+  const newTask = page.getByRole("dialog", { name: "Nouvelle tâche" });
+  await newTask.getByLabel(/^Tâche/).fill("Essayage");
+  await newTask.getByLabel(/^Échéance/).fill("2027-02-25");
+  await newTask.getByLabel("Qui s'en charge").selectOption("clients");
+  await newTask.getByRole("button", { name: "Créer la tâche" }).click();
+  await expect(feedback(page).getByText(/^Tâche créée : /)).toBeVisible();
+  const order = async () => (await page.locator(".task-title-link").allTextContents()).filter((text) => ["Essayage", "Envoyer les faire-part"].includes(text));
   await expect.poll(order).toEqual(["Envoyer les faire-part", "Essayage"]);
   await page.getByRole("link", { name: "Essayage", exact: true }).click();
-  const window = page.getByRole("dialog", { name: "Modifier la tâche" });
-  await window.getByRole("button", { name: "Monter la tâche Essayage" }).click();
+  const window = page.getByRole("dialog", { name: "Essayage" });
+  await window.getByRole("button", { name: "Monter « Essayage »" }).click();
   await expect.poll(order).toEqual(["Essayage", "Envoyer les faire-part"]);
   await expect(row("Essayage")).toContainText("jeu. 25 févr.");
   await expectNoAxeViolation(page);
