@@ -36,7 +36,7 @@ export class PlanningInputError extends Error {
 // --- Tâches hors évènement (CHR-10) ---
 
 function toStandalone(row: typeof eventTasks.$inferSelect): StandaloneTask {
-  return { id: row.id, label: row.label, dueDate: row.dueDate, recurrence: row.recurrence ?? null, done: row.doneAt !== null, doneAt: row.doneAt?.toISOString() ?? null };
+  return { id: row.id, label: row.label, dueDate: row.dueDate, recurrence: row.recurrence ?? null, done: row.doneAt !== null, doneAt: row.doneAt?.toISOString() ?? null, assigneeUserId: row.assigneeUserId, priority: row.priority };
 }
 
 // until : dernière échéance montrée (horizon d'« Aujourd'hui ») ; null : toutes.
