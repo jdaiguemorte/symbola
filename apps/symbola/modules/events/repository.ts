@@ -850,7 +850,27 @@ export async function resolveTaskRecalculationRow(
 // PRD-EVT-04 — tâches d'un événement.
 export type ApplyTaskTemplateResult =
   | { status: "applied"; tasks: EventTaskRow[] }
-  | { status: "event_not_found" | "template_not_found" | "date_required" | "recalculation_pending" };
+  | { status: "event_not_found" | "template_not_found" | "date_required" | "recalculation_pending" | "past_due_unanswered" };
+
+// Lot 71c (CHR-01, CHR-02 ; décision I3) : « Partir d'un modèle » sur un mariage repris. Les tâches du
+// modèle dont l'échéance est déjà passée ne sont pas mises en retard sans la planner : gardées à leur
+// date, redatées (une date pour toutes), ou dites faites (date de fin non renseignée, sans auteur).
+export type TemplatePastDueAnswer = { answer: "keep" | "redate" | "done"; date?: string };
+
+// Les tâches du modèle dont l'échéance tomberait avant aujourd'hui, pour un mariage repris ; 0 sinon.
+export async function countTemplatePastDueRows(organizationId: string, eventId: string, today: string): Promise<Map<string, number>> {
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, async (tx) => {
+    const counts = new Map<string, number>();
+    const [event] = await tx.select({ eventDate: events.eventDate, origin: events.origin }).from(events).where(eq(events.id, eventId));
+    if (!event?.eventDate || event.origin !== "takeover") return counts;
+    const items = await tx.select({ templateId: taskTemplateItems.templateId, offsetDays: taskTemplateItems.offsetDays }).from(taskTemplateItems);
+    for (const item of items) {
+      if (dueDateFor(event.eventDate, item.offsetDays) < today) counts.set(item.templateId, (counts.get(item.templateId) ?? 0) + 1);
+    }
+    return counts;
+  });
+}
 
 async function nextTaskPosition(tx: Tx, eventId: string): Promise<number> {
   const [row] = await tx
@@ -864,6 +884,7 @@ export async function applyTaskTemplateRows(
   organizationId: string,
   eventId: string,
   templateId: string,
+  pastDue: { answer: TemplatePastDueAnswer | null; today: string } | null = null,
 ): Promise<ApplyTaskTemplateResult> {
   const db = appDatabase();
   // Lot 70a (A3) : les tâches « planner » du modèle sont à la personne qui l'applique.
@@ -884,23 +905,37 @@ export async function applyTaskTemplateRows(
       .where(eq(taskTemplateItems.templateId, templateId))
       .orderBy(asc(taskTemplateItems.offsetDays), asc(taskTemplateItems.position));
     const eventDate = event.eventDate;
+    // Lot 71c (I3) : un mariage repris ne reçoit pas de retard qu'il n'avait pas ; la réponse décide.
+    const today = pastDue?.today ?? null;
+    const past = (item: (typeof items)[number]) => event.origin === "takeover" && today !== null && dueDateFor(eventDate, item.offsetDays) < today;
+    const answer = pastDue?.answer ?? null;
+    if (event.origin === "takeover" && items.some(past)) {
+      if (!answer || (answer.answer === "redate" && (!answer.date || (today !== null && answer.date < today)))) return { status: "past_due_unanswered" };
+    }
+    const importedAt = new Date();
     const start = await nextTaskPosition(tx, eventId);
     const tasks =
       items.length > 0
         ? await tx
             .insert(eventTasks)
             .values(
-              items.map((item, index) => ({
-                organizationId,
-                eventId,
-                label: item.label,
-                dueDate: dueDateFor(eventDate, item.offsetDays),
-                // DAT-07 : la tâche garde sa date relative.
-                offsetDays: item.offsetDays,
-                responsible: item.responsible,
-                assigneeUserId: item.responsible === "planner" ? actorId : null,
-                position: start + index,
-              })),
+              items.map((item, index) => {
+                const redated = past(item) && answer?.answer === "redate" && answer.date;
+                const done = past(item) && answer?.answer === "done";
+                return {
+                  organizationId,
+                  eventId,
+                  label: item.label,
+                  dueDate: redated ? answer.date! : dueDateFor(eventDate, item.offsetDays),
+                  // DAT-07 : la tâche garde sa date relative, sauf redatée par la planner.
+                  offsetDays: redated ? null : item.offsetDays,
+                  responsible: item.responsible,
+                  assigneeUserId: item.responsible === "planner" ? actorId : null,
+                  position: start + index,
+                  // Faite avant la reprise : date de fin non renseignée, sans auteur (P-01).
+                  ...(done ? { doneAt: importedAt, doneDateKnown: false } : {}),
+                };
+              }),
             )
             .returning()
         : [];

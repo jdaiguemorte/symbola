@@ -9,7 +9,7 @@ import { loadTakeoverPage } from "@/lib/takeover/flow";
 import { requireTakeoverActor, validId } from "../access";
 import { TakeoverView } from "../takeover-view";
 
-export default async function TakeoverPage({ params, searchParams }: { params: Promise<{ takeoverId: string }>; searchParams: Promise<{ importe?: string; saisi?: string }> }) {
+export default async function TakeoverPage({ params, searchParams }: { params: Promise<{ takeoverId: string }>; searchParams: Promise<{ importe?: string; saisi?: string; abandonne?: string }> }) {
   const { actor, eventsEnabled } = await requireTakeoverActor();
   const { takeoverId } = await params;
   const id = validId(takeoverId);
@@ -28,7 +28,10 @@ export default async function TakeoverPage({ params, searchParams }: { params: P
       }
     : query.saisi === "1" && model.eventName
       ? { title: t("feedbackEvent", { event: model.eventName }), detail: t("feedbackEventDetail") }
-      : null;
+      : // Lot 71c (C-59) : « Abandonner cet import… » ramène ici, et le dit.
+        query.abandonne === "1"
+        ? { title: (await getTranslations("Import"))("abandonedFeedback") }
+        : null;
 
   return (
     <>

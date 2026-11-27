@@ -64,7 +64,7 @@ export async function getImportGapsView(organizationId: string, importId: string
         const column = error.code === "required_missing" ? columnOf.get(error.fieldKey) : undefined;
         return column ? { ...error, column } : error;
       });
-      if (row.errors.length === 0 && row.event && !row.event.candidate) reasons.push({ code: "event_not_found", fieldKey: null, value: "" });
+      if (row.errors.length === 0 && row.event && !row.event.candidate && !row.event.pendingNew) reasons.push({ code: "event_not_found", fieldKey: null, value: "" });
       const source = set.entityType === "event_sheets" ? set.rows[row.rowIndex]?.[EVENT_SHEET_COLUMNS.indexOf("source")] : undefined;
       return { rowIndex: row.rowIndex, lineNumber: row.lineNumber, reasons, ...(source ? { source } : {}) };
     })

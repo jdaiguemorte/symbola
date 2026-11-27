@@ -13,8 +13,11 @@ import {
   eventNames,
   getEvent,
   getEventProgram,
+  listDefaultVendorSlots,
   listEventLinks,
   listEventTasks,
+  listEventTypes,
+  listEventVendorSlots,
   makeCreatorLead,
 } from "@/modules/events/service";
 import type { EventClientInput } from "@symbola/contracts";
@@ -26,13 +29,17 @@ import {
   coverTakeoverFromBudgetProposal,
   createTakeover,
   getEventTakeover,
+  getImportAnswers,
   getImportLimits,
   getImportTakeoverId,
+  getImportWorkingSet,
   getTakeover,
   listImportSummaries,
   listTakeovers,
   markTakeoverStepImported,
   previewTakeover,
+  saveImportMatching,
+  setImportTargetEvent,
   settleTakeoverStep,
   TakeoverDemoEventError,
   TakeoverNotFoundError,
@@ -40,6 +47,7 @@ import {
   type ImportSummary,
   type TakeoverViewer,
 } from "@/modules/hub/service";
+import { parseWorkingSetRows, pendingNewEvent } from "@/lib/import/matching";
 import { getImportWizard, type ImportStepKey } from "@/lib/import/wizard";
 import {
   importFigureKey,
@@ -313,4 +321,48 @@ export async function markTakeoverPdfStepDone(actor: TakeoverActor, input: { tak
     if (error instanceof TakeoverNotFoundError) return false;
     throw error;
   }
+}
+
+// Lot 71c (HUB-14, C-52 ; spécification du lot 71, § 5.3, critère 1) — « Un mariage qui n'est pas encore
+// dans Symbola » : à l'écriture de l'import, le mariage est créé comme sur la page de reprise (Confirmé,
+// d'origine « reprise », sans modèle de tâches), avec sa reprise, à laquelle l'import est rattaché (ligne
+// du budget ou de la liste « à faire »). Les lignes rangées sous un poste de départ de l'agence passent
+// sous le même poste du mariage créé. null : rien à créer (un mariage est déjà visé).
+export async function createImportPendingEvent(actor: TakeoverActor, importId: string, locale: "fr" | "en" = "fr"): Promise<{ eventId: string; takeoverId: string } | null> {
+  const set = await getImportWorkingSet(db(), actor.organizationId, importId);
+  if (!set || !pendingNewEvent(set)) return null;
+  const answers = await getImportAnswers(db(), actor.organizationId, importId);
+  if (!answers?.newEvent) return null;
+  const types = await listEventTypes(actor.organizationId);
+  const { eventId, takeoverId } = await enterTakeoverEvent(actor, {
+    takeoverId: null,
+    name: answers.newEvent.name,
+    eventDate: answers.newEvent.eventDate,
+    clients: [],
+    eventTypeId: types.length === 1 ? types[0]!.id : null,
+    locale,
+  });
+  const kind: TakeoverStepKind = set.entityType === "budget_lines" ? "budget" : "tasks";
+  await attachImportToTakeoverStep(db(), { organizationId: actor.organizationId, userId: actor.userId, takeoverId, kind, importId, viewer: actor.viewer });
+  if (kind === "budget") await coverTakeoverFromBudgetProposal(db(), actor.organizationId, importId);
+  if (!(await setImportTargetEvent(db(), { organizationId: actor.organizationId, importId, eventId }))) return null;
+  // Les postes de départ (identifiants de l'agence) → les postes du mariage, par leur intitulé.
+  const defaults = await listDefaultVendorSlots(actor.organizationId);
+  const slots = await listEventVendorSlots(actor.organizationId, eventId);
+  const used = new Set<string>();
+  const slotFor = (defaultId: string): string | null => {
+    const label = defaults.find((slot) => slot.id === defaultId)?.label;
+    const slot = slots.find((candidate) => candidate.label === label && !used.has(candidate.id));
+    if (!slot) return null;
+    used.add(slot.id);
+    return slot.id;
+  };
+  const matching = set.matching ?? { matches: [], rowEvents: [] };
+  const matches = matching.matches.flatMap((match) => {
+    const slotId = slotFor(match.candidateId);
+    return slotId ? [{ ...match, candidateId: slotId }] : [];
+  });
+  const rowEvents = parseWorkingSetRows(set).map((row) => ({ rowIndex: row.rowIndex, eventId, score: 100 }));
+  await saveImportMatching(db(), { organizationId: actor.organizationId, importId, matching: { ...matching, matches, rowEvents } });
+  return { eventId, takeoverId };
 }

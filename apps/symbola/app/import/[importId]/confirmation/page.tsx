@@ -133,7 +133,8 @@ export default async function ImportConfirmationPage({
         </dl>
       </section>
 
-      {preview.counts.creations > 0 && preview.entityType === "event_sheets" ? (
+      {/* Lot 71c (C-64) : le statut d'une fiche vient de « Où en est-il ? », à l'étape « Questions ». */}
+      {preview.counts.creations > 0 && preview.entityType === "event_sheets" && !wizard.questions ? (
         <section aria-labelledby="preview-creations">
           <h2 id="preview-creations">{t("previewCreationsTitle", { count: preview.counts.creations })}</h2>
           <p>{t("sheetStatusIntro")}</p>
@@ -199,6 +200,11 @@ export default async function ImportConfirmationPage({
                     {" "}
                     <Link href={`${importStepHref(importId, "matches")}?filtre=a-verifier`}>{t("blockerLink.matches_undecided")}</Link>
                   </>
+                ) : blocker === "questions_pending" ? (
+                  <>
+                    {" "}
+                    <Link href={importStepHref(importId, "questions")}>{t("blockerLink.questions_pending")}</Link>
+                  </>
                 ) : blocker === "columns_undecided" ? (
                   <>
                     {" "}
@@ -210,7 +216,8 @@ export default async function ImportConfirmationPage({
           </ul>
         </div>
       ) : (
-        <ConfirmForm importId={preview.importId} prospectSources={preview.entityType === "events" || preview.entityType === "event_sheets" ? preview.prospectSources : null} />
+        // Lot 71c (C-64) : la source d'une fiche est demandée à l'étape « Questions », facultative.
+        <ConfirmForm importId={preview.importId} prospectSources={preview.entityType === "events" ? preview.prospectSources : null} />
       )}
 
       <ActionBar label={t("actionBarLabel")} backHref={importStepHref(importId, previousStep)} backLabel={t("back")}>

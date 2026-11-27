@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
+import { takeoverBackLink } from "@/lib/takeover/flow";
 import { appDatabase } from "@symbola/db/client";
 import { cancelImport, retryImportJob } from "@/modules/hub/service";
 import { getPlannerAuthContext } from "@/lib/auth-context";
@@ -18,9 +19,15 @@ export async function cancelImportAction(formData: FormData): Promise<void> {
   if (!isValidId(importId)) return;
 
   const db = appDatabase();
+  // Lot 71c (C-59) : retour à la page d'où l'on vient (la reprise, sinon « Reprendre et importer »).
+  const back = await takeoverBackLink(auth.user.organizationId, importId);
   await cancelImport(db, auth.user.organizationId, importId);
   revalidatePath("/import");
-  redirect("/import");
+  if (back) {
+    revalidatePath(back.href);
+    redirect(`${back.href}?abandonne=1`);
+  }
+  redirect("/import?abandonne=1");
 }
 
 // Lot 15 (IMP-10) — relancer un traitement de fond en échec (lecture des

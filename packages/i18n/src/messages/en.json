@@ -1539,6 +1539,10 @@
           "a": "No: it is \"Signed, in preparation\", and its tasks come from your list. Without a list, you can start from a template on its page."
         }
       ]
+    },
+    "importQuestions": {
+      "title": "The import's questions",
+      "body": "When your file doesn't say something Symbola needs (the wedding, whether a deposit is paid, whether a contract is signed, what happens to past tasks), the assistant asks here, once. Each answer says what it will give. None is pre-selected, and nothing is written before \"Review\". An import creates neither overdue items nor reminders: what was paid, signed or done stays so."
     }
   },
   "Aide": {
@@ -2458,7 +2462,12 @@
     "addClientSubmit": "Add this client",
     "clientAdded": "Client added.",
     "clientsFull": "This event already has two clients.",
-    "importAndTakeOver": "Import and take over"
+    "importAndTakeOver": "Import and take over",
+    "templatePastDueLegend": "{count, plural, one {# template task is already past due} other {# template tasks are already past due}}",
+    "templatePastDueHint": "This wedding was taken over midway: Symbola doesn't make these tasks overdue without you.",
+    "templatePastDueMissing": "Choose what happens to these tasks.",
+    "templatePastDueDateMissing": "Choose an upcoming due date.",
+    "startFromTemplate": "Start from a template"
   },
   "Budget": {
     "title": "Budget",
@@ -3552,7 +3561,8 @@
     "refuseAllMatches": "{count, plural, one {Create the row as new} other {Create the # rows as new}}",
     "blockerLink": {
       "matches_undecided": "Decide the matches",
-      "columns_undecided": "Decide the columns"
+      "columns_undecided": "Decide the columns",
+      "questions_pending": "Answer the questions"
     },
     "acceptSelectedMatches": "Accept selected",
     "refuseSelectedMatches": "Refuse selected",
@@ -3627,7 +3637,8 @@
       "matches_undecided": "some suggested matches await your decision.",
       "nothing_to_import": "no row to import.",
       "vat_rate_unknown": "some items have no VAT rate and your default rate is not set (Settings).",
-      "no_prospect_source": "some events have no source and your source list is empty (event settings)."
+      "no_prospect_source": "some events have no source and your source list is empty (event settings).",
+      "questions_pending": "questions are waiting for your answer (\"Questions\" step)."
     },
     "journalEntryTitle": "Import of “{fileName}”",
     "journalAuthor": "Author",
@@ -3716,7 +3727,8 @@
       "types": "Types",
       "matches": "Duplicates",
       "confirm": "Review and confirm",
-      "rows": "Rows"
+      "rows": "Rows",
+      "questions": "Questions"
     },
     "summary": {
       "file": "{rows, plural, one {# row} other {# rows}}",
@@ -3724,7 +3736,8 @@
       "types": "{labels, plural, one {# label} other {# labels}}, {created, plural, =0 {no type created} one {# type created} other {# types created}}{unclassified, plural, =0 {} other {, # to sort}}",
       "matches": "{creations, plural, other {# new}}, {updates, plural, =0 {no update} one {# update} other {# updates}}",
       "matchesUndecided": "{count, plural, one {# match to decide} other {# matches to decide}}",
-      "rows": "{excluded, plural, =0 {all rows kept} one {# row set aside} other {# rows set aside}}"
+      "rows": "{excluded, plural, =0 {all rows kept} one {# row set aside} other {# rows set aside}}",
+      "questions": "{missing, plural, =0 {{asked, plural, one {# answer given} other {# answers given}}} other {# to settle}}"
     },
     "stepCurrent": "in progress",
     "wizardTitle": "Importing “{fileName}”",
@@ -3975,6 +3988,124 @@
       "contacts": "In your spreadsheet or current tool, save your contact list as CSV or Excel: one row per person, with their name (or “LAST First” in a single column), email, phone and notes.",
       "vendors": "In your current tool, open your vendor list and export it as Excel (.xlsx), without editing the file.",
       "event_sheets": "In your current tool, open each event and download its sheet as a PDF. Then upload them all at once."
+    },
+    "rowEventPendingNew": "For the wedding created by the import.",
+    "stepOf": "Step {current} of {total} · {label}",
+    "abandonButton": "Abandon this import…",
+    "abandonDialogTitle": "Abandon the import \"{fileName}\"?",
+    "abandonConfirm": "Abandon the import",
+    "abandonKeep": "Continue the import",
+    "abandonedFeedback": "Import abandoned: nothing was imported.",
+    "questions": {
+      "notProvided": "not provided",
+      "lineNumber": "Line {line}",
+      "fixedFromTakeover": "For \"{event}\", {date}: chosen from the takeover page.",
+      "fixedFromEvent": "For \"{event}\", {date}: chosen from its page.",
+      "targetLegend": "Which wedding is this budget for?",
+      "targetLegendTasks": "Which wedding is this list for?",
+      "targetHint": "Your file has no column naming the wedding: {rows, plural, one {the line goes} other {all # lines go}} to the one you choose.",
+      "targetNoDate": "date not provided",
+      "targetBudgetEmpty": "empty budget",
+      "targetBudgetLines": "budget of {count, plural, one {# line} other {# lines}}",
+      "targetNew": "A wedding not yet in Symbola",
+      "targetNewHint": "You create it here, by its name and date. It is created at import, with its takeover page.",
+      "newEventName": "Event name",
+      "newEventDate": "Date",
+      "depositsLegend": "Were the \"{column}\" amounts paid?",
+      "depositsHint": "{count, plural, one {# line has a deposit and its date} other {# lines have a deposit and its date}}, from {from} to {to}. Symbola doesn't assume it without you.",
+      "depositsYes": "Yes, paid on the file's dates",
+      "depositsYesHint": "Each deposit becomes a settled payment, on its date.",
+      "depositsNo": "No, they are still due",
+      "depositsNoHint": "Each deposit becomes an instalment on its date.",
+      "depositsSome": "Only some",
+      "depositsSomeHint": "You tick the paid ones; the others become instalments.",
+      "depositsSomeLegend": "Which deposits are paid?",
+      "depositsSomeTotal": "{count} of {total} paid",
+      "moneyFigures": "Paid {paid} · left to pay {due} · {late, plural, =0 {no overdue instalment} one {# overdue instalment} other {# overdue instalments}}",
+      "contractsLegend": "Are their contracts signed?",
+      "contractsHint": "Your budget names {count, plural, one {# vendor} other {# vendors}}: {count, plural, one {it will be} other {they will be}} booked on their line. No reminder is created, whatever the answer.",
+      "contractsAll": "All",
+      "contractsAllHint": "{count, plural, one {# contract signed} other {# contracts signed}}",
+      "contractsNone": "None",
+      "contractsNoneHint": "{count, plural, one {# contract not signed} other {# contracts not signed}}, to complete after the takeover",
+      "contractsPerLine": "Line by line",
+      "contractsPerLineHint": "You tick the signed contracts.",
+      "contractsPerLineLegend": "Which contracts are signed?",
+      "contractsPerLineTotal": "{signed} signed · {unsigned} not signed",
+      "eventTypeLegend": "Which event type?",
+      "eventTypeHint": "Your file doesn't say. The type picks the budget template and the words of the event page.",
+      "onlyEventType": "Type: {type}, the only one in your workspace.",
+      "stageLegend": "Where does it stand?",
+      "stageHint": "The file gives neither a status nor a signing date.",
+      "stageEnquiry": "An ongoing enquiry",
+      "stageEnquiryHint": "Nothing is signed.",
+      "stageSigned": "Signed, in preparation",
+      "stageSignedHint": "Signing date: not provided. No task template is applied.",
+      "sourceLegend": "How did this couple find you? (optional)",
+      "sourceHint": "For your statistics. Without an answer: \"not provided\", counted apart.",
+      "sourceNone": "Not provided",
+      "keepCapitals": "Keep capitals",
+      "pastDueLegend": "{count, plural, one {# open task is already past due} other {# open tasks are already past due}}",
+      "pastDueHint": "In your file: {tasks}. They have no \"x\".",
+      "pastDueTask": "\"{label}\" due {date}",
+      "pastDueKeep": "Keep their dates",
+      "pastDueKeepHint": "{count, plural, one {# overdue task} other {# overdue tasks}}, as in your spreadsheet",
+      "pastDueRedate": "Give them a new date",
+      "pastDueRedateHint": "The same date for {count, plural, one {this one} other {all #}}, chosen here.",
+      "pastDueDate": "New due date",
+      "pastDueDone": "They're done, I hadn't ticked them",
+      "pastDueDoneHint": "{done} tasks done instead of {before}",
+      "understoodTitle": "What Symbola understood",
+      "colFile": "Your file",
+      "colSymbola": "In Symbola",
+      "understood": {
+        "carriedSlotFile": "Empty item",
+        "carriedSlot": "The one on the line above ({count, plural, one {# line} other {# lines}})",
+        "balancesFile": "Balance, balance date",
+        "balancesUpcoming": "{count, plural, one {# upcoming instalment} other {# upcoming instalments}}, from {from} to {to}",
+        "balances": "{count, plural, one {# instalment} other {# instalments}}, from {from} to {to}",
+        "actualEmptyFile": "Empty actual",
+        "actualEmpty": "Not provided ({count, plural, one {# line} other {# lines}}), not €0",
+        "vendorsRetainedFile": "Vendor",
+        "vendorsRetained": "Booked on the line; {count, plural, one {# name} other {# names}}",
+        "taskDoneFile": "Done? \"x\"",
+        "taskDone": "Done ({count}) · end date not provided",
+        "taskTodoFile": "Done? empty",
+        "taskTodo": "To do ({count})",
+        "whoFile": "Who: {words}",
+        "taskPlanner": "You",
+        "taskClients": "The couple",
+        "taskDueFile": "By when",
+        "taskDue": "Due date, from {from} to {to}"
+      },
+      "tasksFooter": "The tasks go to the wedding's \"Tasks\" tab. No template is added; no reminder is created.",
+      "amountsNote": "Amounts are read in euros, with the comma as the decimal separator. No reminder is created.",
+      "writtenTitle": "What will be written",
+      "writtenClients": "Couple",
+      "writtenAsInFile": "Written this way in the file: {values}.",
+      "writtenDate": "Date",
+      "writtenPlaces": "Places",
+      "writtenWantedBudget": "Wanted budget",
+      "writtenActual": "Actual per your file",
+      "writtenActualValue": "{total}, of which {paid} paid",
+      "writtenActualHint": "The file doesn't say on which items: amounts \"to allocate\" at the top of the budget.",
+      "writtenNotes": "Notes",
+      "notImported": "Not imported: \"Remaining budget\" and the percentage used (recalculated by Symbola), your business's footer.",
+      "errors": {
+        "summary": "Error: {count} answers to give before continuing.",
+        "nameRequired": "Write the event name.",
+        "pastDueDateRequired": "Choose the new due date.",
+        "pastDueDatePast": "Choose an upcoming due date: this one has already passed.",
+        "choose": {
+          "targetEvent": "Choose the wedding {what, select, tasks {for this list} other {for this budget}}.",
+          "depositsPaid": "Choose whether these deposits were paid.",
+          "contracts": "Choose whether these contracts are signed.",
+          "eventType": "Choose the event type.",
+          "eventStage": "Choose where this wedding stands.",
+          "prospectSource": "Choose the source.",
+          "pastDueTasks": "Choose what happens to these tasks."
+        }
+      }
     }
   },
   "Privacy": {

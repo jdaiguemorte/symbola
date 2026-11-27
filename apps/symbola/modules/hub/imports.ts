@@ -48,6 +48,7 @@ import {
   updateDraftMapping,
   updateDraftMappingKeepingMatches,
   updateDraftMatching,
+  updateDraftTargetEvent,
   type ImportItemRow,
   type ImportRow,
   type NewImportItem,
@@ -629,6 +630,13 @@ export async function saveImportAnswers(db: AppDatabase, input: { organizationId
   if (!row || row.status !== "draft") return false;
   const matching: ImportMatching = { ...(row.matching ?? { matches: [], rowEvents: [] }), answers: parsed.data };
   return updateDraftMatching(db, input.organizationId, input.importId, matching, input.now ?? new Date());
+}
+
+// Lot 71c (HUB-14, C-52) : « Pour quel mariage est ce budget ? ». L'évènement est contrôlé par
+// l'appelant (le module des évènements : de l'organisation, pas un essai) ; null, un mariage qui n'est pas
+// encore dans Symbola. false : import inconnu, d'une autre organisation, terminé, ou d'une autre sorte.
+export async function setImportTargetEvent(db: AppDatabase, input: { organizationId: string; importId: string; eventId: string | null; now?: Date }): Promise<boolean> {
+  return updateDraftTargetEvent(db, input.organizationId, input.importId, input.eventId, input.now ?? new Date());
 }
 
 export async function getImportAnswers(db: AppDatabase, organizationId: string, importId: string): Promise<ImportAnswers | null> {
