@@ -20,3 +20,6 @@ playwright-report/
 test-results/
 e2e-server.log
 apps/symbola/public/maplibre/
+
+# Lot 75 : réécrit par Next à chaque démarrage ou compilation ; régénéré par `next typegen` (script typecheck)
+apps/symbola/next-env.d.ts
