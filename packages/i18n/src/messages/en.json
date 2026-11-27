@@ -6338,7 +6338,10 @@
       "hub_member_signatures": "Member's signature",
       "events_day_reminder_overrides": "an event's day-of reminder setting",
       "hub_sending_settings": "the default send time",
-      "hub_day_reminder_targets": "day-of reminder setting"
+      "hub_day_reminder_targets": "day-of reminder setting",
+      "hub_takeovers": "a wedding takeover",
+      "hub_takeover_steps": "a step of a wedding takeover",
+      "budget_unallocated_totals": "the amount to allocate of a taken-over wedding"
     },
     "modules": {
       "events": "Events",

@@ -6338,7 +6338,10 @@
       "hub_member_signatures": "Signature d'un membre",
       "events_day_reminder_overrides": "réglage du rappel du jour J d'un évènement",
       "hub_sending_settings": "l'heure d'envoi par défaut",
-      "hub_day_reminder_targets": "réglage du rappel du jour J"
+      "hub_day_reminder_targets": "réglage du rappel du jour J",
+      "hub_takeovers": "une reprise de mariage",
+      "hub_takeover_steps": "une ligne d'une reprise de mariage",
+      "budget_unallocated_totals": "le total à répartir d'un mariage repris"
     },
     "modules": {
       "events": "Évènements",
