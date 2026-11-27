@@ -11,19 +11,19 @@
         }
       },
       {
-        "target": "home-groups",
-        "title": { "fr": "Le reste, par urgence", "en": "The rest, by urgency" },
+        "target": "home-count",
+        "title": { "fr": "Un point, une ligne", "en": "One item, one line" },
         "body": {
-          "fr": "En retard, aujourd'hui, en attente d'un tiers, puis les quatorze prochains jours.",
-          "en": "Overdue, today, waiting on someone else, then the next fourteen days."
+          "fr": "Un point est une chose à faire ou à surveiller d'ici quatorze jours : les retards d'abord, puis tout le reste par date. « Tout afficher » ouvre, dans la carte, ce qui ne tient pas dans les sept premières lignes.",
+          "en": "An item is something to do or keep an eye on in the next fourteen days: late ones first, then everything else by date. “Show all” opens, in the card, whatever does not fit in the first seven lines."
         }
       },
       {
         "target": "home-events",
         "title": { "fr": "Mes évènements", "en": "My events" },
         "body": {
-          "fr": "Vos évènements en cours, avec le compte à rebours et ce qui reste à traiter. Un clic ouvre la synthèse de l'évènement.",
-          "en": "Your events in progress, with the countdown and what is left to deal with. One click opens the event summary."
+          "fr": "Vos évènements en cours, avec le compte à rebours et leurs points : « 6 points, dont 2 en retard », « Pas encore de tâches » ou « À jour ». Un clic ouvre la fiche.",
+          "en": "Your events in progress, with the countdown and their items: “6 items, 2 late”, “No tasks yet” or “Up to date”. One click opens the event."
         }
       },
       {

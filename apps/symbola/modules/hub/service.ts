@@ -1320,6 +1320,11 @@ export async function hideFirstSteps(db: AppDatabase, userId: string): Promise<v
   await updateFirstStepsHidden(db, userId, true);
 }
 
+// Lot 72b (AIDE-04 ; critère 5) : « Annuler » après « Masquer » rend « Pour bien démarrer » à la personne.
+export async function showFirstSteps(db: AppDatabase, userId: string): Promise<void> {
+  await updateFirstStepsHidden(db, userId, false);
+}
+
 // DEV-02 — adresse et langue d'un compte de l'organisation, pour un e-mail
 // de notification (devis signé). Jamais un compte d'une autre organisation.
 export async function getUserContact(

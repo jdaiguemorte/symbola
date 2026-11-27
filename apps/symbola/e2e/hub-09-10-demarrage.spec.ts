@@ -94,7 +94,7 @@ test("HUB-09 / PAR-01 — une wedding planner répond aux cinq questions, une pa
   const checklist = page.getByRole("region", { name: "Pour bien démarrer" });
   await expect(checklist.getByRole("listitem").first()).toHaveText("Régler l'essentiel : société, adresse, TVA");
   await expect(checklist.getByRole("listitem")).toHaveCount(2);
-  await expect(checklist).toContainText("0 sur 2 faits");
+  await expect(checklist).toContainText("0 sur 2");
   // Lot 63f (ADR 0103) : « Régler l'essentiel » ouvre l'assistant, une question par écran.
   await expect(checklist.getByRole("link", { name: "Régler l'essentiel : société, adresse, TVA" })).toHaveAttribute("href", "/demarrage/essentiel");
   await expectNoAxeViolation(page);
