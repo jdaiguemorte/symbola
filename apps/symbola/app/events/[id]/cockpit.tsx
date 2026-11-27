@@ -15,6 +15,20 @@ import { loadTodayItems } from "@/lib/today/load";
 import { daysUntil, rankToday, TODAY_HORIZON_DAYS, type RankedItem } from "@/lib/today/rank";
 import { TodayItemLine, todayWords, UnavailableNotice } from "@/app/accueil/today-view";
 import { PostponeTaskForm } from "@/app/accueil/today-client";
+import type { ChecklistBlock } from "@/lib/takeover/checklist-rules";
+import type { UnallocatedTotals } from "@/modules/budget/service";
+import { TakeoverChecklist } from "./takeover-checklist";
+
+// Lot 71f (EVT-02 ; maquette 09) : ce que la Synthèse d'un mariage repris montre en plus.
+export type CockpitTakeover = {
+  block: ChecklistBlock;
+  hrefs: { budget: string; tasksTakeover: string; tasksTemplate: string; program: string; clients: string; guests: string };
+  reviewHref: string;
+  review: boolean;
+  unallocated: UnallocatedTotals | null;
+  retained: number;
+  signed: number;
+};
 
 const FOLLOWING_COUNT = 2;
 const HEALTH_BADGES = { good: "badge badge-sauge", watch: "badge badge-ambre", late: "badge badge-terracotta" } as const;
@@ -39,6 +53,7 @@ export async function EventCockpit({
   locale,
   afterNextAction,
   vendorProgress,
+  takeover = null,
 }: {
   organizationId: string;
   eventId: string;
@@ -48,13 +63,14 @@ export async function EventCockpit({
   locale: Locale;
   // UX-01 : ce qui suit la prochaine action (le bandeau de la prochaine étape de la fiche).
   afterNextAction?: ReactNode;
-  // PRD-EVT-03 : lignes pourvues sur les lignes requises, avec la barre d'avancement.
-  vendorProgress: { booked: number; required: number };
+  // Lot 71f (I7) : postes complets (un prestataire retenu et un prévu connu) sur les postes requis.
+  vendorProgress: { complete: number; total: number };
+  takeover?: CockpitTakeover | null;
 }) {
   const t = await getTranslations("Today");
   const tEmailKinds = await getTranslations("EmailTemplates");
-  const tEvents = await getTranslations("Events");
   const tHealth = await getTranslations("PlanningHealth");
+  const tSheet = await getTranslations("TakeoverSheet");
   const health = await getPlanningHealth(organizationId, eventId, today);
   const budgetAvailable = await isBudgetModuleEnabled(organizationId);
   // Lot 48a (PRE-05, critère) : une pièce d'un prestataire retenu qui expire avant l'évènement y est signalée.
@@ -87,47 +103,61 @@ export async function EventCockpit({
 
   return (
     <>
-      <section className="card today-first" aria-labelledby="next-action-title" data-tour="event-overview">
-        <h2 id="next-action-title">{t("cockpit.nextActionTitle")}</h2>
-        <UnavailableNotice sources={unavailable} />
-        {next ? (
-          <>
-            <ul className="today-items">
-              <TodayItemLine item={next} locale={locale} returnTo="event" />
-              {following.map((item) => (
-                <TodayItemLine key={item.key} item={item} locale={locale} returnTo="event" />
-              ))}
-            </ul>
-            {nextTaskId ? (
-              <PostponeTaskForm
-                eventId={eventId}
-                taskId={nextTaskId}
-                defaultDate={plusDays(next.dueOn && next.dueOn > today ? next.dueOn : today, 7)}
-                labels={{ summary: t("cockpit.postpone"), date: t("cockpit.postponeTo"), save: t("cockpit.postponeSave") }}
-              />
-            ) : null}
-            {others.length > 0 ? (
-              <details>
-                <summary>{t("more", { count: others.length })}</summary>
-                <ul className="today-items">
-                  {others.map((item) => (
-                    <TodayItemLine key={item.key} item={item} locale={locale} returnTo="event" />
-                  ))}
-                </ul>
-              </details>
-            ) : null}
-          </>
-        ) : (
-          <p>{t("cockpit.nextActionEmpty")}</p>
-        )}
-      </section>
-      {afterNextAction}
+      {/* Lot 71f (R9, C-24, C-55) : tant qu'un point reste, « À compléter après la reprise » prend la place
+          de « Prochaine action » et du bandeau de la prochaine étape. */}
+      {takeover && takeover.block.kind !== "hidden" ? (
+        <TakeoverChecklist block={takeover.block} hrefs={takeover.hrefs} locale={locale} reviewHref={takeover.reviewHref} review={takeover.review} />
+      ) : null}
+      {takeover?.block.kind === "open" ? null : (
+        <>
+        <section className="card today-first" aria-labelledby="next-action-title" data-tour="event-overview">
+          <h2 id="next-action-title">{t("cockpit.nextActionTitle")}</h2>
+          <UnavailableNotice sources={unavailable} />
+          {next ? (
+            <>
+              <ul className="today-items">
+                <TodayItemLine item={next} locale={locale} returnTo="event" />
+                {following.map((item) => (
+                  <TodayItemLine key={item.key} item={item} locale={locale} returnTo="event" />
+                ))}
+              </ul>
+              {nextTaskId ? (
+                <PostponeTaskForm
+                  eventId={eventId}
+                  taskId={nextTaskId}
+                  defaultDate={plusDays(next.dueOn && next.dueOn > today ? next.dueOn : today, 7)}
+                  labels={{ summary: t("cockpit.postpone"), date: t("cockpit.postponeTo"), save: t("cockpit.postponeSave") }}
+                />
+              ) : null}
+              {others.length > 0 ? (
+                <details>
+                  <summary>{t("more", { count: others.length })}</summary>
+                  <ul className="today-items">
+                    {others.map((item) => (
+                      <TodayItemLine key={item.key} item={item} locale={locale} returnTo="event" />
+                    ))}
+                  </ul>
+                </details>
+              ) : null}
+            </>
+          ) : (
+            <p>{t("cockpit.nextActionEmpty")}</p>
+          )}
+        </section>
+        {afterNextAction}
+        </>
+      )}
 
       <section className="card" aria-labelledby="health-title">
         <h2 id="health-title">{t("cockpit.healthTitle")}</h2>
         <dl className="health-tiles">
           <div>
             <dt>{t("cockpit.planningTitle")}</dt>
+            {/* Lot 71f (P-05, C-55) : jamais « Bon » sur zéro tâche ; la santé ne rend pas d'avis sur ce qui est vide. */}
+            {tasks.length === 0 ? (
+              <dd data-health="none">{tSheet("planningNoOpinion")}</dd>
+            ) : (
+              <>
             <dd>{t("cockpit.planningValue", { done: doneCount, total: tasks.length })}</dd>
             <dd className={overdueCount > 0 ? "health-detail text-overdue" : "health-detail"}>{t("cockpit.planningOverdue", { count: overdueCount })}</dd>
             {/* Lot 53 (CHR-05) : l'indicateur s'explique — les tâches qui le dégradent, jalons d'abord. */}
@@ -154,8 +184,25 @@ export async function EventCockpit({
                 )}
               </details>
             </dd>
+              </>
+            )}
           </div>
-          {budget ? (
+          {budget && takeover?.unallocated ? (
+            // Lot 71f (C-56) : le total du fichier, là où le calcul s'affiche, avec ses mots.
+            <div>
+              <dt>{t("cockpit.budgetTitle")}</dt>
+              <dd>
+                {tSheet("budgetFromFile", { amount: formatAmount(takeover.unallocated.committedCents, locale) })}
+                {budget.envelope ? ` · ${tSheet("budgetEnvelope", { envelope: formatAmount(budget.envelope.amountCents, locale) })}` : null}
+              </dd>
+              <dd className="health-detail">
+                {tSheet("budgetFromFileDetail", { paid: formatAmount(takeover.unallocated.paidCents, locale), allocated: formatAmount(takeover.unallocated.allocatedCents, locale) })}
+              </dd>
+              <dd className="health-detail">
+                <Link href={`/events/${eventId}?onglet=budget`}>{t("cockpit.budgetOpen")}</Link>
+              </dd>
+            </div>
+          ) : budget ? (
             <div>
               <dt>{t("cockpit.budgetTitle")}</dt>
               <dd>{t("cockpit.budgetValue", { committed: formatAmount(budget.totalCommittedCents, locale) })}</dd>
@@ -179,8 +226,11 @@ export async function EventCockpit({
             ) : null}
           </div>
         </dl>
-        <p id="vendor-progress-label">{tEvents("vendorProgress", vendorProgress)}</p>
-        <progress aria-labelledby="vendor-progress-label" value={vendorProgress.booked} max={Math.max(vendorProgress.required, 1)} />
+        <p id="vendor-progress-label">
+          {tSheet("vendorCompletion", vendorProgress)}
+          {takeover ? <span className="meta"> · {tSheet("vendorsSummary", { retained: takeover.retained, signed: takeover.signed })}</span> : null}
+        </p>
+        <progress aria-labelledby="vendor-progress-label" value={vendorProgress.complete} max={Math.max(vendorProgress.total, 1)} />
       </section>
 
       <section className="card" aria-labelledby="next-days-title">

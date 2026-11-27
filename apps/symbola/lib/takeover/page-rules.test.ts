@@ -9,7 +9,6 @@ import {
   takeoverImportEntityType,
   takeoverPageState,
   takeoverRows,
-  toCompletePoints,
   withdrawDeadline,
   type TakeoverRowStep,
 } from "./page-rules";
@@ -122,17 +121,5 @@ describe("HUB-14 — La fin de la reprise (critère 6)", () => {
     const first = new Date("2026-11-24T17:00:00Z");
     expect(withdrawDeadline([new Date("2026-11-25T09:00:00Z"), first], 90)?.toISOString()).toBe("2027-02-22T17:00:00.000Z");
     expect(withdrawDeadline([], 90)).toBeNull();
-  });
-
-  it("compte ce qui reste à compléter à la main, chaque point avec son nombre ; jamais « tout est à jour » quand il en reste", () => {
-    expect(toCompletePoints({ remainingCents: 2_165_050, taskCount: 0, missingEndTimes: 7, hasClientLink: false, guestsKnown: false })).toEqual([
-      { key: "amounts", count: 1 },
-      { key: "tasks", count: 1 },
-      { key: "endTimes", count: 7 },
-      { key: "clientLink", count: 1 },
-      { key: "guests", count: 1 },
-    ]);
-    expect(toCompletePoints({ remainingCents: 0, taskCount: 3, missingEndTimes: 0, hasClientLink: true, guestsKnown: true })).toEqual([]);
-    expect(toCompletePoints({ remainingCents: null, taskCount: 3, missingEndTimes: 0, hasClientLink: true, guestsKnown: true })).toEqual([]);
   });
 });

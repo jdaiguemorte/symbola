@@ -20,6 +20,8 @@ import { PrivacyPurgeAlertBlock, PrivacyRequestsAlertBlock } from "./rgpd/dashbo
 import { PageTour } from "./page-tour";
 import { loadPageTour } from "@/lib/help/page-tour";
 import { todayWords, UnavailableNotice } from "./accueil/today-view";
+import { TakeoversInProgress } from "./accueil/takeovers-in-progress";
+import { taskListViewer } from "@/lib/event-visibility";
 import { EmptyHome, FirstStepsView, MyEventsView, TodayCardView, TodayHeader } from "./accueil/home-view";
 import { UndoTaskNotice } from "./accueil/today-client";
 import { TodayScrollKeeper } from "./accueil/today-card-client";
@@ -192,7 +194,8 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
         <UndoTaskNotice key={undone.taskId} eventId={undone.eventId} taskId={undone.taskId} message={t("undo.taskDone", { label: undone.label })} undoLabel={t("undo.action")} returnTo="home" />
       ) : null}
       <UnavailableNotice sources={unavailable} />
-      {/* « Reprises en cours » (lot 71f) se posera ici, entre les alertes et « À traiter en premier ». */}
+      {/* Lot 71f (HUB-08 ; maquette 09) : les reprises en cours, entre les alertes et « À traiter en premier », hors du compteur des points (C-20). */}
+      {modules.events ? <TakeoversInProgress organizationId={organizationId} viewer={await taskListViewer({ user: { id: auth.user.id, role: auth.user.role, organizationId } })} locale={locale} today={today} /> : null}
       {state.kind === "empty" ? (
         <>
           <EmptyHome takeoverFirst={onboardingSuggestsTakeover(profile.replacedTools)} />

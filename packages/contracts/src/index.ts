@@ -185,7 +185,8 @@ export type {
 } from "./events/service-contract";
 export type { DayHelper, DayHelperInput, EventTeamMember, EventTeamRole } from "./events/service-contract";
 export type { EventDisplayStep, EventTaskProgress, MarkContractSignedInput } from "./events/service-contract";
-export { EVENT_DISPLAY_STEPS } from "./events/service-contract";
+export { EVENT_DISPLAY_STEPS, EVENT_ORIGINS_LIST } from "./events/service-contract";
+export type { EventOrigin } from "./events/service-contract";
 export * from "./hub/today";
 export { DAY_DOCUMENT_SOURCES, DECISION_KINDS, ENGAGED_CANDIDATE_STATUSES, EVENT_TEAM_ROLES, LINK_AUDIENCES, LINK_BUDGET_SCOPES, LINK_RUBRICS, VENDOR_ADDITION_MODES, VENDOR_CANDIDATE_STATUSES } from "./events/service-contract";
 // Lot 70a (CHR-02, CHR-04 ; A7, A9) : qui a coché une tâche, note interne, états de la liste.

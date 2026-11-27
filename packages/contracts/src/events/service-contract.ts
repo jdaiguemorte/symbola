@@ -82,7 +82,13 @@ export type EventSummary = {
   // Lot 72a (EVT-07, UX-01) : les tâches faites et en retard ; rendu par listEvents quand on le demande
   // (withTaskProgress), absent ailleurs.
   taskProgress?: EventTaskProgress;
+  // Lot 71f (P-06 ; migration 0220 du 71a) : créé dans Symbola, ou repris d'un ancien outil (la marque
+  // « Repris » et le filtre « Origine » de la liste). Rendu par le service ; absent des objets d'essai.
+  origin?: EventOrigin;
 };
+
+export const EVENT_ORIGINS_LIST = ["created", "takeover"] as const;
+export type EventOrigin = (typeof EVENT_ORIGINS_LIST)[number];
 
 // Lot 38b (HUB-29 ; D11, D12) — un évènement du flux de calendrier de l'équipe : daté, ni essai, ni
 // perdu ou annulé ; avec son type, pour l'intitulé (« Mariage — Léa & Maxime »).
@@ -159,6 +165,8 @@ export type ListEventsInput = {
   archived?: "exclude" | "only" | "include" | undefined;
   // Lot 72a : joindre à chaque évènement le compte de ses tâches (une requête groupée).
   withTaskProgress?: boolean | undefined;
+  // Lot 71f (P-06) : le filtre « Origine » de la liste, lu en SQL sur `events.origin`.
+  origin?: EventOrigin | undefined;
 };
 
 // Lot 72a (EVT-05 ; E2, J2) : « Le contrat est signé… » ; la date de signature, au plus aujourd'hui (dans
@@ -268,7 +276,14 @@ export type EventVendorSlot = {
   icon: string | null;
 };
 
-export type RetainedVendor = { candidateId: string; vendorName: string; quoteAmountCents: number | null };
+export type RetainedVendor = {
+  candidateId: string;
+  vendorName: string;
+  quoteAmountCents: number | null;
+  // Lot 71f (C-53, § 0 du lot 71) : le contrat, dit en mots sous le nom du prestataire repris. « signed »
+  // dès que le statut le dit ; sinon ce que la planner a déclaré à la reprise ; null hors reprise.
+  takeoverContract?: "signed" | "unsigned" | "unknown" | null;
+};
 
 // Lot 12 (L12-EVT-15) — lieux d'un événement, saisis une fois.
 // Lot 29b (JRJ-04, décision D8) — documents de l'événement (plan de table, plans,
@@ -639,6 +654,9 @@ export type ProgramItem = {
   // Lot 63b (CHR-08 ; Q44) : cachée des mariés (leur espace, le programme diffusé, le PDF « mariés ») ;
   // visible de l'équipe et des prestataires qu'elle concerne.
   hiddenFromClients: boolean;
+  // Lot 71a (R12 ; migration 0222) : un début et une fin (« span »), ponctuel (« point »), un repère
+  // (« marker ») ; seul un « span » sans fin est une heure de fin à compléter (lot 71f).
+  timing?: "span" | "point" | "marker";
 };
 
 export type ProgramItemInput = {
