@@ -61,3 +61,35 @@ Mesures :
 - Ce qui reste provisoire jusqu'au 71c : chaque ligne ouvre l'assistant d'import d'avant (sans l'étape
   « Questions ») ; les PDF des prestataires retenus et du programme s'ouvrent sur la fiche du mariage et
   cochent leur ligne sans bilan (paquet 71e).
+
+## Lot 71f — la fiche d'un mariage repris et ses reflets
+
+- Date : 27/11/2026, en local, par Claude Code. Base de test dédiée (`symbola_lot71f`, migrations
+  jusqu'à 0223), app compilée sur le port 3071, session ouverte en base (le fournisseur d'identité local
+  ne connaît que le port 3000). Rejoué **à l'écran**, à 1 440 et à 375 px, par le parcours
+  `apps/symbola/e2e/lot-71f-fiche-reprise.spec.ts` (12 parcours verts, axe-core sur chaque écran), et
+  regardé dans le navigateur sur « Léa & Hugo » (repris, données fictives) et « Léa & Maxime » (créé).
+  Camille seulement ; Sophie à 150 % reste au paquet 71g et au rejeu d'ensemble.
+
+| Étape du parcours | Ce qui est vérifié | Résultat |
+| --- | --- | --- |
+| La fiche, le lendemain | Sous l'en-tête : « Repris le … de 2 fichiers · Voir la reprise » ; « À compléter après la reprise », « 6 points · 0 fait » : montants de 3 prestataires (« 21 650,50 € à répartir sur les postes »), 2 contrats non signés (« Aucune relance n'est créée »), les tâches (« Reprendre une liste », « Partir d'un modèle »), 1 heure de fin, le lien des mariés, le nombre d'invités ; ni « tout est à jour », ni « Bon », ni « Champs importés », ni « 0,00 € de réel » | Tenu |
+| La santé | « Pas encore de tâches : pas d'avis » ; « 21 650,50 € de réel · enveloppe 25 000,00 € », « Selon votre fichier ; dont 3 200,00 € réglés ; 0,00 € répartis sur les postes » ; « Aucun poste complet sur 3 · 3 retenus · 1 contrat signé » | Tenu |
+| Faire un point | Le nombre d'invités saisi dans le panneau : le point passe en bas, coché (« Fait »), « 6 points · 1 fait », sans recharger la page | Tenu |
+| La fin de la reprise | Les six points faits : « Reprise complétée le 2 déc. », puis le bloc disparaît au 8e jour (horloge simulée : 6e, 7e, 8e jour) et « Prochaine action » revient | Tenu (test d'intégration) |
+| « D'où viennent ces valeurs ? » | « vous, à la reprise » pour les mariés saisis sur la page, « Fichier : fiche-lea-hugo.pdf » pour la note ; la note réécrite à la main perd sa marque | Tenu |
+| Le budget | Bandeau « À compléter : 21 650,50 € de réel selon votre fichier, dont 3 200,00 € réglés », tuiles enveloppe, réel du fichier, réparti, reste à répartir ; « contrat signé », « contrat non signé », « contrat non renseigné » sous chaque prestataire ; « non renseigné » au lieu de « — » ; un réel saisi fait baisser le reste, à zéro le bandeau part | Tenu |
+| La liste | « Repris · 6 points à compléter » (terminée), « Repris · 1 fichier sur 6 » (en cours), qui mènent à la reprise ; filtre « Origine » (Repris, Créés dans Symbola) | Tenu |
+| « Aujourd'hui » | « Reprises en cours » en tête (« Léa & Hugo · reprise terminée aujourd'hui · 6 points à compléter · Voir ce qui reste » ; « Juliette & Romain · 1 fichier sur 6 · Continuer ») ; aucun « à faire signer » né de la reprise | Tenu |
+| Un mariage créé | Ni marque, ni bloc, ni interrupteur ; « Prochaine action » | Tenu |
+
+Mesures :
+
+- **Un nombre annoncé est celui que redit l'écran suivant** : la page de reprise terminée, la fiche, la
+  liste et « Aujourd'hui » lisent le même calcul (`lib/takeover/checklist.ts`) ; le test d'intégration
+  compare la page et la fiche point par point.
+- **Aucun défilement de côté à 375 px** sur la fiche, le budget, la liste et l'accueil ; **axe-core** sans
+  violation sur chacun.
+- Ce qui reste hors du paquet : la frise de statut dit encore « Confirmé » daté du jour de la reprise
+  (son dessin relève du lot 72d) ; « Mes évènements » de l'accueil (lot 72b) dit « À jour » d'un mariage
+  repris tant que le 72b n'y lit pas l'origine.

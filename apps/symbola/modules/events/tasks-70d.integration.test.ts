@@ -1,7 +1,7 @@
 // Lot 70d (CHR-02, CHR-03, CHR-10, PAR-10, UX-08 ; C-14, C-33, C-37, C-55 ; A20) — l'écran « Tâches » contre
 // un vrai PostgreSQL (RLS), par les portes d'entrée des modules : le décompte qui se recoupe (à faire +
 // faites = total), la charge de chacun (« Bastien · 2 en retard · 6 à faire »), la tâche hors évènement
-// filtrée et répétée, les évènements sans tâches, le mariage repris (journal des imports du hub). Tests
+// filtrée et répétée, les évènements sans tâches, le mariage repris (origine de l’évènement, lot 71f). Tests
 // d'abus (CLAUDE.md § 2.11) : les filtres `evenement` et `qui` d'une autre organisation ne rendent rien et
 // ne changent aucun nombre ; une organisation ne lit ni les évènements sans tâches ni les reprises d'une
 // autre ; une Planner restreinte ne compte pas les tâches d'un évènement hors de son équipe.
@@ -10,10 +10,7 @@ import { describe, expect, it } from "vitest";
 import { createOrganization, createUser, setUserNames } from "@symbola/auth";
 import type { TaskListFilters, TaskListViewer } from "@symbola/contracts";
 import { withActor } from "@symbola/db/actor";
-import { createAppConnection, appDatabase } from "@symbola/db/client";
-import { importItems, imports } from "@symbola/db/schema/hub";
-import { withOrganization } from "@symbola/db/with-organization";
-import { listImportedEvents } from "@/modules/hub/service";
+import { createAppConnection } from "@symbola/db/client";
 import { addEventTask, addStandaloneTask, createProspect, createProspectSource, eventIdsWithoutTasks, listTasks, removeEventTask, setEventTeamMember, setStandaloneTaskDone, updateEventTask } from "./service";
 
 const EVENT_DATE = "2027-06-12";
@@ -129,26 +126,6 @@ describe("UX-08, C-55 — un mariage repris sans tâches est signalé", () => {
     const foreign = await wedding(other.organizationId, other.camille, "Zoé");
     // Abus : l'évènement sans tâches d'une autre organisation n'est pas lu, ni un identifiant inventé.
     expect(await eventIdsWithoutTasks(team.organizationId, [foreign, randomUUID(), "pas-un-identifiant"])).toEqual([]);
-  });
-
-  it("le journal des imports du hub dit quels évènements une reprise a créés, et quand ; jamais ceux d'une autre organisation ni d'un import retiré", async () => {
-    const team = await busyAgency();
-    const other = await agency();
-    const hugo = await wedding(team.organizationId, team.camille, "Hugo");
-    const retired = await wedding(team.organizationId, team.camille, "Paul");
-    const appliedAt = new Date("2026-11-24T10:00:00Z");
-    const record = async (organizationId: string, userId: string, eventId: string, status: "applied" | "undone") =>
-      withOrganization(appDatabase(), organizationId, async (tx) => {
-        const [row] = await tx
-          .insert(imports)
-          .values({ organizationId, createdByUserId: userId, entityType: "events", status, fileName: "mariages.csv", fileFormat: "csv", fileSizeBytes: 10, headerRowIndex: 0, headers: ["Nom"], rowCount: 1, expiresAt: new Date("2026-12-24T00:00:00Z"), appliedAt })
-          .returning({ id: imports.id });
-        await tx.insert(importItems).values({ organizationId, importId: row!.id, position: 0, module: "events", kind: "event", elementId: eventId, action: "created", previous: null, written: {} });
-      });
-    await record(team.organizationId, team.camille, hugo, "applied");
-    await record(team.organizationId, team.camille, retired, "undone");
-    await record(other.organizationId, other.camille, randomUUID(), "applied");
-    expect(await listImportedEvents(team.organizationId)).toEqual([{ eventId: hugo, importedAt: appliedAt.toISOString() }]);
   });
 });
 

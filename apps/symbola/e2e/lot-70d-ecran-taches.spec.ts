@@ -9,10 +9,9 @@ import { expect, test, type Page } from "@playwright/test";
 import { createUser, setUserNames } from "@symbola/auth";
 import { withActor } from "@symbola/db/actor";
 import { appDatabase, createAppConnection } from "@symbola/db/client";
-import { importItems, imports } from "@symbola/db/schema/hub";
-import { withOrganization } from "@symbola/db/with-organization";
 import { parisToday } from "@symbola/i18n";
 import { addEventTask, addStandaloneTask, changeEventStatus, createProspect, createProspectSource, listTasks, updateEventTask } from "../modules/events/service";
+import { createTakeover } from "../modules/hub/service";
 import { feedback, readyOrganization, signIn } from "./helpers";
 
 function addDays(date: string, days: number): string {
@@ -340,17 +339,10 @@ test.describe("Lot 70d — l'écran « Tâches »", () => {
     await expect(page).toHaveURL(/\/taches$/);
 
     // Le mariage repris : « À vérifier », deux suites ; le décompte le dit.
-    const source = await createProspectSource(setup.organizationId, "Reprise");
-    const hugo = await createProspect({ organizationId: setup.organizationId, createdByUserId: setup.ownerId, prospectSourceId: source.id, clients: [{ firstName: "Léa", lastName: "Durand" }, { firstName: "Hugo", lastName: "Martin" }], eventDate: "2027-07-03" });
+    // Lot 71f : l'origine posée par la reprise (lot 71a), et la date de sa reprise, le 24 novembre.
+    const hugo = await createProspect({ organizationId: setup.organizationId, createdByUserId: setup.ownerId, prospectSourceId: null, clients: [{ firstName: "Léa", lastName: "Durand" }, { firstName: "Hugo", lastName: "Martin" }], eventDate: "2027-07-03", takeover: true });
     const hugoId = hugo.id;
-    // Le journal des imports du hub : un évènement créé par une reprise le 24 novembre.
-    await withOrganization(appDatabase(), setup.organizationId, async (tx) => {
-      const [row] = await tx
-        .insert(imports)
-        .values({ organizationId: setup.organizationId, createdByUserId: setup.ownerId, entityType: "events", status: "applied", fileName: "mariages.csv", fileFormat: "csv", fileSizeBytes: 10, headerRowIndex: 0, headers: ["Nom"], rowCount: 1, expiresAt: new Date(Date.now() + 86_400_000), appliedAt: new Date("2026-11-24T10:00:00Z") })
-        .returning({ id: imports.id });
-      await tx.insert(importItems).values({ organizationId: setup.organizationId, importId: row!.id, position: 0, module: "events", kind: "event", elementId: hugo.id, action: "created", previous: null, written: {} });
-    });
+    await createTakeover(appDatabase(), { organizationId: setup.organizationId, userId: setup.ownerId, eventId: hugo.id, now: new Date("2026-11-24T10:00:00Z") });
     await page.reload();
     const banner = page.getByRole("region", { name: "À vérifier : Léa & Hugo" });
     await expect(banner).toContainText("À vérifier : « Léa & Hugo », repris le 24 nov., n'a pas encore de tâches.");
