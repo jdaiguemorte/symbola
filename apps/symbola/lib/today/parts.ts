@@ -3,12 +3,14 @@
 // découpe par nature : tout ce qui remonte n'est pas une tâche. Chaque partie dit son nombre (tous les
 // éléments de cette nature, pas seulement ceux montrés) et mène à sa page quand elle existe. Une partie
 // sans ligne parmi les sept n'apparaît pas ; l'ordre des parties suit leur élément le plus urgent.
-// Règles pures, sans base.
-import type { RankedItem, RankedToday, TodayItemKind } from "./rank";
+// Règles pures, sans base. Lot 72a (A1, M15) : chaque partie dit combien elle montre sur combien
+// (« Tâches 4 sur 7 ») ; ce qui ne tient pas dans la carte est rendu à part (« Tout afficher »), et la
+// somme des deux est le compte du haut. Une alerte du radar est une ligne « À regarder ».
+import { HOME_FIRST_COUNT, type RankedItem, type RankedToday, type TodayItemKind } from "./rank";
 
-export const HOME_FIRST_COUNT = 7;
+export { HOME_FIRST_COUNT };
 
-export const TODAY_NATURES = ["follow_ups", "tasks", "payments", "decisions", "prospects", "others"] as const;
+export const TODAY_NATURES = ["follow_ups", "tasks", "payments", "decisions", "prospects", "watch", "others"] as const;
 export type TodayNature = (typeof TODAY_NATURES)[number];
 
 const NATURE: Record<TodayItemKind, TodayNature> = {
@@ -43,6 +45,7 @@ const NATURE: Record<TodayItemKind, TodayNature> = {
   appointment_change: "others",
   calendar_source_error: "others",
   closing_due: "others",
+  watch: "watch",
 };
 
 export function natureOf(kind: TodayItemKind): TodayNature {
@@ -53,7 +56,8 @@ export function natureOf(kind: TodayItemKind): TodayNature {
 // sinon aucune (chaque ligne garde son propre lien).
 export type PartLink = { kind: "tasks" | "payments" | "pipeline" | "event"; href: string } | null;
 
-export type TodayPart = { nature: TodayNature; total: number; items: RankedItem[]; link: PartLink };
+// shown : les lignes de cette nature dans la carte ; total : toutes celles de l'horizon.
+export type TodayPart = { nature: TodayNature; shown: number; total: number; items: RankedItem[]; link: PartLink };
 
 function linkOf(nature: TodayNature, all: RankedItem[], modules: { quotes: boolean; events: boolean }): PartLink {
   if (nature === "tasks" && modules.events) return { kind: "tasks", href: "/taches" };
@@ -76,6 +80,12 @@ export function todayParts(ranked: RankedToday, modules: { quotes: boolean; even
   }
   return order.map((nature) => {
     const all = ranked.all.filter((item) => natureOf(item.kind) === nature);
-    return { nature, total: all.length, items: shown.filter((item) => natureOf(item.kind) === nature), link: linkOf(nature, all, modules) };
+    const items = shown.filter((item) => natureOf(item.kind) === nature);
+    return { nature, shown: items.length, total: all.length, items, link: linkOf(nature, all, modules) };
   });
+}
+
+// Lot 72a (M15) : les lignes qui ne tiennent pas dans la carte, pour « N autres points · Tout afficher ».
+export function todayRest(ranked: RankedToday, count: number = HOME_FIRST_COUNT): RankedItem[] {
+  return ranked.all.slice(count);
 }

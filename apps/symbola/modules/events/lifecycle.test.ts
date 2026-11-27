@@ -2,16 +2,16 @@
 // même dans le fuseau de l'événement (veille, lendemain, heure d'été, fuseau lointain), clôture
 // proposée dès le lendemain, statuts posés à la main.
 import { describe, expect, it } from "vitest";
-import { canPostpone, canSetStatus, closingDue, eventPhase, IN_PROGRESS_STATUSES } from "./lifecycle";
+import { canPostpone, canSetStatus, closingDue, displayStep, eventPhase, IN_PROGRESS_STATUSES } from "./lifecycle";
 
-const wedding = (status: "confirmed" | "in_preparation" | "option" | "postponed", timeZone = "Europe/Paris") => ({ status, eventDate: "2027-03-28", timeZone });
+const wedding = (status: "confirmed" | "option" | "postponed", timeZone = "Europe/Paris") => ({ status, eventDate: "2027-03-28", timeZone });
 
 describe("EVT-05 — Jour J s'applique de lui-même, dans le fuseau de l'événement (D3)", () => {
   it("la veille, non ; le jour même, oui, dès minuit à Paris ; le lendemain, non", () => {
     expect(eventPhase(wedding("confirmed"), new Date("2027-03-27T22:59:00Z"))).toBe("confirmed");
     // 28 mars 2027 : passage à l'heure d'été à Paris ; minuit y est à 23 h UTC la veille.
     expect(eventPhase(wedding("confirmed"), new Date("2027-03-27T23:00:00Z"))).toBe("day_of");
-    expect(eventPhase(wedding("in_preparation"), new Date("2027-03-28T21:59:00Z"))).toBe("day_of");
+    expect(eventPhase(wedding("confirmed"), new Date("2027-03-28T21:59:00Z"))).toBe("day_of");
     expect(eventPhase(wedding("confirmed"), new Date("2027-03-28T22:00:00Z"))).toBe("confirmed");
   });
 
@@ -37,10 +37,9 @@ describe("EVT-05 — Jour J s'applique de lui-même, dans le fuseau de l'événe
 });
 
 describe("EVT-05 — Statuts posés à la main, report (D2, D4)", () => {
-  it("la frise pose Option, Confirmé, En préparation, Clôturé ; pas Reporté ni Annulé, qui ont leur geste", () => {
+  it("la frise pose Option, Confirmé, Clôturé ; pas Reporté ni Annulé, qui ont leur geste", () => {
     expect(canSetStatus("option", "confirmed")).toBe(true);
-    expect(canSetStatus("confirmed", "in_preparation")).toBe(true);
-    expect(canSetStatus("in_preparation", "closed")).toBe(true);
+    expect(canSetStatus("confirmed", "closed")).toBe(true);
     expect(canSetStatus("confirmed", "postponed")).toBe(false);
     expect(canSetStatus("confirmed", "cancelled")).toBe(false);
     expect(canSetStatus("confirmed", "confirmed")).toBe(false);
@@ -52,11 +51,24 @@ describe("EVT-05 — Statuts posés à la main, report (D2, D4)", () => {
     expect(canSetStatus("cancelled", "confirmed")).toBe(false);
   });
 
-  it("seul un événement confirmé ou en préparation se reporte ; les en cours comptent le report", () => {
+  it("seul un événement confirmé se reporte ; les en cours comptent le report", () => {
     expect(canPostpone("confirmed")).toBe(true);
-    expect(canPostpone("in_preparation")).toBe(true);
     expect(canPostpone("option")).toBe(false);
     expect(canPostpone("closed")).toBe(false);
-    expect(IN_PROGRESS_STATUSES).toEqual(["option", "confirmed", "in_preparation", "postponed"]);
+    expect(IN_PROGRESS_STATUSES).toEqual(["option", "confirmed", "postponed"]);
+  });
+});
+
+// Lot 72a (EVT-05 ; E1, J1) : quatre étapes affichées ; « En préparation » n'existe plus en base.
+describe("EVT-05 — Les étapes affichées de la frise (lot 72a, J1)", () => {
+  it.each([
+    ["option", "option", "request"],
+    ["confirmed", "confirmed", "signed"],
+    ["confirmed", "day_of", "day_of"],
+    ["closed", "closed", "closed"],
+    ["postponed", "postponed", null],
+    ["cancelled", "cancelled", null],
+  ] as const)("statut %s, phase %s : étape %s", (status, phase, step) => {
+    expect(displayStep(status, phase)).toBe(step);
   });
 });

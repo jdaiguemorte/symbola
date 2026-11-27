@@ -28,12 +28,15 @@ import {
   closingDue,
   listEventClosings,
 } from "@/modules/events/service";
-import { countDuplicatePairs, getFollowUpDelays, listPreparedEmails } from "@/modules/hub/service";
+import { countDuplicatePairs, getAutomationGate, getFollowUpDelays, listPreparedEmails } from "@/modules/hub/service";
 import { preparedEmailModule } from "@/lib/prepared-emails";
 import { listGuestPurgeNotices, listRecentOppositions } from "@/modules/guests/service";
 import { listEventIdsWithSentQuote, listOpenScheduledDeposits, listQuotesAwaitingAnswer, listTransferDeclarations, listUnpaidPayments } from "@/modules/quotes/service";
 import { listCalendarSourcesInError, listTodayAppointments } from "@/modules/appointments/service";
-import { getVendorsByIds, listPendingBankChecks, listVendorDocumentNotices } from "@/modules/vendors/service";
+import { getVendorContacts, getVendorsByIds, listPendingBankChecks, listVendorDocumentNotices } from "@/modules/vendors/service";
+import { loadRiskRadar } from "@/lib/risk-radar/load";
+import { attachContacts } from "./contact";
+import { watchItems, type WatchWords } from "./watch";
 import { TODAY_HORIZON_DAYS, type TodayItem } from "./rank";
 import { settleWithin, TODAY_SOURCE_TIMEOUT_MS } from "./settle";
 
@@ -87,6 +90,8 @@ export type TodayWords = {
   standaloneTask?: string;
   // Lot 65d (MSG-01, HUB-28 ; ADR 0110) : « À envoyer : Rappel d'échéance » (absent : pas d'élément).
   emailToSend?: (kind: EmailTemplateKind) => string;
+  // Lot 72a (HUB-08, GC-02) : une alerte du radar, « À regarder » (absent : pas de ligne).
+  watch?: WatchWords;
 };
 
 function addDaysTo(date: string, days: number): string {
@@ -188,7 +193,7 @@ async function eventItems({ organizationId, words, locale, today, now, events, n
       title: words.vendorContract(vendor.vendorName, vendor.slotLabel),
       dueOn: null,
       since: vendor.since,
-      actor: { kind: "vendor", name: vendor.vendorName },
+      actor: { kind: "vendor", name: vendor.vendorName, vendorId: vendor.vendorId },
       href: `/events/${vendor.eventId}`,
       action: { kind: "remind_vendor", eventId: vendor.eventId, candidateId: vendor.candidateId },
     });
@@ -236,7 +241,7 @@ async function eventItems({ organizationId, words, locale, today, now, events, n
         title: words.vendorRoadmap(alert.vendorName),
         dueOn: null,
         since: day(alert.sentAt),
-        actor: { kind: "vendor", name: alert.vendorName },
+        actor: { kind: "vendor", name: alert.vendorName, vendorId: alert.vendorId ?? null },
         href: `/events/${alert.eventId}?onglet=budget`,
         action: { kind: "open" },
       });
@@ -583,7 +588,7 @@ async function vendorItems({ organizationId, words, today, now, events }: Contex
         // À traiter maintenant : demander la pièce à jour avant le jour J, aussi lointain soit-il.
         dueOn: null,
         since: null,
-        actor: { kind: "vendor", name: notice.vendorName },
+        actor: { kind: "vendor", name: notice.vendorName, vendorId: notice.vendorId },
         href: `/prestataires/${notice.vendorId}`,
         action: { kind: "open" },
       });
@@ -672,7 +677,22 @@ export async function loadTodayItems(
     if (result.ok) items.push(...result.value);
     else if (!unavailable.includes(source)) unavailable.push(source);
   }
-  return { items: await withoutQuotedOptions(items, organizationId, modules.quotes, timeoutMs), today, events, unavailable };
+  // Lot 72a (HUB-08, GC-02 ; critère 6) : les alertes du radar deviennent des lignes ; radar coupé, lent
+  // ou en panne, aucune ligne (ARC-07) ; l'appelant les filtre par la visibilité comme les autres.
+  if (words.watch && modules.events && listed.ok) items.push(...(await radarItems(organizationId, words.watch, now, timeoutMs)));
+  const kept = await withoutQuotedOptions(items, organizationId, modules.quotes, timeoutMs);
+  // Lot 72a (UX-13, J7 ; critère 4) : qui appeler, en une lecture des fiches de prestataires.
+  const vendorIds = [...new Set(kept.flatMap((item) => (item.actor.kind === "vendor" && item.actor.vendorId ? [item.actor.vendorId] : [])))];
+  const cards = modules.vendors && vendorIds.length > 0 ? await settleWithin(() => getVendorContacts(organizationId, vendorIds), timeoutMs, "vendors:contacts") : { ok: true as const, value: [] };
+  const vendors = new Map((cards.ok ? cards.value : []).map((card) => [card.id, card]));
+  return { items: attachContacts(kept, events, vendors), today, events, unavailable };
+}
+
+async function radarItems(organizationId: string, words: WatchWords, now: Date, timeoutMs: number): Promise<TodayItem[]> {
+  const gate = await getAutomationGate(organizationId, "risk_radar").catch(() => null);
+  if (!gate?.enabled) return [];
+  const radar = await settleWithin(() => loadRiskRadar(organizationId, now), timeoutMs, "radar");
+  return radar.ok ? watchItems(radar.value.alerts, words) : [];
 }
 
 // Lot 65d (MSG-01, HUB-28 ; ADR 0110) — les messages de la relation « À envoyer » de la messagerie de la

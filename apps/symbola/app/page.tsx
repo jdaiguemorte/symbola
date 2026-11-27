@@ -1,4 +1,3 @@
-import { RiskSection } from "./accueil/risk-section";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { after } from "next/server";
@@ -91,9 +90,16 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   // Lot 38a (MSG-01, D5) : des rappels automatiques arrêtés par une variable sans valeur (24 heures).
   const mailProblems = modules.events ? await recentEmailVariableProblems(organizationId) : null;
   const tTemplates = await getTranslations("EmailTemplates");
+  const tRisk = await getTranslations("RiskRadar");
 
   const now = new Date();
-  const loaded = await loadTodayItems(organizationId, modules, { ...todayWords(t), emailToSend: (kind) => t("words.emailToSend", { kind: tTemplates(`kinds.${kind}.title`) }) }, locale, now);
+  const loaded = await loadTodayItems(organizationId, modules, {
+      ...todayWords(t),
+      emailToSend: (kind) => t("words.emailToSend", { kind: tTemplates(`kinds.${kind}.title`) }),
+      // Lot 72a (HUB-08, GC-02 ; critère 6) : le radar devient des lignes « À regarder », filtrées par la
+      // visibilité comme les autres (la section « Risques » à part n'existe plus).
+      watch: (alert) => ({ title: tRisk(`rules.${alert.rule}.label`), detail: tRisk(`rules.${alert.rule}.alert`, { ...alert.facts, threshold: alert.thresholdDays }) }),
+    }, locale, now);
   // Lot 52 (EVT-06, D2) : seulement les évènements visibles de la personne (réglage de visibilité).
   const scope = auth.user.role === "member" ? await visibleEventScope({ user: { id: auth.user.id, role: auth.user.role, organizationId } }) : null;
   const { today, unavailable } = loaded;
@@ -146,7 +152,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
     <main>
       <div className="page-header today-header">
         <h1>{t("title")}</h1>
-        <p className="today-summary">{t("summary", { date: longDate(now, locale), events: activeEvents, points: ranked.attentionCount })}</p>
+        <p className="today-summary">{t("summary", { date: longDate(now, locale), events: activeEvents, points: ranked.points })}</p>
       </div>
       {resumeQuestionnaire ? (
         <p className="notice" role="status">
@@ -211,8 +217,6 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
           screenHref={(params) => `/taches?${new URLSearchParams(params).toString()}`}
         />
       ) : null}
-      {/* Lot 53 (GC-02) : le radar des risques du matin, après ce qui demande une action. */}
-      {modules.events ? <RiskSection organizationId={organizationId} now={now} /> : null}
       {/* Lot 33b (PAR-01, étape 6) : après ce qui demande une action (UX-01 : la prochaine action d'abord). */}
       {checklist ? <OnboardingChecklist items={checklist} /> : null}
       {modules.events ? <MyEvents events={events} ranked={ranked} today={today} locale={locale} /> : null}

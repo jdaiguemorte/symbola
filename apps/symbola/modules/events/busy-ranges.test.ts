@@ -83,7 +83,7 @@ describe("RDV-02 — Plages occupées : ce qui bloque (lot 64, D2)", () => {
   const dated = { isDemo: false, eventDate: "2027-06-12" };
 
   it("confirmé, en préparation et clôturé bloquent toujours", () => {
-    for (const status of ["confirmed", "in_preparation", "closed"] as const) expect(isBlocking({ ...dated, status }, false)).toBe(true);
+    for (const status of ["confirmed", "closed"] as const) expect(isBlocking({ ...dated, status }, false)).toBe(true);
   });
 
   it("une option ou un report en cours ne bloque que si l'organisation l'a réglé", () => {

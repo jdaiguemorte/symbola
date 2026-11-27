@@ -7,9 +7,19 @@ import type { MonthlyCount } from "../usage";
 import type { EventsSearchResults } from "../search";
 import type { TaskDueState } from "./planning";
 // Lot 34a (EVT-05, ADR 0055) : statuts stockés ; EventPhase ajoute « Jour J », qui s'applique de
-// lui-même le jour de l'événement, dans son fuseau (décision D3).
-export type EventStatus = "option" | "confirmed" | "in_preparation" | "closed" | "postponed" | "cancelled";
+// lui-même le jour de l'événement, dans son fuseau (décision D3). Lot 72a (J1, ADR 0121) : « En
+// préparation » est retiré ; un évènement signé est « Confirmé » (« Signé, en préparation » à l'écran).
+export type EventStatus = "option" | "confirmed" | "closed" | "postponed" | "cancelled";
 export type EventPhase = EventStatus | "day_of";
+
+// Lot 72a (EVT-05 ; E1, J1) : les quatre étapes de la frise. Reporté et Annulé ne sont pas des étapes :
+// la frise laisse alors place à une ligne d'état.
+export const EVENT_DISPLAY_STEPS = ["request", "signed", "day_of", "closed"] as const;
+export type EventDisplayStep = (typeof EVENT_DISPLAY_STEPS)[number];
+
+// Lot 72a (EVT-05, J2) : les tâches faites d'un évènement, et celles en retard (état d'échéance unique
+// du lot 70a), hors tâches supprimées.
+export type EventTaskProgress = { done: number; total: number; late: number };
 
 export type EventClient = {
   id: string;
@@ -40,6 +50,8 @@ export type EventClientInput = {
 } & Partial<EventClientContact>;
 
 // Lot 13 (L13-EVT-19) — date (AAAA-MM-JJ, Paris) du dernier passage dans chaque statut.
+// Lot 72a (E2, J2) : la date d'une étape est sa date effective (« Signé le », posée par « Le contrat est
+// signé… », et le jour d'une annulation) ; à défaut, le jour du changement dans le fuseau de l'évènement.
 export type EventStatusDates = Partial<Record<EventStatus, string>>;
 
 // Lot 13 (L13-HUB-15) — prospect sans nouvelle, pour le bloc « À traiter ».
@@ -67,6 +79,9 @@ export type EventSummary = {
   name?: string | null;
   // Lot 58 (PAR-09 ; ADR 0097) : archivé (lecture seule, hors des listes courantes) ; absent : non archivé.
   archivedAt?: string | null;
+  // Lot 72a (EVT-07, UX-01) : les tâches faites et en retard ; rendu par listEvents quand on le demande
+  // (withTaskProgress), absent ailleurs.
+  taskProgress?: EventTaskProgress;
 };
 
 // Lot 38b (HUB-29 ; D11, D12) — un évènement du flux de calendrier de l'équipe : daté, ni essai, ni
@@ -142,7 +157,13 @@ export type ListEventsInput = {
   // Lot 58 (PAR-09 ; ADR 0097) : « exclude » (les listes courantes), « only » (filtre « Archivés »),
   // « include » (par défaut : recherche, calendrier, fiche d'un contact).
   archived?: "exclude" | "only" | "include" | undefined;
+  // Lot 72a : joindre à chaque évènement le compte de ses tâches (une requête groupée).
+  withTaskProgress?: boolean | undefined;
 };
+
+// Lot 72a (EVT-05 ; E2, J2) : « Le contrat est signé… » ; la date de signature, au plus aujourd'hui (dans
+// le fuseau de l'évènement) et au plus tôt un an avant la création de l'évènement.
+export type MarkContractSignedInput = { organizationId: string; eventId: string; changedByUserId: string; signedOn: string; now?: Date };
 
 export type CreateProspectInput = {
   organizationId: string;
@@ -1024,6 +1045,8 @@ export interface EventsServiceContract {
   getEvent(organizationId: string, eventId: string): Promise<EventDetail | null>;
   createProspect(input: CreateProspectInput): Promise<CreateProspectResult>;
   changeEventStatus(input: ChangeEventStatusInput): Promise<void>;
+  markContractSigned(input: MarkContractSignedInput): Promise<void>;
+  taskProgressByEvent(organizationId: string, eventIds: string[], today: string): Promise<Map<string, EventTaskProgress>>;
   listProspectSources(organizationId: string): Promise<ProspectSource[]>;
   // Lot 16 (ADR 0045) — types d'événement.
   listEventTypes(organizationId: string): Promise<EventType[]>;

@@ -28,7 +28,6 @@ const SCREEN_DIRS = ["apps/symbola/app", "apps/symbola/modules", "packages/ui/sr
  */
 const MARKERS: readonly string[] = [
   // Accueil, démarrage, aide, notifications, tâches.
-  "today-risks",
   "setup",
   "onboarding",
   "onboarding-ready",
