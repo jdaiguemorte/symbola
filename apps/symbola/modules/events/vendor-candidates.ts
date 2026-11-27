@@ -67,6 +67,7 @@ function toCandidate(row: CandidateRow, notes: NoteRow[]): VendorCandidate {
     shownToClients: row.shownToClients,
     shareRibWithClients: row.shareRibWithClients,
     outcome: isEngaged(row.status) ? "selected" : row.status === "dismissed" ? "not_selected" : null,
+    retainedAt: row.retainedAt?.toISOString() ?? null,
     notes: notes
       .filter((note) => note.candidateId === row.id)
       .map((note) => ({ id: note.id, body: note.body, visibleToClients: note.visibleToClients, createdAt: note.createdAt.toISOString() })),
@@ -370,6 +371,7 @@ export async function listConsultations(organizationId: string, vendorId: string
         eventDate: events.eventDate,
         slotId: eventVendorSlots.id,
         slotLabel: eventVendorSlots.label,
+        candidateId: eventVendorCandidates.id,
         status: eventVendorCandidates.status,
         quotedCents: eventVendorCandidates.quoteAmountCents,
       })
@@ -388,6 +390,8 @@ export async function listConsultations(organizationId: string, vendorId: string
     slotLabel: row.slotLabel,
     outcome: isEngaged(row.status) ? "selected" : row.status === "dismissed" ? "not_selected" : "pending",
     quotedCents: row.quotedCents,
+    candidateId: row.candidateId,
+    status: row.status,
   }));
 }
 

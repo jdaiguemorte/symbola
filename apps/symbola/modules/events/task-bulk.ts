@@ -164,13 +164,15 @@ export async function undoTasksChange(input: { organizationId: string; userId: s
   return withOrganization(appDatabase(), input.organizationId, async (tx) => {
     const [snapshot] = await tx
       .delete(taskChangeSnapshots)
-      .where(and(eq(taskChangeSnapshots.id, input.undoId), eq(taskChangeSnapshots.userId, input.userId), gt(taskChangeSnapshots.expiresAt, now)))
+      .where(and(eq(taskChangeSnapshots.id, input.undoId), eq(taskChangeSnapshots.userId, input.userId), gt(taskChangeSnapshots.expiresAt, now), sql`${taskChangeSnapshots.payload} ->> 'kind' <> 'vendor_addition'`))
       .returning();
-    if (!snapshot) return 0;
+    // Lot 73a : la même table garde l'état d'avant d'un ajout à un mariage, qui ne s'annule pas ici.
+    if (!snapshot || snapshot.payload.kind === "vendor_addition") return 0;
+    const payload = snapshot.payload;
     let restored = 0;
-    for (const task of snapshot.payload.tasks) {
+    for (const task of payload.tasks) {
       const values =
-        snapshot.payload.kind === "date"
+        payload.kind === "date"
           ? { dueDate: task.dueDate, fixedAt: task.fixedAt ? new Date(task.fixedAt) : null }
           : { responsible: task.responsible, vendorCandidateId: task.vendorCandidateId, assigneeUserId: task.responsible === "planner" ? await stillAssignable(tx, input.organizationId, task.assigneeUserId) : null };
       const rows = await tx

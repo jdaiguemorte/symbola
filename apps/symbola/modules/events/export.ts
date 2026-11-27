@@ -202,7 +202,7 @@ export const EVENTS_EXPORT_EXCLUSIONS: Readonly<Record<string, string>> = {
   // Lot 55 (POR-11).
   link_push_subscriptions: "technique : abonnements push des appareils des clients (adresse du service de push, clés publiques), propres à chaque appareil",
   // Lot 70a (A18).
-  task_change_snapshots: "technique : valeurs d'avant d'un changement de date ou de personne, pour « Annuler », purgées après dix minutes",
+  task_change_snapshots: "technique : valeurs d'avant d'un changement de date ou de personne, ou d'un ajout de prestataire à un mariage (lot 73a), pour « Annuler », purgées après dix minutes",
 };
 
 export function exportEventsData(organizationId: string, context: ModuleExportContext): Promise<ModuleExport> {

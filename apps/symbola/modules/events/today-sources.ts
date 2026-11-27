@@ -3,7 +3,7 @@
 // retenus sans contrat signé, relance d'un prestataire inscrite dans l'activité. Jamais importé hors
 // de modules/events/ (ADR 0011) ; tout se lit et s'écrit sous RLS, dans l'organisation. Les essais
 // et les évènements clos (faits ou perdus) ne demandent rien.
-import { and, asc, desc, eq, exists, gt, gte, isNull, lte, notExists, notInArray, or } from "drizzle-orm";
+import { and, asc, desc, eq, exists, gt, gte, isNull, lte, notExists, notInArray, or, sql } from "drizzle-orm";
 import { appDatabase } from "@symbola/db/client";
 import { eventActivities, eventDecisions, events, eventVendorCandidateNotes, eventVendorCandidates, eventVendorSlots, vendorReminders } from "@symbola/db/schema/events";
 import { withOrganization } from "@symbola/db/with-organization";
@@ -53,7 +53,8 @@ export async function findUncontractedVendors(organizationId: string, today: str
           ),
         ),
       )
-      .orderBy(asc(eventVendorCandidates.updatedAt)),
+      // Lot 73a : le plus anciennement retenu d'abord (les retenus d'avant ce lot, sans date, à la fin).
+      .orderBy(sql`${eventVendorCandidates.retainedAt} asc nulls last`, asc(eventVendorCandidates.createdAt)),
   );
 }
 
@@ -70,7 +71,7 @@ export async function insertVendorReminder(input: {
   remindedOn: string;
   recallOn: string | null;
   note: string | null;
-}): Promise<{ vendorName: string; vendorId: string | null; slotLabel: string } | null> {
+}): Promise<{ reminderId: string; vendorName: string; vendorId: string | null; slotLabel: string } | null> {
   return await withOrganization(appDatabase(), input.organizationId, async (tx) => {
     const [found] = await tx
       .select({ candidate: eventVendorCandidates, slotLabel: eventVendorSlots.label })
@@ -82,15 +83,20 @@ export async function insertVendorReminder(input: {
     const [note] = input.note
       ? await tx.insert(eventVendorCandidateNotes).values({ organizationId: input.organizationId, candidateId: candidate.id, body: input.note, visibleToClients: false, createdByUserId: input.userId }).returning({ id: eventVendorCandidateNotes.id })
       : [];
-    await tx.insert(vendorReminders).values({
-      organizationId: input.organizationId,
-      eventId: input.eventId,
-      candidateId: candidate.id,
-      channel: input.channel,
-      remindedOn: input.remindedOn,
-      recallOn: input.recallOn,
-      noteId: note?.id ?? null,
-    });
+    // Lot 73a : l'auteur est écrit (« Annuler » n'appartient qu'à lui).
+    const [reminder] = await tx
+      .insert(vendorReminders)
+      .values({
+        organizationId: input.organizationId,
+        eventId: input.eventId,
+        candidateId: candidate.id,
+        channel: input.channel,
+        remindedOn: input.remindedOn,
+        recallOn: input.recallOn,
+        noteId: note?.id ?? null,
+        createdBy: input.userId,
+      })
+      .returning({ id: vendorReminders.id });
     await tx.insert(eventActivities).values({
       organizationId: input.organizationId,
       eventId: input.eventId,
@@ -100,7 +106,7 @@ export async function insertVendorReminder(input: {
       taskLabel: "",
       vendorCandidateId: candidate.id,
     });
-    return { vendorName: candidate.vendorName, vendorId: candidate.vendorId, slotLabel: found.slotLabel };
+    return { reminderId: reminder!.id, vendorName: candidate.vendorName, vendorId: candidate.vendorId, slotLabel: found.slotLabel };
   });
 }
 
