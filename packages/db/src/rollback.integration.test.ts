@@ -344,6 +344,8 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
 
     // Annulations : la sorte de notification et ses lignes partent ; nom, seuil, note bloquent.
     await target`insert into hub.notifications (organization_id, user_id, type, object_key, href) values (${organizationId}, ${lea}, 'task_assigned', 'assign:1', '/taches')`;
+    // Lot 72a : les migrations plus récentes s'annulent d'abord.
+    await rollbackNewerThan(LOT_70A[0]!);
     await rollback(LOT_70A[0]!);
     expect((await target`select 1 from hub.notifications where organization_id = ${organizationId}`).length).toBe(0);
     await expect(rollback(LOT_70A[1]!)).rejects.toThrow(/prénom ou un nom/);
