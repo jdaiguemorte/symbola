@@ -65,7 +65,7 @@ test("RGPD-03 — la titulaire prévisualise puis valide l'oubli ; la demande se
   await expect(page).toHaveURL(/\/rgpd\/demandes\/[0-9a-f-]{36}\?etape=/);
   const caseUrl = page.url().split("?")[0]!;
   await expect(page.getByLabel("Nom")).toHaveValue(`Élodie ${lastName}`);
-  await page.getByRole("button", { name: "Rechercher", exact: true }).click();
+  await page.locator("main").getByRole("button", { name: "Rechercher", exact: true }).click();
   await expect(page.getByRole("heading", { name: /données trouvées/ })).toBeVisible();
   await page.getByRole("button", { name: "Tout cocher" }).click();
 
@@ -101,7 +101,7 @@ test("RGPD-03 — la titulaire prévisualise puis valide l'oubli ; la demande se
   // La personne est introuvable ; la demande est close.
   await page.goto("/rgpd/recherche");
   await page.getByLabel("Nom").fill(`Élodie ${lastName}`);
-  await page.getByRole("button", { name: "Rechercher", exact: true }).click();
+  await page.locator("main").getByRole("button", { name: "Rechercher", exact: true }).click();
   await expect(page.getByText("Aucune donnée ne correspond à cette personne.")).toBeVisible();
   await page.goto("/rgpd");
   await expect(page.getByRole("row").filter({ hasText: `Élodie ${lastName}` })).toContainText("Close");

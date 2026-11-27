@@ -116,25 +116,27 @@ test("SC-03 / HUB-08 / UX-01 / UX-06 / EVT-02 — lundi matin : les urgences, an
   const first = page.getByRole("region", { name: "À traiter en premier" });
   const items = first.getByRole("listitem");
   await expect(items).toHaveCount(7);
-  const tasks = first.getByRole("list", { name: /^Tâches en retard ou à faire sous 14 jours \(\d+\)$/ });
+  // Lot 72b (A1, C-20) : « Tâches 5 sur 9 » ; le compte du haut est la somme des lignes de la carte et du reste.
+  await expect(page.locator(".today-count")).toHaveText(/^\d+ points (à traiter )?d'ici 14 jours, dont \d+ en retard$/);
+  const tasks = first.getByRole("list", { name: /^Tâches \d+ sur \d+$/ });
   await expect(tasks.getByRole("listitem").nth(0)).toContainText("Relancer la mairie");
   await expect(tasks.getByRole("listitem").nth(0)).toContainText("Chloé & Paul");
   await expect(tasks.getByRole("listitem").nth(0)).toContainText("En retard de 5 jours");
   await expect(tasks.getByRole("listitem").nth(0)).toContainText("Vous");
   await expect(tasks.getByRole("listitem").nth(1)).toContainText("Faire signer le contrat du photographe");
-  await expect(first.getByRole("link", { name: "Voir toutes les tâches ›" })).toHaveAttribute("href", "/taches");
-  const payments = first.getByRole("list", { name: /^Paiements \(\d+\)$/ });
+  await expect(first.getByRole("link", { name: /^Voir les \d+ dans Tâches$/ })).toHaveAttribute("href", "/taches");
+  const payments = first.getByRole("list", { name: /^Paiements( \d+( sur \d+)?)?$/ });
   await expect(payments.getByRole("listitem").first()).toContainText("Acompte à la signature");
   await expect(payments.getByRole("listitem").first()).toContainText("Attend le client");
-  await expect(first.getByRole("link", { name: "Voir les encaissements ›" })).toHaveAttribute("href", "/devis/encaissements");
-  // Lot 72a : à 360 px, l'en-tête actuel laisse la troisième ligne juste sous le pli ; la refonte de
-  // l'accueil sur téléphone (paquet 72b, critère 7 : première ligne à 260 px au plus) rétablit les trois.
-  for (const index of page.viewportSize()!.width < 375 ? [0, 1] : [0, 1, 2]) await expect(items.nth(index)).toBeInViewport();
-  // Le calendrier, sous la liste, commence dans la partie visible d'un écran courant (1 366 × 768).
-  if (page.viewportSize()!.width >= 1280) {
-    await page.setViewportSize({ width: 1366, height: 768 });
-    await expect(page.locator("#calendrier")).toBeInViewport();
-  }
+  await expect(first.getByRole("link", { name: "Voir les encaissements" })).toHaveAttribute("href", "/devis/encaissements");
+  // UX-01, PAR-03 : les trois urgences sans défiler, à toutes les tailles, 360 px compris (lot 72b, critère 7).
+  for (const index of [0, 1, 2]) await expect(items.nth(index)).toBeInViewport();
+  // Lot 72b (A5) : « Mes évènements » remonte sous la liste, avant le calendrier.
+  const myEventsTop = (await page.getByRole("region", { name: "Mes évènements" }).boundingBox())!.y;
+  expect(myEventsTop).toBeLessThan((await page.locator("#calendrier").boundingBox())!.y);
+  // Lot 72b (M15, C-20) : au-delà des sept lignes, « Tout afficher » ouvre le reste dans la carte, sur place.
+  await first.getByRole("button", { name: "Tout afficher" }).click();
+  await expect(page).toHaveURL(/\?tout=1$/);
   await expect(page.getByText("Attend Studio Lumière").first()).toBeVisible();
   await expect(page.getByRole("region", { name: "Mes évènements" })).toContainText("Léa & Maxime");
   await expectNoAxeViolation(page);

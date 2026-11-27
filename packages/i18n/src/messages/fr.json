@@ -70,8 +70,6 @@
     "myProfile": "Mon profil",
     "settings": "Paramètres",
     "administration": "Exploitation",
-    "onboardingIncomplete": "Votre fiche entreprise n'est pas encore complète.",
-    "completeProfile": "La compléter",
     "events": "Évènements",
     "budgetModels": "Modèles de budget",
     "quoteCatalog": "Catalogue des devis",
@@ -154,6 +152,8 @@
     "appointments": "Rendez-vous",
     "settingsAppointments": "Types et page de réservation",
     "appointmentAvailability": "Mes disponibilités",
+    "tabBarLabel": "Navigation principale",
+    "more": "Plus",
     "takeover": "Reprendre un mariage en cours"
   },
   "Admin": {
@@ -468,7 +468,7 @@
     },
     "home": {
       "title": "Aujourd'hui",
-      "body": "Ce qui demande votre attention, tous évènements confondus, d'ici quatorze jours : un point est une ligne, une chose à faire ou à surveiller, et le nombre du haut les compte toutes. Les retards viennent d'abord, du plus ancien au plus récent, puis tout le reste par date, quel que soit qui doit agir. « À traiter en premier » en garde les sept premiers points, regroupés par nature (relances et messages, tâches, paiements, décisions et signatures, prospects, « À regarder » pour les alertes du radar) ; quand la ligne attend les mariés ou un prestataire, le nom et les coordonnées de la personne à joindre sont sous son titre ; chaque partie dit son nombre et mène à sa page (« Voir dans Tâches », « Voir les encaissements »…), chaque ligne dit qui doit agir et mène à l'action en un clic ; une tâche y prend la même ligne que dans « Tâches », sans menu : son titre ouvre son panneau, le nom du mariage mène à sa fiche, « Fait » la coche, et « Les revoir » montre les tâches faites aujourd'hui. Dessous, sur toute la largeur, le calendrier : vos évènements, vos rendez-vous, vos tâches de la couleur de leur catégorie et les échéances de paiement des prestataires non réglées ; « ‹ », « Aujourd'hui » et « › » le feuillettent, « Mois », « Semaine » et « Liste » changent la vue, un clic sur un jour en montre le détail. Sur téléphone, la semaine en cours. Puis le reste des points, et vos évènements en cours, avec le compte à rebours. « À envoyer » : un message de la relation préparé par Symbola (relance, rappel, brief…), à envoyer de votre messagerie ; un clic ouvre la fenêtre « Préparer l'e-mail ».",
+      "body": "Ce qui demande votre attention, tous évènements confondus, d'ici quatorze jours. Un point est une chose à faire ou à surveiller d'ici quatorze jours : chaque point est une ligne, et le nombre du haut (« 7 points à traiter d'ici 14 jours, dont 2 en retard ») les compte toutes. Les retards viennent d'abord, du plus ancien au plus récent, puis tout le reste par date, quel que soit qui doit agir. Rien ne passe avant la liste, sauf une alerte qui bloque un envoi ou une obligation (plafond d'e-mails, rappels arrêtés, demande RGPD qui arrive à échéance). « À traiter en premier » montre les sept premiers points, regroupés par nature (relances et messages, tâches, paiements, décisions et signatures, prospects, « À regarder » pour les alertes du radar) ; une partie dit « 4 sur 7 » quand elle n'est pas montrée en entier, et « Tout afficher », au bas de la carte, ouvre le reste sur place. Chaque ligne dit son mariage (un lien vers sa fiche), son échéance en mots et qui doit agir : « Vous », une collègue, « Attend le client » ou le prestataire attendu, avec, sous le titre, le nom et le téléphone de la personne à appeler (sur téléphone, un toucher appelle). Le titre d'une tâche ouvre son panneau par-dessus l'accueil, et « Fermer » vous rend la même ligne ; « Fait » la coche, avec « Annuler » dix secondes ; « Noter une relance » note une relance faite à un prestataire ; « Les revoir » montre les tâches faites aujourd'hui. Dessous, « Mes évènements » : chaque mariage en cours, son compte à rebours et ses points (« 6 points, dont 2 en retard », « Pas encore de tâches », « À jour »). Puis le calendrier : vos évènements, vos rendez-vous, vos tâches de la couleur de leur catégorie et les échéances de paiement des prestataires non réglées ; « ‹ », « Aujourd'hui » et « › » le feuillettent, « Mois », « Semaine » et « Liste » changent la vue, un clic sur un jour en montre le détail. Sur téléphone, la semaine en cours. En bas, « Pour bien démarrer » dit les étapes qui restent ; « Masquer » la retire pour vous, sur tous vos appareils. Dans un espace neuf, l'écran propose une seule chose : créer votre premier mariage, ou reprendre un mariage en cours si vous suivez déjà vos mariages dans un tableur ou un logiciel. « À envoyer » : un message de la relation préparé par Symbola (relance, rappel, brief…), à envoyer de votre messagerie ; un clic ouvre la fenêtre « Préparer l'e-mail ». Sur téléphone, la barre du bas mène à Aujourd'hui, Évènements, Tâches (avec le nombre de tâches en retard) et Prestataires ; « Plus » ouvre le reste : Contacts, Rendez-vous, Devis et factures, Encaissements, Tous les modules, Paramètres, Tutoriels, Aide, puis votre compte et « Se déconnecter ». Il se ferme par Échap, un glissé vers le bas, un toucher dehors ou le retour arrière. Un module que vous n'avez pas laisse sa place dans la barre à l'entrée suivante de « Plus ».",
       "faq": [
         {
           "q": "Comment changer les délais de relance des devis et des prospects ?",
@@ -1010,7 +1010,7 @@
     },
     "search": {
       "title": "Recherche",
-      "body": "La barre du haut cherche dans toute votre organisation : évènements et clients, devis et factures, tâches et fiches d'aide. Tapez un nom, un numéro de devis ou un mot comme « TVA ». Le raccourci ⌘K (Ctrl K sur PC) y place le curseur depuis n'importe quel écran."
+      "body": "La barre du haut cherche dans toute votre organisation : évènements et clients, devis et factures, tâches et fiches d'aide. Tapez un nom, un numéro de devis ou un mot comme « TVA ». Le raccourci ⌘K (Ctrl K sur PC) y place le curseur depuis n'importe quel écran. Sur téléphone, la loupe de la barre du haut ouvre la recherche en page entière ; « Fermer la recherche » ou Échap la referme."
     },
     "tutorials": {
       "title": "Tutoriels",
@@ -4602,7 +4602,9 @@
     "dayTomorrow": "demain",
     "dayYesterday": "hier",
     "dayFuture": "dans {days, plural, one {# jour} other {# jours}}",
-    "dayPast": "il y a {days, plural, one {# jour} other {# jours}}"
+    "dayPast": "il y a {days, plural, one {# jour} other {# jours}}",
+    "openFullScreen": "Rechercher",
+    "closeFullScreen": "Fermer la recherche"
   },
   "AdminOnboarding": {
     "title": "Prise en main des organisations",
@@ -5743,11 +5745,23 @@
     },
     "checklist": {
       "title": "Pour bien démarrer",
-      "progress": "{done} sur {total} faits",
-      "done": "fait",
       "items": {
         "essentials": "Régler l'essentiel : société, adresse, TVA",
         "first_vendor": "Ajouter un premier prestataire"
+      },
+      "count": "{done} sur {total}",
+      "remaining": "reste : {steps}",
+      "hide": "Masquer",
+      "hiddenMessage": "« Pour bien démarrer » est masqué.",
+      "shownMessage": "« Pour bien démarrer » est revenu.",
+      "hideFailed": "« Pour bien démarrer » n'a pas pu être masqué. Réessayez.",
+      "short": {
+        "essentials": "régler l'essentiel",
+        "first_vendor": "un premier prestataire"
+      },
+      "action": {
+        "essentials": "Compléter",
+        "first_vendor": "Ajouter"
       }
     }
   },
@@ -7485,9 +7499,7 @@
   },
   "Today": {
     "title": "Aujourd'hui",
-    "summary": "{date} · {events, plural, =0 {aucun évènement en cours} one {# évènement en cours} other {# évènements en cours}} · {points, plural, =0 {rien ne presse} one {# point demande votre attention} other {# points demandent votre attention}}",
     "firstTitle": "À traiter en premier",
-    "firstEmpty": "Rien ne presse : tout est à jour.",
     "group": {
       "overdue": "En retard",
       "today": "Aujourd'hui",
@@ -7510,7 +7522,9 @@
       "checkTask": "Fait",
       "checkTaskLabel": "Fait : « {label} »",
       "open": "Ouvrir",
-      "openLabel": "Ouvrir : {title}"
+      "openLabel": "Ouvrir : {title}",
+      "act": "Agir",
+      "actLabel": "Agir : {title}"
     },
     "words": {
       "clientTask": "Tâche confiée au client",
@@ -7564,7 +7578,6 @@
     "countdown": "{days, plural, =0 {aujourd'hui} one {demain} other {dans # jours}}",
     "countdownPast": "passé",
     "dateUnset": "Date à fixer",
-    "points": "{count, plural, one {# point à traiter} other {# points à traiter}}",
     "upToDate": "À jour",
     "undo": {
       "taskDone": "Tâche faite : {label}",
@@ -7612,7 +7625,6 @@
       "show": "Afficher",
       "hint": "Devis signés, factures moins avoirs, et encaissements moins annulations (arrhes comprises), sur l'année civile."
     },
-    "restTitle": "Ensuite",
     "unavailable": "Une partie des urgences ne répond pas pour le moment ({sources}) : le reste de la liste est à jour.",
     "source": {
       "events": "évènements",
@@ -7666,19 +7678,20 @@
       "listLabel": "Les jours du mois qui ont quelque chose"
     },
     "parts": {
-      "follow_ups": "Relances et messages ({count})",
-      "tasks": "Tâches en retard ou à faire sous {days} jours ({count})",
-      "payments": "Paiements ({count})",
-      "decisions": "Décisions et signatures ({count})",
-      "prospects": "Prospects et demandes ({count})",
-      "others": "Autres points ({count})",
-      "watch": "À regarder ({count})"
+      "follow_ups": "Relances et messages",
+      "tasks": "Tâches",
+      "payments": "Paiements",
+      "decisions": "Décisions et signatures",
+      "prospects": "Prospects et demandes",
+      "others": "Autres points",
+      "watch": "À regarder"
     },
     "partLink": {
-      "tasks": "Voir toutes les tâches",
+      "tasks": "Voir dans Tâches",
       "payments": "Voir les encaissements",
       "pipeline": "Voir les prospects",
-      "event": "Voir l'évènement"
+      "event": "Voir l'évènement",
+      "tasksAll": "Voir les {count} dans Tâches"
     },
     "reminder": {
       "button": "Noter une relance",
@@ -7713,6 +7726,31 @@
       "saved": "Relance notée. Rappel le {date}.",
       "savedNoRecall": "Relance notée.",
       "invalid": "Vérifiez la date et le moyen de la relance."
+    },
+    "eventsInProgress": "{count, plural, =0 {aucun évènement<long> en cours</long>} one {# évènement<long> en cours</long>} other {# évènements<long> en cours</long>}}",
+    "count": "{points, plural, one {# point} other {# points}} <long>à traiter </long>d'ici {days} jours{late, plural, =0 {} other {, dont <red># en retard</red>}}",
+    "countNone": "Aucun point à traiter d'ici {days} jours",
+    "countQuiet": "Aucun point à traiter d'ici {days} jours : {count, plural, one {votre mariage n'a} other {vos # mariages n'ont}} pas encore de tâches.",
+    "cardPoints": "{count, plural, =0 {0 point} one {# point} other {# points}}",
+    "partOf": "{shown} sur {total}",
+    "restLine": "{count, plural, one {# autre point} other {# autres points}} d'ici {days} jours",
+    "showAll": "Tout afficher",
+    "quietBody": "Rien d'ici {days} jours. Les échéances arriveront avec les tâches : <import>reprendre la liste de votre tableur</import> ou <template>partir d'un modèle</template>, depuis chaque mariage.",
+    "noneBody": "Rien d'ici {days} jours : ni retard, ni échéance, ni attente.",
+    "myEventsCount": "{count} en cours",
+    "allEvents": "Tous les évènements",
+    "eventPoints": "{points, plural, one {# point} other {# points}}{late, plural, =0 {} other {, dont <red># en retard</red>}}",
+    "noTasksYet": "Pas encore de tâches",
+    "empty": {
+      "title": "Commencez par votre premier mariage",
+      "body": "Symbola part de vos évènements : une fois le premier créé, cet écran vous dit chaque matin ce qui presse, pour qui et quand.",
+      "newEvent": "Nouvel évènement",
+      "otherTakeover": "Vous suivez déjà vos mariages dans un autre logiciel ou un tableur ?",
+      "otherTakeoverLink": "Reprendre ses fichiers",
+      "takeoverTitle": "Commencez par reprendre un mariage en cours",
+      "takeoverBody": "Ses prestataires, son budget, ses tâches et son programme arrivent tels qu'ils sont.",
+      "takeoverAction": "Reprendre un mariage",
+      "otherNew": "Un mariage qui commence ?"
     }
   },
   "QuickCreate": {
@@ -13462,7 +13500,8 @@
     "profile": "Mon compte",
     "profileHint": "Nom, connexion, sécurité",
     "switch": "Changer d'organisation",
-    "switchHint": "Ou en créer une autre"
+    "switchHint": "Ou en créer une autre",
+    "phoneIdentity": "{name} · {organization}"
   },
   "Takeover": {
     "title": "Reprendre un mariage en cours",

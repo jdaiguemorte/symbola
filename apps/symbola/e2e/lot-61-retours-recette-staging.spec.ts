@@ -63,7 +63,8 @@ test("UX-13 (L13-HUB-16) — Les rubriques du menu des Paramètres s'ouvrent dan
     await openMenu(page);
     await expect(mainMenu(page).getByRole("link", { name: "Paramètres", exact: true })).toHaveAttribute("aria-current", "page");
     await expect(mainMenu(page).getByRole("link", { name: "Devis et factures", exact: true })).not.toHaveAttribute("aria-current", "page");
-    await expect(mainMenu(page).getByRole("link", { name: "Évènements", exact: true })).not.toHaveAttribute("aria-current", "page");
+    // Lot 70f : sur téléphone, « Évènements » est dans la barre du bas (masqué dans « Plus ») : visé par son adresse.
+    await expect(mainMenu(page).locator('a[href="/events"]')).not.toHaveAttribute("aria-current", "page");
   }
   // Les deux rubriques de relances ne se confondent plus : chacune dit son objet et renvoie à l'autre.
   await page.goto("/devis/relances");

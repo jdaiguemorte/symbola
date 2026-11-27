@@ -19,6 +19,8 @@ import { TaskDoneButton } from "./task-done-button";
 import { TaskDatePanel, type DateShortcutOption } from "./task-date-panel";
 import { TaskAssignPanel, type AssignOption } from "./task-assign-panel";
 import { TaskPopover, usePopover } from "./task-popover";
+import { LineContact } from "./line-contact";
+import type { ContactParts } from "@/lib/today/home";
 
 // Lot 70d : un en-tête de groupe peut dire autre chose que son nombre de tâches (« 12 juin 2027 · 2 tâches »,
 // « 2 en retard · 6 à faire ») et mener ailleurs (« Ouvrir la fiche »).
@@ -145,6 +147,8 @@ export function TaskLine({
   selected = false,
   onSelect,
   doneColumns = false,
+  contact,
+  rest = false,
 }: {
   line: TaskLineView;
   form: TaskLineForm;
@@ -155,12 +159,16 @@ export function TaskLine({
   onSelect?: () => void;
   // Lot 70d (D1) : la vue « Faites » : « Faite le » et « Cochée par » à la place de l'échéance et de la personne.
   doneColumns?: boolean;
+  // Lot 72b (UX-13, M4) : sur « Aujourd'hui », qui appeler quand la tâche attend les mariés ; et une ligne du
+  // reste de la carte, que « Tout afficher » montre.
+  contact?: ContactParts | null;
+  rest?: boolean;
 }) {
   const t = useTranslations("TaskLine");
   const parts = lineParts(form);
   const done = doneColumns ? line.doneInfo : null;
   return (
-    <li className="task-line" data-form={form} data-due={line.due?.kind ?? undefined} data-done={line.done ? "true" : undefined} data-selected={selected ? "true" : undefined}>
+    <li className="task-line" data-form={form} data-due={line.due?.kind ?? undefined} data-done={line.done ? "true" : undefined} data-selected={selected ? "true" : undefined} data-rest={rest ? "true" : undefined}>
       {selecting ? (
         <label className="task-line-select">
           <input type="checkbox" checked={selected} onChange={onSelect} />
@@ -178,6 +186,7 @@ export function TaskLine({
           </span>
         ) : null}
       </span>
+      {contact ? <LineContact contact={contact} /> : null}
       {parts.eventColumn ? (
         <span className="task-line-event">
           {parts.eventLink && line.event ? (

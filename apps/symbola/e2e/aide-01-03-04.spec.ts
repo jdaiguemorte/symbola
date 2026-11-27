@@ -58,7 +58,7 @@ test("HUB-11 / AIDE-03 — visite guidée de l'accueil, aide consultable", async
   // « Suivant », « Précédent » ; le focus reste dans la bulle (Tab ne sort pas).
   await expect(tour.getByRole("button", { name: "Précédent" })).toHaveCount(0);
   await tour.getByRole("button", { name: "Suivant" }).click();
-  await expect(tour.getByRole("heading", { name: "Le reste, par urgence", level: 2 })).toBeVisible();
+  await expect(tour.getByRole("heading", { name: "Un point, une ligne", level: 2 })).toBeVisible();
   await tour.getByRole("button", { name: "Précédent" }).click();
   await expect(tour.getByRole("heading", { name: "Votre priorité du jour", level: 2 })).toBeVisible();
   for (let index = 0; index < 6; index += 1) {
@@ -105,7 +105,8 @@ test("HUB-11 / AIDE-03 — visite guidée de l'accueil, aide consultable", async
   // Lot 13 (L13-HUB-15) : plus de liste « premiers pas » ni de barre d'aide
   // permanente ; l'accueil montre ce qui attend (lot 32a : « Aujourd'hui »).
   await expect(page.getByRole("heading", { name: "Premiers pas" })).toHaveCount(0);
-  await expect(page.getByRole("heading", { name: "À traiter en premier" })).toBeVisible();
+  // Lot 72b (C-15) : un espace neuf commence par son état vide, qui porte la seule action principale.
+  await expect(page.getByRole("heading", { name: "Commencez par votre premier mariage" })).toBeVisible();
   await expect(page.getByRole("complementary", { name: "Barre d'aide" })).toHaveCount(0);
 
   // AIDE-03, AIDE-12 : le centre d'aide présente chaque écran en vignette,

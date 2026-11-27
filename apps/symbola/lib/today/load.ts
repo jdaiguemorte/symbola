@@ -646,7 +646,7 @@ export async function loadTodayItems(
   const today = parisToday(now);
   const unavailable: TodaySource[] = [];
   // Lot 58 (PAR-09, étape 5) : un évènement archivé sort d'« Aujourd'hui ».
-  const listed = modules.events ? await settleWithin(() => listEvents({ organizationId, archived: "exclude" }), timeoutMs, "events") : { ok: true as const, value: [] };
+  const listed = modules.events ? await settleWithin(() => listEvents({ organizationId, archived: "exclude", withTaskProgress: true }), timeoutMs, "events") : { ok: true as const, value: [] };
   if (!listed.ok) unavailable.push("events");
   const events = listed.ok ? listed.value : [];
   const namesOf = new Map(events.map((event) => [event.id, eventNames(event.clients, event.name)]));

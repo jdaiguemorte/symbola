@@ -16,7 +16,7 @@ import {
   listEventVendorSlots,
 } from "../modules/events/service";
 import { createVendor } from "../modules/vendors/service";
-import { clickMenuLink, closeSlotWindow, openMenu, openSettingsRubric, openSlotDetails, openSlotWindow, readyOrganization, signIn as signInByLink, slotWindow } from "./helpers";
+import { clickMenuLink, closeSlotWindow, openSearch, openSettingsRubric, openSlotDetails, openSlotWindow, readyOrganization, signIn as signInByLink, slotWindow } from "./helpers";
 
 async function expectNoAxeViolation(page: Page) {
   const result = await new AxeBuilder({ page }).analyze();
@@ -172,8 +172,8 @@ test("L11-PRE-01 à L11-PRE-07 / L11-HUB-12 — créer ses fiches, filtrer autou
   await expectNoAxeViolation(page);
 
   // Carnet : type, au moins 40 couchages, à moins de 15 km de Lille.
-  await openMenu(page);
-  await page.locator("#app-menu").getByRole("link", { name: "Prestataires", exact: true }).click();
+  // Lot 70f : sur téléphone, « Prestataires » est dans la barre du bas.
+  await clickMenuLink(page, "Prestataires");
   await expect(page.getByRole("heading", { level: 1, name: "Carnet de prestataires" })).toBeVisible();
   // Lot 16 (L16-PRE-14) : la famille, puis le type en second rang.
   await page.getByRole("navigation", { name: "Familles de prestataires" }).getByRole("link", { name: /^Lieux et hébergement/ }).click();
@@ -204,6 +204,8 @@ test("L11-PRE-01 à L11-PRE-07 / L11-HUB-12 — créer ses fiches, filtrer autou
   expect(await csv.text()).toContain("Hôtel du Beffroi");
 
   // Recherche globale : la fiche se retrouve par son nom.
+  // Lot 70f : sur téléphone, la loupe ouvre la recherche en page entière.
+  await openSearch(page);
   const box = page.getByRole("combobox", { name: "Rechercher" });
   await box.fill("beffroi");
   await expect(page.getByRole("option").first()).toContainText("Hôtel du Beffroi");

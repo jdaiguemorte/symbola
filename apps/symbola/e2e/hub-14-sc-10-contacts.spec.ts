@@ -79,7 +79,8 @@ test("SC-10 / HUB-14 — importer 600 contacts : colonnes proposées, prestatair
   // Le contact importé : nom et prénom séparés, la catégorie dans une note.
   await expect(page).toHaveURL(/\/contacts$/);
   await page.getByRole("search", { name: "Chercher un contact" }).getByLabel("Nom, e-mail ou téléphone").fill("HENRY");
-  await page.getByRole("button", { name: "Chercher" }).click();
+  // Lot 70f : « Rechercher » (la loupe du téléphone) contient « Chercher » : nom exact.
+  await page.getByRole("button", { name: "Chercher", exact: true }).click();
   await page.getByRole("region", { name: "Liste des contacts" }).getByRole("link", { name: "Mathieu HENRY" }).first().click();
   await expect(page.getByRole("heading", { level: 1, name: "Mathieu HENRY" })).toBeVisible();
   await expect(page.getByRole("region", { name: "Notes de l'équipe" })).toContainText("Catégorie : client");

@@ -7,7 +7,7 @@ import AxeBuilder from "./axe";
 import { createAppConnection } from "@symbola/db/client";
 import { createUser } from "@symbola/auth";
 import { expect, test } from "@playwright/test";
-import { openSettingsTab, readyOrganization, signIn as signInByLink } from "./helpers";
+import { openAccountMenu, openSettingsTab, readyOrganization, signIn as signInByLink } from "./helpers";
 
 test.describe("PRD-HUB-04 — Langue par défaut du navigateur", () => {
   test.use({ locale: "en-US" });
@@ -37,8 +37,9 @@ test("PRD-HUB-04-02 — choisir une langue dans le profil s'applique à toute l'
   // Lot 33 : lien magique et fournisseur d'identité (e2e/helpers.ts).
   await signInByLink(page, email);
   await expect(page).toHaveURL("/");
-  // Lot 70e (M7) : « Se déconnecter » est dans le menu du compte, sous le prénom.
-  await page.locator(".account-menu-button").click();
+  // Lot 70e (M7) : « Se déconnecter » est dans le menu du compte, sous le prénom ; lot 70f : sur téléphone,
+  // en bas de « Plus ».
+  await openAccountMenu(page);
   await expect(page.getByRole("button", { name: "Se déconnecter" })).toBeVisible();
   await page.keyboard.press("Escape");
 
@@ -54,8 +55,9 @@ test("PRD-HUB-04-02 — choisir une langue dans le profil s'applique à toute l'
 
   // Toute l'app suit désormais l'anglais — vérifié sur un autre écran.
   await page.goto("/");
-  // Lot 70e (M7) : le compte est dans le menu sous le prénom.
-  await page.locator(".account-menu-button").click();
-  await expect(page.getByRole("group", { name: "Account menu" }).getByText(email)).toBeVisible();
+  // Lot 70e (M7) : le compte est dans le menu sous le prénom (son adresse en entier) ; lot 70f : sur
+  // téléphone, en bas de « More ».
+  await openAccountMenu(page);
+  if (await page.locator(".account-menu-button").isVisible()) await expect(page.getByRole("group", { name: "Account menu" }).getByText(email)).toBeVisible();
   await expect(page.getByRole("button", { name: "Log out" })).toBeVisible();
 });

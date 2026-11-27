@@ -120,10 +120,15 @@ export function QuickCreate({ modules }: { modules: QuickModules }) {
         onClick={() => setMenuOpen((open) => !open)}
       >
         <Plus size={18} aria-hidden="true" />
-        {t("button")}
+        {/* Lot 70f : sur téléphone, le « + » seul (44 px) ; le nom « Créer » reste au bouton. */}
+        <span className="quick-create-label">{t("button")}</span>
       </button>
       {menuOpen ? (
         <div id={menuId} className="quick-create-menu" role="group" aria-label={t("menuLabel")}>
+          {/* Lot 70f : sur téléphone, le menu devient un panneau du bas, titré « Créer ». */}
+          <p className="quick-create-sheet-title" aria-hidden="true">
+            {t("button")}
+          </p>
           {entries.map((entry) => {
             const title = entry.contextual && currentEvent && entry.key !== "event" ? t(`kind.${entry.key}For`, { event: currentEvent.names }) : t(`kind.${entry.key}`);
             const body = (
