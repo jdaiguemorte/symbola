@@ -137,5 +137,8 @@
         "label": "The clients"
       }
     }
+  },
+  "TaskLine": {
+    "theClients": "The clients"
   }
 }

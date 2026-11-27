@@ -7,7 +7,10 @@ import { formatDateTime, type Locale } from "@symbola/i18n";
 import { organizationMailQuota } from "@symbola/mail";
 import { appDatabase } from "@symbola/db/client";
 import { getOrganizationProfile, getSetupState, isModuleEnabled, recentEmailVariableProblems, SETUP_STEPS } from "@/modules/hub/service";
-import { listEventTasks } from "@/modules/events/service";
+import { listEventTasks, listOrganizationTasks, listStandaloneTasks } from "@/modules/events/service";
+import { buildTaskLines } from "@/lib/tasks/task-lines";
+import { taskMemberOptions } from "@/lib/tasks/members";
+import { TaskPanelLoader } from "./ui/task-panel-loader";
 import { requireSignedIn } from "@/lib/guards";
 import { visibleEventScope, withinScope } from "@/lib/event-visibility";
 import { recordUsage } from "@/lib/usage";
@@ -31,7 +34,7 @@ import { ensureTaskCategories } from "@/lib/events/task-categories";
 // tâches, encaissements, relances, alertes de liens et de règlements) passent dans la liste ;
 // l'agenda passe à « Évènements ». Les alertes du titulaire et le plafond d'envois gardent leur
 // bandeau en tête.
-export default async function HomePage({ searchParams }: { searchParams: Promise<{ fait?: string; evenement?: string; visite?: string; mois?: string; vue?: string; semaine?: string }> }) {
+export default async function HomePage({ searchParams }: { searchParams: Promise<{ fait?: string; evenement?: string; visite?: string; mois?: string; vue?: string; semaine?: string; tache?: string }> }) {
   const auth = await requireSignedIn();
   // Lot 13 (L13-HUB-17) : l'Admin arrive sur la console, pas sur un accueil vide.
   if (auth.user.role === "admin") redirect("/exploitation");
@@ -123,6 +126,22 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
     if (task) undone = { eventId: query.evenement, taskId: task.id, label: task.label };
   }
 
+  // Lot 70c (CHR-02, HUB-08 ; D1, D3, M4) : la ligne type des tâches (le titre ouvre le panneau sur
+  // « Aujourd'hui »), et « N tâches faites aujourd'hui · Les revoir ».
+  const taskSources = ranked.all.flatMap((item) => (item.task ? [item.task] : []));
+  const taskLines =
+    modules.events && taskSources.length > 0
+      ? Object.fromEntries(
+          (await buildTaskLines({ organizationId, locale, tasks: taskSources, members: await taskMemberOptions(organizationId, auth.user.id), href: (task) => `/?tache=${task.id}` })).lines.map((line) => [line.id, line]),
+        )
+      : {};
+  const parisDay = (instant: string) => new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Paris", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date(instant));
+  const doneToday = modules.events
+    ? withinScope(scope, await listOrganizationTasks({ organizationId, today, horizonDays: null, includeDone: true }), (task) => task.eventId).filter((task) => task.doneAt && parisDay(task.doneAt) === today).length +
+      (await listStandaloneTasks(organizationId, { includeDone: true })).filter((task) => task.doneAt && parisDay(task.doneAt) === today).length
+    : 0;
+  const openTask = modules.events && query.tache && isValidId(query.tache) ? query.tache : null;
+
   return (
     <main>
       <div className="page-header today-header">
@@ -161,7 +180,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
       <UnavailableNotice sources={unavailable} />
       {/* Lot 65c (HUB-08, UX-01 ; maquette M15) : les sept lignes à traiter en premier, par nature, puis
           le calendrier sur toute la largeur (visible sans défiler sur un écran courant), puis le reste. */}
-      <TodayFirst ranked={ranked} locale={locale} modules={{ quotes: modules.quotes, events: modules.events }} />
+      <TodayFirst ranked={ranked} locale={locale} modules={{ quotes: modules.quotes, events: modules.events }} taskLines={taskLines} doneToday={doneToday} />
       {showCalendar ? (
         <div id="calendrier">
           <TodayCalendar
@@ -178,7 +197,20 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
           />
         </div>
       ) : null}
-      <TodayRest ranked={ranked} locale={locale} />
+      <TodayRest ranked={ranked} locale={locale} taskLines={taskLines} />
+      {openTask ? (
+        <TaskPanelLoader
+          organizationId={organizationId}
+          userId={auth.user.id}
+          role={auth.user.role}
+          locale={locale}
+          today={today}
+          open={{ kind: "edit", taskId: openTask }}
+          closeHref="/"
+          backLabel={t("title")}
+          screenHref={(params) => `/taches?${new URLSearchParams(params).toString()}`}
+        />
+      ) : null}
       {/* Lot 53 (GC-02) : le radar des risques du matin, après ce qui demande une action. */}
       {modules.events ? <RiskSection organizationId={organizationId} now={now} /> : null}
       {/* Lot 33b (PAR-01, étape 6) : après ce qui demande une action (UX-01 : la prochaine action d'abord). */}

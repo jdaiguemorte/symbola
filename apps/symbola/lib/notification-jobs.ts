@@ -68,7 +68,7 @@ export async function runMorningPass(organizationId: string, now: Date = new Dat
         eventId: task.eventId,
         objectKey: task.taskId,
         params: { label: task.label.slice(0, 200) },
-        href: `/events/${task.eventId}?onglet=retroplanning&tache=${task.taskId}`,
+        href: `/events/${task.eventId}?onglet=taches&tache=${task.taskId}`,
         eventDate: task.eventDate,
         now,
       });

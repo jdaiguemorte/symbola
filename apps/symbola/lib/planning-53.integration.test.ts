@@ -183,7 +183,7 @@ describe("GC-02 — Radar des risques quotidien (lot 53, D7)", () => {
     await setTaskMilestone(organizationId, eventId, milestone.id, true);
     const now = new Date("2027-01-10T08:00:00Z");
     const radar = await loadRiskRadar(organizationId, now);
-    expect(radar.alerts).toEqual([expect.objectContaining({ rule: "milestone_late", key: `milestone_late:${milestone.id}`, eventNames: expect.stringContaining("Léa"), facts: { task: "Liste d'invités close", daysLate: 5 }, href: `/events/${eventId}?onglet=retroplanning&tache=${milestone.id}` })]);
+    expect(radar.alerts).toEqual([expect.objectContaining({ rule: "milestone_late", key: `milestone_late:${milestone.id}`, eventNames: expect.stringContaining("Léa"), facts: { task: "Liste d'invités close", daysLate: 5 }, href: `/events/${eventId}?onglet=taches&tache=${milestone.id}` })]);
     expect(radar.rules.every((rule) => rule.available)).toBe(true);
     await setRiskRule(organizationId, { rule: "milestone_late", enabled: true, thresholdDays: 7 });
     expect((await loadRiskRadar(organizationId, now)).alerts).toEqual([]);

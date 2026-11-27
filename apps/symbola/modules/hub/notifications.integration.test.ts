@@ -145,7 +145,7 @@ describe("UX-16 — Notifier utile : récapitulatif quotidien, plages de silence
 
   it("chaque notification mène à l'écran où agir ; ouverte, elle est lue ; elle s'efface après 90 jours", async () => {
     const { organizationId, ownerId } = await team();
-    await notify({ organizationId, type: "task_overdue", eventId: null, objectKey: "t1", params: { label: "Réserver le traiteur" }, href: "/events/33333333-3333-4333-8333-333333333333?onglet=retroplanning", now: new Date("2027-01-01T08:00:00Z") });
+    await notify({ organizationId, type: "task_overdue", eventId: null, objectKey: "t1", params: { label: "Réserver le traiteur" }, href: "/events/33333333-3333-4333-8333-333333333333?onglet=taches", now: new Date("2027-01-01T08:00:00Z") });
     const [notification] = await listNotifications(organizationId, ownerId);
     expect(notification!.href).toMatch(/^\/events\//);
     const read = await markNotificationRead(organizationId, ownerId, notification!.id);

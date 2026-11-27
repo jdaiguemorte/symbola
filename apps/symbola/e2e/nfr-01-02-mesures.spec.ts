@@ -116,7 +116,7 @@ test("NFR-01 — chaque écran des parcours P0 s'affiche en moins de 2,5 s sur u
     ["Aujourd'hui", "/", session],
     ["Tâches", "/taches", session],
     ["Synthèse de l'évènement", `/events/${setup.eventId}`, session],
-    ["Rétroplanning", `/events/${setup.eventId}?onglet=retroplanning`, session],
+    ["Rétroplanning", `/events/${setup.eventId}?onglet=taches`, session],
     ["Budget", `/budget/${setup.eventId}/detail`, session],
     ["Devis", "/devis", session],
     ["Contacts", "/contacts", session],
@@ -139,22 +139,23 @@ test("NFR-01, UX-15 — un geste optimiste réagit en moins de 100 ms ; ⌘K ouv
   try {
     const page = await context.newPage();
     await page.goto("/taches");
-    await expect(page.getByRole("button", { name: "Marquer « Confirmer le lieu » comme faite" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Fait « Confirmer le lieu »" })).toBeVisible();
     const cdp = await context.newCDPSession(page);
     await cdp.send("Emulation.setCPUThrottlingRate", { rate: 4 });
 
     const check = await page.evaluate(async () => {
-      const button = document.querySelector<HTMLButtonElement>("button[aria-label='Marquer « Confirmer le lieu » comme faite']");
+      // Lot 70c : « Fait » de la ligne type ; la coche se voit à l'attribut data-done (mise à jour optimiste).
+      const button = [...document.querySelectorAll<HTMLButtonElement>(".task-done-button")].find((candidate) => candidate.getAttribute("aria-label")?.includes("Confirmer le lieu")) ?? null;
       if (!button) return -1;
       const start = performance.now();
       const reacted = new Promise<number>((done) => {
         const observer = new MutationObserver(() => {
-          if (button.getAttribute("aria-pressed") === "true") {
+          if (button.dataset.done === "true") {
             observer.disconnect();
             done(performance.now() - start);
           }
         });
-        observer.observe(button, { attributes: true, attributeFilter: ["aria-pressed"] });
+        observer.observe(button, { attributes: true, attributeFilter: ["data-done"] });
       });
       button.click();
       return reacted;
@@ -186,7 +187,7 @@ test("NFR-02, HUB-12 — 95 % des requêtes des parcours P0 en moins de 300 ms ;
   const coupleContext = await browser.newContext({ storageState: coupleSession, locale: "fr-FR" });
   try {
     const request = context.request;
-    const planner = ["/", "/taches", `/events/${setup.eventId}`, `/events/${setup.eventId}?onglet=retroplanning`, `/budget/${setup.eventId}`, "/devis", "/contacts", `/jour-j/${setup.eventId}`];
+    const planner = ["/", "/taches", `/events/${setup.eventId}`, `/events/${setup.eventId}?onglet=taches`, `/budget/${setup.eventId}`, "/devis", "/contacts", `/jour-j/${setup.eventId}`];
     const urls: [typeof request, string][] = [...planner.map((url): [typeof request, string] => [request, url]), [coupleContext.request, "/portail"]];
     // Un premier passage réveille le serveur (connexions, caches) ; il ne compte pas.
     for (const [client, url] of urls) await client.get(url);

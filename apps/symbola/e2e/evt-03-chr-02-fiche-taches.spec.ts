@@ -87,23 +87,25 @@ test("EVT-03 / CHR-02 — fiche d'identité, lieu complet, tâche confiée au fl
   await expectNoAxeViolation(page);
 
   // CHR-02 (D12) : une tâche confiée au fleuriste retenu.
-  await page.goto(`/events/${eventId}?onglet=retroplanning`);
+  // Lot 70c : l'onglet « Tâches » et le panneau unique, en création depuis la fiche.
+  await page.goto(`/events/${eventId}?onglet=taches`);
   await page.waitForLoadState("networkidle");
-  const newTask = page.getByRole("group", { name: "Nouvelle tâche" });
-  await newTask.getByLabel("Intitulé de la tâche").fill("Livrer les fleurs");
-  await newTask.getByLabel("Échéance").fill("2027-06-11");
-  await newTask.getByLabel("Responsable").selectOption({ label: "Prestataire : Fleurs de Lys" });
-  await newTask.getByRole("button", { name: "Ajouter la tâche" }).click();
-  await expect(feedback(page).getByText(/^Tâche ajoutée : /)).toBeVisible();
+  await page.getByRole("link", { name: "Nouvelle tâche" }).click();
+  const newTask = page.getByRole("dialog", { name: "Nouvelle tâche" });
+  await newTask.getByLabel(/^Tâche/).fill("Livrer les fleurs");
+  await newTask.getByLabel(/^Échéance/).fill("2027-06-11");
+  await newTask.getByLabel("Qui s'en charge").selectOption({ label: "Fleurs de Lys (prestataire)" });
+  await newTask.getByRole("button", { name: "Créer la tâche" }).click();
+  await expect(feedback(page).getByText(/^Tâche créée : /)).toBeVisible();
 
-  // D13 : commentaire et pièce jointe, dans la fenêtre de la tâche (lot 63d).
+  // D13 : commentaire et pièce jointe, dans le panneau de la tâche.
   await page.getByRole("link", { name: "Livrer les fleurs", exact: true }).click();
-  const panel = page.getByRole("dialog", { name: "Modifier la tâche" });
+  const panel = page.getByRole("dialog", { name: "Livrer les fleurs" });
   await page.waitForLoadState("networkidle");
   await panel.getByLabel("Votre commentaire").fill("Accès par le portail nord");
   await panel.getByRole("button", { name: "Commenter" }).click();
   await expect(panel.getByRole("status").filter({ hasText: "Commentaire ajouté." })).toBeVisible();
-  await expect(panel.getByRole("region", { name: "Commentaires de l'équipe" })).toContainText("Accès par le portail nord");
+  await expect(panel.getByRole("region", { name: /^Commentaires/ })).toContainText("Accès par le portail nord");
   await panel.getByLabel("Intitulé", { exact: true }).fill("Plan d'accès");
   await panel.getByLabel(/^Fichier/).setInputFiles({ name: "plan.pdf", mimeType: "application/pdf", buffer: PDF });
   await panel.getByRole("button", { name: "Joindre le fichier" }).click();
@@ -126,7 +128,7 @@ test("EVT-03 / CHR-02 — fiche d'identité, lieu complet, tâche confiée au fl
   await expect(tasks.getByRole("button", { name: "Décocher la tâche Livrer les fleurs" })).toBeVisible();
   await vendorContext.close();
 
-  // La planner la voit faite.
-  await page.goto(`/events/${eventId}?onglet=retroplanning`);
-  await expect(page.getByRole("button", { name: "Marquer « Livrer les fleurs » comme à faire" })).toBeVisible();
+  // La planner la voit faite (État « Faites » de l'onglet « Tâches »).
+  await page.goto(`/events/${eventId}?onglet=taches&etat=faites`);
+  await expect(page.locator(".task-line").filter({ hasText: "Livrer les fleurs" }).getByRole("button", { name: /^Rouvrir/ })).toBeVisible();
 });

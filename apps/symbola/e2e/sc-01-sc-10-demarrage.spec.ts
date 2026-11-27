@@ -68,7 +68,7 @@ test("SC-01 / PAR-01 / UX-04 — le premier quart d'heure sur téléphone : de l
   const eventUrl = page.url();
 
   // 5. Le rétroplanning et le budget générés.
-  await page.goto(`${eventUrl}?onglet=retroplanning`);
+  await page.goto(`${eventUrl}?onglet=taches`);
   await expect(page.getByText("Réserver le lieu de réception").first()).toBeVisible();
   await page.goto(`${eventUrl}?onglet=budget`);
   await expect(page.getByText("Traiteur").first()).toBeVisible();

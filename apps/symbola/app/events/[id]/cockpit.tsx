@@ -146,7 +146,7 @@ export async function EventCockpit({
                   <ul className="health-contributors">
                     {health.contributors.map((contributor) => (
                       <li key={contributor.taskId}>
-                        <Link href={`/events/${eventId}?onglet=retroplanning&tache=${contributor.taskId}`}>{tHealth("contributor", { label: contributor.label, days: contributor.daysLate })}</Link>
+                        <Link href={`/events/${eventId}?onglet=taches&tache=${contributor.taskId}`}>{tHealth("contributor", { label: contributor.label, days: contributor.daysLate })}</Link>
                         {contributor.isMilestone ? <span className="badge badge-terracotta">{tHealth("milestone")}</span> : null}
                       </li>
                     ))}

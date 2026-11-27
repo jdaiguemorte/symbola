@@ -96,7 +96,7 @@ export async function runSearch(input: { organizationId: string; role: string; t
         ...found.tasks.map((task) => ({
           title: t("taskTitle", { label: task.label, names: task.eventNames || t("noClientName") }),
           detail: t("taskDue", { date: formatCalendarDate(task.dueDate, locale) }),
-          href: `/events/${task.eventId}?onglet=retroplanning&tache=${task.id}`,
+          href: `/events/${task.eventId}?onglet=taches&tache=${task.id}`,
         })),
         ...found.vendors.map((vendor) => ({
           title: vendor.vendorName ? t("vendorTitle", { vendor: vendor.vendorName, slot: vendor.label }) : vendor.label,

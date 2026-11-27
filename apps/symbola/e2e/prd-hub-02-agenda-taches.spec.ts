@@ -60,9 +60,10 @@ test("PRD-HUB-02 / HUB-08 — agenda des mariages, tâches cochées depuis « Au
       clients: [{ firstName: "Léa", lastName: null }, { firstName: "Hugo", lastName: null }],
       eventDate: sunday,
     });
-    await addEventTask(organization.id, confirmed.id, { label: "Relancer le traiteur", dueDate: shift(today, -2), responsible: "planner" });
+    // Lot 70a (A3) : une tâche de l'agence est à la personne qui la crée, ici la titulaire (« Vous »).
+    await addEventTask(organization.id, confirmed.id, { label: "Relancer le traiteur", dueDate: shift(today, -2), responsible: "planner", assigneeUserId: user.id });
     await addEventTask(organization.id, confirmed.id, { label: "Envoyer le questionnaire", dueDate: shift(today, 5), responsible: "clients" });
-    await addEventTask(organization.id, confirmed.id, { label: "Tâche lointaine", dueDate: shift(today, 60), responsible: "planner" });
+    await addEventTask(organization.id, confirmed.id, { label: "Tâche lointaine", dueDate: shift(today, 60), responsible: "planner", assigneeUserId: user.id });
   } finally {
     await sql.end();
   }
@@ -99,25 +100,26 @@ test("PRD-HUB-02 / HUB-08 — agenda des mariages, tâches cochées depuis « Au
   await expect(first.getByRole("listitem").first()).toContainText("En retard de 2 jours");
   await expect(first.getByRole("listitem").first()).toContainText("Vous");
   await expect(first.getByRole("listitem").nth(1)).toContainText("Envoyer le questionnaire");
-  await expect(first.getByRole("listitem").nth(1)).toContainText("Attend le client");
+  // Lot 70c (D3, M3) : la ligne type dit qui s'en charge, le mot du type d'évènement.
+  await expect(first.getByRole("listitem").nth(1)).toContainText("Les mariés");
   await expect(page.getByText("Tâche lointaine")).toHaveCount(0);
-  await first.getByRole("button", { name: "Fait : « Relancer le traiteur »" }).click();
+  await first.getByRole("button", { name: "Fait « Relancer le traiteur »" }).click();
   const undo = feedback(page).filter({ hasText: "Tâche faite : Relancer le traiteur" });
   await expect(undo).toBeVisible();
   await expect(first.getByText("Relancer le traiteur")).toHaveCount(0);
   await undo.getByRole("button", { name: "Annuler" }).click();
   await expect(first.getByText("Relancer le traiteur")).toBeVisible();
-  await first.getByRole("button", { name: "Fait : « Relancer le traiteur »" }).click();
+  await first.getByRole("button", { name: "Fait « Relancer le traiteur »" }).click();
   await expect(first.getByText("Relancer le traiteur")).toHaveCount(0);
 
   // Écran Tâches : toutes les tâches à faire, avec leur mariage ; filtre « Toutes ».
   await clickMenuLink(page, "Tâches");
   await expect(page).toHaveURL(/\/taches/);
   await expect(page.getByRole("heading", { level: 1, name: "Tâches" })).toBeVisible();
-  await expect(page.getByRole("rowheader", { name: "Tâche lointaine" })).toBeVisible();
-  await expect(page.getByRole("rowheader", { name: "Relancer le traiteur" })).toHaveCount(0);
+  await expect(page.getByRole("link", { name: "Tâche lointaine", exact: true })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Relancer le traiteur", exact: true })).toHaveCount(0);
   await page.getByRole("link", { name: "Toutes", exact: true }).click();
-  await expect(page.getByRole("rowheader", { name: "Relancer le traiteur" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Relancer le traiteur", exact: true })).toBeVisible();
   await expectNoAxeViolation(page);
 
   // L13-HUB-15 : les délais de relance restent réglables (Paramètres).

@@ -71,7 +71,7 @@ export function evaluateRisks(facts: RiskFacts, rules: RiskRuleSetting[], today:
     if (!found) continue;
     const daysLate = daysBetween(milestone.dueDate, today);
     if (daysLate < Math.max(1, milestones!.thresholdDays)) continue;
-    alerts.push({ rule: "milestone_late", key: `milestone_late:${milestone.taskId}`, eventId: milestone.eventId, eventNames: found.names, label: milestone.label, facts: { task: milestone.label, daysLate }, thresholdDays: milestones!.thresholdDays, href: `/events/${milestone.eventId}?onglet=retroplanning&tache=${milestone.taskId}` });
+    alerts.push({ rule: "milestone_late", key: `milestone_late:${milestone.taskId}`, eventId: milestone.eventId, eventNames: found.names, label: milestone.label, facts: { task: milestone.label, daysLate }, thresholdDays: milestones!.thresholdDays, href: `/events/${milestone.eventId}?onglet=taches&tache=${milestone.taskId}` });
   }
 
   const ibans = rule("iban_to_verify");

@@ -282,11 +282,11 @@ test.describe("lot 69 — mises en page mesurées", () => {
   test("C-39 — « Aucun modèle de rétroplanning » ne s'affiche que sur un évènement sans tâche", async ({
     page,
   }) => {
-    await page.goto(`/events/${setup.bareEventId}?onglet=retroplanning`);
+    await page.goto(`/events/${setup.bareEventId}?onglet=taches`);
     await expect(
       page.getByText("Aucun modèle de rétroplanning pour l'instant."),
     ).toBeVisible();
-    await page.goto(`/events/${setup.eventId}?onglet=retroplanning`);
+    await page.goto(`/events/${setup.eventId}?onglet=taches`);
     await expect(page.getByText("Visiter la salle").first()).toBeVisible();
     await expect(
       page.getByText("Aucun modèle de rétroplanning pour l'instant."),
