@@ -184,13 +184,15 @@ test.describe("lot 70e — « + Créer »", () => {
     const setup = await atelier();
     await signInByLink(page, setup.email);
     await createButton(page).click();
-    await createMenu(page).getByRole("button", { name: /^Tâche/ }).click();
+    await createMenu(page).getByRole("link", { name: /^Tâche/ }).click();
+    // Le panneau unique du 70c, en création, sans évènement choisi d'avance.
+    await expect(page).toHaveURL(/\/taches\?nouvelle=1$/);
     const dialog = page.getByRole("dialog", { name: "Nouvelle tâche" });
-    await expect(dialog.getByLabel("Évènement")).toBeEnabled();
-    await dialog.getByLabel("Évènement").selectOption({ label: "Aucun évènement" });
-    await dialog.getByLabel("Tâche", { exact: true }).fill("Déclaration de TVA");
-    await dialog.getByRole("button", { name: "Ajouter la tâche" }).click();
-    await expect(dialog.getByRole("status")).toContainText("Tâche « Déclaration de TVA » ajoutée, hors évènement.");
+    await expect(dialog.getByLabel("Évènement")).toHaveValue("");
+    await dialog.getByLabel(/^Tâche/).fill("Déclaration de TVA");
+    await dialog.getByLabel(/^Échéance/).fill(parisDay(10));
+    await dialog.getByRole("button", { name: "Créer la tâche" }).click();
+    await expect(feedback(page)).toContainText("Tâche créée : Déclaration de TVA");
   });
 
   test("abus — un module non souscrit n'apparaît pas dans « + Créer » et sa route refuse", async ({ page }) => {

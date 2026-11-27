@@ -7,7 +7,8 @@ export type QuickEntryKey = "event" | "task" | "vendor" | "contact" | "quote" | 
 
 export type QuickEntry = {
   key: QuickEntryKey;
-  // « link » : mène à l'écran de création ; « dialog » : fenêtre courte sans quitter l'écran.
+  // « link » : mène à l'écran de création (pour une tâche : le panneau unique du 70c, « /taches?nouvelle=1 »,
+  // l'évènement de l'écran y est ajouté) ; « dialog » : fenêtre courte sans quitter l'écran.
   action: "link" | "dialog";
   href?: string;
   // Dit le mariage de l'écran en cours (« Tâche pour Léa & Maxime »).
@@ -16,7 +17,7 @@ export type QuickEntry = {
 
 export function quickCreateEntries(modules: QuickModules): QuickEntry[] {
   return [
-    ...(modules.events ? [{ key: "event", action: "link", href: "/events/new", contextual: false } as const, { key: "task", action: "dialog", contextual: true } as const] : []),
+    ...(modules.events ? [{ key: "event", action: "link", href: "/events/new", contextual: false } as const, { key: "task", action: "link", href: "/taches?nouvelle=1", contextual: true } as const] : []),
     ...(modules.vendors ? [{ key: "vendor", action: "link", href: "/prestataires/nouveau", contextual: false } as const] : []),
     // Les contacts sont dans le noyau du hub (lot 36a) : toujours là.
     { key: "contact", action: "link", href: "/contacts?nouveau=1", contextual: false } as const,

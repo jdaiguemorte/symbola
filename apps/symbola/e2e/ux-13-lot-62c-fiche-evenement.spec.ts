@@ -353,10 +353,10 @@ test("UX-05, UX-07 — rétroplanning : cibles de 44 px ; cocher une tâche gard
     await addEventTask(setup.organizationId, setup.eventId, { label, dueDate, responsible: "planner" });
   }
   await signIn(page, setup.email, /\/$/);
-  await page.goto(`/events/${setup.eventId}`);
-  await openEventTab(page, "Rétroplanning");
+  // Lot 70c : l'onglet « Tâches » (État « Toutes » : la ligne faite reste, avec « Rouvrir ») ; « Fait » de la ligne type.
+  await page.goto(`/events/${setup.eventId}?onglet=taches&etat=toutes`);
 
-  const check = page.getByRole("button", { name: "Marquer « Choisir le traiteur » comme faite" });
+  const check = page.getByRole("button", { name: "Fait « Choisir le traiteur »" });
   const box = (await check.boundingBox())!;
   expect(Math.min(box.width, box.height)).toBeGreaterThanOrEqual(44);
   await expectCommonCriteria(page);
@@ -364,11 +364,11 @@ test("UX-05, UX-07 — rétroplanning : cibles de 44 px ; cocher une tâche gard
 
   // La case garde son comportement : cochée tout de suite, « Annuler » la rétablit (UX-07).
   await check.click();
-  await expect(page.getByRole("button", { name: "Marquer « Choisir le traiteur » comme à faire" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Rouvrir « Choisir le traiteur »" })).toBeVisible();
   await expect.poll(async () => (await listEventTasks(setup.organizationId, setup.eventId)).find((task) => task.label === "Choisir le traiteur")?.done).toBe(true);
   const undo = feedback(page).filter({ hasText: "Tâche faite : Choisir le traiteur" });
   await undo.getByRole("button", { name: "Annuler" }).click();
-  await expect(page.getByRole("button", { name: "Marquer « Choisir le traiteur » comme faite" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Fait « Choisir le traiteur »" })).toBeVisible();
   await expect.poll(async () => (await listEventTasks(setup.organizationId, setup.eventId)).find((task) => task.label === "Choisir le traiteur")?.done).toBe(false);
   await expectCommonCriteria(page);
 });

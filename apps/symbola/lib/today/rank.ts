@@ -6,6 +6,7 @@
 // - à venir : ce qui vous revient dans les quatorze prochains jours, par date.
 // Une échéance au-delà de l'horizon n'apparaît pas ; une attente sans date reste. Les trois premiers
 // éléments forment « À traiter en premier ». Dates en « AAAA-MM-JJ », jours calendaires de Paris.
+import type { TaskLineSource } from "@/lib/tasks/task-line";
 
 // EVT-02 : « échéances des quatorze jours » ; HUB-08 et le bloc des tâches de l'accueil (PRD-HUB-02).
 export const TODAY_HORIZON_DAYS = 14;
@@ -81,6 +82,8 @@ export type TodayItem = {
   actor: TodayActor;
   href: string;
   action?: TodayAction | undefined;
+  // Lot 70c (CHR-02, HUB-08 ; D3, M4) : une tâche, pour sa ligne type allégée.
+  task?: TaskLineSource | undefined;
 };
 
 export type TodayGroup = "overdue" | "today" | "waiting" | "upcoming";

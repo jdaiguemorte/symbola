@@ -8,7 +8,7 @@ import AxeBuilder from "./axe";
 import { createAppConnection } from "@symbola/db/client";
 import { createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
-import { addEventTask, addEventVendorSlot, changeEventStatus, createProspect, createProspectSource, getEvent, listEventTasks, updateEventClientContact } from "../modules/events/service";
+import { addEventTask, addEventVendorSlot, changeEventStatus, createProspect, createProspectSource, getEvent, updateEventClientContact } from "../modules/events/service";
 import { saveOnboardingStep, setModuleEnabled } from "../modules/hub/service";
 import { readyOrganization, signIn as signInByLink } from "./helpers";
 
@@ -83,18 +83,22 @@ test("HUB-07 / UX-03 / CRM-04 — créer un prospect, une tâche, une dépense e
   await expect(page).toHaveURL(/\/events\/[0-9a-f-]{36}/);
   await expect(page.getByRole("heading", { level: 1, name: "Chloé" })).toBeVisible();
 
-  // Tâche par la touche N, sur la fiche de Léa et Maxime : l'évènement de l'écran est proposé.
+  // Tâche par la touche N, sur la fiche de Léa et Maxime : le panneau unique d'une tâche (lot 70c) s'ouvre,
+  // l'évènement de l'écran est choisi d'office.
   await page.goto(`/events/${setup.lea}`);
   await page.getByRole("heading", { level: 1 }).click();
   await page.keyboard.press("n");
-  await quickMenu(page).getByRole("button", { name: "Tâche" }).click();
+  await quickMenu(page).getByRole("link", { name: /^Tâche pour Léa & Maxime/ }).click();
+  await expect(page).toHaveURL(new RegExp(`/taches\\?nouvelle=1&evenement=${setup.lea}`));
   const task = page.getByRole("dialog", { name: "Nouvelle tâche" });
   await expect(task.getByLabel("Évènement")).toHaveValue(setup.lea);
   await task.getByLabel(/^Tâche/).fill("Réserver la navette");
-  await task.getByRole("button", { name: "Ajouter la tâche" }).click();
-  await expect(task.getByRole("status")).toContainText("Tâche « Réserver la navette » ajoutée.");
-  await expectNoAxeViolation(page);
-  await task.getByRole("button", { name: "Fermer" }).click();
+  await task.getByLabel(/^Échéance/).fill(setup.date);
+  await task.getByRole("button", { name: "Créer la tâche" }).click();
+  await expect(page).not.toHaveURL(/nouvelle=1/);
+
+  // Dépense : retour sur la fiche, dont l'évènement est proposé.
+  await page.goto(`/events/${setup.lea}`);
 
   // Dépense : le poste, le prestataire s'il y en a, le libellé et le montant du devis.
   await page.getByRole("button", { name: "Créer", exact: true }).click();
@@ -133,8 +137,8 @@ test("HUB-07 / UX-03 / CRM-04 — créer un prospect, une tâche, une dépense e
   await expect(page).toHaveURL(/\/devis\/[0-9a-f-]{36}$/);
 
   // Tout est arrivé : la tâche au rétroplanning, la dépense au budget avec le montant du devis.
-  await page.goto(`/events/${setup.lea}?onglet=retroplanning`);
-  await expect(page.getByRole("rowheader", { name: "Réserver la navette" })).toBeVisible();
+  await page.goto(`/events/${setup.lea}?onglet=taches`);
+  await expect(page.getByRole("link", { name: "Réserver la navette", exact: true })).toBeVisible();
   await page.goto(`/budget/${setup.lea}/detail`);
   await expect(page.getByText("Dîner, 120 couverts").first()).toBeVisible();
   await expect(page.locator("main")).toContainText(/9\s600,00\s€/);
@@ -200,7 +204,7 @@ test("EVT-07 / CHR-03 — le portefeuille en liste et en calendrier, la charge p
   await expectNoAxeViolation(page);
   await calendar.getByRole("link", { name: "Choisir le menu" }).click();
   await expect(page).toHaveURL(/\/taches\?.*tache=/);
-  await expect(page.getByRole("dialog", { name: "Modifier la tâche" }).getByLabel(/^Tâche/)).toHaveValue("Choisir le menu");
+  await expect(page.getByRole("dialog", { name: "Choisir le menu" }).getByLabel(/^Tâche/)).toHaveValue("Choisir le menu");
 });
 
 // Une autre agence : Zoé en prospect à J+200, rien d'autre.
@@ -234,20 +238,4 @@ test("SEC-12 / SEC-13 — la création rapide et l'alerte de date ne touchent ja
   await answered;
   await expect(page.getByRole("status").filter({ hasText: "vous avez déjà" })).toHaveCount(0);
   await expect(page.locator("main")).not.toContainText("Léa");
-
-  // Un identifiant d'évènement forgé (celui de Camille) : refusé, rien n'est créé chez elle.
-  await page.getByRole("button", { name: "Créer", exact: true }).click();
-  await quickMenu(page).getByRole("button", { name: "Tâche" }).click();
-  const task = page.getByRole("dialog", { name: "Nouvelle tâche" });
-  await task.getByLabel("Évènement").evaluate((select, id) => {
-    const option = document.createElement("option");
-    option.value = id;
-    option.textContent = "forgé";
-    select.appendChild(option);
-    (select as HTMLSelectElement).value = id;
-  }, camille.lea);
-  await task.getByLabel(/^Tâche/).fill("Tâche forgée");
-  await task.getByRole("button", { name: "Ajouter la tâche" }).click();
-  await expect(task.getByRole("alert")).toBeVisible();
-  expect((await listEventTasks(camille.organizationId, camille.lea)).map((entry) => entry.label)).not.toContain("Tâche forgée");
 });

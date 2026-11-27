@@ -10,31 +10,24 @@ import { Plus } from "lucide-react";
 import { useActionState, useEffect, useId, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
-import { formatCalendarDate, parisToday, type Locale } from "@symbola/i18n";
+import { formatCalendarDate, type Locale } from "@symbola/i18n";
 import { SameDayNotice } from "@/app/events/same-day-notice";
 import {
   quickCreateExpenseAction,
   quickCreateOptionsAction,
   quickCreateQuoteAction,
   quickCreateSlotsAction,
-  quickCreateTaskAction,
   type QuickCreateOptions,
   type QuickCreateState,
   type QuickSlot,
 } from "./actions";
 import { quickCreateEntries, type QuickModules } from "./entries";
 
-type Kind = "task" | "expense" | "quote";
+type Kind = "expense" | "quote";
 
 function inField(target: EventTarget | null): boolean {
   if (!(target instanceof HTMLElement)) return false;
   return target.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName);
-}
-
-function plusDays(date: string, days: number): string {
-  const next = new Date(`${date}T12:00:00Z`);
-  next.setUTCDate(next.getUTCDate() + days);
-  return next.toISOString().slice(0, 10);
 }
 
 export function QuickCreate({ modules }: { modules: QuickModules }) {
@@ -140,7 +133,7 @@ export function QuickCreate({ modules }: { modules: QuickModules }) {
               </>
             );
             return entry.action === "link" ? (
-              <Link key={entry.key} href={entry.href!} className="quick-create-item" onClick={() => setMenuOpen(false)}>
+              <Link key={entry.key} href={entry.key === "task" && currentEvent ? `${entry.href}&evenement=${currentEvent.id}` : entry.href!} className="quick-create-item" onClick={() => setMenuOpen(false)}>
                 {body}
               </Link>
             ) : (
@@ -167,8 +160,6 @@ export function QuickCreate({ modules }: { modules: QuickModules }) {
               <p>{t("unavailable")}</p>
             ) : kind === "quote" ? (
               <QuoteForm key={round} options={options} />
-            ) : kind === "task" ? (
-              <TaskForm key={round} options={options} />
             ) : options.events.length === 0 ? (
               <p>{t("noEvents")}</p>
             ) : (
@@ -193,7 +184,7 @@ function Outcome({ state }: { state: QuickCreateState }) {
   );
 }
 
-function EventSelect({ options, value, onChange, optional = false }: { options: QuickCreateOptions; value?: string; onChange?: (eventId: string) => void; optional?: boolean }) {
+function EventSelect({ options, value, onChange }: { options: QuickCreateOptions; value?: string; onChange?: (eventId: string) => void }) {
   const t = useTranslations("QuickCreate");
   const locale = useLocale() as Locale;
   return (
@@ -201,16 +192,12 @@ function EventSelect({ options, value, onChange, optional = false }: { options: 
       {t("event")}
       <select
         name="eventId"
-        required={!optional}
+        required
         {...(onChange ? { value, onChange: (event) => onChange(event.target.value) } : { defaultValue: options.currentEventId ?? "" })}
       >
-        {optional ? (
-          <option value="">{t("noEvent")}</option>
-        ) : (
-          <option value="" disabled>
-            {t("eventChoose")}
-          </option>
-        )}
+        <option value="" disabled>
+          {t("eventChoose")}
+        </option>
         {options.events.map((event) => (
           <option key={event.id} value={event.id}>
             {event.date ? `${event.names} — ${formatCalendarDate(event.date, locale)}` : event.names}
@@ -261,41 +248,6 @@ function ProspectFields({ options }: { options: QuickCreateOptions }) {
       </label>
       <SameDayNotice date={date} />
     </>
-  );
-}
-
-function TaskForm({ options }: { options: QuickCreateOptions }) {
-  const t = useTranslations("QuickCreate");
-  const [state, action, pending] = useActionState(quickCreateTaskAction, {});
-  return (
-    <form action={action}>
-      <EventSelect options={options} optional />
-      <p className="meta">{t("noEventHint")}</p>
-      <label>
-        {t("taskLabel")}
-        <input type="text" name="label" required autoComplete="off" />
-      </label>
-      <label>
-        {t("dueDate")}
-        <input type="date" name="dueDate" required defaultValue={plusDays(parisToday(), 7)} />
-      </label>
-      <fieldset>
-        <legend>{t("responsible")}</legend>
-        <label>
-          {/* Lot 70a (A3) : « planner » sans personne nommée = la personne qui crée (« Vous »). */}
-          <input type="radio" name="responsible" value="planner" defaultChecked />
-          {t("responsiblePlanner")}
-        </label>
-        <label>
-          <input type="radio" name="responsible" value="clients" />
-          {t("responsibleClients")}
-        </label>
-      </fieldset>
-      <button type="submit" disabled={pending}>
-        {t("submit.task")}
-      </button>
-      <Outcome state={state} />
-    </form>
   );
 }
 

@@ -51,15 +51,17 @@ test("UX-07 — une tâche supprimée revient par « Annuler » pendant dix seco
   test.setTimeout(120_000);
   const setup = await atelier();
   await signIn(page, setup.email, /\/$/);
-  await page.goto(`/events/${setup.eventId}?onglet=retroplanning&tache=${setup.taskId}`);
-  // Lot 63d : la fenêtre de la tâche, ouverte par l'adresse, propose « Supprimer la tâche ».
-  await page.getByRole("dialog", { name: "Modifier la tâche" }).getByRole("button", { name: "Supprimer la tâche", exact: true }).click();
+  await page.goto(`/events/${setup.eventId}?onglet=taches&tache=${setup.taskId}`);
+  // Lot 70c : le panneau de la tâche, ouvert par l'adresse, propose « Supprimer la tâche » dans son menu « ⋯ ».
+  const panel = page.getByRole("dialog", { name: "Envoyer les faire-part" });
+  await panel.getByRole("button", { name: "Autres actions sur la tâche" }).click();
+  await page.getByRole("menuitem", { name: /^Supprimer la tâche/ }).click();
   const banner = feedback(page).filter({ hasText: "Tâche supprimée." });
   await expect(banner).toBeVisible();
   await expect(page.getByText("Envoyer les faire-part")).toHaveCount(0);
   await banner.getByRole("button", { name: "Annuler" }).click();
   await expect(page.getByText("C'est rétabli.")).toBeVisible();
-  await page.goto(`/events/${setup.eventId}?onglet=retroplanning`);
+  await page.goto(`/events/${setup.eventId}?onglet=taches`);
   await expect(page.getByText("Envoyer les faire-part").first()).toBeVisible();
 });
 
@@ -84,7 +86,7 @@ test("HUB-17 — un évènement supprimé va à la corbeille et revient avec son
   await page.getByRole("button", { name: "Restaurer Inès & Sacha" }).click();
   await expect(page.getByText("C'est restauré, tel que c'était.")).toBeVisible();
   await expect(page.getByText("La corbeille est vide.")).toBeVisible();
-  await page.goto(`/events/${setup.eventId}?onglet=retroplanning`);
+  await page.goto(`/events/${setup.eventId}?onglet=taches`);
   await expect(page.getByText("Envoyer les faire-part").first()).toBeVisible();
 
   // Le contact sans évènement va à la corbeille ; la titulaire l'efface pour de bon, après une

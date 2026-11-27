@@ -78,7 +78,7 @@ export async function runSearch(input: { organizationId: string; role: string; t
       items: found.tasks.map((task) => ({
         title: task.label,
         detail: [task.eventNames || t("noClientName"), t("taskDue", { when: when(task.dueDate) })].join(" · "),
-        href: `/events/${task.eventId}?onglet=retroplanning&tache=${task.id}`,
+        href: `/events/${task.eventId}?onglet=taches&tache=${task.id}`,
       })),
     },
     {

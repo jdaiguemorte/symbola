@@ -5,7 +5,6 @@
 // création reste sur l'écran et se confirme par un message et un lien. Contrôles côté serveur :
 // session planner, organisation, module souscrit, évènement de l'organisation (RLS), entrées
 // validées ; mêmes services et mêmes règles que les formulaires de chaque écran.
-import { readResponsibleCreate } from "@/app/events/[id]/task-responsible";
 import { revalidatePath } from "next/cache";
 import { unexpectedActionError } from "@/lib/action-errors";
 import { getLocale, getTranslations } from "next-intl/server";
@@ -18,9 +17,6 @@ import { eventsMessageFor } from "@/lib/vocabulary";
 import { isValidId } from "@/app/events/module-access";
 import { addBudgetLine, BudgetLineDetailsInvalidError, updateBudgetLine } from "@/modules/budget/service";
 import {
-  addEventTask,
-  addStandaloneTask,
-  PlanningInputError,
   createProspect,
   eventNames,
   getEvent,
@@ -147,44 +143,6 @@ async function createQuickProspect(access: { organizationId: string; userId: str
   // Lot 63c (DOC-01, M8) : les dossiers proposés à chaque évènement.
   await createTypedDocumentFolders(organizationId, created.id, locale === "en" ? "en" : "fr");
   return { id: created.id, firstName };
-}
-
-export async function quickCreateTaskAction(_prev: QuickCreateState, formData: FormData): Promise<QuickCreateState> {
-  const t = await getTranslations("QuickCreate");
-  const tEvents = await getTranslations("Events");
-  const access = await planner();
-  if (!access) return { error: tEvents("unauthenticated") };
-  if (!access.modules.events) return { error: tEvents("moduleUnavailable") };
-  // Lot 70e (HUB-07 ; M7) : l'évènement est facultatif — sans lui, la tâche est celle de l'agence (TVA,
-  // assurance, comptabilité), créée comme sur l'écran « Tâches ».
-  const rawEventId = field(formData, "eventId");
-  const eventId = rawEventId === "" ? null : rawEventId;
-  if (eventId !== null && !isValidId(eventId)) return { error: t("chooseEventError") };
-  const label = field(formData, "label");
-  if (!label) return { error: tEvents("missingLabel") };
-  const dueDate = field(formData, "dueDate");
-  if (!DATE.test(dueDate)) return { error: tEvents("invalidDate") };
-  // Lot 70a (CHR-02 ; A1, A3) : « Vous » (planner, la personne qui crée), un collègue (« member:<id> »), les clients.
-  const choice = readResponsibleCreate(field(formData, "responsible"));
-  if (!choice || choice.responsible === "vendor") return { error: tEvents("invalidResponsible") };
-  try {
-    if (eventId === null) {
-      // Hors évènement : toujours « planner » (contrainte de la table), à qui la crée par défaut.
-      if (choice.responsible !== "planner") return { error: tEvents("invalidResponsible") };
-      await addStandaloneTask(access.organizationId, { label, dueDate, recurrence: null, ...(choice.assigneeUserId ? { assigneeUserId: choice.assigneeUserId } : {}) });
-    } else {
-      await addEventTask(access.organizationId, eventId, { label, dueDate, responsible: choice.responsible, ...(choice.assigneeUserId ? { assigneeUserId: choice.assigneeUserId } : {}) });
-    }
-  } catch (error) {
-    if (error instanceof RangeError || error instanceof PlanningInputError) return { error: tEvents("invalidDate") };
-    if ((error as Error).name === "TaskAssigneeNotFoundError") return { error: tEvents("taskNotFound") };
-    if ((error as Error).name === "EventNotFoundError") return { error: tEvents("eventNotFound") };
-    return { error: await unexpectedActionError(error) };
-  }
-  refresh(eventId);
-  return eventId === null
-    ? { done: { message: t("taskDoneStandalone", { label }), href: "/taches" }, nonce: Date.now() }
-    : { done: { message: t("taskDone", { label }), href: `/events/${eventId}?onglet=retroplanning` }, nonce: Date.now() };
 }
 
 export async function quickCreateExpenseAction(_prev: QuickCreateState, formData: FormData): Promise<QuickCreateState> {

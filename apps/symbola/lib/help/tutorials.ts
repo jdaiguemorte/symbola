@@ -86,7 +86,7 @@ export const TUTORIAL_SCRIPTS: Record<TutorialKey, TutorialScript> = {
         href: eventTab("prestataires"),
         check: async (env) => (await listEventVendorSlots(env.organizationId, env.context.eventId!)).some((slot) => (ENGAGED_CANDIDATE_STATUSES as readonly string[]).includes(slot.status)),
       },
-      { kind: "do", href: eventTab("retroplanning"), check: async (env) => (await listEventTasks(env.organizationId, env.context.eventId!)).some((task) => task.done) },
+      { kind: "do", href: eventTab("taches"), check: async (env) => (await listEventTasks(env.organizationId, env.context.eventId!)).some((task) => task.done) },
       { kind: "finish" },
     ],
     cleanup: (env) => removeExampleEvent(env),
@@ -103,7 +103,7 @@ export const TUTORIAL_SCRIPTS: Record<TutorialKey, TutorialScript> = {
       { kind: "setup" },
       // Lot 21 (L21-EVT-22) : le modèle d'exemple s'ouvre directement dans son détail.
       { kind: "look", href: (context) => (context.templateId ? `/events/modeles/${context.templateId}` : "/events/modeles") },
-      { kind: "do", href: eventTab("retroplanning"), check: async (env) => (await listEventTasks(env.organizationId, env.context.eventId!)).length > 0 },
+      { kind: "do", href: eventTab("taches"), check: async (env) => (await listEventTasks(env.organizationId, env.context.eventId!)).length > 0 },
       { kind: "do", href: eventTab("apercu"), check: async (env) => ((await getEvent(env.organizationId, env.context.eventId!))?.eventDate ?? "") !== env.context.initialDate },
       { kind: "finish" },
     ],
@@ -220,7 +220,7 @@ export const TUTORIAL_SCRIPTS: Record<TutorialKey, TutorialScript> = {
   },
   "client-space": {
     setup: (env) => exampleEvent(env, "client-space"),
-    steps: [{ kind: "explain" }, { kind: "setup" }, { kind: "look", href: eventTab("maries") }, { kind: "look", href: eventTab("retroplanning") }, { kind: "finish" }],
+    steps: [{ kind: "explain" }, { kind: "setup" }, { kind: "look", href: eventTab("maries") }, { kind: "look", href: eventTab("taches") }, { kind: "finish" }],
     cleanup: (env) => removeExampleEvent(env),
   },
   import: {

@@ -247,7 +247,7 @@ export default async function AppointmentPage({ params, searchParams }: { params
                 </span>
                 {action.taskId && action.taskEventId ? (
                   eventsAvailable ? (
-                    <Link href={`/events/${action.taskEventId}?onglet=retroplanning&tache=${action.taskId}`} className="badge badge-sauge">
+                    <Link href={`/events/${action.taskEventId}?onglet=taches&tache=${action.taskId}`} className="badge badge-sauge">
                       {t("isTask")}
                     </Link>
                   ) : (

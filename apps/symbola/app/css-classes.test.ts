@@ -36,7 +36,6 @@ const MARKERS: readonly string[] = [
   "resume-zone",
   "notification-action",
   "push-device",
-  "standalone-task-form",
   "task-calendar",
   "draft-keeper",
   // Contacts, pipeline, prestataires.

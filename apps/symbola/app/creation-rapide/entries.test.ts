@@ -24,12 +24,13 @@ describe("HUB-07 — « + Créer » : six entrées dans l'ordre de la journée (
     expect(quickCreateEntries({ events: false, quotes: false, budget: false, vendors: false }).map((entry) => entry.key)).toEqual(["contact"]);
   });
 
-  it("évènement, prestataire et contact mènent à leur écran ; tâche, devis et dépense ouvrent une fenêtre", () => {
+  it("évènement, tâche, prestataire et contact mènent à leur écran ; devis et dépense ouvrent une fenêtre", () => {
     const byKey = Object.fromEntries(quickCreateEntries(all).map((entry) => [entry.key, entry]));
     expect(byKey.event).toMatchObject({ action: "link", href: "/events/new" });
     expect(byKey.vendor).toMatchObject({ action: "link", href: "/prestataires/nouveau" });
     expect(byKey.contact).toMatchObject({ action: "link", href: "/contacts?nouveau=1" });
-    expect(byKey.task?.action).toBe("dialog");
+    // La tâche ouvre le panneau unique d'une tâche (lot 70c), en création.
+    expect(byKey.task).toMatchObject({ action: "link", href: "/taches?nouvelle=1" });
     expect(byKey.quote?.action).toBe("dialog");
     expect(byKey.expense?.action).toBe("dialog");
   });

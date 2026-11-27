@@ -70,7 +70,7 @@ export function NewEventForm({
     feedback?.show({
       title: tFeedback("eventCreated"),
       detail: created.tasks > 0 ? tFeedback(created.budget ? "eventCreatedTasksBudget" : "eventCreatedTasks", { count: created.tasks }) : undefined,
-      ...(created.tasks > 0 ? { action: { kind: "link" as const, label: tFeedback("seeTasks"), href: `/events/${created.id}?onglet=retroplanning` } } : {}),
+      ...(created.tasks > 0 ? { action: { kind: "link" as const, label: tFeedback("seeTasks"), href: `/events/${created.id}?onglet=taches` } } : {}),
     });
     router.push(created.href);
   }, [state.created, feedback, router, tFeedback]);

@@ -6180,51 +6180,277 @@
   }
 }
 
-/* Lot 63d (CHR-02, CHR-03, UX-07 ; maquette M6) — le tableau des tâches agit sur la ligne : case de
-   sélection, rond « Fait », catégorie en toutes lettres, échéance modifiable d'un clic, actions de ligne
-   et barre des actions groupées. Puis la fenêtre de la tâche (DESIGN.md, « Fenêtre »). */
+/* Lot 70c (CHR-02, CHR-03, UX-05, UX-06, UX-14 ; D3, M1, M4, C-34, C-35, C-38, C-77, C-83 ; page 1 des
+   maquettes du lot 68) — la ligne type d'une tâche, ses petits panneaux (menu « ⋯ », « Changer la date »,
+   « Confier à »), les filtres de l'onglet « Tâches » et le panneau unique (fenêtre longue de DESIGN.md).
+   Une ligne de 60 px : le titre (la moitié de la largeur, en encre, souligné de gris), l'évènement,
+   l'échéance et son état (mot et icône ; rouge pour un vrai retard seulement), qui s'en charge, « Fait »,
+   « ⋯ ». Sur téléphone, la même ligne sur trois étages, « Fait » et « ⋯ » de 44 px. */
 @layer components {
-  .tasks-table {
-    @apply min-w-[760px];
+  .task-lines {
+    @apply my-3;
   }
-  /* Les textes réservés au lecteur d'écran (positionnés) restent dans la zone qui défile : sinon, à
-     375 px, ils élargissent la page. */
-  .tasks-table td,
-  .tasks-table th {
-    @apply relative;
+  .task-lines-head,
+  .task-line {
+    @apply grid items-center gap-x-4;
+    grid-template-columns: minmax(0, 2.2fr) minmax(0, 0.9fr) minmax(0, 1.2fr) minmax(0, 0.9fr) 8.5rem;
   }
-  .tasks-table .tasks-table-row {
-    @apply cursor-pointer hover:bg-ground;
+  .task-lines[data-form="event"] .task-lines-head,
+  .task-lines[data-form="event"] .task-line {
+    grid-template-columns: minmax(0, 2.4fr) minmax(0, 1.2fr) minmax(0, 0.9fr) 8.5rem;
   }
-  .tasks-table .tasks-table-row[data-selected="true"] {
+  .task-line:has(> .task-line-select) {
+    grid-template-columns: 2.75rem minmax(0, 2.2fr) minmax(0, 0.9fr) minmax(0, 1.2fr) minmax(0, 0.9fr);
+  }
+  .task-lines[data-form="event"] .task-line:has(> .task-line-select) {
+    grid-template-columns: 2.75rem minmax(0, 2.4fr) minmax(0, 1.2fr) minmax(0, 0.9fr);
+  }
+  .task-lines-head {
+    @apply border-b border-line px-3 pb-2 text-label text-ink-muted;
+  }
+  .task-lines-month {
+    @apply mt-6 mb-1 flex items-baseline gap-2 font-display text-heading;
+  }
+  .task-lines-count {
+    @apply text-label font-normal text-ink-muted;
+  }
+  .task-lines-list {
+    @apply m-0 list-none p-0;
+  }
+  .task-line {
+    @apply min-h-[60px] border-b border-line px-3 py-2;
+  }
+  /* « Aujourd'hui » : la ligne allégée garde la hauteur des autres lignes de l'accueil (40 px), pour que le
+     calendrier commence dans la partie visible d'un écran de 1 366 × 768 (lot 65c). */
+  @media (min-width: 640px) {
+    .task-line[data-form="today"] {
+      @apply min-h-10 py-0;
+    }
+    .task-line[data-form="today"] .task-done-button {
+      @apply min-h-10;
+    }
+    .task-line[data-form="today"] .task-avatar {
+      @apply h-6 w-6;
+    }
+    /* L'écart avec « Voir toutes les tâches », au-dessus (cibles distinctes, WCAG 2.5.8). */
+    .task-line[data-form="today"]:first-child {
+      @apply mt-2;
+    }
+  }
+  .task-line[data-selected="true"] {
     @apply bg-primary-soft;
   }
-  .task-select-cell {
-    @apply w-12;
+  .task-line-title {
+    @apply flex min-w-0 flex-wrap items-baseline gap-x-2;
   }
-  /* La case de sélection : une cible de 44 px (son libellé, lu par le lecteur d'écran). */
-  label.task-select {
-    @apply inline-flex h-11 w-11 max-w-none cursor-pointer items-center justify-center gap-0;
+  .task-title-link {
+    @apply font-medium text-ink underline decoration-line-strong decoration-1 underline-offset-4 hover:text-ink hover:decoration-ink;
   }
-  /* Le rond « Fait » : rond, pour ne pas se confondre avec la case de sélection (carrée). */
-  .tasks-table .task-check > button {
-    @apply rounded-full;
+  .task-line[data-done="true"] .task-title-link {
+    @apply text-ink-muted line-through;
   }
-  .task-label-cell {
-    @apply font-normal;
+  .task-priority {
+    @apply text-label whitespace-nowrap text-ink-muted;
   }
-  .task-label-cell > a {
-    @apply mr-2 font-medium text-ink no-underline hover:underline;
+  .task-line-event {
+    @apply min-w-0 truncate text-body text-ink-muted;
   }
-  .task-label-cell > .badge {
-    @apply mr-1;
+  .task-event-link {
+    @apply text-ink-muted underline decoration-line-strong underline-offset-4 hover:text-ink;
   }
-  .task-event {
-    @apply block text-label font-normal text-ink-muted;
+  .task-line-due {
+    @apply flex flex-wrap items-baseline gap-x-2 text-body;
   }
-  .task-event a {
-    @apply text-ink-muted;
+  .task-line-date {
+    @apply whitespace-nowrap text-ink;
   }
+  .task-state {
+    @apply inline-flex items-baseline gap-1 whitespace-nowrap text-label text-ink-muted;
+  }
+  .task-state[data-kind="late"] {
+    @apply font-semibold text-critical;
+  }
+  .task-state-icon {
+    @apply font-bold;
+  }
+  .task-line-who {
+    @apply flex min-w-0 items-center gap-2;
+  }
+  .task-who-name {
+    @apply truncate;
+  }
+  .task-avatar {
+    @apply inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-line bg-ground text-label font-semibold text-ink;
+  }
+  .task-line-actions {
+    @apply flex items-center justify-end gap-2;
+  }
+  .task-done-button {
+    @apply min-h-11 border-line-strong bg-surface px-4 text-label font-semibold text-ink hover:border-ink hover:bg-ground;
+  }
+  .task-done-button[data-done="true"] {
+    @apply font-medium text-ink-muted;
+  }
+  .task-menu-button {
+    @apply inline-flex min-h-11 min-w-11 items-center justify-center border-transparent bg-transparent px-2 text-heading text-ink hover:border-line-strong hover:bg-ground;
+  }
+  .task-line-select {
+    @apply inline-flex h-11 w-11 max-w-none cursor-pointer items-center justify-center;
+  }
+  .task-board-tools {
+    @apply flex justify-end;
+  }
+  .today-done-today {
+    @apply mt-2 text-body text-ink-muted;
+  }
+  .task-board {
+    @apply my-2;
+  }
+  .task-lines-group + .task-lines-group {
+    @apply mt-2;
+  }
+  .task-date-panel .task-popover-choices {
+    @apply mb-2;
+  }
+
+  @media (max-width: 639px) {
+    .task-lines-head {
+      @apply hidden;
+    }
+    /* Trois étages : le titre (deux lignes au plus) ; l'évènement · la personne ; l'état · la date. */
+    .task-line,
+    .task-lines[data-form="event"] .task-line,
+    .task-line:has(> .task-line-select),
+    .task-lines[data-form="event"] .task-line:has(> .task-line-select) {
+      @apply gap-x-2 gap-y-1 px-0 py-3;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      grid-template-areas:
+        "title title actions"
+        "event who actions"
+        "due due actions";
+    }
+    .task-lines[data-form="event"] .task-line {
+      grid-template-areas:
+        "title title actions"
+        "who who actions"
+        "due due actions";
+    }
+    .task-line:has(> .task-line-select) {
+      grid-template-columns: 2.75rem auto minmax(0, 1fr);
+      grid-template-areas:
+        "select title title"
+        "select event who"
+        "select due due";
+    }
+    .task-line-select {
+      grid-area: select;
+    }
+    .task-line-title {
+      grid-area: title;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .task-line-event {
+      grid-area: event;
+      @apply text-label;
+    }
+    .task-event-link {
+      @apply inline-flex min-h-11 items-center;
+    }
+    .task-line-who {
+      grid-area: who;
+      @apply text-label text-ink-muted;
+    }
+    .task-lines:not([data-form="event"]) .task-line-who::before {
+      content: "·";
+      @apply text-ink-muted;
+    }
+    .task-line-who .task-avatar {
+      @apply hidden;
+    }
+    .task-line-due {
+      grid-area: due;
+      @apply min-w-0 flex-nowrap gap-x-1 overflow-hidden text-label;
+    }
+    .task-line-due .task-state {
+      order: -1;
+    }
+    .task-line-due:has(.task-state) .task-line-date::before {
+      content: "· ";
+    }
+    .task-line-actions {
+      grid-area: actions;
+      @apply self-center;
+    }
+    .task-done-button,
+    .task-menu-button {
+      @apply min-h-11 min-w-11;
+    }
+  }
+
+  /* Les petits panneaux : posés sous leur bouton ; sur téléphone, en bas, de toute la largeur. */
+  .task-popover {
+    @apply fixed m-0 w-80 max-w-[calc(100vw-1rem)] rounded-md border border-line bg-surface p-2 text-left text-ink shadow-float;
+    inset: auto;
+  }
+  .task-popover:not(:popover-open) {
+    @apply hidden;
+  }
+  .task-popover-title {
+    @apply m-0 px-2 pt-1 text-body-strong;
+  }
+  .task-popover-subtitle {
+    @apply m-0 px-2 pb-2 text-label text-ink-muted;
+  }
+  .task-popover-choices {
+    @apply m-0 flex list-none flex-col p-0;
+  }
+  .task-popover-choice {
+    @apply flex min-h-11 w-full items-center justify-between gap-3 border-transparent bg-transparent px-2 text-left text-body font-normal text-ink hover:bg-ground;
+  }
+  .task-popover-choice[aria-pressed="true"] {
+    @apply font-semibold;
+  }
+  .task-assign-panel .task-popover-choice {
+    @apply justify-start;
+  }
+  .task-popover-choice-hint {
+    @apply ml-auto text-label text-ink-muted;
+  }
+  .task-popover-other {
+    @apply m-0 flex max-w-none flex-row flex-wrap items-end gap-2 border-t border-line px-2 pt-2;
+  }
+  .task-popover-other label {
+    @apply m-0 flex-1;
+  }
+  .task-popover-hint {
+    @apply m-0 px-2 pt-2 text-label text-ink-muted;
+  }
+  .task-menu [role="menu"] {
+    @apply flex flex-col;
+  }
+  .task-menu [role="menuitem"] {
+    @apply flex min-h-11 w-full flex-col items-start justify-center gap-0 rounded-md border-transparent bg-transparent px-2 py-1 text-left text-body font-normal text-ink no-underline hover:bg-ground hover:text-ink;
+  }
+  .task-menu-hint {
+    @apply text-label text-ink-muted;
+  }
+  .task-menu-separator {
+    @apply my-1 border-line;
+  }
+  .task-menu .task-menu-danger {
+    @apply text-critical hover:text-critical;
+  }
+  @media (max-width: 639px) {
+    .task-popover {
+      @apply w-full max-w-none rounded-t-lg rounded-b-none p-3 pb-6;
+      inset: auto 0 0 0;
+    }
+  }
+
+  /* La catégorie en toutes lettres, avec sa pastille (calendrier, réglages ; lot 63d). */
   .task-category {
     @apply inline-flex items-center gap-2 whitespace-nowrap;
   }
@@ -6232,26 +6458,16 @@
   .category-bar {
     @apply shrink-0;
   }
-  /* L'échéance, un bouton discret qui devient un champ date. */
-  button.task-due {
-    @apply min-h-9 gap-1 border-transparent bg-transparent px-2 text-body font-normal text-ink hover:border-line-strong max-sm:min-h-11;
+
+  /* Les filtres de l'onglet « Tâches » : chacun nommé, en ligne. */
+  .task-filters {
+    @apply my-3 flex max-w-none flex-row flex-wrap items-end gap-3;
   }
-  button.task-due.text-overdue {
-    @apply font-medium text-critical;
+  .task-filter {
+    @apply m-0 w-auto max-w-none min-w-40;
   }
-  .task-due-form {
-    @apply my-0;
-  }
-  .task-due-form input {
-    @apply min-h-9 w-auto px-2;
-  }
-  .tasks-table-actions {
-    @apply flex-nowrap;
-  }
-  .tasks-table-actions form {
-    @apply my-0 mr-0;
-  }
-  /* Menus de ligne (« Reporter », actions groupées) : un <details> sans le style de l'aide. */
+
+  /* Les actions en lot du mode « Sélectionner » (reprise du lot 63d ; leur dessin final vient au 70d). */
   details.row-menu {
     @apply relative m-0 max-w-none rounded-none border-0 bg-transparent p-0;
   }
@@ -6264,34 +6480,161 @@
   .row-menu-panel {
     @apply absolute right-0 z-30 mt-1 flex w-64 flex-col gap-1 rounded-md border border-line bg-surface p-2 text-left shadow-float;
   }
-  .row-menu-choices {
-    @apply my-0 flex w-full flex-col items-stretch gap-1;
-  }
-  .row-menu-choices .button-ghost {
-    @apply w-full justify-start !text-ink hover:!bg-ground hover:no-underline;
-  }
   .row-menu-date {
     @apply my-0 flex w-full flex-col items-stretch gap-2 border-t border-line pt-2;
   }
   .row-menu-panel.row-menu-date {
     @apply w-64 border-t p-3;
   }
-  /* « Modifier » de la ligne : à la taille des autres actions de ligne. */
-  .tasks-table-actions .button-link {
-    @apply min-h-10 px-3 text-label;
-  }
   .task-bulk {
-    @apply my-3 flex flex-row flex-wrap items-center gap-2 rounded-md border border-primary bg-primary-soft px-3 py-2;
+    @apply sticky bottom-0 my-3 flex flex-row flex-wrap items-center gap-2 rounded-md border-2 border-ink bg-surface px-3 py-2;
   }
   .task-bulk details.row-menu .row-menu-panel {
-    @apply right-auto left-0;
+    @apply right-auto bottom-full left-0 mb-1;
   }
   .task-bulk-count {
-    @apply mr-2 text-body text-primary;
+    @apply mr-2 text-body;
   }
 
-  /* La fenêtre de la tâche : une colonne ; avec ses rubriques (rétroplanning), jusqu'à 860 px, le
-     sommaire à gauche. Sur téléphone, elle occupe l'écran, avec « Retour ». */
+  /* Le panneau d'une tâche : fenêtre longue, 860 px, deux colonnes ; sur téléphone, page entière, avec
+     « ← {écran} », et « Fait » et « Enregistrer » en bas. */
+  .task-panel {
+    @apply m-auto flex max-h-[calc(100dvh-2rem)] w-[min(860px,calc(100vw-2rem))] flex-col rounded-lg border border-line bg-surface p-0 text-ink shadow-float;
+  }
+  .task-panel:not([open]) {
+    @apply hidden;
+  }
+  .task-panel::backdrop {
+    background: color-mix(in srgb, var(--color-ink) 35%, transparent);
+  }
+  .task-panel-head {
+    @apply flex items-start gap-2 border-b border-line px-6 py-4;
+  }
+  .task-panel-heading {
+    @apply min-w-0 flex-1;
+  }
+  .task-panel-heading h2 {
+    @apply m-0 text-title;
+  }
+  .task-panel-event {
+    @apply m-0 mb-1 text-label;
+  }
+  .task-panel-event a {
+    @apply text-ink-muted underline decoration-line-strong underline-offset-4 hover:text-ink;
+  }
+  .task-panel-back {
+    @apply hidden;
+  }
+  .task-panel-x {
+    @apply min-h-10 min-w-10 justify-center px-2 text-title text-ink;
+  }
+  .task-panel-body {
+    @apply grid min-h-0 flex-1 grid-cols-1 gap-6 overflow-y-auto px-6 py-4 md:grid-cols-2;
+  }
+  .task-panel-main {
+    @apply my-0 flex w-full max-w-none flex-col gap-4;
+  }
+  .task-panel-field {
+    @apply m-0 flex max-w-none flex-col gap-1;
+  }
+  .task-panel-due {
+    @apply flex flex-wrap items-center gap-2;
+  }
+  .task-panel-due input {
+    @apply w-auto;
+  }
+  .task-panel-days {
+    @apply mt-1 flex max-w-none flex-col gap-1 text-label text-ink-muted;
+  }
+  .task-panel-days-input {
+    @apply flex items-center gap-2;
+  }
+  .task-panel-days-input input {
+    @apply w-24;
+  }
+  .task-panel-check {
+    @apply m-0 inline-flex max-w-none flex-row items-center gap-2;
+  }
+  .task-panel-check input {
+    @apply h-5 w-5;
+  }
+  .task-panel-more {
+    @apply flex flex-col gap-4;
+  }
+  .task-panel-more-toggle {
+    @apply hidden;
+  }
+  .task-panel-side {
+    @apply flex min-w-0 flex-col gap-6;
+  }
+  .task-panel-section h3 {
+    @apply m-0 mb-2 text-heading;
+  }
+  .task-panel-section .button-ghost {
+    @apply min-h-10;
+  }
+  .task-panel-section button[type="submit"]:not(.button-ghost) {
+    @apply border-line-strong bg-surface text-ink hover:border-ink hover:bg-ground;
+  }
+  .task-panel-foot {
+    @apply flex flex-wrap items-center justify-between gap-2 border-t border-line px-6 py-3;
+  }
+  .task-panel-foot-start,
+  .task-panel-foot-end {
+    @apply flex flex-wrap items-center gap-2;
+  }
+  .task-panel-done {
+    @apply text-body text-ink-muted;
+  }
+  .task-panel-confirm {
+    @apply flex w-full flex-col gap-2;
+  }
+  .task-panel-confirm p {
+    @apply m-0;
+  }
+  .task-panel-confirm-title {
+    @apply text-body-strong;
+  }
+  .task-panel-confirm-actions {
+    @apply flex flex-wrap justify-end gap-2;
+  }
+  @media (max-width: 639px) {
+    .task-panel {
+      @apply m-0 h-dvh max-h-none w-screen max-w-none rounded-none border-0;
+    }
+    .task-panel-head {
+      @apply flex-wrap px-4;
+    }
+    .task-panel-back {
+      @apply inline-flex min-h-11 w-full justify-start px-0 text-body font-medium text-ink;
+    }
+    .task-panel-x {
+      @apply hidden;
+    }
+    .task-panel-body {
+      @apply px-4;
+    }
+    .task-panel-more:not([data-open]) {
+      @apply hidden;
+    }
+    .task-panel-more-toggle {
+      @apply inline-flex min-h-11 self-start;
+    }
+    .task-panel-foot {
+      @apply sticky bottom-0 bg-surface px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))];
+    }
+    .task-panel-close {
+      @apply hidden;
+    }
+    .task-panel-foot button {
+      @apply min-h-11;
+    }
+  }
+}
+
+@layer components {
+  /* Lot 63d — la fenêtre courte ou longue (envoi d'un message préparé, modification) ; avec ses rubriques,
+     jusqu'à 860 px, le sommaire à gauche. Sur téléphone, elle occupe l'écran, avec « Retour ». */
   .task-dialog {
     @apply m-auto flex max-h-[calc(100dvh-2rem)] w-[min(36rem,calc(100vw-2rem))] flex-col rounded-lg border border-line bg-surface p-0 text-ink shadow-float;
   }
