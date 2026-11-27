@@ -95,7 +95,7 @@ test("NFR-17 — PAR-03 au clavier : cocher une tâche, puis « Annuler »", asy
   // Lot 70c : « Fait » de la ligne type.
   const check = page.getByRole("button", { name: "Fait « Confirmer le lieu »" });
   await expect(check).toBeVisible();
-  expect(await tabUntil(page, () => Boolean(document.activeElement?.classList.contains("task-done-button") && document.activeElement.textContent?.includes("Confirmer le lieu")))).toBe(true);
+  expect(await tabUntil(page, () => Boolean(document.activeElement?.classList.contains("task-done-button") && document.activeElement.getAttribute("aria-label")?.includes("Confirmer le lieu")))).toBe(true);
   expect((await focusIsVisible(page)).visible).toBe(true);
   await page.keyboard.press("Enter");
   const offer = feedback(page).filter({ hasText: "Tâche faite : Confirmer le lieu" });

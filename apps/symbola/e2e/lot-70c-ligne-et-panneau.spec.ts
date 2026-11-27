@@ -158,6 +158,7 @@ for (const size of [
       // « Fermer » à l'ordinateur ; « ← Tâches » sur téléphone (il joue le même rôle).
       await panel.getByRole("button", { name: size.width === 375 ? "Tâches" : "Fermer", exact: true }).click();
       await expect(panel).toBeHidden();
+      await expect(page).not.toHaveURL(/tache=/);
 
       // Avec un changement, Échap demande dans le pied, sans seconde fenêtre.
       await line(page, "Choisir le fleuriste").getByRole("link", { name: "Choisir le fleuriste" }).click();
@@ -220,6 +221,7 @@ for (const size of [
       await expect(feedback(page)).toContainText("Tâche créée : Réserver la navette des invités");
       const created = (await listEventTasks(setup.organizationId, setup.eventId)).find((task) => task.label === "Réserver la navette des invités");
       expect(created).toMatchObject({ dueDate: "2027-05-13", offsetDays: -30, fixed: false });
+      await expect(page).not.toHaveURL(/nouvelle=1/);
 
       // Depuis « Tâches » : « Aucun évènement » en tête, la répétition proposée.
       await page.goto("/taches");
@@ -279,7 +281,8 @@ for (const size of [
       }
       await page.goto("/taches");
       await expect(page.locator(".task-lines .task-line").first()).toBeVisible();
-      const actions = await page.locator(".task-lines .task-line-actions button").evaluateAll((buttons) => buttons.map((button) => button.getBoundingClientRect()).filter((box) => box.width < 44 || box.height < 44).length);
+      // Les boutons visibles de la ligne (ceux des petits panneaux fermés n'ont pas de boîte).
+      const actions = await page.locator(".task-lines .task-line-actions button").evaluateAll((buttons) => buttons.map((button) => button.getBoundingClientRect()).filter((box) => box.width > 0 && (box.width < 44 || box.height < 44)).length);
       expect(actions).toBe(0);
       // Le panneau de la tâche : page entière, « ← Tâches », toutes les commandes à 44 px.
       await page.goto(`/taches?tache=${setup.late.id}`);
@@ -308,6 +311,7 @@ for (const size of [
       // Au clavier : Entrée sur le titre ouvre le panneau, Échap le ferme sans changement.
       await page.keyboard.press("Escape");
       await expect(page.getByRole("dialog", { name: "Confirmer la voiture des mariés" })).toBeHidden();
+      await expect(page).not.toHaveURL(/tache=/);
       await line(page, "Organiser la dégustation finale").getByRole("link", { name: "Organiser la dégustation finale" }).focus();
       await page.keyboard.press("Enter");
       await expect(page.getByRole("dialog", { name: "Organiser la dégustation finale" })).toBeVisible();

@@ -145,7 +145,7 @@ test("NFR-01, UX-15 — un geste optimiste réagit en moins de 100 ms ; ⌘K ouv
 
     const check = await page.evaluate(async () => {
       // Lot 70c : « Fait » de la ligne type ; la coche se voit à l'attribut data-done (mise à jour optimiste).
-      const button = [...document.querySelectorAll<HTMLButtonElement>(".task-done-button")].find((candidate) => candidate.textContent?.includes("Confirmer le lieu")) ?? null;
+      const button = [...document.querySelectorAll<HTMLButtonElement>(".task-done-button")].find((candidate) => candidate.getAttribute("aria-label")?.includes("Confirmer le lieu")) ?? null;
       if (!button) return -1;
       const start = performance.now();
       const reacted = new Promise<number>((done) => {

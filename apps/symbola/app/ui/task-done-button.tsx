@@ -47,10 +47,16 @@ export function TaskDoneButton({ taskId, label, done }: { taskId: string; label:
     });
 
   return (
-    <button type="button" className={shownDone ? "button-secondary task-done-button" : "task-done-button"} data-done={shownDone ? "true" : undefined} onClick={toggle} disabled={pending}>
+    // Le texte visible ouvre le nom accessible (WCAG 2.5.3) ; la tâche n'est lue que par le lecteur d'écran.
+    <button
+      type="button"
+      className={shownDone ? "button-secondary task-done-button" : "task-done-button"}
+      data-done={shownDone ? "true" : undefined}
+      aria-label={`${shownDone ? t("reopen") : t("done")} ${t("doneFor", { label })}`}
+      onClick={toggle}
+      disabled={pending}
+    >
       {shownDone ? t("reopen") : t("done")}
-      {/* Le texte visible ouvre le nom accessible (WCAG 2.5.3) ; la tâche n'est lue que par le lecteur d'écran. */}
-      <span className="sr-only"> {t("doneFor", { label })}</span>
     </button>
   );
 }

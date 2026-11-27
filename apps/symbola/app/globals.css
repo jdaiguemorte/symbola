@@ -6092,6 +6092,23 @@
   .task-line {
     @apply min-h-[60px] border-b border-line px-3 py-2;
   }
+  /* « Aujourd'hui » : la ligne allégée garde la hauteur des autres lignes de l'accueil (40 px), pour que le
+     calendrier commence dans la partie visible d'un écran de 1 366 × 768 (lot 65c). */
+  @media (min-width: 640px) {
+    .task-line[data-form="today"] {
+      @apply min-h-10 py-0;
+    }
+    .task-line[data-form="today"] .task-done-button {
+      @apply min-h-10;
+    }
+    .task-line[data-form="today"] .task-avatar {
+      @apply h-6 w-6;
+    }
+    /* L'écart avec « Voir toutes les tâches », au-dessus (cibles distinctes, WCAG 2.5.8). */
+    .task-line[data-form="today"]:first-child {
+      @apply mt-2;
+    }
+  }
   .task-line[data-selected="true"] {
     @apply bg-primary-soft;
   }

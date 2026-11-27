@@ -1082,7 +1082,8 @@ export default async function EventDetailPage({
           <section className="card" aria-labelledby="tasks-title">
             <div className="section-head">
               <h2 id="tasks-title">{tLine("tabTitle")}</h2>
-              <Link href={taskQuery({ nouvelle: "1" })} scroll={false} className="button-link button-link-primary">
+              {/* L'action principale de l'onglet, sauf quand le bandeau « Prochaine étape » en propose déjà une. */}
+              <Link href={taskQuery({ nouvelle: "1" })} scroll={false} className={stepBanner ? "button-link" : "button-link button-link-primary"}>
                 {tLine("newTask")}
               </Link>
             </div>

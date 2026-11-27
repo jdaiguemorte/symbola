@@ -66,11 +66,11 @@ function LineMenu({ line, shortcuts, assignOptions }: { line: TaskLineView; shor
         className="task-menu-button"
         aria-haspopup="menu"
         aria-controls={menu.id}
+        aria-label={t("menuLabel", { label: line.label })}
         onClick={() => menu.open(trigger.current)}
         disabled={pending}
       >
         <span aria-hidden="true">⋯</span>
-        <span className="sr-only">{t("menuLabel", { label: line.label })}</span>
       </button>
       <TaskPopover handle={menu} label={t("menuLabel", { label: line.label })} className="task-menu">
         <div role="menu" aria-label={t("menuLabel", { label: line.label })} onKeyDown={moveFocus}>
@@ -218,7 +218,7 @@ export function TaskLineList({
   const parts = lineParts(form);
   const [headId] = useState(() => `task-lines-${Math.random().toString(36).slice(2, 8)}`);
   return (
-    <div className="task-lines" data-form={form} aria-label={label} role="region">
+    <div className="task-lines" data-form={form}>
       {form === "today" ? null : (
         <div className="task-lines-head" aria-hidden="true" id={headId}>
           <span>{t("colTask")}</span>
@@ -228,13 +228,13 @@ export function TaskLineList({
         </div>
       )}
       {groups.map((group) => (
-        <section key={group.key} className="task-lines-group" aria-label={group.label || label}>
+        <div key={group.key} className="task-lines-group">
           {group.label ? (
             <h3 className="task-lines-month">
               {group.label} <span className="task-lines-count">{t("monthCount", { count: group.lines.length })}</span>
             </h3>
           ) : null}
-          <ul className="task-lines-list">
+          <ul className="task-lines-list" aria-label={group.label ? t("listLabel", { group: group.label }) : label}>
             {group.lines.map((line) => (
               <TaskLine
                 key={line.id}
@@ -248,7 +248,7 @@ export function TaskLineList({
               />
             ))}
           </ul>
-        </section>
+        </div>
       ))}
     </div>
   );

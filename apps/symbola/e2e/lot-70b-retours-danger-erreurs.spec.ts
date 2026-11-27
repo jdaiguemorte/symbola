@@ -101,7 +101,9 @@ for (const size of [
       const viewport = page.viewportSize()!;
       expect(box.x).toBeLessThan(viewport.width / 2);
       expect(box.y + box.height).toBeLessThanOrEqual(viewport.height);
-      expect(box.y + box.height).toBeGreaterThan(viewport.height - 120);
+      // Lot 70c : la liste de la fiche est courte ; le message se pose dessous, ou en bas de l'écran.
+      const listBottom = await page.locator(".task-lines").evaluate((element) => element.getBoundingClientRect().bottom);
+      expect(box.y + box.height > viewport.height - 120 || box.y >= listBottom).toBe(true);
       const checkBox = (await check.boundingBox())!;
       const overlaps = !(checkBox.x > box.x + box.width || checkBox.x + checkBox.width < box.x || checkBox.y > box.y + box.height || checkBox.y + checkBox.height < box.y);
       expect(overlaps).toBe(false);
