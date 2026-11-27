@@ -166,7 +166,8 @@
         "poste",
         "source",
         "motif",
-        "mode de paiement"
+        "mode de paiement",
+        "quoi"
       ],
       "en": [
         "label",
@@ -175,7 +176,8 @@
         "task",
         "item",
         "service",
-        "description"
+        "description",
+        "what"
       ]
     },
     "dueDate": {
@@ -184,13 +186,17 @@
         "date d'échéance",
         "date limite",
         "à faire avant",
-        "pour le"
+        "pour le",
+        "pour quand",
+        "quand"
       ],
       "en": [
         "due date",
         "deadline",
         "due",
-        "due on"
+        "due on",
+        "by when",
+        "when"
       ]
     },
     "responsible": {

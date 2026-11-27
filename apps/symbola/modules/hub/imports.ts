@@ -603,6 +603,7 @@ export async function saveImportMatching(
 // Réponses validées (entrée externe : Zod, CLAUDE.md § 5) ; aucune n'est cochée d'avance.
 const importAnswersSchema = z.strictObject({
   targetEvent: z.guid().optional(),
+  newEvent: z.strictObject({ name: z.string().trim().min(1).max(200), eventDate: z.iso.date().nullable() }).optional(),
   depositsPaid: z.strictObject({ answer: z.enum(DEPOSITS_PAID_ANSWERS), paidRows: z.array(z.number().int().nonnegative()).max(5000).optional() }).optional(),
   contracts: z.strictObject({ answer: z.enum(CONTRACTS_ANSWERS), signedRows: z.array(z.number().int().nonnegative()).max(5000).optional() }).optional(),
   pastDueTasks: z.strictObject({ answer: z.enum(PAST_DUE_TASKS_ANSWERS), date: z.iso.date().optional() }).optional(),

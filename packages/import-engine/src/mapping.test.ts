@@ -169,3 +169,18 @@ describe("IMP-02 — Reconnaissance des colonnes", () => {
     }
   });
 });
+
+// Lot 71c (HUB-14 ; spécification du lot 71, § 5.3, critère 7 ; maquette 07, « La liste « à faire » ») :
+// la liste « à faire » d'un tableur est reconnue d'office, sans rien à choisir.
+describe("HUB-14 — La liste « à faire » d'un tableur reconnue d'office (lot 71c)", () => {
+  it("critère 7 : « Fait ? », « Quoi », « Pour quand » et « Qui » sont proposés avec une confiance sûre", () => {
+    const proposals = propose("tableur-planner/a-faire.csv", "tasks");
+    expect(Object.fromEntries(Object.entries(proposals).map(([header, proposal]) => [header, proposal.fieldKey]))).toEqual({
+      "Fait ?": "done",
+      Quoi: "label",
+      "Pour quand": "dueDate",
+      Qui: "responsible",
+    });
+    for (const proposal of Object.values(proposals)) expect(proposal.confidence).toBeGreaterThanOrEqual(LOW_CONFIDENCE_THRESHOLD);
+  });
+});
