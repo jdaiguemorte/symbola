@@ -34,7 +34,7 @@ export async function markDraftCancelled(db: AppDatabase, organizationId: string
   return withOrganization(db, organizationId, async (tx) => {
     const updated = await tx
       .update(imports)
-      .set({ status: "cancelled", rows: null, sourceLineNumbers: null, updatedAt: now })
+      .set({ status: "cancelled", rows: null, sourceLineNumbers: null, leftovers: null, updatedAt: now })
       .where(and(eq(imports.id, importId), eq(imports.status, "draft")))
       .returning({ id: imports.id });
     return updated.length > 0;
@@ -46,7 +46,7 @@ export async function cancelExpiredDrafts(db: AppDatabase, organizationId: strin
   return withOrganization(db, organizationId, async (tx) => {
     const updated = await tx
       .update(imports)
-      .set({ status: "cancelled", rows: null, sourceLineNumbers: null, updatedAt: now })
+      .set({ status: "cancelled", rows: null, sourceLineNumbers: null, leftovers: null, updatedAt: now })
       .where(and(eq(imports.status, "draft"), lt(imports.expiresAt, now)))
       .returning({ id: imports.id });
     return updated.map((row) => row.id);
@@ -150,7 +150,8 @@ export async function recordUndoOutcomes(
     if (input.complete) {
       await tx
         .update(imports)
-        .set({ status: "undone", undoneAt: input.now, updatedAt: input.now })
+        // Lot 71a (I4) : ce que l'import n'avait pas repris part avec lui.
+        .set({ status: "undone", undoneAt: input.now, leftovers: null, updatedAt: input.now })
         .where(and(eq(imports.id, input.importId), eq(imports.status, "applied")));
     }
   });

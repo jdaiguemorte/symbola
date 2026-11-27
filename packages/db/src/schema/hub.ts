@@ -602,6 +602,9 @@ export type ImportMatching = {
   // Lot 36b (D11, SC-10) : lignes écartées selon la valeur d'une colonne (« Catégorie » vaut
   // « prestataire ») ; valeurs comparées sans casse, accents ni espaces autour.
   rowFilter?: { columnIndex: number; excluded: string[] };
+  // Lot 71a (HUB-14 ; ADR 0119) : réponses de l'étape « Questions » (contrat ImportAnswers de
+  // packages/contracts) ; gardées quand les rapprochements sont recalculés.
+  answers?: Record<string, unknown>;
 };
 
 export const importStatusEnum = hubSchema.enum("import_status", ["draft", "applied", "undone", "cancelled"]);
@@ -727,7 +730,8 @@ export const importJobs = hubSchema.table("import_jobs", {
 }, (table) => [index("import_jobs_organization_idx").on(table.organizationId)]);
 
 // Lot 71a (HUB-14, PAR-01, UX-02 ; spécification du lot 71, § 4.1 ; ADR 0119) — la reprise d'un
-// mariage en cours : une page par mariage, qui regroupe ses imports. Le mariage peut ne pas exister
+// mariage en cours : une page par mariage, qui regroupe ses imports. Sortes et états : mêmes listes
+// que packages/contracts (takeover/takeover.ts), vérifiées par modules/hub/takeovers.test.ts. Le mariage peut ne pas exister
 // encore (ligne 2 de la page) ; son identifiant est contrôlé par le service des évènements (pas de clé
 // étrangère entre schémas). Aucune donnée personnelle : des identifiants, des dates, des états.
 export const TAKEOVER_STEP_KINDS = ["vendor_book", "event", "budget", "event_vendors", "tasks", "program"] as const;

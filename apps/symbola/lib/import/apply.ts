@@ -217,6 +217,11 @@ async function applyToModules(
       return importVendorRows({ organizationId, rows, typeChoices: options.vendorTypeChoices, typeColumnHeader: options.typeColumnHeader ?? null });
     case "contacts":
       return importContactRows({ organizationId, userId, rows });
+    // Lot 71a : ces deux sortes passent par l'assistant commun au paquet 71e ; d'ici là, la route
+    // d'envoi ne les accepte pas (IMPORT_FILE_ENTITY_TYPES).
+    case "event_vendors":
+    case "program":
+      throw new Error("sorte d'import pas encore prise par l'assistant commun");
   }
 }
 

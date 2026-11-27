@@ -17,6 +17,9 @@ import {
   type ImportUndoOutcome,
   type TaskResponsible,
   sameImportValue,
+  takeoverContractFor,
+  type ImportAnswers,
+  type TakeoverContract,
 } from "@symbola/contracts";
 import { appDatabase } from "@symbola/db/client";
 import { emitDomainEvent } from "@symbola/db/events/emit";
@@ -481,10 +484,33 @@ async function vendorCandidateState(tx: Tx, candidateId: string): Promise<Values
 
 const hasValue = (value: unknown) => value !== undefined && value !== null && value !== "";
 
+// Lot 71a (HUB-14, C-53 ; décisions I1 et I2) : le statut et le contrat d'un prestataire nommé sur une
+// ligne de budget reprise. Avec des réponses ou dans une reprise : « Retenu sur la ligne » dès qu'il est
+// nommé, son contrat selon la réponse (« signed » le dit signé) ; jamais une relance d'office. Sans
+// elles (import d'avant le lot) : retenu si la ligne a un montant réel, pressenti sinon.
+export function importedCandidateStatus(
+  row: Pick<ImportApplyRow, "rowIndex" | "values">,
+  context: { answers: ImportAnswers | null; takeover: boolean },
+): { status: "retained" | "contract_signed" | "shortlisted"; takeoverContract: TakeoverContract | null } {
+  if (context.takeover || context.answers?.contracts) {
+    const contract = takeoverContractFor(context.answers, row.rowIndex);
+    return { status: contract === "signed" ? "contract_signed" : "retained", takeoverContract: contract };
+  }
+  return { status: hasValue(row.values.actualAmount) ? "retained" : "shortlisted", takeoverContract: null };
+}
+
 // Lot 28b (PRE-02) : le prestataire d'une ligne importée devient un prestataire
 // rattaché au poste (retenu si la ligne a un montant réel, pressenti sinon),
-// sauf s'il l'est déjà sous ce nom.
-async function importedCandidate(tx: Tx, organizationId: string, row: ImportApplyRow, slotId: string, eventId: string, items: ImportedItem[]): Promise<string | null> {
+// sauf s'il l'est déjà sous ce nom. Lot 71a : voir importedCandidateStatus.
+async function importedCandidate(
+  tx: Tx,
+  organizationId: string,
+  row: ImportApplyRow,
+  slotId: string,
+  eventId: string,
+  items: ImportedItem[],
+  context: { answers: ImportAnswers | null; takeover: boolean },
+): Promise<string | null> {
   const vendorName = text(row.values.vendorName);
   if (!vendorName) return null;
   const existing = (await tx.select().from(eventVendorCandidates).where(eq(eventVendorCandidates.vendorSlotId, slotId))).find(
@@ -492,6 +518,7 @@ async function importedCandidate(tx: Tx, organizationId: string, row: ImportAppl
   );
   if (existing) return existing.id;
   const [last] = await tx.select({ value: max(eventVendorCandidates.position) }).from(eventVendorCandidates).where(eq(eventVendorCandidates.vendorSlotId, slotId));
+  const { status, takeoverContract } = importedCandidateStatus(row, context);
   const [candidate] = await tx
     .insert(eventVendorCandidates)
     .values({
@@ -499,7 +526,8 @@ async function importedCandidate(tx: Tx, organizationId: string, row: ImportAppl
       eventId,
       vendorSlotId: slotId,
       vendorName,
-      status: hasValue(row.values.actualAmount) ? "retained" : "shortlisted",
+      status,
+      takeoverContract,
       position: (last?.value ?? -1) + 1,
     })
     .returning();
@@ -513,6 +541,9 @@ async function importedCandidate(tx: Tx, organizationId: string, row: ImportAppl
 export async function importVendorSlotsForBudget(input: {
   organizationId: string;
   rows: ImportApplyRow[];
+  // Lot 71a : réponses de l'étape « Questions » et import d'une reprise (contrat des prestataires).
+  answers?: ImportAnswers | null;
+  takeover?: boolean;
 }): Promise<{ items: ImportedItem[]; slotIdByRow: Map<number, string>; candidateIdByRow: Map<number, string> }> {
   return inTransaction(input.organizationId, async (tx) => {
     const items: ImportedItem[] = [];
@@ -548,7 +579,7 @@ export async function importVendorSlotsForBudget(input: {
         items.push({ rowIndex: row.rowIndex, module: "events", kind: "event_vendor_slot", elementId: slot.id, action: "created", previous: null, written: (await vendorSlotState(tx, slot.id)) ?? {} });
       }
       slotIdByRow.set(row.rowIndex, slotId);
-      const candidateId = await importedCandidate(tx, input.organizationId, row, slotId, row.eventId, items);
+      const candidateId = await importedCandidate(tx, input.organizationId, row, slotId, row.eventId, items, { answers: input.answers ?? null, takeover: input.takeover ?? false });
       if (candidateId) candidateIdByRow.set(row.rowIndex, candidateId);
     }
     return { items, slotIdByRow, candidateIdByRow };

@@ -18,8 +18,17 @@ export const IMPORT_ENTITY_TYPES = [
   "event_sheets",
   // Lot 36b (HUB-14, D11) : contacts du hub.
   "contacts",
+  // Lot 71a (HUB-14, C-66 ; ADR 0119) : les PDF des prestataires retenus et du programme, au journal
+  // commun des imports. Ils passent par l'assistant commun au paquet 71e ; d'ici là, ni l'écran
+  // « Importer » ni la route d'envoi ne les acceptent (IMPORT_FILE_ENTITY_TYPES).
+  "event_vendors",
+  "program",
 ] as const;
 export type ImportEntityType = (typeof IMPORT_ENTITY_TYPES)[number];
+
+// Les sortes que l'assistant commun accepte aujourd'hui depuis un fichier déposé.
+const NOT_YET_IN_WIZARD: readonly ImportEntityType[] = ["event_vendors", "program"];
+export const IMPORT_FILE_ENTITY_TYPES: readonly ImportEntityType[] = IMPORT_ENTITY_TYPES.filter((type) => !NOT_YET_IN_WIZARD.includes(type));
 
 // Type de valeur attendu, qui guide aussi la reconnaissance par le contenu.
 // `choice` : une valeur parmi `choices`, reconnue par les synonymes de
@@ -154,6 +163,9 @@ export const IMPORT_FIELDS: Record<ImportEntityType, readonly ImportFieldDefinit
   // le nom, ou d'une seule colonne (« NOM Prénom », « Prénom Nom ») : un mot tout en majuscules y
   // est le nom, sinon l'ordre de la colonne décide. Au moins un nom par ligne (vérifié à la lecture).
   // « notes » devient une note de la fiche.
+  // Lot 71a : lus d'un PDF par le moteur d'import (paquet 71e), sans colonnes à faire correspondre.
+  event_vendors: [],
+  program: [],
   contacts: [
     { key: "lastFirstName", kind: "text" },
     { key: "firstLastName", kind: "text" },
