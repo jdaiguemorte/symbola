@@ -2,6 +2,7 @@
 // une organisation existante voit ses types rangés par famille dans le
 // carnet, puis renomme, fusionne, scinde « Beauté et tenues » et supprime un
 // type en déplaçant ses fiches. Ordinateur et 375 px, axe-core.
+import { bookResults } from "./vendor-book";
 import { randomUUID } from "node:crypto";
 import AxeBuilder from "./axe";
 import { createAppConnection } from "@symbola/db/client";
@@ -51,20 +52,22 @@ test("L16-PRE-14 / L16-PRE-15 — types rangés par famille, renommés, fusionn�
   await expect(families(page).getByRole("link", { name: "Beauté et tenues · 3" })).toBeVisible();
   await expect(families(page).getByRole("link", { name: "À classer · 1" })).toBeVisible();
   await expect(families(page).getByRole("link", { name: /Traiteur/ })).toHaveCount(0);
-  await expect(page.getByText("1 prestataire à classer :")).toBeVisible();
+  // Lot 73b : la phrase « à classer » et son geste.
+  await expect(page.getByText("1 fiche n'a pas encore de métier.")).toBeVisible();
+  await expect(page.getByRole("link", { name: "Classer la fiche" })).toBeVisible();
   // Sur téléphone, les familles tiennent sur une ligne défilante.
   if (page.viewportSize()!.width < 640) expect((await families(page).boundingBox())!.height).toBeLessThan(60);
   await expectNoAxeViolation(page);
 
   await families(page).getByRole("link", { name: "Beauté et tenues · 3" }).click();
   const second = page.getByRole("navigation", { name: "Types de la famille Beauté et tenues" });
-  await expect(second.getByRole("link", { name: "Toute la famille · 3" })).toHaveAttribute("aria-current", "true");
+  await expect(second.getByRole("link", { name: "Tous les métiers · 3" })).toHaveAttribute("aria-current", "true");
   await expect(second.getByRole("link", { name: "Coiffeur(se) · 1" })).toBeVisible();
-  const results = page.getByRole("region", { name: /^\d+ résultats?/ });
+  const results = bookResults(page);
   await expect(results).toContainText("Atelier Ivoire");
   await expect(results).not.toContainText("Agence Silhouette");
   await second.getByRole("link", { name: "Robe de mariée · 1" }).click();
-  await expect(results.getByRole("heading", { level: 2 })).toHaveText("1 résultat");
+  await expect(results.getByRole("heading", { level: 2 })).toHaveText("1 fiche sur 4, par nom");
   await expectNoAxeViolation(page);
 
   // L16-PRE-15 — renommer un type : les fiches suivent.
@@ -121,9 +124,9 @@ test("L16-PRE-14 / L16-PRE-15 — types rangés par famille, renommés, fusionn�
   await expect(families(page).getByRole("link", { name: "Beauté · 2" })).toBeVisible();
   await expect(families(page).getByRole("link", { name: "Tenues · 1" })).toBeVisible();
   await expect(families(page).getByRole("link", { name: "À classer · 1" })).toBeVisible();
-  if (page.viewportSize()!.width >= 1024) {
-    const legend = page.getByRole("list", { name: "Légende de la carte" });
-    await expect(legend).toContainText("Beauté");
-    await expect(legend).toContainText("Tenues");
-  }
+  // Lot 73b (V2) : la légende est dans la vue « Carte ».
+  await page.goto("/prestataires?vue=carte");
+  const legend = page.getByRole("list", { name: "Légende de la carte" });
+  await expect(legend).toContainText("Beauté");
+  await expect(legend).toContainText("Tenues");
 });

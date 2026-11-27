@@ -14,6 +14,7 @@ import { starterEventTypes } from "@symbola/starter-templates";
 import { addEventTask, addStarterEventTypes, createProspect, createProspectSource, listEventTypes } from "../modules/events/service";
 import { createVendor, createVendorFamily, createVendorTag, createVendorType } from "../modules/vendors/service";
 import { feedback, helpPanel, readyOrganization, signIn as signInByLink } from "./helpers";
+import { bookResults } from "./vendor-book";
 
 async function loginAndSetupMfa(page: Page, email: string, _password: string) {
   // Lot 33 : lien magique et fournisseur d'identité (e2e/helpers.ts).
@@ -76,12 +77,13 @@ test("L20-PRE-17 — archiver un prestataire depuis le carnet, après confirmati
   test.setTimeout(90_000);
   await newPlanner(page, ["Domaine des Saules", "Fleurs de Lys"]);
   await page.goto("/prestataires");
-  const results = page.locator(".vendor-results");
+  const results = bookResults(page);
   await expect(results.getByRole("link", { name: "Domaine des Saules" })).toBeVisible();
 
   // Lot 39a (UX-07 ; D6) : archiver s'exécute tout de suite (l'autre fiche reste) et s'annule pendant
-  // dix secondes ; plus de confirmation.
-  await page.getByRole("button", { name: "Archiver Domaine des Saules" }).click();
+  // dix secondes ; plus de confirmation. Lot 73b : « Archiver… » est au menu « ⋯ » de la ligne, à part.
+  await page.getByRole("button", { name: "Autres actions pour Domaine des Saules" }).click();
+  await page.getByRole("menuitem", { name: /^Archiver…/ }).click();
   await expect(results.getByRole("link", { name: "Domaine des Saules" })).toHaveCount(0);
   await expect(results.getByRole("link", { name: "Fleurs de Lys" })).toBeVisible();
   await expect(page).toHaveURL(/\/prestataires$/);
@@ -94,7 +96,8 @@ test("L20-PRE-17 — archiver un prestataire depuis le carnet, après confirmati
   await expect(results.getByRole("link", { name: "Domaine des Saules" })).toBeVisible();
 
   // Archivée à nouveau, la fiche quitte le carnet.
-  await page.getByRole("button", { name: "Archiver Domaine des Saules" }).click();
+  await page.getByRole("button", { name: "Autres actions pour Domaine des Saules" }).click();
+  await page.getByRole("menuitem", { name: /^Archiver…/ }).click();
   await expect(results.getByRole("link", { name: "Domaine des Saules" })).toHaveCount(0);
 });
 

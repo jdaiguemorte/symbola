@@ -2,6 +2,7 @@
 // (L11-PRE-01 à L11-PRE-07, L11-HUB-12), en taille ordinateur et en 375 px, axe-core.
 // Géocodeur simulé (hors production) ; pas de fond de carte installé : la
 // liste, les filtres et les distances fonctionnent quand même.
+import { bookFilters, bookResults, closeBookFilters } from "./vendor-book";
 import { randomUUID } from "node:crypto";
 import AxeBuilder from "./axe";
 import { createAppConnection } from "@symbola/db/client";
@@ -179,17 +180,20 @@ test("L11-PRE-01 à L11-PRE-07 / L11-HUB-12 — créer ses fiches, filtrer autou
   await page.getByRole("navigation", { name: "Types de la famille Lieux et hébergement" }).getByRole("link", { name: /^Hôtel \/ hébergement/ }).click();
   // Lot 13 (L13-PRE-12) : barre de filtres ; l'adresse et les nombres
   // s'appliquent en quittant le champ ou avec Entrée.
-  const filters = page.getByRole("search", { name: "Filtres du carnet" });
-  await filters.getByLabel("Autour de").fill("Lille");
+  // Lot 73b : « Où ? » (sur téléphone, dans le panneau « Filtres ») ; un lieu trie par distance et
+  // écrit le trajet sur la ligne.
+  const filters = await bookFilters(page);
+  await filters.getByLabel("Où ?").fill("Lille");
   await filters.getByLabel("Couchages au moins").fill("40");
   await filters.getByLabel("Couchages au moins").press("Enter");
-  const results = page.getByRole("region", { name: /^\d+ résultats?/ });
-  await expect(results.getByRole("heading", { level: 2 })).toHaveText("1 résultat autour de Lille, du plus proche au plus loin");
+  await closeBookFilters(page);
+  const results = bookResults(page);
+  await expect(results.getByRole("heading", { level: 2 })).toHaveText(/^1 fiche sur \d+, par distance$/);
   await expect(results).toContainText("Hôtel du Beffroi");
-  await expect(results).toContainText("(estimation)");
+  await expect(results).toContainText("≈");
   await expect(results).not.toContainText("Gîte des Prés");
-  // Sur téléphone, la carte s'affiche à la demande.
-  if (page.viewportSize()!.width < 1024) await page.getByRole("navigation", { name: "Affichage" }).getByRole("link", { name: "Carte" }).click();
+  // Lot 73b (V2) : la carte est une vue, « Liste · Carte ».
+  await page.getByRole("navigation", { name: "Affichage" }).getByRole("link", { name: "Carte" }).click();
   await expect(page.getByRole("region", { name: /Carte : 1 prestataire placé/ })).toBeVisible();
   await expect(page.getByText("Fond de carte non installé", { exact: false })).toBeVisible();
   await expectNoAxeViolation(page);
