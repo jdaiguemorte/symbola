@@ -82,7 +82,8 @@ test("HUB-09 / PAR-01 — une wedding planner répond aux cinq questions, une pa
   // d'abord, en bouton plein ; la création en second.
   const takeover = page.getByRole("region", { name: "Reprendre un mariage en cours" });
   await expect(takeover).toContainText("Vous suivez aujourd'hui vos mariages dans un tableur (Excel, Google Sheets…).");
-  await expect(takeover.getByRole("link", { name: "Reprendre un mariage en cours" })).toHaveAttribute("href", "/reprise");
+  // Dans la carte à l'ordinateur, dans la barre collée en bas sur téléphone : un seul lien visible.
+  await expect(page.getByRole("link", { name: "Reprendre un mariage en cours" })).toHaveAttribute("href", "/reprise");
   await expect(page.getByRole("heading", { name: "Créer un nouveau mariage" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Explorer avec un exemple" })).toBeVisible();
   await expectNoAxeViolation(page);

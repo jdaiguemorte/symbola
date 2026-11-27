@@ -75,7 +75,8 @@ test("IMP-01 — un CSV Excel est lu, un .xls refusé, l'import en cours abandon
   await page.getByRole("button", { name: "Oui, abandonner" }).click();
   await expect(page).toHaveURL(/\/import$/);
   const entry = page.getByRole("row").filter({ hasText: "excel-fr-windows1252.csv" });
-  await expect(entry).toContainText("abandonné");
+  // Lot 71b : l'état du journal de « Reprendre et importer », en mot avec sa majuscule.
+  await expect(entry).toContainText("Abandonné");
   await expect(entry.getByRole("link")).toHaveCount(0);
   await expectNoAxeViolation(page);
 });

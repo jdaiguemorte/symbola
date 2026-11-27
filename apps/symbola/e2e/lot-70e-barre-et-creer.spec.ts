@@ -251,7 +251,9 @@ test.describe("lot 70e — « + Créer »", () => {
     await signInByLink(page, setup.email);
     await page.goto("/events/new");
     await page.getByRole("link", { name: "Reprendre ses fichiers" }).click();
-    await expect(page).toHaveURL(/\/import/);
+    // Lot 71b (HUB-14) : la page « Reprendre un mariage en cours », qui n'écrit rien à l'ouverture.
+    await expect(page).toHaveURL(/\/reprise$/);
+    await expect(page.getByRole("heading", { level: 1, name: "Reprendre un mariage en cours" })).toBeVisible();
     const { sql } = createAppConnection();
     try {
       expect((await listEvents({ organizationId: setup.organizationId })).length).toBe(1);
