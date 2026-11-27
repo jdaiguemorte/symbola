@@ -93,7 +93,8 @@ describe("HUB-08 / UX-01 / UX-06 — Les urgences de toute l'organisation (lot 3
     expect(vendor).toMatchObject({ title: "Contrat de Studio Lumière (Photographe) à faire signer", actor: { kind: "vendor", name: "Studio Lumière" }, action: { kind: "remind_vendor", candidateId: context.studioId } });
     expect(ranked.all.every((entry) => entry.eventNames === "Léa & Maxime")).toBe(true);
     expect(ranked.first).toHaveLength(3);
-    expect(ranked.attentionByEvent.get(context.eventId)).toBe(5);
+    // Lot 72a (A1) : un point est une ligne ; « Mes évènements » répartit le même total.
+    expect(ranked.pointsByEvent.get(context.eventId)).toBe(ranked.points);
   });
 
   it("un module non souscrit n'apporte rien (dégradation propre) ; une autre organisation ne voit rien", async () => {

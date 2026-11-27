@@ -1,5 +1,6 @@
 // Lot 53 (HUB-15, UX-16, HUB-28, GC-02, CHR-05, CHR-10, HUB-24 ; ADR 0095) — SC-03 « Lundi matin », suite :
-// Camille voit dans « Aujourd'hui » sa tâche hors évènement et les risques du radar, chacun avec sa règle ;
+// Camille voit dans « Aujourd'hui » sa tâche hors évènement et les risques du radar (lot 72a : des lignes
+// « À regarder »), chacun avec sa règle ;
 // la cloche l'amène à la notification, qui ouvre l'écran où agir ; la santé du planning s'explique (le
 // jalon d'abord) ; le terme réglé pour le type remplace « Mariés » ; elle coupe une sorte par canal et un
 // automatisme. En taille ordinateur et en 375 px, axe-core à chaque écran.
@@ -51,7 +52,8 @@ test("SC-03 / HUB-15 / UX-16 / GC-02 / CHR-05 / CHR-10 / HUB-24 / HUB-28 — not
   // CHR-10 : la tâche hors évènement est dans « Aujourd'hui » ; GC-02 : le radar dit sa règle.
   await expect(page.getByRole("heading", { level: 1, name: "Aujourd'hui" })).toBeVisible();
   await expect(page.getByText("Déclaration de TVA").first()).toBeVisible();
-  const risks = page.getByRole("region", { name: "Risques" });
+  // Lot 72a (critère 6) : l'alerte du radar est une ligne « À regarder » de la liste.
+  const risks = page.locator(".today-item").filter({ hasText: "Jalon en retard" }).first();
   await expect(risks).toContainText("Jalon en retard");
   await expect(risks).toContainText("Le jalon « Contrat traiteur signé » est en retard de 3 jours ; seuil : 0 jour.");
   await expectNoAxeViolation(page);

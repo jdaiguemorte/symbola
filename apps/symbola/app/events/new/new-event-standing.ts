@@ -9,7 +9,7 @@ export function parseStanding(value: unknown): EventStanding | null {
 }
 
 // « Une demande en cours » crée ce que créait « Prospect » (Option) ; « Signé, en préparation » crée
-// un évènement Confirmé, comme « Évènement confirmé » avant lui (A10) ; « En préparation » se pose ensuite.
+// un évènement Confirmé, comme « Évènement confirmé » avant lui (A10)  (lot 72a : « En préparation » retiré).
 export function statusForStanding(standing: EventStanding): "option" | "confirmed" {
   return standing === "signed" ? "confirmed" : "option";
 }

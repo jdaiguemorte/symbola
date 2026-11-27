@@ -52,9 +52,14 @@ import {
 } from "@/lib/tasks/task-screen";
 import { GroupBySelect, TaskFiltersPhoneButtons, TaskScreenFilters, type ScreenFilterValues } from "./task-screen-filters";
 
-type SearchParams = TaskScreenQuery & { tache?: string; nouvelle?: string; copie?: string };
+type SearchParams = TaskScreenQuery & { tache?: string; nouvelle?: string; copie?: string; tout?: string };
 
-const IN_PROGRESS = new Set(["option", "confirmed", "in_preparation", "postponed"]);
+// Lot 70d (NFR-02, ADR 0115) : la liste montre d'abord les 100 premières tâches (les plus urgentes, ou les
+// dernières faites) ; « Afficher les N suivantes » montre le reste. Une agence de 500 tâches ne rend plus
+// 500 lignes à chaque affichage.
+const FIRST_LINES = 100;
+
+const IN_PROGRESS = new Set(["option", "confirmed", "postponed"]);
 
 // Les valeurs des listes des filtres, lues de l'adresse canonique.
 function filterValues(view: TaskScreenView): ScreenFilterValues {
@@ -120,7 +125,10 @@ export default async function TasksPage({ searchParams }: { searchParams: Promis
   const toCheck = importedVisible.filter((event) => withoutTasks.has(event.id));
 
   // Les lignes et leurs groupes.
-  const built = await buildTaskLines({ organizationId, locale, tasks: list.tasks, members, href: (task) => href({ tache: task.id }) });
+  const showAll = query.tout === "1";
+  const shownTasks = showAll || view.calendar ? list.tasks : list.tasks.slice(0, FIRST_LINES);
+  const hidden = list.tasks.length - shownTasks.length;
+  const built = await buildTaskLines({ organizationId, locale, tasks: shownTasks, members, href: (task) => href({ tache: task.id }) });
   const lines = built.lines;
   const groups = screenGroups(lines, view, list, {
     today,
@@ -326,6 +334,14 @@ export default async function TasksPage({ searchParams }: { searchParams: Promis
               doneColumns={view.state === "done"}
             />
           )}
+          {!view.calendar && !empty && hidden > 0 ? (
+            <p className="task-more">
+              {t("firstShown", { shown: shownTasks.length, count: list.tasks.length })}{" "}
+              <Link href={taskScreenHref(view, { tout: "1" })} scroll={false} className="button-link">
+                {t("showMore", { count: hidden })}
+              </Link>
+            </p>
+          ) : null}
         </section>
       )}
       {panel ? (

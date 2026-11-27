@@ -6,7 +6,6 @@ import type { EventPhase } from "@/modules/events/service";
 export const EVENT_STATUS_CLASSES: Record<EventPhase, string> = {
   option: "badge badge-bleu",
   confirmed: "badge badge-sauge",
-  in_preparation: "badge badge-sauge",
   day_of: "badge badge-ambre",
   closed: "badge",
   postponed: "badge badge-ambre",
@@ -16,7 +15,6 @@ export const EVENT_STATUS_CLASSES: Record<EventPhase, string> = {
 export const STATUS_LABEL_KEYS: Record<EventPhase, string> = {
   option: "statusOption",
   confirmed: "statusConfirmed",
-  in_preparation: "statusInPreparation",
   day_of: "statusDayOf",
   closed: "statusClosed",
   postponed: "statusPostponed",

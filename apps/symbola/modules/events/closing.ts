@@ -133,7 +133,7 @@ export async function closeEvent(input: { organizationId: string; eventId: strin
     if (!event) throw new EventNotFoundError();
     if (event.archivedAt) throw new EventArchivedError();
     if (event.isDemo) throw new EventNotClosableError("demo");
-    if (event.status !== "closed" && event.status !== "confirmed" && event.status !== "in_preparation") throw new EventNotClosableError("status");
+    if (event.status !== "closed" && event.status !== "confirmed") throw new EventNotClosableError("status");
     const [row] = await tx
       .insert(eventClosings)
       .values({ organizationId: input.organizationId, eventId: input.eventId, closedAt: now, closedBy: input.userId, budgetSnapshot: input.budget })
@@ -193,14 +193,14 @@ export async function listEventClosings(organizationId: string): Promise<Closing
 
 // Les évènements non fictifs, non archivés, encore ouverts (confirmés ou en préparation) et sans
 // clôture validée : candidats à « À clôturer » (le jour s'apprécie dans le fuseau, lifecycle.closingDue).
-export async function listClosingCandidates(organizationId: string): Promise<{ id: string; status: "confirmed" | "in_preparation"; eventDate: string; timeZone: string }[]> {
+export async function listClosingCandidates(organizationId: string): Promise<{ id: string; status: "confirmed"; eventDate: string; timeZone: string }[]> {
   return inOrganization(organizationId, async (tx) => {
     const rows = await tx
       .select({ id: events.id, status: events.status, eventDate: events.eventDate, timeZone: events.timeZone, closedAt: eventClosings.closedAt })
       .from(events)
       .leftJoin(eventClosings, eq(eventClosings.eventId, events.id))
-      .where(and(isNull(events.archivedAt), eq(events.isDemo, false), inArray(events.status, ["confirmed", "in_preparation"]), isNotNull(events.eventDate)));
-    return rows.filter((row) => row.closedAt === null).map((row) => ({ id: row.id, status: row.status as "confirmed" | "in_preparation", eventDate: row.eventDate!, timeZone: row.timeZone }));
+      .where(and(isNull(events.archivedAt), eq(events.isDemo, false), eq(events.status, "confirmed"), isNotNull(events.eventDate)));
+    return rows.filter((row) => row.closedAt === null).map((row) => ({ id: row.id, status: row.status as "confirmed", eventDate: row.eventDate!, timeZone: row.timeZone }));
   });
 }
 

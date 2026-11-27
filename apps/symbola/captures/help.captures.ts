@@ -68,7 +68,7 @@ async function seed(organizationId: string, userId: string) {
   await make([{ firstName: "Sarah" }, { firstName: "Yanis" }], "2028-07-01", "Ferme du Vert Bocage", "Lens");
 
   await changeEventStatus({ organizationId, eventId: confirmed, changedByUserId: userId, toStatus: "confirmed" });
-  await changeEventStatus({ organizationId, eventId: quoted, changedByUserId: userId, toStatus: "in_preparation" });
+  await changeEventStatus({ organizationId, eventId: quoted, changedByUserId: userId, toStatus: "confirmed" });
 
   // Lot 34a (EVT-01, D8) : le rétroplanning de départ est né avec chaque évènement daté ; ce
   // modèle-ci reste dans la liste des modèles.

@@ -42,10 +42,10 @@ export async function setEventTypeAction(formData: FormData): Promise<void> {
   revalidatePath(`/events/${eventId}`);
 }
 
-// Lot 34a (EVT-05, D2 à D7) — statuts : la frise pose Option, Confirmé, En préparation,
-// Clôturé ; l'annulation demande un motif ; le report demande la nouvelle date (ou « date à
+// Lot 34a (EVT-05, D2 à D7) — statuts : la frise pose Option, Confirmé (lot 72a : « En préparation »
+// retiré), Clôturé ; l'annulation demande un motif ; le report demande la nouvelle date (ou « date à
 // définir ») et se confirme après avoir vu les tâches qui tomberaient dans le passé.
-const MANUAL: EventStatus[] = ["option", "confirmed", "in_preparation", "closed"];
+const MANUAL: EventStatus[] = ["option", "confirmed", "closed"];
 
 type Access = { organizationId: string; userId: string };
 

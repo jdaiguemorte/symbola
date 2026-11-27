@@ -1269,7 +1269,7 @@ export async function roadmapAlerts(organizationId: string, now: Date = new Date
       .where(and(eq(vendorRoadmaps.stage, "j7"), isNull(vendorRoadmaps.confirmedAt), inArray(eventVendorCandidates.status, ENGAGED), eq(events.isDemo, false), notInArray(events.status, CLOSED_EVENT_STATUSES)));
     return rows
       .filter(({ roadmap }) => roadmapAlertDue({ stage: "j7", sentAt: roadmap.sentAt, confirmedAt: roadmap.confirmedAt }, now, policy.roadmapAlertDays))
-      .map(({ roadmap, candidate }) => ({ candidateId: candidate.id, eventId: candidate.eventId, vendorName: candidate.vendorName, sentAt: roadmap.sentAt.toISOString() }));
+      .map(({ roadmap, candidate }) => ({ candidateId: candidate.id, eventId: candidate.eventId, vendorId: candidate.vendorId, vendorName: candidate.vendorName, sentAt: roadmap.sentAt.toISOString() }));
   });
 }
 
