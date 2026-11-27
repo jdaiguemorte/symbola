@@ -806,7 +806,7 @@ export async function unarchiveVendors(organizationId: string, vendorIds: string
 // métier, ou dont aucun métier n'a de famille) prend le nouveau comme principal et garde les autres ; une
 // fiche déjà classée le garde et prend le nouveau en plus. « replaces » (« Revoir », P13) : le métier que
 // la planner change sur l'écran ; il cède sa place au nouveau, qui devient principal.
-export type VendorTypeAssignment = { vendorId: string; typeId: string; replaces?: string | null };
+export type VendorTypeAssignment = { vendorId: string; typeId: string; replaces?: string | null | undefined };
 
 export async function setVendorsPrimaryType(organizationId: string, assignments: VendorTypeAssignment[]): Promise<string[]> {
   const ids = bulkIds(assignments.map((assignment) => assignment.vendorId));
@@ -942,6 +942,7 @@ export async function findVendors(input: FindVendorsInput & { now?: Date }): Pro
         travel: distanceKm === null ? null : estimateTravel(distanceKm, settings),
         contactName: vendor.contactName,
         phone: vendor.phone,
+        email: vendor.email,
         workedWithCount: worked.get(vendor.id) ?? 0,
         documentState,
       } satisfies VendorListItem,

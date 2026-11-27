@@ -13,6 +13,10 @@ const labels: ActiveFilterLabels = {
   unplaced: "À placer",
   tag: (tagId) => (tagId === TAG ? "Bohème" : null),
   field: () => null,
+  family: () => null,
+  type: () => null,
+  unclassified: "À classer",
+  documents: () => "Pièces",
 };
 
 describe("PRE-01, PRE-11 — Filtres actifs et remise à zéro (lot 63a)", () => {
@@ -28,13 +32,15 @@ describe("PRE-01, PRE-11 — Filtres actifs et remise à zéro (lot 63a)", () =>
     expect(around.get("q")).toBe("verdier");
   });
 
-  it("« Effacer les filtres » retire les filtres de la barre, et garde famille et vue", () => {
+  // Lot 73b (maquette 18, § 5.2 critère 5) : la famille est un filtre comme les autres ; « Effacer les
+  // filtres » la retire aussi, et garde la vue.
+  it("« Effacer les filtres » retire les filtres de la barre et la famille, et garde la vue", () => {
     const params = new URLSearchParams(clearFiltersHref("/prestataires", query, filters).split("?")[1]);
-    expect(Object.fromEntries(params)).toEqual({ famille: FAMILY, vue: "carte" });
+    expect(Object.fromEntries(params)).toEqual({ vue: "carte" });
   });
 
   it("sans filtre, aucune pastille", () => {
-    expect(activeFilters("/prestataires", { famille: FAMILY }, parseBookFilters({ famille: FAMILY }, []), labels)).toEqual([]);
+    expect(activeFilters("/prestataires", { vue: "carte" }, parseBookFilters({ vue: "carte" }, []), labels)).toEqual([]);
   });
 });
 

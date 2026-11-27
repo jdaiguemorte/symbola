@@ -1,0 +1,355 @@
+/* Lot 73b — le carnet de prestataires (spécification du lot 73, § 5.2 ; maquette 18). Mêmes jetons que
+   globals.css (DESIGN.md), aucun style en ligne (CSP). Chargé avant globals.css : les règles qui changent
+   une règle plus ancienne du carnet passent par l'écran (.vendor-book-screen). */
+@layer components {
+  /* En-tête : « Liste · Carte », « Sélectionner », « Nouveau prestataire », « ⋯ ». */
+  .page-actions .vendor-view-switch {
+    @apply m-0 flex;
+  }
+  .vendor-header-menu {
+    @apply border-line-strong bg-surface;
+  }
+  @media (min-width: 640px) {
+    .task-menu [role="menuitem"].vendor-menu-phone {
+      @apply hidden;
+    }
+  }
+  .task-menu-section {
+    @apply m-0 px-2 pt-1 text-label font-medium text-ink-muted;
+  }
+
+  /* La phrase « à classer » : la raison, et son geste. */
+  .vendor-book-screen .vendor-unclassified {
+    @apply my-4 flex flex-wrap items-center justify-between gap-4 rounded-md border border-line bg-surface px-4 py-3 text-body;
+  }
+  .vendor-unclassified p {
+    @apply m-0;
+  }
+  .vendor-unclassified-title {
+    @apply text-body-strong;
+  }
+
+  /* La barre de filtres du carnet : des filtres libellés, de même hauteur, en ligne ; « Où ? » a la
+     largeur d'un champ (200 px). */
+  .book-filters .filter-bar {
+    @apply flex flex-row flex-wrap items-end gap-3;
+  }
+  .book-filters .filter-bar > label {
+    @apply w-auto max-w-none flex-none;
+  }
+  .book-filters .filter-bar > label select {
+    @apply w-36;
+  }
+  .book-filters .filter-bar > .vendor-filter-search {
+    @apply w-64;
+  }
+  .book-filters .filter-bar .vendor-filter-where input {
+    @apply w-[200px];
+  }
+  .book-filters .filter-bar select:disabled {
+    @apply cursor-not-allowed text-ink-muted;
+  }
+  .book-filters-phone-head,
+  .book-filters-sheet-head,
+  .book-filters-done {
+    @apply hidden;
+  }
+
+  /* Le tableau : en-têtes qui trient ; une ligne de 60 px. */
+  .vendor-results-section {
+    @apply mt-4;
+  }
+  .vendor-results-head {
+    @apply mt-4 flex flex-wrap items-baseline justify-between gap-2;
+  }
+  .vendor-results-count {
+    @apply m-0 text-body-strong;
+  }
+  .vendor-sort-said {
+    @apply m-0;
+  }
+  .vendor-board {
+    @apply relative mt-2;
+  }
+  .vendor-board-select {
+    @apply flex justify-end;
+  }
+  .vendor-table {
+    @apply w-full border-collapse text-body;
+  }
+  .vendor-table th {
+    @apply border-b border-line-strong px-3 py-2 text-left text-label font-medium whitespace-nowrap text-ink-muted normal-case;
+  }
+  .vendor-table td {
+    @apply border-b border-line px-3 py-2 align-middle;
+  }
+  .vendor-table tbody tr {
+    height: 60px;
+  }
+  .vendor-sort-link {
+    @apply inline-flex min-h-11 items-center text-ink-muted no-underline hover:text-ink;
+  }
+  .vendor-table th[aria-sort] .vendor-sort-link {
+    @apply font-semibold text-ink;
+  }
+  /* Le nom, seule cible de la ligne : en encre, souligné de gris. */
+  .vendor-name-link {
+    @apply font-semibold text-ink underline decoration-line-strong underline-offset-4 hover:text-ink hover:decoration-ink;
+  }
+  .vendor-cell-name .badge {
+    @apply ml-2;
+  }
+  .vendor-contact,
+  .vendor-city {
+    @apply block text-label whitespace-nowrap text-ink-muted;
+  }
+  .vendor-cell-with,
+  .vendor-cell-rating {
+    @apply whitespace-nowrap;
+  }
+  .vendor-trade {
+    @apply block;
+  }
+  .vendor-trade[data-unclassified="true"] {
+    @apply text-ink-muted;
+  }
+  .vendor-phone-summary,
+  .vendor-phone-call {
+    @apply hidden;
+  }
+  .vendor-cell-actions {
+    @apply text-right whitespace-nowrap;
+  }
+  td.vendor-cell-actions {
+    @apply flex items-center justify-end gap-2;
+    min-height: 60px;
+  }
+  .vendor-cell-actions form {
+    @apply m-0 inline-flex;
+  }
+  .vendor-select-cell {
+    @apply w-11;
+  }
+  .vendor-select-cell label {
+    @apply inline-flex h-11 w-11 cursor-pointer items-center justify-center;
+  }
+  .vendor-board:not([data-selecting="true"]) .vendor-select-cell {
+    @apply hidden;
+  }
+  /* En sélection, la ligne garde ses cases et quitte ses boutons. */
+  .vendor-board[data-selecting="true"] td.vendor-cell-actions > * {
+    @apply hidden;
+  }
+  .vendor-board[data-selecting="true"] .vendor-name-link {
+    @apply pointer-events-none no-underline;
+  }
+
+  /* L'état des pièces : un mot et une forme ; le rouge ne dit que l'expiré. */
+  .book-documents {
+    @apply inline-flex items-baseline gap-1;
+  }
+  .book-documents[data-tone="late"] {
+    @apply font-semibold text-critical;
+  }
+  .book-documents[data-tone="none"] {
+    @apply text-ink-muted;
+  }
+  .book-documents-icon {
+    @apply font-semibold;
+  }
+  .book-documents-reason {
+    @apply block text-label text-ink-muted;
+  }
+
+  .vendor-bulk-danger {
+    @apply text-critical;
+  }
+  .vendor-outside {
+    @apply mt-3;
+  }
+  .vendor-map-view {
+    @apply mt-3 overflow-hidden rounded-lg border border-line bg-surface;
+  }
+  .vendor-unplaced {
+    @apply border-t border-line px-4 py-3;
+  }
+  .vendor-unplaced h3 {
+    @apply m-0 text-body-strong;
+  }
+  .vendor-unplaced ul {
+    @apply m-0 mt-2 flex list-none flex-col gap-1 p-0;
+  }
+  .vendor-unplaced a {
+    @apply inline-flex min-h-11 items-center;
+  }
+
+  /* Le carnet vide : le gabarit de l'état vide, sans filtres ni carte. */
+  .vendor-book-empty .row-wrap {
+    @apply my-4;
+  }
+  .vendor-empty-short {
+    @apply hidden;
+  }
+
+  /* L'écran « Classer ». */
+  .vendor-classify-tools {
+    @apply my-3 flex flex-wrap items-center justify-between gap-3;
+  }
+  .vendor-classify-tools p {
+    @apply m-0;
+  }
+  .vendor-classify-choice {
+    @apply m-0 block max-w-none;
+  }
+  .vendor-classify-choice select {
+    @apply m-0 min-h-11 w-full min-w-56;
+  }
+  .vendor-provenance {
+    @apply text-label text-ink-muted;
+  }
+  .vendor-provenance[data-kind="none"] {
+    @apply italic;
+  }
+  .vendor-classify-bar {
+    @apply sticky bottom-2 z-20 my-4 flex flex-wrap items-center justify-between gap-3 rounded-md border-2 border-ink bg-surface px-4 py-3 shadow-float;
+  }
+  .vendor-classify-bar-text {
+    @apply m-0 text-body;
+  }
+  .vendor-classify-give {
+    @apply max-h-80 overflow-y-auto;
+  }
+
+  /* Téléphone (375 px) : une carte par fiche ; le téléphone, lien de 44 px qui appelle ; les filtres
+     derrière « Filtres », en panneau du bas qui finit par « Voir les N fiches ». */
+  @media (max-width: 639px) {
+    .vendor-book-screen .page-actions {
+      @apply w-full;
+    }
+    .vendor-book-screen .vendor-results-section {
+      @apply border-0 bg-transparent p-0 shadow-none;
+    }
+    .vendor-board .vendor-cell-documents {
+      @apply text-label;
+    }
+    .vendor-table thead {
+      @apply sr-only;
+    }
+    .vendor-board .vendor-table,
+    .vendor-board .vendor-table tbody {
+      @apply block;
+    }
+    .vendor-board .vendor-table tbody tr {
+      @apply mb-2 grid rounded-md border border-line bg-surface p-3;
+      height: auto;
+      grid-template-columns: minmax(0, 1fr) auto;
+      grid-template-areas: "name menu" "trade trade" "documents call";
+    }
+    .vendor-board[data-selecting="true"] .vendor-table tbody tr {
+      grid-template-columns: auto minmax(0, 1fr);
+      grid-template-areas: "select name" "select trade" "select documents";
+    }
+    .vendor-board .vendor-table td {
+      @apply border-0 p-0;
+    }
+    .vendor-board .vendor-select-cell {
+      grid-area: select;
+    }
+    .vendor-board .vendor-cell-name {
+      grid-area: name;
+      @apply self-center;
+    }
+    .vendor-board .vendor-cell-trade {
+      grid-area: trade;
+    }
+    .vendor-board .vendor-cell-documents {
+      grid-area: documents;
+      @apply self-center;
+    }
+    .vendor-board td.vendor-cell-actions {
+      display: contents;
+    }
+    .vendor-board .vendor-cell-with,
+    .vendor-board .vendor-cell-rating,
+    .vendor-board .vendor-contact,
+    .vendor-board .vendor-city,
+    .vendor-board .vendor-trade,
+    .vendor-board .vendor-row-add {
+      @apply hidden;
+    }
+    .vendor-board .vendor-phone-summary {
+      @apply block text-label text-ink-muted;
+    }
+    .vendor-board .vendor-cell-actions .task-menu-button {
+      grid-area: menu;
+      @apply justify-self-end;
+    }
+    .vendor-board .vendor-phone-call {
+      grid-area: call;
+      @apply inline-flex min-h-11 items-center justify-self-end px-2;
+    }
+    .vendor-board[data-selecting="true"] .vendor-phone-call,
+    .vendor-board[data-selecting="true"] .vendor-cell-actions .task-menu-button {
+      @apply hidden;
+    }
+
+    .book-filters-phone-head {
+      @apply flex justify-end;
+    }
+    .book-filters:not([data-open="true"]) .filter-bar > label:not(.vendor-filter-search) {
+      @apply hidden;
+    }
+    .book-filters .filter-bar .vendor-filter-search {
+      @apply w-full min-w-0;
+    }
+    .book-filters .filter-bar > label,
+    .book-filters .filter-bar > label select,
+    .book-filters .filter-bar .vendor-filter-where input {
+      @apply w-full;
+    }
+    .book-filters[data-open="true"] .book-filters-sheet {
+      @apply fixed inset-x-0 bottom-0 z-50 flex max-h-[85dvh] flex-col gap-3 overflow-y-auto rounded-t-lg border-t border-line bg-surface p-4 shadow-float;
+      padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+    }
+    .book-filters[data-open="true"] .book-filters-sheet-head {
+      @apply flex items-center justify-between;
+    }
+    .book-filters-sheet-head h2 {
+      @apply m-0 text-heading;
+    }
+    .book-filters[data-open="true"] .book-filters-done {
+      @apply flex min-h-11 w-full justify-center;
+    }
+    .vendor-empty-long {
+      @apply hidden;
+    }
+    .vendor-empty-short {
+      @apply inline;
+    }
+    .vendor-book-empty .row-wrap {
+      @apply flex-col items-stretch;
+    }
+    .vendor-book-empty .row-wrap .button-link {
+      @apply justify-center;
+    }
+    .vendor-classify-table thead {
+      @apply sr-only;
+    }
+    .vendor-classify-table,
+    .vendor-classify-table tbody,
+    .vendor-classify-table tr,
+    .vendor-classify-table td {
+      @apply block;
+    }
+    .vendor-classify-table tr {
+      @apply border-b border-line py-2;
+    }
+    .vendor-classify-table td {
+      @apply border-0 px-0 py-1;
+    }
+    .vendor-classify-bar {
+      @apply fixed inset-x-0 bottom-0 m-0 rounded-none rounded-t-lg border-x-0 border-b-0;
+      padding-bottom: calc(0.75rem + env(safe-area-inset-bottom));
+    }
+  }
+}
