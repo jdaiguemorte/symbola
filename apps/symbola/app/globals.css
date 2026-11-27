@@ -1430,12 +1430,6 @@
   .ready-choices {
     @apply grid grid-cols-1 gap-4 md:grid-cols-2;
   }
-  .onboarding-checklist .checklist {
-    @apply m-0 flex flex-col gap-2 pl-4;
-  }
-  .onboarding-checklist .checklist li.done {
-    @apply text-ink-muted;
-  }
 }
 
 @layer components {
@@ -3523,12 +3517,8 @@
   .app-main > main > .today-first {
     @apply mt-4 border-primary p-4 sm:p-6;
   }
-  .today-first > h2,
-  .today-groups > h2 {
+  .today-first > h2 {
     @apply mt-0 mb-2;
-  }
-  .today-group > h3 {
-    @apply mt-4 mb-1 text-label font-semibold text-ink-muted;
   }
   .today-items {
     @apply m-0 flex list-none flex-col p-0;
@@ -7209,6 +7199,160 @@
     /* La place de la barre de sélection, posée en bas de l'écran. */
     .task-board[data-selecting="true"] {
       @apply mb-12 pb-12;
+    }
+  }
+}
+
+/* Lot 72b (HUB-08, UX-01, UX-06, UX-13, AIDE-04 ; spécification du lot 72, § 5.2 ; maquettes 13 et 14 du lot 68)
+   — « Aujourd'hui » : l'en-tête et son compte (le retard en rouge, seul) ; l'état vide d'un espace neuf ; la carte
+   et son reste caché jusqu'à « Tout afficher » ; la ligne d'un point qui n'est pas une tâche, dans l'anatomie de la
+   ligne allégée, avec le contact sous le titre ; « Mes évènements » ; « Pour bien démarrer » en une ligne. Sur
+   téléphone : la date sans l'année, le compte sans « à traiter », la ligne sur quatre étages (titre ; mariage ·
+   qui ; état · date ; contact), le numéro qui appelle en 44 px. */
+@layer components {
+  .today-header > h1 {
+    @apply m-0;
+  }
+  .today-date-short {
+    @apply hidden;
+  }
+  .today-count {
+    @apply m-0 font-display text-heading text-ink;
+  }
+  .today-count-late {
+    @apply font-semibold text-critical;
+  }
+  .today-empty {
+    @apply mt-4 max-w-3xl;
+  }
+  .today-empty > h2 {
+    @apply m-0;
+  }
+  .today-empty > p {
+    @apply m-0;
+  }
+  .today-empty-other {
+    @apply text-ink-muted;
+  }
+  .today-first-count {
+    @apply font-normal text-ink-muted;
+  }
+  .today-first-empty {
+    @apply m-0 text-body text-ink-muted;
+  }
+  .today-part + .today-part {
+    @apply mt-4;
+  }
+  .today-part-head {
+    @apply flex flex-wrap items-baseline gap-x-3 gap-y-1;
+  }
+  .today-part-head > h3,
+  .today-part-head > h2 {
+    @apply m-0;
+  }
+  .today-part-head > h3 {
+    @apply text-label font-semibold text-ink;
+  }
+  .today-part-count {
+    @apply font-normal text-ink-muted;
+  }
+  .today-part-link {
+    @apply text-label;
+  }
+  .today-first[data-expanded="false"] [data-rest] {
+    @apply hidden;
+  }
+  .today-rest-line {
+    @apply mt-3 mb-0 flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-line pt-3 text-body text-ink-muted;
+  }
+  .today-show-all {
+    @apply min-h-10;
+  }
+  .home-line-detail {
+    @apply basis-full text-label text-ink-muted;
+  }
+  /* Le contact, sous le titre, dans la colonne du titre. */
+  .task-line[data-form="today"] .line-contact {
+    grid-column: 1 / 2;
+    grid-row: 2;
+  }
+  .line-contact {
+    @apply flex min-w-0 flex-wrap items-baseline text-label text-ink-muted;
+  }
+  .line-contact-phone-link {
+    @apply hidden;
+  }
+  .line-contact-email {
+    @apply text-ink-muted;
+  }
+  .task-line[data-form="today"]:has(.line-contact) {
+    @apply py-1;
+  }
+  .today-my-events {
+    @apply mt-4;
+  }
+  .today-my-events-count {
+    @apply m-0 text-body text-ink-muted;
+  }
+  .today-event-points {
+    @apply text-ink-muted;
+  }
+  .first-steps-line {
+    @apply mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 py-3;
+  }
+  .first-steps-summary {
+    @apply m-0 flex flex-wrap items-baseline text-body text-ink-muted;
+  }
+  .first-steps-summary > strong {
+    @apply text-ink;
+  }
+  .first-steps-actions {
+    @apply ml-auto flex items-center gap-2;
+  }
+  .first-steps-list {
+    @apply m-0 flex basis-full flex-col gap-2 pl-5;
+  }
+
+  @media (max-width: 639px) {
+    .today-date-long,
+    .today-count-long {
+      @apply hidden;
+    }
+    .today-date-short {
+      @apply inline;
+    }
+    .today-header {
+      @apply mb-2;
+    }
+    .today-count {
+      @apply text-body font-semibold;
+    }
+    .app-main > main > .today-first {
+      @apply mt-2 p-3;
+    }
+    /* Quatre étages : le titre ; le mariage · qui ; l'état · la date ; le contact. */
+    .task-line[data-form="today"] {
+      grid-template-areas:
+        "title title actions"
+        "event who actions"
+        "due due actions"
+        "contact contact actions";
+    }
+    .task-line[data-form="today"] .line-contact {
+      grid-area: contact;
+    }
+    .task-line[data-form="today"] .task-line-who::before {
+      content: "·";
+      @apply text-ink-muted;
+    }
+    .line-contact-phone-text {
+      @apply hidden;
+    }
+    .line-contact-phone-link {
+      @apply inline-flex min-h-11 items-center;
+    }
+    .first-steps-actions {
+      @apply ml-0;
     }
   }
 }

@@ -70,8 +70,6 @@
     "myProfile": "Mon profil",
     "settings": "Paramètres",
     "administration": "Exploitation",
-    "onboardingIncomplete": "Votre fiche entreprise n'est pas encore complète.",
-    "completeProfile": "La compléter",
     "events": "Évènements",
     "budgetModels": "Modèles de budget",
     "quoteCatalog": "Catalogue des devis",
@@ -5574,11 +5572,23 @@
     },
     "checklist": {
       "title": "Pour bien démarrer",
-      "progress": "{done} sur {total} faits",
-      "done": "fait",
       "items": {
         "essentials": "Régler l'essentiel : société, adresse, TVA",
         "first_vendor": "Ajouter un premier prestataire"
+      },
+      "count": "{done} sur {total}",
+      "remaining": "reste : {steps}",
+      "hide": "Masquer",
+      "hiddenMessage": "« Pour bien démarrer » est masqué.",
+      "shownMessage": "« Pour bien démarrer » est revenu.",
+      "hideFailed": "« Pour bien démarrer » n'a pas pu être masqué. Réessayez.",
+      "short": {
+        "essentials": "régler l'essentiel",
+        "first_vendor": "un premier prestataire"
+      },
+      "action": {
+        "essentials": "Compléter",
+        "first_vendor": "Ajouter"
       }
     }
   },
@@ -7316,9 +7326,7 @@
   },
   "Today": {
     "title": "Aujourd'hui",
-    "summary": "{date} · {events, plural, =0 {aucun évènement en cours} one {# évènement en cours} other {# évènements en cours}} · {points, plural, =0 {rien ne presse} one {# point demande votre attention} other {# points demandent votre attention}}",
     "firstTitle": "À traiter en premier",
-    "firstEmpty": "Rien ne presse : tout est à jour.",
     "group": {
       "overdue": "En retard",
       "today": "Aujourd'hui",
@@ -7341,7 +7349,9 @@
       "checkTask": "Fait",
       "checkTaskLabel": "Fait : « {label} »",
       "open": "Ouvrir",
-      "openLabel": "Ouvrir : {title}"
+      "openLabel": "Ouvrir : {title}",
+      "act": "Agir",
+      "actLabel": "Agir : {title}"
     },
     "words": {
       "clientTask": "Tâche confiée au client",
@@ -7395,7 +7405,6 @@
     "countdown": "{days, plural, =0 {aujourd'hui} one {demain} other {dans # jours}}",
     "countdownPast": "passé",
     "dateUnset": "Date à fixer",
-    "points": "{count, plural, one {# point à traiter} other {# points à traiter}}",
     "upToDate": "À jour",
     "undo": {
       "taskDone": "Tâche faite : {label}",
@@ -7443,7 +7452,6 @@
       "show": "Afficher",
       "hint": "Devis signés, factures moins avoirs, et encaissements moins annulations (arrhes comprises), sur l'année civile."
     },
-    "restTitle": "Ensuite",
     "unavailable": "Une partie des urgences ne répond pas pour le moment ({sources}) : le reste de la liste est à jour.",
     "source": {
       "events": "évènements",
@@ -7497,19 +7505,20 @@
       "listLabel": "Les jours du mois qui ont quelque chose"
     },
     "parts": {
-      "follow_ups": "Relances et messages ({count})",
-      "tasks": "Tâches en retard ou à faire sous {days} jours ({count})",
-      "payments": "Paiements ({count})",
-      "decisions": "Décisions et signatures ({count})",
-      "prospects": "Prospects et demandes ({count})",
-      "others": "Autres points ({count})",
-      "watch": "À regarder ({count})"
+      "follow_ups": "Relances et messages",
+      "tasks": "Tâches",
+      "payments": "Paiements",
+      "decisions": "Décisions et signatures",
+      "prospects": "Prospects et demandes",
+      "others": "Autres points",
+      "watch": "À regarder"
     },
     "partLink": {
-      "tasks": "Voir toutes les tâches",
+      "tasks": "Voir dans Tâches",
       "payments": "Voir les encaissements",
       "pipeline": "Voir les prospects",
-      "event": "Voir l'évènement"
+      "event": "Voir l'évènement",
+      "tasksAll": "Voir les {count} dans Tâches"
     },
     "reminder": {
       "button": "Noter une relance",
@@ -7544,6 +7553,31 @@
       "saved": "Relance notée. Rappel le {date}.",
       "savedNoRecall": "Relance notée.",
       "invalid": "Vérifiez la date et le moyen de la relance."
+    },
+    "eventsInProgress": "{count, plural, =0 {aucun évènement en cours} one {# évènement en cours} other {# évènements en cours}}",
+    "count": "{points, plural, one {# point} other {# points}} <long>à traiter </long>d'ici {days} jours{late, plural, =0 {} other {, dont <red># en retard</red>}}",
+    "countNone": "Aucun point à traiter d'ici {days} jours",
+    "countQuiet": "Aucun point à traiter d'ici {days} jours : {count, plural, one {votre mariage n'a} other {vos # mariages n'ont}} pas encore de tâches.",
+    "cardPoints": "{count, plural, =0 {0 point} one {# point} other {# points}}",
+    "partOf": "{shown} sur {total}",
+    "restLine": "{count, plural, one {# autre point} other {# autres points}} d'ici {days} jours",
+    "showAll": "Tout afficher",
+    "quietBody": "Rien d'ici {days} jours. Les échéances arriveront avec les tâches : <import>reprendre la liste de votre tableur</import> ou <template>partir d'un modèle</template>, depuis chaque mariage.",
+    "noneBody": "Rien d'ici {days} jours : ni retard, ni échéance, ni attente.",
+    "myEventsCount": "{count} en cours",
+    "allEvents": "Tous les évènements",
+    "eventPoints": "{points, plural, one {# point} other {# points}}{late, plural, =0 {} other {, dont <red># en retard</red>}}",
+    "noTasksYet": "Pas encore de tâches",
+    "empty": {
+      "title": "Commencez par votre premier mariage",
+      "body": "Symbola part de vos évènements : une fois le premier créé, cet écran vous dit chaque matin ce qui presse, pour qui et quand.",
+      "newEvent": "Nouvel évènement",
+      "otherTakeover": "Vous suivez déjà vos mariages dans un autre logiciel ou un tableur ?",
+      "otherTakeoverLink": "Reprendre ses fichiers",
+      "takeoverTitle": "Commencez par reprendre un mariage en cours",
+      "takeoverBody": "Ses prestataires, son budget, ses tâches et son programme arrivent tels qu'ils sont.",
+      "takeoverAction": "Reprendre un mariage",
+      "otherNew": "Un mariage qui commence ?"
     }
   },
   "QuickCreate": {

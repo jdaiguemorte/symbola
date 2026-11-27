@@ -70,8 +70,6 @@
     "myProfile": "My profile",
     "settings": "Settings",
     "administration": "Operations",
-    "onboardingIncomplete": "Your company profile is not complete yet.",
-    "completeProfile": "Complete it",
     "events": "Events",
     "budgetModels": "Budget models",
     "quoteCatalog": "Quotes catalogue",
@@ -5574,11 +5572,23 @@
     },
     "checklist": {
       "title": "Getting started",
-      "progress": "{done} of {total} done",
-      "done": "done",
       "items": {
         "essentials": "Set up the essentials: company, address, VAT",
         "first_vendor": "Add a first vendor"
+      },
+      "count": "{done} of {total}",
+      "remaining": "left: {steps}",
+      "hide": "Hide",
+      "hiddenMessage": "\"Getting started\" is hidden.",
+      "shownMessage": "\"Getting started\" is back.",
+      "hideFailed": "\"Getting started\" could not be hidden. Try again.",
+      "short": {
+        "essentials": "set up the essentials",
+        "first_vendor": "a first vendor"
+      },
+      "action": {
+        "essentials": "Complete",
+        "first_vendor": "Add"
       }
     }
   },
@@ -7316,9 +7326,7 @@
   },
   "Today": {
     "title": "Today",
-    "summary": "{date} · {events, plural, =0 {no event in progress} one {# event in progress} other {# events in progress}} · {points, plural, =0 {nothing urgent} one {# item needs your attention} other {# items need your attention}}",
     "firstTitle": "Deal with first",
-    "firstEmpty": "Nothing urgent: everything is up to date.",
     "group": {
       "overdue": "Overdue",
       "today": "Today",
@@ -7341,7 +7349,9 @@
       "checkTask": "Done",
       "checkTaskLabel": "Done: “{label}”",
       "open": "Open",
-      "openLabel": "Open: {title}"
+      "openLabel": "Open: {title}",
+      "act": "Act",
+      "actLabel": "Act: {title}"
     },
     "words": {
       "clientTask": "Task assigned to the client",
@@ -7395,7 +7405,6 @@
     "countdown": "{days, plural, =0 {today} one {tomorrow} other {in # days}}",
     "countdownPast": "past",
     "dateUnset": "Date to be set",
-    "points": "{count, plural, one {# item to deal with} other {# items to deal with}}",
     "upToDate": "Up to date",
     "undo": {
       "taskDone": "Task done: {label}",
@@ -7443,7 +7452,6 @@
       "show": "Show",
       "hint": "Signed quotes, invoices less credit notes, and payments received less cancellations (earnest money included), over the calendar year."
     },
-    "restTitle": "Next",
     "unavailable": "Part of the list is not responding right now ({sources}): the rest is up to date.",
     "source": {
       "events": "events",
@@ -7497,19 +7505,20 @@
       "listLabel": "Days of the month with something on"
     },
     "parts": {
-      "follow_ups": "Follow-ups and messages ({count})",
-      "tasks": "Tasks overdue or due within {days} days ({count})",
-      "payments": "Payments ({count})",
-      "decisions": "Decisions and signatures ({count})",
-      "prospects": "Prospects and enquiries ({count})",
-      "others": "Other items ({count})",
-      "watch": "To watch ({count})"
+      "follow_ups": "Follow-ups and messages",
+      "tasks": "Tasks",
+      "payments": "Payments",
+      "decisions": "Decisions and signatures",
+      "prospects": "Prospects and enquiries",
+      "others": "Other items",
+      "watch": "To watch"
     },
     "partLink": {
-      "tasks": "See all tasks",
+      "tasks": "See in Tasks",
       "payments": "See payments received",
       "pipeline": "See prospects",
-      "event": "See the event"
+      "event": "See the event",
+      "tasksAll": "See all {count} in Tasks"
     },
     "reminder": {
       "button": "Log a follow-up",
@@ -7544,6 +7553,31 @@
       "saved": "Follow-up logged. Reminder on {date}.",
       "savedNoRecall": "Follow-up logged.",
       "invalid": "Check the date and how you followed up."
+    },
+    "eventsInProgress": "{count, plural, =0 {no event in progress} one {# event in progress} other {# events in progress}}",
+    "count": "{points, plural, one {# item} other {# items}} <long>to handle </long>in the next {days} days{late, plural, =0 {} other {, <red># late</red>}}",
+    "countNone": "Nothing to handle in the next {days} days",
+    "countQuiet": "Nothing to handle in the next {days} days: {count, plural, one {your wedding has} other {your # weddings have}} no tasks yet.",
+    "cardPoints": "{count, plural, =0 {0 items} one {# item} other {# items}}",
+    "partOf": "{shown} of {total}",
+    "restLine": "{count, plural, one {# more item} other {# more items}} in the next {days} days",
+    "showAll": "Show all",
+    "quietBody": "Nothing in the next {days} days. Due dates will come with the tasks: <import>import your spreadsheet list</import> or <template>start from a template</template>, from each wedding.",
+    "noneBody": "Nothing in the next {days} days: nothing late, due or awaited.",
+    "myEventsCount": "{count} in progress",
+    "allEvents": "All events",
+    "eventPoints": "{points, plural, one {# item} other {# items}}{late, plural, =0 {} other {, <red># late</red>}}",
+    "noTasksYet": "No tasks yet",
+    "empty": {
+      "title": "Start with your first wedding",
+      "body": "Symbola starts from your events: once the first one exists, this screen tells you every morning what's urgent, for whom and when.",
+      "newEvent": "New event",
+      "otherTakeover": "Already tracking your weddings in other software or a spreadsheet?",
+      "otherTakeoverLink": "Bring your files over",
+      "takeoverTitle": "Start by importing a wedding in progress",
+      "takeoverBody": "Its vendors, budget, tasks and schedule come in as they are.",
+      "takeoverAction": "Import a wedding",
+      "otherNew": "A wedding just starting?"
     }
   },
   "QuickCreate": {
