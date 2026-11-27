@@ -192,9 +192,29 @@ export type FindVendorsInput = {
   limit?: number;
   // Lot 63b (HUB-14) : seulement ces fiches (celles d'un import, « Vérifier les N prestataires »).
   ids?: string[];
+  // Lot 73a (PRE-05 ; spécification du lot 73, § 4.2) : l'état des pièces (« À régler » : à renouveler,
+  // bientôt, à recevoir, à vérifier) ; une valeur inconnue est ignorée, jamais en erreur.
+  documents?: VendorDocumentFilter;
+  // Lot 73a : le tri (nom, métier, « Avec vous », évaluation, pièces, distance) et son sens. La distance
+  // n'a de sens qu'avec un lieu ; sans lieu, elle trie par nom.
+  sort?: VendorSort;
+  direction?: "asc" | "desc";
 };
 
-export type VendorListItem = VendorSummary & { travel: TravelEstimate | null };
+export const VENDOR_DOCUMENT_FILTERS = ["to_settle", "up_to_date", "requested", "to_verify", "expired_or_soon"] as const;
+export type VendorDocumentFilter = (typeof VENDOR_DOCUMENT_FILTERS)[number];
+export const VENDOR_SORTS = ["name", "type", "worked_with", "rating", "documents", "distance"] as const;
+export type VendorSort = (typeof VENDOR_SORTS)[number];
+
+// Lot 73a (PRE-01, PRE-05, PRE-08) : une ligne du carnet porte aussi le contact, le téléphone, le nombre
+// de mariages faits ensemble (retenus, hors exemples) et l'état résumé des pièces.
+export type VendorListItem = VendorSummary & {
+  travel: TravelEstimate | null;
+  contactName: string | null;
+  phone: string | null;
+  workedWithCount: number;
+  documentState: VendorDocumentState;
+};
 
 // L11-PRE-09 — historique d'un prestataire avec l'organisation.
 export type VendorHistoryOutcome = "selected" | "not_selected" | "pending";
@@ -205,6 +225,8 @@ export type VendorHistoryEntry = {
   slotLabel: string;
   outcome: VendorHistoryOutcome;
   quotedCents: number | null;
+  // Lot 73a (P9) : le montant du mariage — le réel du poste (somme de ses lignes de budget), une fois
+  // soldé le total réglé ; null pour un prestataire non retenu (l'écran dit alors « devis … »).
   finalCents: number | null;
 };
 export type VendorHistory = { entries: VendorHistoryEntry[]; averageFinalCents: number | null };
@@ -299,7 +321,33 @@ export type VendorsServiceContract = {
 };
 
 // Lot 48a (PRE-05 ; D3, ADR 0093) — pièces à échéance d'un prestataire.
-export type VendorDocumentKind = { id: string; label: string; expires: boolean; starterKey: string | null; position: number };
+// Lot 73a (P3, P4 ; migration 0234) : un nom court (« Assurance »), et la nature est-elle demandée
+// d'habitude à un nouveau prestataire ? Aucun genre grammatical n'est gardé (P3).
+export type VendorDocumentKind = { id: string; label: string; shortLabel: string | null; requestedByDefault: boolean; expires: boolean; starterKey: string | null; position: number };
+
+// Lot 73a (PRE-05 ; P3) — l'état résumé des pièces d'une fiche, du plus pressant au plus calme. « À jour »
+// demande au moins une pièce vérifiée et aucune à régler ; « Aucune pièce demandée » n'est jamais « À jour ».
+export const VENDOR_DOCUMENT_STATES = ["expired", "expiring", "requested", "to_verify", "up_to_date", "none_requested"] as const;
+export type VendorDocumentStateKind = (typeof VENDOR_DOCUMENT_STATES)[number];
+// La raison, dite sous l'état : la fin avant un mariage où il est retenu (couple nul quand la personne n'a
+// pas accès à ce mariage), la fin de validité passée (et le nombre de mariages à venir où il est retenu),
+// la date de la demande, le dépôt par son lien.
+export type VendorDocumentReason =
+  | { code: "before_event"; eventId: string; eventDate: string; couple: string | null }
+  | { code: "valid_until"; date: string; upcomingRetained: number }
+  | { code: "expires_on"; date: string }
+  | { code: "requested_on"; date: string | null }
+  | { code: "uploaded_by_link"; at: string | null };
+export type VendorDocumentState = {
+  state: VendorDocumentStateKind;
+  // La pièce la plus pressante (nulle pour « À jour » et « Aucune pièce demandée »).
+  document: { documentId: string; kindId: string; label: string; shortLabel: string | null; validUntil: string | null } | null;
+  // Les autres pièces à régler (« + 1 »).
+  othersToSettle: number;
+  reason: VendorDocumentReason | null;
+};
+// Un mariage à venir où la fiche est retenue (date de l'évènement), pour l'état de ses pièces.
+export type VendorRetainedEvent = { eventId: string; eventDate: string };
 export type VendorDocumentStatus = "requested" | "to_verify" | "verified";
 export type VendorDocumentAlert = "valid" | "expiring" | "expired" | "no_expiry";
 export type VendorDocument = {
