@@ -1,20 +1,20 @@
-// Lot 32a (HUB-08, UX-01, UX-06, EVT-02 ; décisions D2 et D4) — tri des urgences, tous évènements
-// confondus, sans base. Quatre groupes, dans cet ordre :
-// - en retard : le plus en retard d'abord ;
-// - aujourd'hui : l'échéance du jour, et ce qui vous revient sans date (à faire maintenant) ;
-// - attend un tiers : ce que le client ou un prestataire doit faire, le plus ancien d'abord ;
-// - à venir : ce qui vous revient dans les quatorze prochains jours, par date.
-// Une échéance au-delà de l'horizon n'apparaît pas ; une attente sans date reste. Les trois premiers
-// éléments forment « À traiter en premier ». Dates en « AAAA-MM-JJ », jours calendaires de Paris.
+// Lot 32a (HUB-08, UX-01, UX-06, EVT-02 ; décisions D2 et D4), réécrit au lot 72a (décisions A1 et A2 de la
+// note 09 du lot 68) — tri des urgences, tous évènements confondus, sans base. Deux rangs :
+// - les retards, le plus ancien en tête ;
+// - puis tout le reste par date, quel que soit qui agit : une échéance à sa date, une attente sans
+//   échéance à sa date de début, une ligne sans date (alerte du radar, ce qui vous revient) au jour même.
+// Une échéance au-delà de l'horizon n'apparaît pas ; une ligne sans échéance reste. Un point est une
+// ligne : le compte du haut est le nombre de lignes. Dates « AAAA-MM-JJ », jours calendaires de Paris.
+// Le groupe (en retard, aujourd'hui, attente, à venir) reste un mot de la ligne, pas un rang.
+import { HOME_FIRST_COUNT, TODAY_HORIZON_DAYS, type TodayContact } from "@symbola/contracts";
 import type { TaskLineSource } from "@/lib/tasks/task-line";
 
-// EVT-02 : « échéances des quatorze jours » ; HUB-08 et le bloc des tâches de l'accueil (PRD-HUB-02).
-export const TODAY_HORIZON_DAYS = 14;
+export { HOME_FIRST_COUNT, TODAY_HORIZON_DAYS };
 // UX-01 et PAR-03 : « les trois actions les plus urgentes sont visibles sans défiler ».
 export const FIRST_COUNT = 3;
 
-// UX-06 et D4 : qui doit agir.
-export type TodayActor = { kind: "you" } | { kind: "client" } | { kind: "vendor"; name: string };
+// UX-06 et D4 : qui doit agir. Lot 72a (UX-13) : la fiche du prestataire, pour son contact.
+export type TodayActor = { kind: "you" } | { kind: "client" } | { kind: "vendor"; name: string; vendorId?: string | null | undefined };
 
 export type TodayItemKind =
   | "task"
@@ -58,7 +58,9 @@ export type TodayItemKind =
   | "closing_due"
   // Lot 65d (MSG-01, HUB-28 ; ADR 0110) : un message de la relation préparé, « À envoyer » de la
   // messagerie de la planner (déposé par un geste ou par un automatisme).
-  | "email_to_send";
+  | "email_to_send"
+  // Lot 72a (HUB-08, GC-02) : une alerte du radar des risques, « À regarder ».
+  | "watch";
 
 // L'action en un clic (HUB-08) : cocher une tâche, relancer un prestataire, ou ouvrir l'objet.
 export type TodayAction =
@@ -84,6 +86,8 @@ export type TodayItem = {
   action?: TodayAction | undefined;
   // Lot 70c (CHR-02, HUB-08 ; D3, M4) : une tâche, pour sa ligne type allégée.
   task?: TaskLineSource | undefined;
+  // Lot 72a (UX-13, J7) : qui appeler, quand la ligne attend les mariés ou un prestataire.
+  contact?: TodayContact | undefined;
 };
 
 export type TodayGroup = "overdue" | "today" | "waiting" | "upcoming";
@@ -92,13 +96,17 @@ export const TODAY_GROUPS: TodayGroup[] = ["overdue", "today", "waiting", "upcom
 export type RankedItem = TodayItem & { group: TodayGroup; daysLate: number };
 
 export type RankedToday = {
+  // Les trois premières (PAR-03).
   first: RankedItem[];
+  // Les lignes par groupe (mot de la ligne), chacune dans l'ordre du rang.
   groups: Record<TodayGroup, RankedItem[]>;
-  // Tous, dans l'ordre des groupes.
+  // Toutes, dans l'ordre du rang : les retards, puis le reste par date.
   all: RankedItem[];
-  // En retard, aujourd'hui et attentes (l'à-venir ne demande pas encore attention).
-  attentionCount: number;
-  attentionByEvent: Map<string, number>;
+  // A1 : un point est une ligne ; « dont N en retard ».
+  points: number;
+  late: number;
+  pointsByEvent: Map<string, number>;
+  lateByEvent: Map<string, number>;
 };
 
 function dayNumber(date: string): number {
@@ -122,34 +130,36 @@ function groupOf(item: TodayItem, today: string, horizonDays: number): TodayGrou
 
 const byKey = (a: TodayItem, b: TodayItem) => a.key.localeCompare(b.key);
 
-function sortGroup(group: TodayGroup, items: RankedItem[]): RankedItem[] {
-  const reference = (entry: TodayItem) => entry.dueOn ?? entry.since ?? "9999-12-31";
-  switch (group) {
-    case "overdue":
-      return items.sort((a, b) => a.dueOn!.localeCompare(b.dueOn!) || byKey(a, b));
-    case "today":
-      return items.sort((a, b) => (a.since ?? "").localeCompare(b.since ?? "") || byKey(a, b));
-    case "waiting":
-    case "upcoming":
-      return items.sort((a, b) => reference(a).localeCompare(reference(b)) || byKey(a, b));
-  }
+// A2 : la date de rang d'une ligne qui n'est pas en retard.
+function rankDate(item: TodayItem, today: string): string {
+  return item.dueOn ?? item.since ?? today;
+}
+
+function increment(map: Map<string, number>, key: string | null): void {
+  if (key) map.set(key, (map.get(key) ?? 0) + 1);
 }
 
 export function rankToday(items: TodayItem[], today: string, horizonDays: number = TODAY_HORIZON_DAYS): RankedToday {
   const groups: Record<TodayGroup, RankedItem[]> = { overdue: [], today: [], waiting: [], upcoming: [] };
+  const late: RankedItem[] = [];
+  const rest: RankedItem[] = [];
   for (const entry of items) {
     const group = groupOf(entry, today, horizonDays);
     if (!group) continue;
-    groups[group].push({ ...entry, group, daysLate: group === "overdue" ? -daysUntil(entry.dueOn!, today) : 0 });
+    const ranked = { ...entry, group, daysLate: group === "overdue" ? -daysUntil(entry.dueOn!, today) : 0 };
+    (group === "overdue" ? late : rest).push(ranked);
   }
-  for (const group of TODAY_GROUPS) sortGroup(group, groups[group]);
-  const all = TODAY_GROUPS.flatMap((group) => groups[group]);
-  const attention = all.filter((entry) => entry.group !== "upcoming");
-  const attentionByEvent = new Map<string, number>();
-  for (const entry of attention) {
-    if (entry.eventId) attentionByEvent.set(entry.eventId, (attentionByEvent.get(entry.eventId) ?? 0) + 1);
+  late.sort((a, b) => a.dueOn!.localeCompare(b.dueOn!) || byKey(a, b));
+  rest.sort((a, b) => rankDate(a, today).localeCompare(rankDate(b, today)) || byKey(a, b));
+  const all = [...late, ...rest];
+  for (const entry of all) groups[entry.group].push(entry);
+  const pointsByEvent = new Map<string, number>();
+  const lateByEvent = new Map<string, number>();
+  for (const entry of all) {
+    increment(pointsByEvent, entry.eventId);
+    if (entry.group === "overdue") increment(lateByEvent, entry.eventId);
   }
-  return { first: all.slice(0, FIRST_COUNT), groups, all, attentionCount: attention.length, attentionByEvent };
+  return { first: all.slice(0, FIRST_COUNT), groups, all, points: all.length, late: late.length, pointsByEvent, lateByEvent };
 }
 
 // UX-01 : la prochaine action d'un évènement, première de ses urgences.

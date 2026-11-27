@@ -107,7 +107,7 @@ describe("JRJ-02 — Contenu de l'écran du jour J (décision D5)", () => {
 
   it("l'écran existe pour un évènement confirmé, en préparation ou clôturé, et daté (lot 34a, EVT-05)", () => {
     expect(isDayOfOpen({ status: "confirmed", eventDate: "2026-06-20" })).toBe(true);
-    expect(isDayOfOpen({ status: "in_preparation", eventDate: "2026-06-20" })).toBe(true);
+    expect(isDayOfOpen({ status: "closed", eventDate: "2026-06-20" })).toBe(true);
     expect(isDayOfOpen({ status: "closed", eventDate: "2026-06-20" })).toBe(true);
     expect(isDayOfOpen({ status: "confirmed", eventDate: null })).toBe(false);
     expect(isDayOfOpen({ status: "option", eventDate: "2026-06-20" })).toBe(false);

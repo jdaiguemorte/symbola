@@ -14,7 +14,9 @@ import {
   EVT_VENDOR_SLOT_BOOKED,
   EVT_VENDOR_SLOT_BOOKED_VERSION,
   vendorSlotBookedPayloadSchema,
+  EVENT_STATUSES,
 } from "./events";
+import { EVENT_STATUS_CHOICES } from "../import/fields";
 
 const FROZEN_CREATED_PAYLOAD = {
   eventId: "6b1f7e2a-7e3a-4c9a-9a3a-6b1f7e2a7e3a",
@@ -63,6 +65,21 @@ describe("SOC-06 — Contrat de l'événement events.event.status_changed", () =
     expect(() =>
       eventStatusChangedPayloadSchema.parse({ ...FROZEN_STATUS_CHANGED_PAYLOAD, changedByUserId: "pas-un-uuid" }),
     ).toThrow();
+  });
+});
+
+// Lot 72a (J1, ADR 0121) : « En préparation » est retiré ; le journal déjà écrit reste lisible.
+describe("EVT-05 — Statut « En préparation » retiré, journal lisible (lot 72a, J1)", () => {
+  it("un événement publié avec in_preparation se lit « confirmed »", () => {
+    const payload = eventStatusChangedPayloadSchema.parse({ ...FROZEN_STATUS_CHANGED_PAYLOAD, fromStatus: "confirmed", toStatus: "in_preparation" });
+    expect(payload.toStatus).toBe("confirmed");
+    expect(readEventStatusChanged(2, { ...FROZEN_STATUS_CHANGED_PAYLOAD, fromStatus: "in_preparation", toStatus: "closed" }).fromStatus).toBe("confirmed");
+    expect(eventCreatedPayloadSchema.parse({ ...FROZEN_CREATED_PAYLOAD, status: "in_preparation" }).status).toBe("confirmed");
+  });
+
+  it("la liste des statuts ne le propose plus", () => {
+    expect(EVENT_STATUSES).not.toContain("in_preparation");
+    expect(EVENT_STATUS_CHOICES).not.toContain("in_preparation");
   });
 });
 

@@ -494,6 +494,13 @@ test.describe("Lot 70d — l'écran « Tâches »", () => {
       );
     }
     await signIn(page, setup.email, /\/$/);
+    // La liste montre d'abord les 100 tâches les plus urgentes ; « Afficher les N suivantes » montre le reste.
+    await page.goto("/taches");
+    await expect(page.locator(".task-lines .task-line")).toHaveCount(100);
+    await expect(page.locator(".task-count")).toContainText("499 tâches à faire sur 500");
+    await expect(page.locator(".task-more")).toContainText("Les 100 premières tâches sur 499.");
+    await page.getByRole("link", { name: "Afficher les 399 suivantes" }).click();
+    await expect(page.locator(".task-lines .task-line")).toHaveCount(499);
     const request = page.context().request;
     const urls = ["/taches", `/taches?periode=retard&grouper=qui`, `/taches?qui=${setup.bastienId}&periode=15j`, `/taches?evenement=${setup.lea}&grouper=evenement`, "/taches?etat=faites"];
     for (const url of urls) await request.get(url);

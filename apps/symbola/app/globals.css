@@ -4813,7 +4813,6 @@
   .notification-list,
   .device-list,
   .standalone-task-list,
-  .today-risk-list,
   .health-contributors,
   .automation-journal {
     @apply m-0 list-none p-0;
@@ -7061,6 +7060,10 @@
   }
   .task-filters-display {
     @apply mt-3;
+  }
+  /* Lot 70d (NFR-02) : sous les 100 premières lignes, de quoi voir la suite. */
+  .task-more {
+    @apply mt-4 flex flex-wrap items-center gap-3 text-body text-ink-muted;
   }
 
   /* États vides et mariage repris. */

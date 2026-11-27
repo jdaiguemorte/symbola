@@ -29,10 +29,10 @@ export const pipelineStages = eventsSchema.table(
   (table) => [index("pipeline_stages_organization_idx").on(table.organizationId), check("pipeline_stages_label_check", sql`char_length(${table.label}) between 1 and 60`)],
 );
 
+// Lot 72a (J1, ADR 0121, migration 0225) : « En préparation » retiré ; un évènement signé est « confirmed ».
 export const eventStatusEnum = eventsSchema.enum("event_status", [
   "option",
   "confirmed",
-  "in_preparation",
   "closed",
   "postponed",
   "cancelled",
@@ -245,6 +245,10 @@ export const eventStatusHistory = eventsSchema.table("event_status_history", {
   // Lot 71a (C-64 ; migration 0220) : faux quand changed_at n'est pas la vraie date du changement (un
   // statut repris d'un ancien outil, daté du jour de l'import) : « Signé le : non renseigné ».
   dateKnown: boolean("date_known").notNull().default(true),
+  // Lot 72a (EVT-05 ; E2, J2, migration 0224) : la date effective du changement, quand elle n'est pas le
+  // jour du clic (« Signé le », un contrat signé sur papier) ; posée aussi à l'annulation. Nulle pour les
+  // lignes d'avant : elles se lisent à changed_at, dans le fuseau de l'évènement.
+  effectiveOn: date("effective_on"),
   // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
   createdBy: uuid("created_by"),
 }, (table) => [index("event_status_history_organization_idx").on(table.organizationId)]);

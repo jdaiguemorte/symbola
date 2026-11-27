@@ -106,6 +106,8 @@ const LOT_65 = ["0206_lot65g_hub_import_target_event", "0205_lot65d_hub_relation
 // Lot 70a : personne qui s'en charge (0211), qui a coché (0212), note (0213), seuil « Bientôt » (0214),
 // valeurs d'avant pour « Annuler » (0215), prénom et nom des comptes (0216, hub), sorte de notification
 // « task_assigned » (0217, hub) ; les plus récentes, annulées d'abord.
+// Lot 72a : date effective d'un changement de statut (0224), retrait de « En préparation » (0225).
+const LOT_72A = ["0225_lot72a_events_drop_in_preparation", "0224_lot72a_events_status_effective_date"];
 const LOT_70A = [
   "0217_lot70a_hub_notification_task_assigned",
   "0216_lot70a_hub_user_names",
@@ -162,7 +164,7 @@ const LOT_37A = ["0137_lot37a_events_documents"];
 const LOT_36B = ["0136_lot36b_contacts_members"];
 const LOT_36A = ["0135_lot36a_contacts"];
 // 0140 à 0138 (lot 37b), 0137 (lot 37a), puis 0136 (ses liens pointent vers les contacts), puis 0135.
-const LOT_36 = [...LOT_73A, ...LOT_71A, ...LOT_70A, ...LOT_66, ...LOT_65, ...LOT_64, ...LOT_63B, ...LOT_63G, ...LOT_63E, ...LOT_63D, ...LOT_63C, ...LOT_55, ...LOT_54, ...LOT_60, ...LOT_58, ...LOT_35C, ...LOT_35B, ...LOT_53, ...LOT_52, ...LOT_48B, ...LOT_48A, ...LOT_45, ...LOT_43, ...LOT_51, ...LOT_47, ...LOT_44, ...LOT_50, ...LOT_46, ...LOT_41, ...LOT_49, ...LOT_40B, ...LOT_39B, ...LOT_39A, ...LOT_38B, ...LOT_38A, ...LOT_37B, ...LOT_37A, ...LOT_36B, ...LOT_36A];
+const LOT_36 = [...LOT_73A, ...LOT_72A, ...LOT_71A, ...LOT_70A, ...LOT_66, ...LOT_65, ...LOT_64, ...LOT_63B, ...LOT_63G, ...LOT_63E, ...LOT_63D, ...LOT_63C, ...LOT_55, ...LOT_54, ...LOT_60, ...LOT_58, ...LOT_35C, ...LOT_35B, ...LOT_53, ...LOT_52, ...LOT_48B, ...LOT_48A, ...LOT_45, ...LOT_43, ...LOT_51, ...LOT_47, ...LOT_44, ...LOT_50, ...LOT_46, ...LOT_41, ...LOT_49, ...LOT_40B, ...LOT_39B, ...LOT_39A, ...LOT_38B, ...LOT_38A, ...LOT_37B, ...LOT_37A, ...LOT_36B, ...LOT_36A];
 // Lot 63c : l'ordre des annulations des lots récents, de la plus récente à la plus ancienne, se lit
 // dans cette seule liste. Un nouveau lot ajoute sa liste en tête de LOT_36, et rien d'autre : les
 // tests annulent par rollbackNewerThan et rollbackThrough, jamais par une suite écrite à la main.
@@ -252,6 +254,46 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
     await migrateAll();
     expect(await hasColumn("events", "event_vendor_candidates", "retained_at")).toBe(true);
     expect(await hasColumn("vendors", "vendor_document_kinds", "requested_by_default")).toBe(true);
+  });
+
+  it("lot 72a (EVT-05 ; J1, J2, ADR 0121) — 0225 : les évènements, reports et historiques « En préparation » passent à « Confirmé » et la valeur disparaît ; 0224 ajoute la date effective ; les annulations rendent la valeur et retirent la colonne", async () => {
+    await migrateAll();
+    await rollbackThrough(LOT_72A[1]!);
+    expect(await hasColumn("events", "event_status_history", "effective_on")).toBe(false);
+    const [organization] = await target<{ id: string }[]>`insert into hub.organizations (name) values ('Atelier 0225') returning id`;
+    const organizationId = organization!.id;
+    const ids = await target.begin(async (tx) => {
+      await tx`select set_config('app.organization_id', ${organizationId}, true)`;
+      const [preparing] = await tx<{ id: string }[]>`insert into events.events (organization_id, status) values (${organizationId}, 'in_preparation') returning id`;
+      const [postponed] = await tx<{ id: string }[]>`insert into events.events (organization_id, status, postponed_from_status) values (${organizationId}, 'postponed', 'in_preparation') returning id`;
+      const [option] = await tx<{ id: string }[]>`insert into events.events (organization_id) values (${organizationId}) returning id`;
+      const by = randomUUID();
+      await tx`insert into events.event_status_history (organization_id, event_id, from_status, to_status, changed_by_user_id) values (${organizationId}, ${preparing!.id}, 'confirmed', 'in_preparation', ${by}), (${organizationId}, ${postponed!.id}, 'in_preparation', 'postponed', ${by})`;
+      return { preparing: preparing!.id, postponed: postponed!.id, option: option!.id };
+    });
+
+    await migrateAll();
+    const events = await target<{ id: string; status: string; postponed_from_status: string | null }[]>`select id, status::text as status, postponed_from_status::text as postponed_from_status from events.events where organization_id = ${organizationId}`;
+    const byId = Object.fromEntries(events.map((row) => [row.id, row]));
+    expect(byId[ids.preparing]).toMatchObject({ status: "confirmed" });
+    expect(byId[ids.postponed]).toMatchObject({ status: "postponed", postponed_from_status: "confirmed" });
+    expect(byId[ids.option]).toMatchObject({ status: "option" });
+    const [remaining] = await target<{ count: number }[]>`select count(*)::int as count from events.event_status_history where organization_id = ${organizationId} and (from_status::text = 'in_preparation' or to_status::text = 'in_preparation')`;
+    expect(remaining!.count).toBe(0);
+    const [labels] = await target<{ labels: string[] }[]>`select enum_range(null::events.event_status)::text[] as labels`;
+    expect(labels!.labels).toEqual(["option", "confirmed", "closed", "postponed", "cancelled"]);
+    expect(await hasColumn("events", "event_status_history", "effective_on")).toBe(true);
+    const [created] = await target<{ status: string }[]>`insert into events.events (organization_id) values (${organizationId}) returning status::text as status`;
+    expect(created!.status).toBe("option");
+
+    await rollback(LOT_72A[0]!);
+    const [back] = await target<{ labels: string[] }[]>`select enum_range(null::events.event_status)::text[] as labels`;
+    expect(back!.labels).toEqual(["option", "confirmed", "in_preparation", "closed", "postponed", "cancelled"]);
+    const [kept] = await target<{ status: string }[]>`select status::text as status from events.events where id = ${ids.preparing}`;
+    expect(kept!.status).toBe("confirmed");
+    await rollback(LOT_72A[1]!);
+    expect(await hasColumn("events", "event_status_history", "effective_on")).toBe(false);
+    await migrateAll();
   });
 
   it("lot 71a (HUB-14 ; ADR 0119) — 0218 à 0223 : chaque annulation refuse tant qu'une reprise, un évènement repris, un contrat déclaré, un moment ponctuel ou un total à répartir existe ; 0219 efface les imports des deux sortes nouvelles et recrée le type ; tout se rejoue", async () => {
@@ -1915,9 +1957,12 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
     expect(task!.offset_days).toBe(-180);
     const [created] = await inOrganization((tx) => tx<{ status: string }[]>`insert into events.events (organization_id) values (${organizationId}) returning status::text as status`);
     expect(created!.status).toBe("option");
+    // Lot 72a : « En préparation » n'existe qu'avant 0225 ; son annulation remet la valeur, que
+    // l'annulation de 0132 doit encore ramener à « confirmé ».
+    for (const tag of LOT_72A) await rollback(tag);
     await inOrganization((tx) => tx`update events.events set status = 'in_preparation' where id = ${ids.confirmed!}`);
 
-    for (const tag of [...LOT_36, ...LOT_35A, ...LOT_34B, ...LOT_34A]) await rollback(tag);
+    for (const tag of [...LOT_36.slice(LOT_72A.length), ...LOT_35A, ...LOT_34B, ...LOT_34A]) await rollback(tag);
     const back = await inOrganization((tx) => tx<{ id: string; status: string }[]>`select id, status::text as status from events.events where id in (${ids.prospect!}, ${ids.confirmed!}, ${ids.done!}, ${ids.lost!})`);
     expect(Object.fromEntries(back.map((row) => [row.id, row.status]))).toEqual({ [ids.prospect!]: "prospect", [ids.confirmed!]: "confirmed", [ids.done!]: "done", [ids.lost!]: "lost" });
     expect(await hasColumn("events", "event_tasks", "offset_days")).toBe(false);

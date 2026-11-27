@@ -160,8 +160,9 @@ export type RecetteOptions = {
 };
 
 // Lot 34a (EVT-05, D2) : statuts du jeu fictif, ceux du cahier des charges.
-const EVENT_STATUS: Record<string, "option" | "confirmed" | "in_preparation"> = {
-  "En préparation": "in_preparation",
+const EVENT_STATUS: Record<string, "option" | "confirmed"> = {
+  // Lot 72a (J1) : « En préparation » n'est plus un statut ; un mariage en préparation est signé.
+  "En préparation": "confirmed",
   Option: "option",
   "Devis envoyé": "option",
   Confirmé: "confirmed",

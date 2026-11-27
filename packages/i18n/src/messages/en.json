@@ -467,7 +467,7 @@
     },
     "home": {
       "title": "Today",
-      "body": "What needs your attention, across all events, sorted by urgency: overdue, today, waiting on someone else (the client or a vendor), then the next fourteen days. “Deal with first” keeps the first seven items, grouped by kind (follow-ups and messages, tasks, payments, decisions and signatures, prospects); each part gives its count and leads to its page (“See in Tasks”, “See payments received”…), each line says who has to act and leads to the action in one click; a task takes the same line as in « Tasks », without the menu: its title opens its panel, the couple's name leads to their event, « Done » ticks it, and « Review them » shows the tasks done today. Below, full width, the calendar: your events, appointments, tasks in the colour of their category and unpaid vendor due dates; “‹”, “Today” and “›” page through it, “Month”, “Week” and “List” change the view, a click on a day shows its detail. On a phone, the current week. Then the remaining items, and your events in progress, with the countdown. “To send”: a relationship message prepared by Symbola (reminder, brief…), to send from your own mailbox; one click opens the “Prepare the email” window.",
+      "body": "What needs your attention, across all events, in the next fourteen days: an item is a line, something to do or to watch, and the number at the top counts them all. Late items come first, oldest first, then everything else by date, whoever has to act. “Deal with first” keeps the first seven items, grouped by kind (follow-ups and messages, tasks, payments, decisions and signatures, prospects, “To watch” for radar alerts); when the line waits on the couple or a vendor, the name and details of the person to reach are under its title; each part gives its count and leads to its page (“See in Tasks”, “See payments received”…), each line says who has to act and leads to the action in one click; a task takes the same line as in « Tasks », without the menu: its title opens its panel, the couple's name leads to their event, « Done » ticks it, and « Review them » shows the tasks done today. Below, full width, the calendar: your events, appointments, tasks in the colour of their category and unpaid vendor due dates; “‹”, “Today” and “›” page through it, “Month”, “Week” and “List” change the view, a click on a day shows its detail. On a phone, the current week. Then the remaining items, and your events in progress, with the countdown. “To send”: a relationship message prepared by Symbola (reminder, brief…), to send from your own mailbox; one click opens the “Prepare the email” window.",
       "faq": [
         {
           "q": "How do I change the follow-up delays for quotes and prospects?",
@@ -583,7 +583,7 @@
     },
     "eventsDetail": {
       "title": "Event page",
-      "body": "The whole event, in tabs. The « Summary » opens on the next action and who has to act, then the event's health (planning, budget, client decisions) and the next fourteen days; « Edit the details », at the top of the event profile, opens a panel where they are edited, the event's time zone included. The top timeline shows where it stands: Option, Confirmed, In preparation, Event day, Closed. Click a step to set it; « Event day » applies by itself on the day of the event, and closing is offered from the next day. « Postpone the event… » asks for the new date: once you confirm the postponement, the planning's due dates follow, except tasks already done and those whose date you set by hand; the ones that would fall in the past are listed first. « Cancel the event… » opens a window that says what will happen and asks for a reason: the data stays, links close, reminders and scheduled deposit invoices stop, and a credit note is offered for each issued invoice; « Keep the event » backs out. A cancelled event is restored from its page (« Restore the event »): it goes back to « Option ». The « Event profile » gathers estimated and confirmed guests, venues, contacts, style and notes; venues are managed in the « Day programme » tab (address, town, times, on-site contact), the first being the reception venue. In the same tab, each sequence of the schedule is a line: “Edit” opens it in place, “Add a sequence” creates one; nothing is sent until you click “Save the schedule”, which says how many lines are waiting, and “Discard changes” brings back the saved schedule. The « Tasks » tab shows the event's tasks, « To do » first, with their filters (who's doing it, period, category, state) and « New task », the event already chosen; under the title, the count and the date the planning's due dates are counted from. A task can be given to you, a colleague, the couple or a retained vendor, who ticks it in their space; its attachments, comments and note stay within the team. Its panel shows its « Place in the planning » (how many days before the big day, and whether it is a key step). Ticked by mistake, a task comes back with « Undo » for ten seconds, then with « Reopen task ». The « Next step » banner suggests the next stage (send the quote, apply the planning, create the couple's links). In « Budget and vendors », each row says where the choice stands (« Selected », « 2 being compared », « To find »); « + Add vendors » offers, for each record of the trade in your directory, « Compare » (the item stays open) or « Select » (it fills the item), never automatically. The item window compares vendors side by side (quote, availability, worked together before, last follow-up, note): « Select », « Set aside », then « Change vendor » or « Unselect », without deleting the line; « Next item » moves on. « Take over the selected vendors (PDF) » reads the vendors export from your previous software: each vendor is found in the directory or created, then selected on the line of their trade, after your check. Each tab has a « Settings » link to its templates. Overlap warnings leave out your clients, who attend every sequence, and are read day by day. PDFs separate the days of a multi-day schedule; the team version puts the internal note under each sequence.",
+      "body": "The whole event, in tabs. The « Summary » opens on the next action and who has to act, then the event's health (planning, budget, client decisions) and the next fourteen days; « Edit the details », at the top of the event profile, opens a panel where they are edited, the event's time zone included. The top timeline shows where it stands: Option, Confirmed, Event day, Closed. Click a step to set it; « Event day » applies by itself on the day of the event, and closing is offered from the next day. « Postpone the event… » asks for the new date: once you confirm the postponement, the planning's due dates follow, except tasks already done and those whose date you set by hand; the ones that would fall in the past are listed first. « Cancel the event… » opens a window that says what will happen and asks for a reason: the data stays, links close, reminders and scheduled deposit invoices stop, and a credit note is offered for each issued invoice; « Keep the event » backs out. A cancelled event is restored from its page (« Restore the event »): it goes back to « Option ». The « Event profile » gathers estimated and confirmed guests, venues, contacts, style and notes; venues are managed in the « Day programme » tab (address, town, times, on-site contact), the first being the reception venue. In the same tab, each sequence of the schedule is a line: “Edit” opens it in place, “Add a sequence” creates one; nothing is sent until you click “Save the schedule”, which says how many lines are waiting, and “Discard changes” brings back the saved schedule. The « Tasks » tab shows the event's tasks, « To do » first, with their filters (who's doing it, period, category, state) and « New task », the event already chosen; under the title, the count and the date the planning's due dates are counted from. A task can be given to you, a colleague, the couple or a retained vendor, who ticks it in their space; its attachments, comments and note stay within the team. Its panel shows its « Place in the planning » (how many days before the big day, and whether it is a key step). Ticked by mistake, a task comes back with « Undo » for ten seconds, then with « Reopen task ». The « Next step » banner suggests the next stage (send the quote, apply the planning, create the couple's links). In « Budget and vendors », each row says where the choice stands (« Selected », « 2 being compared », « To find »); « + Add vendors » offers, for each record of the trade in your directory, « Compare » (the item stays open) or « Select » (it fills the item), never automatically. The item window compares vendors side by side (quote, availability, worked together before, last follow-up, note): « Select », « Set aside », then « Change vendor » or « Unselect », without deleting the line; « Next item » moves on. « Take over the selected vendors (PDF) » reads the vendors export from your previous software: each vendor is found in the directory or created, then selected on the line of their trade, after your check. Each tab has a « Settings » link to its templates. Overlap warnings leave out your clients, who attend every sequence, and are read day by day. PDFs separate the days of a multi-day schedule; the team version puts the internal note under each sequence.",
       "faq": [
         {
           "q": "How do I mark an event as lost?",
@@ -1417,7 +1417,7 @@
     },
     "riskRadar": {
       "title": "Risk radar",
-      "body": "The radar runs every morning. Each rule has a threshold in days; an alert states the rule that triggered it and leads to the screen where you can act. Planning health is set here too."
+      "body": "The radar runs every morning. Each rule has a threshold in days; an alert becomes a “To watch” line in “Today”, which states the rule that triggered it and leads to the screen where you can act. Planning health is set here too."
     },
     "clientTerms": {
       "title": "Client terms",
@@ -1599,7 +1599,6 @@
     "templateEventTypeSave": "Attach",
     "templateEventTypeHint": "A template attached to a type applies as soon as an event of that type is created. A template without a type never applies by itself: apply it from an event's Retroplanning tab.",
     "statusOption": "Option",
-    "statusInPreparation": "In preparation",
     "statusDayOf": "Event day",
     "statusClosed": "Closed",
     "statusPostponed": "Postponed",
@@ -7456,7 +7455,8 @@
       "payments": "Payments ({count})",
       "decisions": "Decisions and signatures ({count})",
       "prospects": "Prospects and enquiries ({count})",
-      "others": "To look at ({count})"
+      "others": "Other items ({count})",
+      "watch": "To watch ({count})"
     },
     "partLink": {
       "tasks": "See all tasks",
@@ -11631,7 +11631,7 @@
       "moduleUnavailable": "The Events module is not subscribed.",
       "notFound": "Event not found.",
       "archived": "Archived event: read-only.",
-      "notClosable": "Only a confirmed or in-preparation event can be closed.",
+      "notClosable": "Only a signed event can be closed.",
       "notFinished": "Close or cancel the event before archiving it.",
       "demo": "A trial event cannot be closed.",
       "lessons": "Three lessons at most, 500 characters each.",
@@ -13231,7 +13231,9 @@
     "bulkDated": "{count, plural, =0 {No task changed} one {# task on {date}} other {# tasks on {date}}}",
     "bulkAssigned": "{count, plural, =0 {No task assigned} one {# task assigned} other {# tasks assigned}}",
     "bulkCategorized": "{count, plural, =0 {No task changed} one {Category changed for # task} other {Category changed for # tasks}}",
-    "bulkDeleted": "{count, plural, =0 {No task deleted} one {# task deleted} other {# tasks deleted}}"
+    "bulkDeleted": "{count, plural, =0 {No task deleted} one {# task deleted} other {# tasks deleted}}",
+    "firstShown": "The first {shown} tasks out of {count}.",
+    "showMore": "Show {count, plural, one {the next one} other {the next #}}"
   },
   "Account": {
     "menu": "Account menu",

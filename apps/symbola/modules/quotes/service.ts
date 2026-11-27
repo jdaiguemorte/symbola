@@ -8,7 +8,7 @@ import { LATE_PENALTY_RATE_KEYS, starterComplianceChecks, starterProfessionalTer
 import { appDatabase, type AppDatabase } from "@symbola/db/client";
 import { parseEnv } from "@symbola/env";
 import { createStorageClient, deletePrivateObject, PrivateObjectNotFoundError, readPrivateObject, uploadFile, uploadPrivateObject } from "@symbola/files";
-import { formatAmount, formatCalendarDate, parisDaysSince } from "@symbola/i18n";
+import { dateInTimeZone, formatAmount, formatCalendarDate, parisDaysSince } from "@symbola/i18n";
 import frMessages from "@symbola/i18n/messages/fr.json";
 import enMessages from "@symbola/i18n/messages/en.json";
 import type {
@@ -88,7 +88,7 @@ import type {
   StartQuotesTrialInput,
 } from "@symbola/contracts";
 import { QUOTES_QUOTE_SIGNED, QUOTES_QUOTE_SIGNED_VERSION, type AutomationHooks, type EmailValues, type PreparedEmailView, type QuoteSignedPayload, type RelationDraft } from "@symbola/contracts";
-import { changeEventStatus, clientTermForEvent, EventNotFoundError, getEvent, listEventLinks, listEventTypes, sendLinkActionCode, verifyLinkActionCode } from "@/modules/events/service";
+import { clientTermForEvent, EventNotFoundError, markContractSigned, getEvent, listEventLinks, listEventTypes, sendLinkActionCode, verifyLinkActionCode } from "@/modules/events/service";
 import { withActor } from "@symbola/db/actor";
 import {
   PROPOSAL_BLOCKS,
@@ -2341,7 +2341,7 @@ async function afterSigned(
   }
   if (request.kind !== "contract") {
     effects.push(["facture d'acompte", () => scheduleDepositInvoice(organizationId, aggregate, request, contract, now)]);
-    effects.push(["confirmation", () => confirmSignedQuote(organizationId, quoteId)]);
+    effects.push(["confirmation", () => confirmSignedQuote(organizationId, quoteId, now)]);
   }
   for (const [label, effect] of effects) {
     try {
@@ -2353,7 +2353,7 @@ async function afterSigned(
   }
 }
 
-async function confirmSignedQuote(organizationId: string, quoteId: string): Promise<void> {
+async function confirmSignedQuote(organizationId: string, quoteId: string, signedAt: Date = new Date()): Promise<void> {
   const quote = await loadDetail(organizationId, quoteId);
   const aggregate = await findQuoteAggregate(organizationId, quoteId);
   const createdByUserId = aggregate?.quote.createdByUserId;
@@ -2364,7 +2364,8 @@ async function confirmSignedQuote(organizationId: string, quoteId: string): Prom
   // planner confirme elle-même. Chaque confirmation laisse une trace dans son journal.
   const gate = await getAutomationGate(organizationId, "quote_signed_confirm_event");
   if (event && createdByUserId && event.status === "option" && gate.enabled) {
-    await changeEventStatus({ organizationId, eventId: quote.eventId, changedByUserId: createdByUserId, toStatus: "confirmed" });
+    // Lot 72a (J2) : « Le contrat est signé », à la date de la signature (fuseau de l'évènement).
+    await markContractSigned({ organizationId, eventId: quote.eventId, changedByUserId: createdByUserId, signedOn: dateInTimeZone(signedAt, event.timeZone), now: signedAt });
     await recordAutomationRun(organizationId, "quote_signed_confirm_event", { objectKey: quoteId, objectLabel: quote.number, href: `/events/${quote.eventId}`, result: "done" });
   }
   if (quote.isDemo) return;

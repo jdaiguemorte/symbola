@@ -1,6 +1,6 @@
 {
-  "id": "436c1ec3-7501-4274-a862-e6e034d38555",
-  "prevId": "e8d4e561-df28-43fd-b504-0ac07ccaea8a",
+  "id": "0ac29239-5cbd-42c0-8006-c4e16b22ad47",
+  "prevId": "eec05060-3f87-4208-be27-b2335ad27c11",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -8614,6 +8614,12 @@
           "primaryKey": false,
           "notNull": true,
           "default": true
+        },
+        "effective_on": {
+          "name": "effective_on",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
         },
         "created_by": {
           "name": "created_by",
@@ -35635,7 +35641,6 @@
       "values": [
         "option",
         "confirmed",
-        "in_preparation",
         "closed",
         "postponed",
         "cancelled"
