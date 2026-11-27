@@ -483,10 +483,16 @@ export async function cancelImport(db: AppDatabase, organizationId: string, impo
 }
 
 // Purge horaire (lib/import-purge.ts) : les lignes en attente d'un import
-// abandonné sans être confirmé sont effacées à son expiration.
+// abandonné sans être confirmé sont effacées à son expiration. Lot 71a
+// (SEC-21) : ses traitements s'arrêtent et les fiches PDF encore gardées dans
+// le stockage sont supprimées, sans attendre le traitement de fond.
 export async function purgeExpiredImportDrafts(db: AppDatabase, organizationIds: string[], now: Date = new Date()): Promise<number> {
   let purged = 0;
-  for (const organizationId of organizationIds) purged += await cancelExpiredDrafts(db, organizationId, now);
+  for (const organizationId of organizationIds) {
+    const expired = await cancelExpiredDrafts(db, organizationId, now);
+    for (const importId of expired) await cancelImportJobs(db, organizationId, importId, now);
+    purged += expired.length;
+  }
   return purged;
 }
 

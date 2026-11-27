@@ -41,14 +41,15 @@ export async function markDraftCancelled(db: AppDatabase, organizationId: string
   });
 }
 
-export async function cancelExpiredDrafts(db: AppDatabase, organizationId: string, now: Date): Promise<number> {
+// Les identifiants des brouillons expirés, pour que leurs fiches gardées soient effacées (lot 71a).
+export async function cancelExpiredDrafts(db: AppDatabase, organizationId: string, now: Date): Promise<string[]> {
   return withOrganization(db, organizationId, async (tx) => {
     const updated = await tx
       .update(imports)
       .set({ status: "cancelled", rows: null, sourceLineNumbers: null, updatedAt: now })
       .where(and(eq(imports.status, "draft"), lt(imports.expiresAt, now)))
       .returning({ id: imports.id });
-    return updated.length;
+    return updated.map((row) => row.id);
   });
 }
 
