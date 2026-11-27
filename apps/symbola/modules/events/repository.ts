@@ -80,6 +80,8 @@ export async function findEvents(
     year?: number | undefined;
     search?: string | undefined;
     prospectSourceId?: string | undefined;
+    // Lot 71f (P-06) : le filtre « Origine » de la liste.
+    origin?: "created" | "takeover" | undefined;
   },
 ): Promise<{ event: EventRecord; clients: EventClientRow[] }[]> {
   const db = appDatabase();
@@ -113,6 +115,9 @@ export async function findEvents(
     }
     if (filters.prospectSourceId) {
       conditions.push(eq(events.prospectSourceId, filters.prospectSourceId));
+    }
+    if (filters.origin) {
+      conditions.push(eq(events.origin, filters.origin));
     }
     if (matchingIds) {
       conditions.push(inArray(events.id, matchingIds));
@@ -1598,11 +1603,11 @@ export async function applyProgramTemplateRows(
 
 // Lot 13 (L13-EVT-19) — passages de statut d'un événement, du plus ancien au
 // plus récent, pour dater les étapes de la frise.
-export async function findEventStatusChanges(organizationId: string, eventId: string): Promise<{ toStatus: EventStatus; changedAt: Date; effectiveOn: string | null }[]> {
+export async function findEventStatusChanges(organizationId: string, eventId: string): Promise<{ toStatus: EventStatus; changedAt: Date; effectiveOn: string | null; dateKnown: boolean }[]> {
   const db = appDatabase();
   return await withOrganization(db, organizationId, (tx) =>
     tx
-      .select({ toStatus: eventStatusHistory.toStatus, changedAt: eventStatusHistory.changedAt, effectiveOn: eventStatusHistory.effectiveOn })
+      .select({ toStatus: eventStatusHistory.toStatus, changedAt: eventStatusHistory.changedAt, effectiveOn: eventStatusHistory.effectiveOn, dateKnown: eventStatusHistory.dateKnown })
       .from(eventStatusHistory)
       .where(eq(eventStatusHistory.eventId, eventId))
       .orderBy(asc(eventStatusHistory.changedAt)),

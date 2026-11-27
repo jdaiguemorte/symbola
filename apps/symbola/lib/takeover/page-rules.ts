@@ -120,27 +120,3 @@ export function withdrawDeadline(appliedAts: readonly Date[], undoRetentionDays:
   const first = Math.min(...appliedAts.map((date) => date.getTime()));
   return new Date(first + undoRetentionDays * DAY_MS);
 }
-
-// Ce qui reste à compléter à la main après la reprise (C-55) : les points que la page sait compter
-// aujourd'hui. Le paquet 71f les calcule dans le hub, pour la fiche, avec les contrats non signés.
-export type ToCompleteFacts = {
-  // Reste à répartir du total d'un fichier (null : aucun total).
-  remainingCents: number | null;
-  taskCount: number;
-  // Moments du programme sans heure de fin.
-  missingEndTimes: number;
-  hasClientLink: boolean;
-  guestsKnown: boolean;
-};
-
-export type ToCompletePoint = { key: "amounts" | "tasks" | "endTimes" | "clientLink" | "guests"; count: number };
-
-export function toCompletePoints(facts: ToCompleteFacts): ToCompletePoint[] {
-  const points: ToCompletePoint[] = [];
-  if (facts.remainingCents !== null && facts.remainingCents > 0) points.push({ key: "amounts", count: 1 });
-  if (facts.taskCount === 0) points.push({ key: "tasks", count: 1 });
-  if (facts.missingEndTimes > 0) points.push({ key: "endTimes", count: facts.missingEndTimes });
-  if (!facts.hasClientLink) points.push({ key: "clientLink", count: 1 });
-  if (!facts.guestsKnown) points.push({ key: "guests", count: 1 });
-  return points;
-}

@@ -468,7 +468,7 @@
     },
     "home": {
       "title": "Aujourd'hui",
-      "body": "Ce qui demande votre attention, tous évènements confondus, d'ici quatorze jours. Un point est une chose à faire ou à surveiller d'ici quatorze jours : chaque point est une ligne, et le nombre du haut (« 7 points à traiter d'ici 14 jours, dont 2 en retard ») les compte toutes. Les retards viennent d'abord, du plus ancien au plus récent, puis tout le reste par date, quel que soit qui doit agir. Rien ne passe avant la liste, sauf une alerte qui bloque un envoi ou une obligation (plafond d'e-mails, rappels arrêtés, demande RGPD qui arrive à échéance). « À traiter en premier » montre les sept premiers points, regroupés par nature (relances et messages, tâches, paiements, décisions et signatures, prospects, « À regarder » pour les alertes du radar) ; une partie dit « 4 sur 7 » quand elle n'est pas montrée en entier, et « Tout afficher », au bas de la carte, ouvre le reste sur place. Chaque ligne dit son mariage (un lien vers sa fiche), son échéance en mots et qui doit agir : « Vous », une collègue, « Attend le client » ou le prestataire attendu, avec, sous le titre, le nom et le téléphone de la personne à appeler (sur téléphone, un toucher appelle). Le titre d'une tâche ouvre son panneau par-dessus l'accueil, et « Fermer » vous rend la même ligne ; « Fait » la coche, avec « Annuler » dix secondes ; « Noter une relance » note une relance faite à un prestataire ; « Les revoir » montre les tâches faites aujourd'hui. Dessous, « Mes évènements » : chaque mariage en cours, son compte à rebours et ses points (« 6 points, dont 2 en retard », « Pas encore de tâches », « À jour »). Puis le calendrier : vos évènements, vos rendez-vous, vos tâches de la couleur de leur catégorie et les échéances de paiement des prestataires non réglées ; « ‹ », « Aujourd'hui » et « › » le feuillettent, « Mois », « Semaine » et « Liste » changent la vue, un clic sur un jour en montre le détail. Sur téléphone, la semaine en cours. En bas, « Pour bien démarrer » dit les étapes qui restent ; « Masquer » la retire pour vous, sur tous vos appareils. Dans un espace neuf, l'écran propose une seule chose : créer votre premier mariage, ou reprendre un mariage en cours si vous suivez déjà vos mariages dans un tableur ou un logiciel. « À envoyer » : un message de la relation préparé par Symbola (relance, rappel, brief…), à envoyer de votre messagerie ; un clic ouvre la fenêtre « Préparer l'e-mail ». Sur téléphone, la barre du bas mène à Aujourd'hui, Évènements, Tâches (avec le nombre de tâches en retard) et Prestataires ; « Plus » ouvre le reste : Contacts, Rendez-vous, Devis et factures, Encaissements, Tous les modules, Paramètres, Tutoriels, Aide, puis votre compte et « Se déconnecter ». Il se ferme par Échap, un glissé vers le bas, un toucher dehors ou le retour arrière. Un module que vous n'avez pas laisse sa place dans la barre à l'entrée suivante de « Plus ».",
+      "body": "Ce qui demande votre attention, tous évènements confondus, d'ici quatorze jours. Un point est une chose à faire ou à surveiller d'ici quatorze jours : chaque point est une ligne, et le nombre du haut (« 7 points à traiter d'ici 14 jours, dont 2 en retard ») les compte toutes. Les retards viennent d'abord, du plus ancien au plus récent, puis tout le reste par date, quel que soit qui doit agir. Rien ne passe avant la liste, sauf une alerte qui bloque un envoi ou une obligation (plafond d'e-mails, rappels arrêtés, demande RGPD qui arrive à échéance). « À traiter en premier » montre les sept premiers points, regroupés par nature (relances et messages, tâches, paiements, décisions et signatures, prospects, « À regarder » pour les alertes du radar) ; une partie dit « 4 sur 7 » quand elle n'est pas montrée en entier, et « Tout afficher », au bas de la carte, ouvre le reste sur place. Chaque ligne dit son mariage (un lien vers sa fiche), son échéance en mots et qui doit agir : « Vous », une collègue, « Attend le client » ou le prestataire attendu, avec, sous le titre, le nom et le téléphone de la personne à appeler (sur téléphone, un toucher appelle). Le titre d'une tâche ouvre son panneau par-dessus l'accueil, et « Fermer » vous rend la même ligne ; « Fait » la coche, avec « Annuler » dix secondes ; « Noter une relance » note une relance faite à un prestataire ; « Les revoir » montre les tâches faites aujourd'hui. Dessous, « Mes évènements » : chaque mariage en cours, son compte à rebours et ses points (« 6 points, dont 2 en retard », « Pas encore de tâches », « À jour »). Puis le calendrier : vos évènements, vos rendez-vous, vos tâches de la couleur de leur catégorie et les échéances de paiement des prestataires non réglées ; « ‹ », « Aujourd'hui » et « › » le feuillettent, « Mois », « Semaine » et « Liste » changent la vue, un clic sur un jour en montre le détail. Sur téléphone, la semaine en cours. En bas, « Pour bien démarrer » dit les étapes qui restent ; « Masquer » la retire pour vous, sur tous vos appareils. Dans un espace neuf, l'écran propose une seule chose : créer votre premier mariage, ou reprendre un mariage en cours si vous suivez déjà vos mariages dans un tableur ou un logiciel. « À envoyer » : un message de la relation préparé par Symbola (relance, rappel, brief…), à envoyer de votre messagerie ; un clic ouvre la fenêtre « Préparer l'e-mail ». Sur téléphone, la barre du bas mène à Aujourd'hui, Évènements, Tâches (avec le nombre de tâches en retard) et Prestataires ; « Plus » ouvre le reste : Contacts, Rendez-vous, Devis et factures, Encaissements, Tous les modules, Paramètres, Tutoriels, Aide, puis votre compte et « Se déconnecter ». Il se ferme par Échap, un glissé vers le bas, un toucher dehors ou le retour arrière. Un module que vous n'avez pas laisse sa place dans la barre à l'entrée suivante de « Plus ». « Reprises en cours » liste en tête les mariages que vous reprenez d'un autre outil, avec ce qui reste ; ils n'entrent pas dans le nombre des points.",
       "faq": [
         {
           "q": "Comment changer les délais de relance des devis et des prospects ?",
@@ -552,7 +552,7 @@
     },
     "eventsList": {
       "title": "Liste des évènements",
-      "body": "Tous vos prospects et évènements en cours ; « Terminés » garde ceux clôturés ou annulés. « Liste », « Colonnes » ou « Calendrier », toujours au même endroit : le tableau filtrable, les options rangées par étape, ou les mois à venir. Dessous, la charge des douze prochains mois ; deux évènements le même jour sont signalés dans les deux vues. Commencez par « Nouvel évènement » (une demande en cours, ou un évènement signé), ou filtrez la liste par nom, statut, source ou année. Pour découvrir le module sans risque, lancez l'essai guidé ci-dessous.",
+      "body": "Tous vos prospects et évènements en cours ; « Terminés » garde ceux clôturés ou annulés. « Liste », « Colonnes » ou « Calendrier », toujours au même endroit : le tableau filtrable, les options rangées par étape, ou les mois à venir. Dessous, la charge des douze prochains mois ; deux évènements le même jour sont signalés dans les deux vues. Commencez par « Nouvel évènement » (une demande en cours, ou un évènement signé), ou filtrez la liste par nom, statut, source ou année. Pour découvrir le module sans risque, lancez l'essai guidé ci-dessous. Un mariage repris porte « Repris », avec où en est sa reprise, jusqu'à ce qu'elle soit complétée ; le filtre « Origine » sépare les mariages repris de ceux créés dans Symbola.",
       "faq": [
         {
           "q": "Où retrouver un évènement passé ?",
@@ -584,7 +584,7 @@
     },
     "eventsDetail": {
       "title": "Fiche de l'évènement",
-      "body": "Tout l'évènement, en onglets. La « Synthèse » s'ouvre sur la prochaine action et qui doit agir, puis la santé de l'évènement (planning, budget, décisions du client) et les quatorze prochains jours ; « Modifier les informations », en tête de la fiche d'identité, ouvre un panneau où elles se modifient, fuseau de l'évènement compris. La frise du haut montre où il en est : Option, Confirmé, Jour J, Clôturé. Cliquez une étape pour la poser ; « Jour J » s'applique de lui-même le jour de l'évènement, et la clôture vous est proposée dès le lendemain. « Reporter l'évènement… » demande la nouvelle date : à la confirmation du report, les échéances du rétroplanning suivent, sauf les tâches faites et celles dont vous avez fixé la date ; celles qui tomberaient dans le passé sont listées avant. « Annuler l'évènement… » ouvre une fenêtre qui dit ce qui va se passer et demande un motif : les données restent, les liens se ferment, les rappels et les factures d'acompte programmées s'arrêtent, et un avoir vous est proposé pour chaque facture émise ; « Garder l'évènement » renonce. Un évènement annulé se rétablit depuis sa fiche (« Rétablir l'évènement ») : il revient en « Option ». La « Fiche d'identité » rassemble les invités estimés et confirmés, les lieux, les interlocuteurs, le style et les notes ; les lieux se gèrent dans l'onglet « Programme du jour J » (adresse, ville, horaires, contact sur place), le premier étant le lieu de réception. Dans ce même onglet, chaque séquence du programme est une ligne : « Modifier » l'ouvre sur place, « Ajouter une séquence » en crée une ; rien ne part tant que vous n'avez pas cliqué « Enregistrer le programme », qui dit combien de lignes attendent, et « Annuler les modifications » rend le programme enregistré. Les chevauchements signalés ne concernent pas vos clients, présents à toutes les séquences, et se lisent jour par jour. Les PDF séparent les jours d'un programme de plusieurs jours ; la version équipe place la note interne sous chaque séquence. L'onglet « Tâches » montre les tâches de l'évènement, « À faire » d'abord, avec leurs filtres (qui s'en charge, période, catégorie, état) et « Nouvelle tâche », l'évènement déjà choisi ; sous le titre, le décompte et la date d'où partent les échéances du rétroplanning. Une tâche se confie à vous, à un collègue, aux mariés ou à un prestataire retenu, qui la coche dans son espace ; ses pièces jointes, ses commentaires et sa note restent dans l'équipe. Son panneau dit sa « Place dans le rétroplanning » (à combien de jours du jour J, et si c'est une étape clé). Cochée par erreur, une tâche se rétablit par « Annuler », pendant dix secondes, puis par « Rouvrir la tâche ». Le bandeau « Prochaine étape » propose l'étape du parcours (envoyer le devis, appliquer le rétroplanning, créer les liens des mariés). Dans « Budget et prestataires », chaque ligne dit où en est le choix (« Retenu », « 2 en comparaison », « À trouver ») ; « + Ajouter des prestataires » propose, pour chaque fiche du carnet du métier, « Mettre en comparaison » (le poste reste à pourvoir) ou « Retenir » (il pourvoit le poste), jamais d'office. La fenêtre du poste compare les prestataires côte à côte (devis, disponibilité, déjà travaillé ensemble, dernière relance, note) : « Retenir », « Écarter », puis « Changer de prestataire » ou « Ne plus retenir », sans supprimer la ligne ; « Poste suivant » enchaîne. « Reprendre les prestataires retenus (PDF) » lit l'export des prestataires de votre ancien logiciel : chaque prestataire est retrouvé dans le carnet ou créé, puis retenu sur la ligne de son métier, après votre contrôle. Chaque onglet a son lien « Réglages » vers ses modèles.",
+      "body": "Tout l'évènement, en onglets. La « Synthèse » s'ouvre sur la prochaine action et qui doit agir, puis la santé de l'évènement (planning, budget, décisions du client) et les quatorze prochains jours ; « Modifier les informations », en tête de la fiche d'identité, ouvre un panneau où elles se modifient, fuseau de l'évènement compris. La frise du haut montre où il en est : Option, Confirmé, Jour J, Clôturé. Cliquez une étape pour la poser ; « Jour J » s'applique de lui-même le jour de l'évènement, et la clôture vous est proposée dès le lendemain. « Reporter l'évènement… » demande la nouvelle date : à la confirmation du report, les échéances du rétroplanning suivent, sauf les tâches faites et celles dont vous avez fixé la date ; celles qui tomberaient dans le passé sont listées avant. « Annuler l'évènement… » ouvre une fenêtre qui dit ce qui va se passer et demande un motif : les données restent, les liens se ferment, les rappels et les factures d'acompte programmées s'arrêtent, et un avoir vous est proposé pour chaque facture émise ; « Garder l'évènement » renonce. Un évènement annulé se rétablit depuis sa fiche (« Rétablir l'évènement ») : il revient en « Option ». La « Fiche d'identité » rassemble les invités estimés et confirmés, les lieux, les interlocuteurs, le style et les notes ; les lieux se gèrent dans l'onglet « Programme du jour J » (adresse, ville, horaires, contact sur place), le premier étant le lieu de réception. Dans ce même onglet, chaque séquence du programme est une ligne : « Modifier » l'ouvre sur place, « Ajouter une séquence » en crée une ; rien ne part tant que vous n'avez pas cliqué « Enregistrer le programme », qui dit combien de lignes attendent, et « Annuler les modifications » rend le programme enregistré. Les chevauchements signalés ne concernent pas vos clients, présents à toutes les séquences, et se lisent jour par jour. Les PDF séparent les jours d'un programme de plusieurs jours ; la version équipe place la note interne sous chaque séquence. L'onglet « Tâches » montre les tâches de l'évènement, « À faire » d'abord, avec leurs filtres (qui s'en charge, période, catégorie, état) et « Nouvelle tâche », l'évènement déjà choisi ; sous le titre, le décompte et la date d'où partent les échéances du rétroplanning. Une tâche se confie à vous, à un collègue, aux mariés ou à un prestataire retenu, qui la coche dans son espace ; ses pièces jointes, ses commentaires et sa note restent dans l'équipe. Son panneau dit sa « Place dans le rétroplanning » (à combien de jours du jour J, et si c'est une étape clé). Cochée par erreur, une tâche se rétablit par « Annuler », pendant dix secondes, puis par « Rouvrir la tâche ». Le bandeau « Prochaine étape » propose l'étape du parcours (envoyer le devis, appliquer le rétroplanning, créer les liens des mariés). Dans « Budget et prestataires », chaque ligne dit où en est le choix (« Retenu », « 2 en comparaison », « À trouver ») ; « + Ajouter des prestataires » propose, pour chaque fiche du carnet du métier, « Mettre en comparaison » (le poste reste à pourvoir) ou « Retenir » (il pourvoit le poste), jamais d'office. La fenêtre du poste compare les prestataires côte à côte (devis, disponibilité, déjà travaillé ensemble, dernière relance, note) : « Retenir », « Écarter », puis « Changer de prestataire » ou « Ne plus retenir », sans supprimer la ligne ; « Poste suivant » enchaîne. « Reprendre les prestataires retenus (PDF) » lit l'export des prestataires de votre ancien logiciel : chaque prestataire est retrouvé dans le carnet ou créé, puis retenu sur la ligne de son métier, après votre contrôle. Chaque onglet a son lien « Réglages » vers ses modèles. Un mariage repris d'un autre outil dit « Repris le … » sous son en-tête, avec le lien vers sa reprise ; tant qu'il manque quelque chose, « À compléter après la reprise » remplace la prochaine action : chaque point dit ce qui manque, avec son bouton, et passe en bas une fois fait. « D'où viennent ces valeurs ? » montre le fichier de chaque valeur reprise.",
       "faq": [
         {
           "q": "Comment marquer un évènement perdu ?",
@@ -1528,7 +1528,7 @@
     },
     "takeover": {
       "title": "Reprendre un mariage en cours",
-      "body": "Une page par mariage suivi dans un autre outil : six fichiers, dans l'ordre où les déposer (le carnet de prestataires, une fois pour toute l'agence ; le mariage, par sa fiche PDF ou son nom et sa date ; le budget ; les prestataires retenus ; la liste « à faire » ; le programme du jour J). La ligne suivante porte le bouton principal. « Je n'ai pas ce fichier » règle une ligne sans la laisser en suspens, et se défait par « Déposer un fichier ». Un import laissé en plan se retrouve à sa ligne, avec « Continuer ». Rien n'est écrit avant votre accord, et chaque import se retire depuis son bilan pendant 90 jours : la date limite est écrite à la fin de la page.",
+      "body": "Une page par mariage suivi dans un autre outil : six fichiers, dans l'ordre où les déposer (le carnet de prestataires, une fois pour toute l'agence ; le mariage, par sa fiche PDF ou son nom et sa date ; le budget ; les prestataires retenus ; la liste « à faire » ; le programme du jour J). La ligne suivante porte le bouton principal. « Je n'ai pas ce fichier » règle une ligne sans la laisser en suspens, et se défait par « Déposer un fichier ». Un import laissé en plan se retrouve à sa ligne, avec « Continuer ». Rien n'est écrit avant votre accord, et chaque import se retire depuis son bilan pendant 90 jours : la date limite est écrite à la fin de la page. Une fois la reprise terminée, la fiche du mariage dit ce qui reste à compléter (montants à répartir, contrats non signés, tâches, heures de fin, lien des mariés, invités), avec les mêmes nombres que cette page.",
       "faq": [
         {
           "q": "Mon budget nomme déjà les prestataires : faut-il déposer leur liste ?",
@@ -13483,6 +13483,7 @@
     "doneBody": "Ce que vos fichiers ne donnaient pas : {list}. Ils sont à compléter sur la fiche du mariage.",
     "point": {
       "amounts": "les montants à répartir sur les postes",
+      "contracts": "{count, plural, one {# contrat non signé} other {# contrats non signés}}",
       "tasks": "les tâches",
       "endTimes": "{count, plural, one {# heure de fin du programme} other {# heures de fin du programme}}",
       "clientLink": "le lien personnel des mariés",
@@ -13513,5 +13514,109 @@
     "notFound": "Cette reprise est introuvable.",
     "oneSheet": "Une seule fiche pour ce mariage : déposez son PDF seul.",
     "backToTakeover": "Retour à la reprise"
+  },
+  "TakeoverSheet": {
+    "origin": "Repris le {date} {files, plural, =0 {} one {de # fichier} other {de # fichiers}}",
+    "originLink": "Voir la reprise",
+    "checklistTitle": "À compléter après la reprise",
+    "checklistCount": "{total, plural, one {# point} other {# points}} · {done, plural, =0 {0 fait} one {# fait} other {# faits}}",
+    "checklistLabel": "Ce qui reste à compléter après la reprise",
+    "pointDone": "Fait",
+    "point": {
+      "amounts": {
+        "title": "{count, plural, =0 {Montants à répartir} one {Montant de # prestataire} other {Montants de # prestataires}}",
+        "bodyRemaining": "Votre fichier donnait un total, pas le détail : {amount} à répartir sur les postes.",
+        "body": "Le prévu de ces postes n'est pas renseigné.",
+        "bodyDone": "Chaque poste retenu a son montant, rien ne reste à répartir.",
+        "action": "Saisir les montants"
+      },
+      "contracts": {
+        "title": "{count, plural, =0 {Contrats} one {# contrat non signé} other {# contrats non signés}}",
+        "body": "{names} : non signé ou non renseigné, comme vous l'avez dit à la reprise. Aucune relance n'est créée.",
+        "bodyDone": "Les contrats repris sont signés.",
+        "action": "Voir les postes"
+      },
+      "tasks": {
+        "title": "Les tâches",
+        "body": "Restées dans votre ancien outil. Les échéances déjà passées ne seront pas mises en retard.",
+        "bodyDone": "Les tâches du mariage sont là.",
+        "action": "Reprendre une liste",
+        "actionTemplate": "Partir d'un modèle"
+      },
+      "endTimes": {
+        "title": "{count, plural, =0 {Les heures de fin du programme} one {# heure de fin dans le programme} other {# heures de fin dans le programme}}",
+        "body": "Non renseignées dans le fichier. Le programme porte « à compléter » tant qu'elles manquent.",
+        "bodyDone": "Chaque moment du programme a son heure de fin.",
+        "action": "Compléter"
+      },
+      "clientLink": {
+        "title": "Le lien personnel des mariés",
+        "body": "Pour qu'ils voient leur programme et leurs pièces.",
+        "bodyDone": "Les mariés ont leur lien.",
+        "action": "Créer les liens"
+      },
+      "guests": {
+        "title": "Le nombre d'invités",
+        "body": "Non renseigné dans les fichiers repris.",
+        "bodyDone": "Le nombre d'invités est saisi.",
+        "action": "Saisir"
+      }
+    },
+    "completed": "Reprise complétée le {date}",
+    "completedBody": "{count, plural, one {Le point est fait.} other {Les # points sont faits.}}",
+    "completedReview": "Revoir la liste",
+    "planningNoOpinion": "Pas encore de tâches : pas d'avis",
+    "budgetFromFile": "{amount} de réel",
+    "budgetEnvelope": "enveloppe {envelope}",
+    "budgetFromFileDetail": "Selon votre fichier ; dont {paid} réglés ; {allocated} répartis sur les postes.",
+    "vendorsSummary": "{retained, plural, =0 {Aucun retenu} one {# retenu} other {# retenus}} · {signed, plural, =0 {aucun contrat signé} one {# contrat signé} other {# contrats signés}}",
+    "notProvided": "non renseigné",
+    "sourceNotProvided": "non renseignée",
+    "signedOn": "Signé le",
+    "provenanceShow": "D'où viennent ces valeurs ?",
+    "provenanceHide": "Masquer d'où viennent les valeurs",
+    "provenanceYou": "vous, à la reprise",
+    "provenanceFile": "Fichier : {file}",
+    "unallocatedTitle": "À compléter : {amount} de réel selon votre fichier, dont {paid} réglés.",
+    "unallocatedBody": "Votre ancien outil n'a pas exporté le détail par prestataire. Saisissez le montant de chaque poste : le reste à répartir baisse à mesure.",
+    "unallocatedTiles": "Ce que dit votre fichier",
+    "tileEnvelope": "enveloppe",
+    "tileFromFile": "de réel selon le fichier",
+    "tileAllocated": "répartis sur les postes",
+    "tileRemaining": "reste à répartir",
+    "contract": {
+      "signed": "contrat signé",
+      "unsigned": "contrat non signé",
+      "unknown": "contrat non renseigné"
+    },
+    "markFiles": "Repris · {settled} {settled, plural, one {fichier} other {fichiers}} sur {total}",
+    "markPoints": "Repris · {count, plural, one {# point à compléter} other {# points à compléter}}",
+    "markLabel": "{mark} — ouvrir la reprise de {event}",
+    "originFilter": "Origine",
+    "originAll": "Toutes",
+    "originTakeover": "Repris",
+    "originCreated": "Créés dans Symbola",
+    "inProgressTitle": "Reprises en cours",
+    "inProgressCount": "{count, plural, one {# mariage} other {# mariages}}",
+    "inProgressFiles": "{settled} {settled, plural, one {fichier} other {fichiers}} sur {total}",
+    "inProgressRunning": "import {step} en cours",
+    "inProgressFinished": "reprise terminée {when}",
+    "inProgressPoints": "{count, plural, one {# point à compléter} other {# points à compléter}}",
+    "inProgressSeeRest": "Voir ce qui reste",
+    "inProgressContinue": "Continuer",
+    "inProgressSeeRestFor": "Voir ce qui reste pour {event}",
+    "inProgressContinueFor": "Continuer la reprise de {event}",
+    "today": "aujourd'hui",
+    "yesterday": "hier",
+    "onDate": "le {date}",
+    "runningStep": {
+      "vendor_book": "du carnet",
+      "event": "de la fiche",
+      "budget": "du budget",
+      "event_vendors": "des prestataires retenus",
+      "tasks": "des tâches",
+      "program": "du programme"
+    },
+    "vendorCompletion": "{complete, plural, =0 {Aucun poste complet} one {# poste complet} other {# postes complets}} sur {total}"
   }
 }

@@ -24,6 +24,8 @@ import { ListRow, ListTable } from "../ui/list-table";
 import { AgendaBlock } from "../agenda/agenda-block";
 import { monthlyLoad, sharedDates } from "@/lib/portfolio/portfolio";
 import { MonthlyLoad } from "./monthly-load";
+import { taskListViewer } from "@/lib/event-visibility";
+import { listTakeoversInProgress } from "@/lib/takeover/checklist";
 
 export default async function EventsListPage({
   searchParams,
@@ -39,6 +41,7 @@ export default async function EventsListPage({
     agenda?: string;
     debut?: string;
     affichage?: string;
+    origine?: string;
   }>;
 }) {
   const auth = await requirePlanner();
@@ -47,7 +50,10 @@ export default async function EventsListPage({
   const t = await getTranslations("Events");
   const locale = (await getLocale()) as Locale;
   const tHelp = await getTranslations("Help");
-  const { tab, year, search, status, source, essai, visite, agenda, debut, affichage } = await searchParams;
+  const { tab, year, search, status, source, essai, visite, agenda, debut, affichage, origine } = await searchParams;
+  const tSheet = await getTranslations("TakeoverSheet");
+  // Lot 71f (P-06) : le filtre « Origine » (Toutes, Repris, Créés dans Symbola), lu en SQL.
+  const originFilter = origine === "repris" ? "takeover" : origine === "crees" ? "created" : undefined;
 
   if (!(await isEventsModuleEnabled(organizationId))) {
     return (
@@ -102,10 +108,14 @@ export default async function EventsListPage({
       year: yearFilter,
       search: search || undefined,
       prospectSourceId: sourceFilter,
+      origin: originFilter,
       archived: isArchivedTab ? "only" : "exclude",
     }),
     (event) => event.id,
   );
+  // Lot 71f (EVT-07, P-06) : la marque « Repris · 3 fichiers sur 6 » tant que la reprise n'est pas
+  // complétée ; elle mène à la page de reprise.
+  const takeoverMarks = new Map((await listTakeoversInProgress(organizationId, await taskListViewer(auth))).map((entry) => [entry.eventId, entry]));
 
   // Lot 63c (EVT-01, Q43) : un évènement sans client (un shooting photo) prend le nom de son type.
   const typeLabels = new Map((await listEventTypes(organizationId)).map((type) => [type.id, type.label]));
@@ -177,6 +187,14 @@ export default async function EventsListPage({
           </select>
         </label>
         <label>
+          {tSheet("originFilter")}
+          <select name="origine" defaultValue={origine === "repris" || origine === "crees" ? origine : ""}>
+            <option value="">{tSheet("originAll")}</option>
+            <option value="repris">{tSheet("originTakeover")}</option>
+            <option value="crees">{tSheet("originCreated")}</option>
+          </select>
+        </label>
+        <label>
           {t("yearLabel")}
           <select name="year" defaultValue={yearFilter ? String(yearFilter) : ""}>
             <option value="">{t("yearAll")}</option>
@@ -223,6 +241,16 @@ export default async function EventsListPage({
                 <th scope="row">
                   <Link href={`/events/${item.id}`}>{clientNames(item.clients, item.eventTypeId, item.name)}</Link>
                   {item.isDemo ? <span className="badge">{t("demoTag")}</span> : null}
+                  {(() => {
+                    const entry = takeoverMarks.get(item.id);
+                    if (!entry) return null;
+                    const mark = entry.mark.kind === "files" ? tSheet("markFiles", { settled: entry.mark.settled, total: entry.mark.total }) : tSheet("markPoints", { count: entry.mark.count });
+                    return (
+                      <Link href={`/reprise/${entry.takeoverId}`} className="badge badge-wrap takeover-mark" aria-label={tSheet("markLabel", { mark, event: clientNames(item.clients, item.eventTypeId, item.name) })}>
+                        {mark}
+                      </Link>
+                    );
+                  })()}
                 </th>
                 <td className="num">
                   {item.eventDate ? formatCalendarDate(item.eventDate, locale) : t("dateUnset")}
