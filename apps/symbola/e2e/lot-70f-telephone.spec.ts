@@ -26,7 +26,7 @@ function parisDay(offsetDays = 0): string {
 
 // L'atelier de Camille Roussel : Léa et Maxime confirmés, deux tâches en retard, trente à venir (les
 // écrans défilent).
-async function atelier(options: { without?: ("vendors" | "events")[] } = {}) {
+async function atelier(options: { without?: ("vendors" | "events")[]; tasks?: number } = {}) {
   const { sql, db } = createAppConnection();
   try {
     const name = `Atelier Roussel ${randomUUID().slice(0, 6)}`;
@@ -45,7 +45,7 @@ async function atelier(options: { without?: ("vendors" | "events")[] } = {}) {
       await changeEventStatus({ organizationId, eventId: lea, changedByUserId: owner.id, toStatus: "confirmed" });
       await addEventTask(organizationId, lea, { label: "Faire signer le contrat du photographe", dueDate: parisDay(-5), responsible: "planner" });
       await addEventTask(organizationId, lea, { label: "Confirmer la voiture des mariés", dueDate: parisDay(-4), responsible: "planner" });
-      for (let index = 1; index <= 30; index += 1) await addEventTask(organizationId, lea, { label: `Tâche de remplissage ${index}`, dueDate: parisDay(index), responsible: "planner" });
+      for (let index = 1; index <= (options.tasks ?? 30); index += 1) await addEventTask(organizationId, lea, { label: `Tâche de remplissage ${index}`, dueDate: parisDay(index), responsible: "planner" });
     }
     return { organizationId, email, lea, name };
   } finally {
@@ -336,6 +336,28 @@ test.describe("UX-05 — La barre du bas et la barre du haut du téléphone (lot
     expect(sheet.y + sheet.height).toBeLessThanOrEqual(barBox.y + 1);
     await expect(menu.getByText("Touche N pour ouvrir ce menu")).toBeHidden();
     await expectNoAxeViolation(page, ".quick-create");
+  });
+
+  test("« Afficher les suivantes », au bout d'une longue liste de « Tâches », n'est recouvert ni par la barre du bas ni par « Nouvelle tâche »", async ({ page }) => {
+    test.setTimeout(120_000);
+    const setup = await atelier({ tasks: 105 });
+    await signInByLink(page, setup.email);
+    await page.goto("/taches");
+    const more = page.locator(".task-more").getByRole("link");
+    await expect(more).toBeVisible();
+    await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+    const covered = await page.evaluate(() => {
+      const link = document.querySelector<HTMLElement>(".task-more a")!.getBoundingClientRect();
+      const blockers = [".app-tabbar", ".task-new-button"].map((query) => document.querySelector<HTMLElement>(query)).filter((element): element is HTMLElement => Boolean(element) && getComputedStyle(element!).display !== "none");
+      return blockers.filter((element) => {
+        const box = element.getBoundingClientRect();
+        return link.top < box.bottom - 1 && link.bottom > box.top + 1 && link.left < box.right - 1 && link.right > box.left + 1;
+      }).map((element) => element.className);
+    });
+    expect(covered).toEqual([]);
+    // Le lien répond au doigt : la suite de la liste s'affiche.
+    await more.click();
+    await expect(page.locator(".task-lines .task-line")).toHaveCount(107, { timeout: 30_000 });
   });
 
   test("un panneau de tâche ouvert masque la barre du bas", async ({ page }) => {
