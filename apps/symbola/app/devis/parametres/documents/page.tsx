@@ -24,12 +24,13 @@ export default async function DocumentsSettingsPage() {
   const auth = await requirePlanner();
   const organizationId = auth.user.organizationId;
   const t = await getTranslations("Documents");
+  const tMenu = await getTranslations("SettingsMenu");
   const tHelp = await getTranslations("Help");
 
   if (!(await isQuotesModuleEnabled(organizationId))) {
     return (
       <main>
-        <PageHeader title={t("title")} />
+        <PageHeader title={tMenu("rubrics.quoteDocuments.label")} />
         <p>{t("unavailable")}</p>
       </main>
     );
@@ -47,7 +48,7 @@ export default async function DocumentsSettingsPage() {
 
   return (
     <main>
-      <PageHeader title={t("title")} subtitle={t("subtitle")} />
+      <PageHeader title={tMenu("rubrics.quoteDocuments.label")} subtitle={t("subtitle")} />
       <ScreenHelp title={tHelp("quotesDocuments.title")} body={tHelp("quotesDocuments.body")} />
 
       <section aria-labelledby="documents-logo-title" className="settings-block">
