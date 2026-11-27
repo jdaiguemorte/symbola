@@ -1,7 +1,7 @@
 # Lot 72 — Réaliser le volet 3 des maquettes : « Aujourd'hui » et « Évènements »
 
-**Statut** : **spécification à valider par Julien** ; J1 à J8 tranchées le 27/11, J9 à J14 ouvertes (§ 7). Le lot change
-le schéma de données du module `events` (deux migrations, 0224 et 0225) et deux parcours P0 (PAR-03, et PAR-02
+**Statut** : **spécification à valider par Julien** ; J1 à J9 tranchées le 27/11, J10 à J14 ouvertes (§ 7). Le lot change
+le schéma de données du module `events` (trois migrations, 0224 à 0226) et deux parcours P0 (PAR-03, et PAR-02
 par la frise et la liste) : la validation vaut accord pour cette migration.
 **Branche de la spécification** : `lot-72-aujourdhui-et-evenements` (une PR vers `main`, ce fichier et
 `docs/QUESTIONS.md` seulement). Chaque paquet aura ensuite sa branche `lot-72<x>-…` et sa PR.
@@ -212,12 +212,13 @@ Dernière migration de `main` : **0217** ; le lot 71 réserve 0218 à 0223 ; ce 
 (numéros indicatifs, à reprendre au moment du code). Chaque migration a son retour arrière dans
 `packages/db/drizzle-rollback/` (ADR 0036) et ne touche que le schéma de son module (DAT-09).
 
-### 4.1 Deux migrations
+### 4.1 Trois migrations
 
 | N° | Fichier | Ce qu'elle fait | Pourquoi |
 | --- | --- | --- | --- |
 | 0224 | `0224_lot72a_events_status_effective_date.sql` | Ajoute `events.event_status_history.effective_on date` (nullable). Rempli par « Le contrat est signé… » (la date choisie, au plus aujourd'hui) et par le passage à « Annulé » (le jour) ; nul pour les lignes d'avant, qui se lisent alors à `changed_at` dans le fuseau de l'évènement. Aucune étape de données | E2 : « Signé le » peut être antérieur au jour (la planner avait signé sur papier) ; la frise dit « Signé, en préparation depuis le 2 avr. ». Le lot 71 ajoute `date_known` à la même table (0220) : colonnes distinctes, aucun conflit |
 | 0225 | `0225_lot72a_events_drop_in_preparation.sql` | **Retire le statut « En préparation »** (J1, tranchée le 27/11). Étape de données : `events.events.status`, `postponed_from_status` et `events.event_status_history.from_status` / `to_status` passent de `in_preparation` à `confirmed` ; puis l'énumération `events.event_status` est recréée sans la valeur (PostgreSQL ne sait pas retirer une valeur : nouveau type, colonnes converties, ancien type supprimé). Retour arrière : recrée la valeur dans l'énumération ; les lignes converties restent « Confirmé » (aucune donnée réelle concernée : rien en production, staging remis à zéro au besoin) | E1 : une seule étape « Signé, en préparation » ; aucune règle de l'app ne distinguait les deux statuts. Un seul statut en base, un seul à l'écran : plus de correspondance à tenir entre les deux |
+| 0226 | `0226_lot72d_events_day_of_lead_days.sql` | Ajoute `events.planning_health_settings.day_of_lead_days integer` (1 à 30, contrainte). Sans ligne ou sans valeur : 7. Retour arrière : retire la colonne | J9 (tranchée le 27/11 : « Réglable ») : combien de jours avant le jour J « Ouvrir le Jour J » devient le bouton de l'en-tête. Même table que le seuil « Bientôt » (0214, lot 70a) : les réglages d'affichage de l'organisation pour les évènements |
 
 **Ce qui ne demande pas de migration** (décisions J3, J4, J5) :
 
@@ -236,8 +237,7 @@ Changements **compatibles** (ajouts) :
 - `today.ts` (nouveau, ou dans le contrat actuel du hub) : une ligne d'accueil gagne `contact`
   (`{ name, phone | null, email | null }`, rempli seulement quand un tiers est attendu) et `nature`
   `watch` (« À regarder », une alerte du radar) ; le compte rend `points`, `late`, et par partie
-  `shown` et `total` ; les constantes d'affichage `TODAY_HORIZON_DAYS = 14`, `HOME_FIRST_COUNT = 7`,
-  `DAY_OF_HEADER_DAYS = 7` (J9) y sont exportées ;
+  `shown` et `total` ; les constantes d'affichage `TODAY_HORIZON_DAYS = 14`, `HOME_FIRST_COUNT = 7` y sont exportées ;
 - `events/service-contract.ts` : `EventSummary` gagne `taskProgress` (`{ done, total, late }`) et
   `sameDayCount` ; la ligne d'historique de statut gagne `effectiveOn` ; une nouvelle fonction
   `listAgencyOverview` rend `{ byPerson[], byEvent[] }` (§ 5.3) ;
@@ -274,6 +274,7 @@ l'historique et publie ce qu'il publie aujourd'hui ; la date de signature va dan
 
 | Table | Champ | Catégorie | Règle |
 | --- | --- | --- | --- |
+| `events.planning_health_settings` | `day_of_lead_days` | réglage | Aucune donnée personnelle |
 | `events.event_status_history` | `effective_on` | date technique | Aucune donnée personnelle. Suit la ligne d'historique (exportée, effacée avec l'évènement) |
 
 Aucune nouvelle donnée personnelle n'est stockée : le contact d'une ligne d'accueil est lu à l'affichage
@@ -406,11 +407,12 @@ et 375 px, axe-core ; abus : `?vue=agence` d'un membre restreint, d'une autre or
 
 | Fichier | Aujourd'hui | Après |
 | --- | --- | --- |
-| `app/events/[id]/page.tsx` (`PageHeader:578-648`) | Sous-titre avec source et formulaire de type ; quatre boutons ; Reporter et Annuler dans la frise | **En-tête d'un objet** de `DESIGN.md` : « ← Évènements », le nom (`title`), une ligne de faits (type, date en toutes lettres, compte à rebours, lieu et ville), la frise sur une ligne, à droite **une** action (« Écrire aux mariés » — le mot des clients du type d'évènement, J10 ; à partir de J-7 et jusqu'au lendemain, « Ouvrir le Jour J » prend sa place) et le menu « ⋯ » : « Écrire aux mariés » (quand « Ouvrir le Jour J » a pris sa place), « Messages — Les fils de discussion de ce mariage », « Voir comme Léa Martin — Son espace, tel qu'elle le voit » (si un lien est actif), « Ouvrir le Jour J — L'écran du terrain » (dès qu'il est ouvert, `isDayOfOpen`), « Changer le type… », puis après un filet « Reporter l'évènement… » et « Annuler l'évènement… » (rouge, en dernier, S8). Source et type quittent l'en-tête (« Informations », 72e). Cible mesurée : 130 px du retour au bas de la frise, 191 px onglets compris, à 1 440 px |
+| `app/events/[id]/page.tsx` (`PageHeader:578-648`) | Sous-titre avec source et formulaire de type ; quatre boutons ; Reporter et Annuler dans la frise | **En-tête d'un objet** de `DESIGN.md` : « ← Évènements », le nom (`title`), une ligne de faits (type, date en toutes lettres, compte à rebours, lieu et ville), la frise sur une ligne, à droite **une** action (« Écrire aux mariés » — le mot des clients du type d'évènement, J10 ; à partir de J-N et jusqu'au lendemain, « Ouvrir le Jour J » prend sa place, N étant le réglage `day_of_lead_days`, 7 au départ, J9) et le menu « ⋯ » : « Écrire aux mariés » (quand « Ouvrir le Jour J » a pris sa place), « Messages — Les fils de discussion de ce mariage », « Voir comme Léa Martin — Son espace, tel qu'elle le voit » (si un lien est actif), « Ouvrir le Jour J — L'écran du terrain » (dès qu'il est ouvert, `isDayOfOpen`), « Changer le type… », puis après un filet « Reporter l'évènement… » et « Annuler l'évènement… » (rouge, en dernier, S8). Source et type quittent l'en-tête (« Informations », 72e). Cible mesurée : 130 px du retour au bas de la frise, 191 px onglets compris, à 1 440 px |
 | Onglets (`:531-546`, `tabs`) | Libellés « Programme du jour J » ; nombres « 6/9 », « N en retard » ; onglets coupés à « Documen » | L'ouvert en gras, souligné de 3 px, `aria-selected` ; nombres : J11 ; « Programme ». À moins de largeur que les huit (mesure à l'affichage, pas un point de rupture fixe), ceux qui ne tiennent pas passent dans « Plus ▾ », l'onglet ouvert toujours visible ; **barre fine** collée sous la barre du haut quand l'en-tête sort de l'écran : nom, date, statut, onglets et menu « ⋯ » (pas l'action) ; changer d'onglet garde la barre en place (ancre, pas de retour en haut) |
 | Téléphone | 800 px d'en-tête, deux onglets visibles | Nom, date courte et compte à rebours, lieu, « Signé, en préparation · étape 2 sur 4 · Les étapes » (frise complète en panneau du bas) ; pas de bouton : tout au menu « ⋯ » (panneau du bas, « Écrire aux mariés » en tête) ; onglets à 224 px, la barre défile de côté seule, flèche de 44 px, l'onglet ouvert amené dans le cadre ; noms courts (« Budget », « Devis ») |
 | `change-status-form.tsx` | Cinq ronds cliquables ; Reporter et Annuler dans la frise | **Frise en lecture**, quatre étapes (J1) : rond plein et coche pour une étape franchie avec sa date (« ✓ Une demande en cours, 12 mars »), anneau et gras pour l'étape en cours (« depuis le 2 avr. », date de `effective_on` sinon `changed_at`), rond bordé pour la suite. Au bout, le **bouton de l'étape** quand elle se franchit à la main : pour une demande, « Le contrat est signé… » ouvre juste dessous « Le contrat d'Inès & Paul est signé ? », la phrase de ce qui suit, « Signé le » (aujourd'hui par défaut, une date passée possible), « Garder en demande » et « Passer en signé » ; le lendemain du jour J, « Clôturer l'évènement… » ouvre la liste de clôture (lot 58). « Jour J » vient seul. **Reporté** : « Reporté · le 12 juin 2027 n'est plus la date · Nouvelle date à fixer ; les tâches attendent » et « Fixer la nouvelle date… » (la confirmation actuelle, `page.tsx:708-730`, qui liste les tâches qui tomberaient dans le passé). **Annulé** : « Annulé le 25 nov. · motif : budget » et « Rétablir l'évènement… » (niveau 2, texte calé sur ce que fait l'app, J12) ; « À vérifier : 2 factures émises. Un avoir vous est proposé pour chacune · Voir les factures ». **Archivé** : « Archivé · lecture seule · Ouvrir la clôture ». Teintes neutres ; l'état se lit au mot |
 | « Changer le type… » | Formulaire dans l'en-tête | Fenêtre courte (un choix, « Enregistrer ») depuis le menu ; même règle qu'aujourd'hui |
+| `app/events/parametres/listes-jour-j/page.tsx`, `modules/events/service.ts` | — | En tête de l'écran, un réglage isolé (D7, « ✓ Enregistré » à côté) : « Le bouton « Ouvrir le Jour J » apparaît dans l'en-tête de la fiche … jours avant le jour J » (1 à 30, 7 au départ), `setDayOfLeadDays` ; erreur sous le champ hors de l'intervalle. Le lot 74 (Paramètres) pourra le ranger ailleurs sans changer la donnée |
 
 **Critères d'acceptation**
 
@@ -421,9 +423,10 @@ et 375 px, axe-core ; abus : `?vue=agence` d'un membre restreint, d'une autre or
    l'en-tête sort et garde l'onglet en changeant d'onglet.
 3. À 375 px, les onglets sont à 224 px au plus du haut, l'onglet ouvert est visible, seul le ruban des
    onglets défile de côté ; toutes les cibles font 44 px.
-4. « Ouvrir le Jour J » est l'action de l'en-tête de J-7 au lendemain inclus (horloge simulée : J-8,
-   J-7, J, J+1, J+2, dans le fuseau de l'évènement) ; il est au menu dès que l'écran du jour J est
-   ouvert.
+4. « Ouvrir le Jour J » est l'action de l'en-tête de J-N au lendemain inclus, N étant le réglage de
+   l'organisation (horloge simulée, N = 7 : J-8, J-7, J, J+1, J+2, dans le fuseau de l'évènement ; puis
+   N = 14) ; il est au menu dès que l'écran du jour J est ouvert. Le réglage refuse 0 et 31, et une
+   organisation ne lit ni ne change celui d'une autre.
 5. Aucun rond de la frise ne réagit au clic ; « Le contrat est signé… » pose « Confirmé » à la date
    choisie, sans créer de tâche ; la question s'ouvre sous le bouton.
 6. Reporter, Annuler, Rétablir, Fixer la nouvelle date sont des fenêtres de niveau 2 qui nomment
@@ -545,7 +548,7 @@ Sept paquets ; chacun laisse l'app cohérente, a sa PR, ses tests et son rejeu c
 | **72a** Règles et comptes | Statut « En préparation » retiré ; point = ligne, ordre, radar en lignes (et filtré), contact, portée « Moi », comptes par évènement, étapes affichées, « Le contrat est signé » côté service | **70a** (fusionné) | 0224, 0225 |
 | **72b** Écran « Aujourd'hui » | Vide, rempli, repris ; ordre des blocs ; ligne allégée ; panneau sur place ; « Tout afficher » ; « Pour bien démarrer » en ligne | 72a ; **70c** (ligne type `today`, panneau) ; **71f** pour « Reprises en cours » (sinon la section s'ajoute à 71f) ; **71b** pour le lien `/reprise` | — |
 | **72c** « Moi · L'agence » | Bascule, vue d'agence | 72b ; **70d** pour « Voir ses tâches » (sinon le lien mène à `/taches` sans filtre) | — |
-| **72d** En-tête, onglets, frise | En-tête en 200 px, menu « ⋯ », onglets, barre fine, frise en lecture, lignes d'état | 72a ; **70c** (onglet renommé `taches`) | — |
+| **72d** En-tête, onglets, frise | En-tête en 200 px, menu « ⋯ », onglets, barre fine, frise en lecture, lignes d'état | 72a ; **70c** (onglet renommé `taches`) | 0226 |
 | **72e** Suite, Synthèse, informations | Suite unique, cinq blocs, fenêtre « Modifier les informations » | 72d ; **70c** (ligne `event`) ; **71f** (bloc « À compléter ») ; **70e** (carte « Source et clients ») | — |
 | **72f** Liste des évènements | Un bouton plein, colonnes, « même jour », charge dans le calendrier | 72a ; **70e** (« Nouvel évènement ») ; **71f** (« Repris », filtre « Origine ») | — |
 | **72g** Programme | Deux commandes et un menu, ligne en place, heures, décalage | **71e** (fenêtre « Partager… », « Ponctuel ») | — |
@@ -600,7 +603,7 @@ ma recommandation. Je les pose une par une. Celles qui touchent le cahier des ch
 | J6 | **L'action rapide d'une relance sur l'accueil** : « Noter une relance » (page 14) ou « Relancer… » (volet 4, V14, plus récent, déjà dans `DESIGN.md`) ? | Page 14, repère 4 ; note 10, V14 ; `DESIGN.md`, ligne allégée | « Noter une relance » (le geste qui existe) dans ce lot ; le lot 73 le remplace par « Relancer… » quand sa fenêtre existe, à la même place | Attendre le lot 73 pour la ligne des relances | **Tranché le 27/11 par Julien : « Oui, garder »** (« Noter une relance » ; le lot 73 le remplace par « Relancer… » à la même place) |
 | J7 | **Quel contact pour « Attend les mariés »** quand l'évènement a deux clients ? | Page 14, repère 3 | Le premier client (celui de la fiche), nom et téléphone | Les deux, sur deux lignes | **Tranché le 27/11 par Julien : « Oui, le premier »** |
 | J8 | **Le champ d'heure « 17 h 30 »** : le champ natif du navigateur écrit « 05:30 PM » en anglais | Page 17, « Le programme » ; synthèse § 9 (« sur un vrai navigateur français ») | Un champ de texte Symbola qui lit « 17:30 », « 17h30 », « 1730 » et écrit « 17 h 30 » (en anglais « 5:30 pm » selon la langue choisie dans Symbola, pas celle du navigateur) | Garder le champ natif et n'écrire « 17 h 30 » que dans la liste | **Tranché le 27/11 par Julien : « Oui, champ Symbola »** |
-| J9 | **« Ouvrir le Jour J » à partir de J-7** : un seuil fixe ou réglable ? (`CLAUDE.md` : pas de seuil métier en dur) | Page 15, « En-tête et onglets » | Une constante d'affichage (7 jours), comme l'horizon de 14 jours de l'accueil ; l'écran du jour J reste ouvert dès la signature, par le menu | Un réglage par organisation (Paramètres) | **La proposition** : c'est le choix du bouton visible, pas une règle métier ; rien n'est fermé |
+| J9 | **« Ouvrir le Jour J » à partir de J-7** : un seuil fixe ou réglable ? (`CLAUDE.md` : pas de seuil métier en dur) | Page 15, « En-tête et onglets » | Une constante d'affichage (7 jours), comme l'horizon de 14 jours de l'accueil ; l'écran du jour J reste ouvert dès la signature, par le menu | Un réglage par organisation (Paramètres) | **Tranché le 27/11 par Julien : « Réglable »** : un réglage par organisation (1 à 30 jours, 7 au départ), migration 0226, réglé dans Paramètres › Évènements › Listes du jour J (§ 5.4) |
 | J10 | **« Écrire aux mariés » pour un baptême ou un séminaire** | Page 15 ; `fr` (le mot des clients par type, lot 16j) | Le mot des clients du type : « Écrire aux mariés », « Écrire aux parents », « Écrire au client » ; ouvre « Messages » sur un nouveau fil (lot 55), comme « Écrire au client » aujourd'hui | Un libellé unique « Écrire au client » | **La proposition** : le mot du type est déjà réglé par organisation |
 | J11 | **Les nombres des onglets** : la maquette montre « 6 sur 9 », « 2 en retard », « Devis et factures 3 », « Documents 4 », rien sur « Mariés », « Programme », « Invités » | Page 15, règle « le nombre d'un onglet dit ce qui demande attention » | Budget : postes complets sur requis (I7) ; Tâches : « N en retard » en rouge, sinon « 14 sur 20 » en gris ; Devis et factures et Documents : leur nombre en gris (comme aujourd'hui) ; Invités : « 38 réponses sur 120 » quand le module est ouvert ; Programme et Mariés : rien | Ne garder que les nombres qui demandent attention (Budget, Tâches) | **La proposition** : c'est la maquette, et chaque nombre dit son mot |
 | J12 | **« Rétablir l'évènement » : que deviennent les rappels et les acomptes ?** La maquette le laisse à vérifier dans le code | Page 15, « Rétablir : la question » ; `reactivateEvent` (`service.ts:744`) | Écrire le texte de la fenêtre d'après ce que fait le code au moment du paquet 72d (vérifié par un test d'intégration), sans changer la règle ; si le code ne rouvre pas les liens ou ne relance pas les rappels, le dire tel quel | Changer la règle pour qu'elle colle au texte de la maquette (liens rouverts, rappels repris) | **La proposition** : ne promettre que ce que l'app fait ; un changement de règle serait une décision à part |
@@ -614,7 +617,7 @@ ma recommandation. Je les pose une par une. Celles qui touchent le cahier des ch
   archivés). Une Planner restreinte peut y lire le nom d'un mariage d'une collègue. Il est corrigé au
   paquet 72a (critère 7), puisque les alertes deviennent des lignes ; s'il faut le corriger avant,
   c'est une ligne dans `app/page.tsx`.
-- **Les constantes d'affichage** (horizon de 14 jours, sept lignes, J-7) restent du code, dans
+- **Les constantes d'affichage** (horizon de 14 jours, sept lignes) restent du code, dans
   `packages/contracts` : ce sont des choix d'écran, pas des données métier.
 - **« Le contrat est signé… » ne crée pas de tâches** (règle actuelle de `changeEventStatus`, gardée) :
   la suite de la Synthèse propose ensuite « Partir du rétroplanning ». L'automatisation
