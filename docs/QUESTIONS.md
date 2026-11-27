@@ -986,6 +986,29 @@ Ouverts ; chacun a sa recommandation.
    Proposition : le champ « Type » n'apparaît que si l'organisation a plusieurs types. **Tranché le
    26/11 par Julien : « Oui, si plusieurs ».**
 
+### Q49 — Lot 72 : réaliser le volet 3 des maquettes, trois écarts avec le cahier des charges (27 novembre 2026)
+
+Relevés en écrivant la spécification `docs/lots/lot-72-aujourdhui-et-evenements.md` (§ 7 et § 8), à
+partir des maquettes validées le 26/11 (`docs/audits/2026-11-ux-parcours/09-maquettes-aujourdhui-evenements.md`).
+Ouverts ; chacun a sa recommandation. (Q48 est celle du lot 71, pas encore fusionnée.)
+
+1. **Les statuts d'un évènement (EVT-05)**. Le cahier des charges cite « Option, Confirmé, En
+   préparation, Jour J, Clôturé, Reporté, Annulé ». La frise retenue (E1) n'affiche que quatre étapes :
+   « Une demande en cours », « Signé, en préparation », « Jour J », « Clôturé », Reporté et Annulé étant
+   des lignes d'état. Proposition (décision J1 du lot) : garder « Confirmé » et « En préparation » en
+   base, fondus à l'écran (aucune règle de l'app ne les distingue), écart noté dans `gap.csv`, ADR au
+   paquet 72a.
+2. **Les onglets du cockpit (patrons d'interface)**. Le cahier des charges cite « Synthèse, Planning,
+   Budget, Prestataires, Invités, Documents, Jour J ». L'app aura « Synthèse, Budget et prestataires,
+   Tâches, Programme, Devis et factures, Mariés, Documents, Invités » (« Tâches » tranché en Q47 ;
+   « Programme » au lieu de « Jour J », choix E6, parce que « Jour J » nomme déjà l'étape et l'écran du
+   terrain). Proposition : noté dans `gap.csv`, sans ADR.
+3. **Le cockpit (EVT-02)** : « bandeau de santé » sous l'en-tête et « échéances des quatorze jours ».
+   La santé descend dans « Où en est le mariage », sous la suite ; les quatorze jours se fondent dans la
+   suite, avec les mêmes lignes et les mêmes nombres que l'accueil (E9). Les trois actions les plus
+   urgentes restent visibles sans défiler sur un écran de 13 pouces. Proposition : noté dans `gap.csv`,
+   sans ADR.
+
 ## Remarques sur le nouveau document lui-même
 
 - Les tableaux PRE, INV, POR, DOC, MSG, JRJ, RPT et TPS sont placés en annexe (§ 20), alors que
