@@ -1,10 +1,11 @@
 // Lot 5 — purge horaire : lignes en attente des imports en cours expirés
 // (IMP-01) et valeurs gardées pour l'annulation des imports confirmés passé
-// le délai d'annulation (IMP-05). Données personnelles effacées, le journal
+// le délai d'annulation (IMP-05). Lot 71a : fiches PDF encore gardées des
+// brouillons expirés, et ce qu'un import n'avait pas repris (I4). Données personnelles effacées, le journal
 // reste.
 import { withAuditBulk } from "@symbola/db/actor";
 import { appDatabase } from "@symbola/db/client";
-import { listOrganizations, purgeExpiredImportDrafts, purgeExpiredImportUndoValues } from "@/modules/hub/service";
+import { listOrganizations, purgeExpiredImportDrafts, purgeExpiredImportLeftovers, purgeExpiredImportUndoValues } from "@/modules/hub/service";
 
 const PURGE_INTERVAL_MS = 60 * 60 * 1000; // toutes les heures
 
@@ -19,6 +20,8 @@ async function purgeAllExpiredImportDraftsNow(now: Date): Promise<number> {
   const organizationIds = organizations.map((organization) => organization.id);
   const drafts = await purgeExpiredImportDrafts(db, organizationIds, now);
   await purgeExpiredImportUndoValues(db, organizationIds, now);
+  // Lot 71a (I4) : l'annuaire d'un programme non repris, passé sa durée.
+  await purgeExpiredImportLeftovers(db, organizationIds, now);
   return drafts;
 }
 

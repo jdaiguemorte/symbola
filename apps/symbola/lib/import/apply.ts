@@ -4,11 +4,13 @@
 // modules/budget/import.ts). Si le journal ne peut pas être écrit après les
 // modules, leurs écritures sont annulées : rien d'un import n'est gardé sans
 // pouvoir être annulé.
-import type { ImportApplyResult, ImportApplyRow, ImportedItem, ImportEntityType, ImportUndoItem, ImportUndoOutcome } from "@symbola/contracts";
+import type { ImportAnswers, ImportApplyResult, ImportApplyRow, ImportCellValue, ImportedItem, ImportEntityType, ImportUndoItem, ImportUndoOutcome } from "@symbola/contracts";
+import { appNameCase } from "@symbola/import-engine";
 import { appDatabase, type AppDatabase } from "@symbola/db/client";
 import {
   findModifiedImportedBudgetElements,
   importBudgetLineRows,
+  importUnallocatedTotals,
   removeEventBudgetData,
   undoImportedBudgetElements,
 } from "@/modules/budget/service";
@@ -26,7 +28,10 @@ import {
   cancelImportJobs,
   createImportJob,
   findModifiedImportedHubElements,
+  attachTakeoverEvent,
   getAppliedImport,
+  getImportAnswers,
+  getImportTakeoverId,
   getImportWorkingSet,
   getOrganizationProfile,
   importContactRows,
@@ -34,6 +39,7 @@ import {
   recordAppliedImport,
   recordImportUndo,
   undoImportedHubElements,
+  TakeoverEventTakenError,
   type AppliedImportItem,
   type AppliedImportView,
   type ImportResult,
@@ -156,10 +162,9 @@ export async function getImportPreview(organizationId: string, importId: string)
     if ((await defaultVatRate(organizationId)) === null) blockers.push("vat_rate_unknown");
   }
   const withSource = matches.entityType === "events" || matches.entityType === "event_sheets";
+  // Lot 71a (HUB-14) : la source d'un prospect est facultative (« non renseignée ») ; une organisation
+  // sans source n'est plus bloquée.
   const prospectSources = withSource ? await listProspectSources(organizationId) : [];
-  if (withSource && prospectSources.length === 0 && creations.some((row) => !row.values.prospectSource)) {
-    blockers.push("no_prospect_source");
-  }
 
   return {
     importId,
@@ -183,6 +188,43 @@ export type ConfirmImportResult =
   | { status: "blocked"; blockers: PreviewBlocker[] }
   | { status: "invalid_default_source" };
 
+// Lot 71a (HUB-14, UX-02) : champs de nom et de ville repris à la casse de l'app (« Léa MARTIN » →
+// « Léa Martin », « POITIERS » → « Poitiers »).
+const NAME_CASE_FIELDS: Partial<Record<ImportEntityType, readonly string[]>> = {
+  events: ["client1FirstName", "client1LastName", "client2FirstName", "client2LastName", "venueCity"],
+  event_sheets: ["client1FirstName", "client1LastName", "client2FirstName", "client2LastName", "client1City", "client2City"],
+};
+
+export function withAppNameCase(entityType: ImportEntityType, values: Record<string, ImportCellValue>): Record<string, ImportCellValue> {
+  const keys = NAME_CASE_FIELDS[entityType];
+  if (!keys) return values;
+  const result = { ...values };
+  for (const key of keys) {
+    const value = result[key];
+    if (typeof value === "string") result[key] = appNameCase(value);
+  }
+  return result;
+}
+
+// Noms des champs écrits sur un élément, sans les valeurs (I9) ; les échéances créées comptent pour un.
+export function writtenFields(written: Record<string, unknown> | null): string[] {
+  return Object.keys(written ?? {}).sort();
+}
+
+// Le total d'une fiche (engagé, réglé) et l'évènement que sa ligne a créé ou mis à jour.
+function sheetTotals(rows: ImportApplyRow[], items: ImportedItem[]): { rowIndex: number; eventId: string; committedCents: number; paidCents: number }[] {
+  const eventByRow = new Map(items.filter((item) => item.module === "events" && item.kind === "event" && item.rowIndex !== null).map((item) => [item.rowIndex!, item.elementId] as const));
+  const totals: { rowIndex: number; eventId: string; committedCents: number; paidCents: number }[] = [];
+  for (const row of rows) {
+    const eventId = eventByRow.get(row.rowIndex) ?? row.matchId;
+    const committed = typeof row.values.total === "number" ? row.values.total : null;
+    if (!eventId || committed === null || committed <= 0) continue;
+    const paid = typeof row.values.paid === "number" && row.values.paid > 0 ? row.values.paid : 0;
+    totals.push({ rowIndex: row.rowIndex, eventId, committedCents: committed, paidCents: paid });
+  }
+  return totals;
+}
+
 async function applyToModules(
   organizationId: string,
   userId: string,
@@ -190,6 +232,9 @@ async function applyToModules(
   rows: ImportApplyRow[],
   options: {
     defaultProspectSourceId: string | null;
+    // Lot 71a : réponses de l'étape « Questions », et import d'une reprise.
+    answers: ImportAnswers | null;
+    takeover: boolean;
     defaultVatRateBasisPoints: number;
     vendorTypeChoices: VendorTypeChoiceInput[];
     typeColumnHeader?: string | null;
@@ -200,11 +245,11 @@ async function applyToModules(
   switch (entityType) {
     case "events":
     case "event_sheets":
-      return importEventRows({ organizationId, userId, rows, defaultProspectSourceId: options.defaultProspectSourceId ?? "" });
+      return importEventRows({ organizationId, userId, rows, defaultProspectSourceId: options.defaultProspectSourceId, answers: options.answers, takeover: options.takeover });
     case "tasks":
       return importTaskRows({ organizationId, rows });
     case "budget_lines":
-      return importBudgetLineRows({ organizationId, userId, rows, ...(options.paymentLabels ? { paymentLabels: options.paymentLabels } : {}) });
+      return importBudgetLineRows({ organizationId, userId, rows, answers: options.answers, takeover: options.takeover, ...(options.paymentLabels ? { paymentLabels: options.paymentLabels } : {}) });
     case "catalog_items":
       return importCatalogItemRows({ organizationId, rows, defaultVatRateBasisPoints: options.defaultVatRateBasisPoints });
     case "payment_methods":
@@ -217,6 +262,11 @@ async function applyToModules(
       return importVendorRows({ organizationId, rows, typeChoices: options.vendorTypeChoices, typeColumnHeader: options.typeColumnHeader ?? null });
     case "contacts":
       return importContactRows({ organizationId, userId, rows });
+    // Lot 71a : ces deux sortes passent par l'assistant commun au paquet 71e ; d'ici là, la route
+    // d'envoi ne les accepte pas (IMPORT_FILE_ENTITY_TYPES).
+    case "event_vendors":
+    case "program":
+      throw new Error("sorte d'import pas encore prise par l'assistant commun");
   }
 }
 
@@ -249,9 +299,13 @@ export async function confirmImport(input: {
   if (preview.blockers.length > 0) return { status: "blocked", blockers: preview.blockers };
 
   const defaultProspectSourceId = input.defaultProspectSourceId ?? null;
-  if ((preview.entityType === "events" || preview.entityType === "event_sheets") && !preview.prospectSources.some((source) => source.id === defaultProspectSourceId)) {
+  // Lot 71a : une source citée doit être de l'organisation ; aucune source, « non renseignée ».
+  if ((preview.entityType === "events" || preview.entityType === "event_sheets") && defaultProspectSourceId !== null && !preview.prospectSources.some((source) => source.id === defaultProspectSourceId)) {
     return { status: "invalid_default_source" };
   }
+  const answers = await withHubDb((db) => getImportAnswers(db, input.organizationId, input.importId));
+  const takeoverId = await withHubDb((db) => getImportTakeoverId(db, input.organizationId, input.importId));
+  const takeover = takeoverId !== null;
 
   const set = await withHubDb((db) => getImportWorkingSet(db, input.organizationId, input.importId));
   const matches = await getImportMatchesView(input.organizationId, input.importId);
@@ -262,7 +316,8 @@ export async function confirmImport(input: {
 
   const rows: ImportApplyRow[] = matches.rows.filter(isImportable).map((row) => ({
     rowIndex: row.rowIndex,
-    values: row.values,
+    // Lot 71a : noms et villes à la casse de l'app, sauf « Garder les capitales ».
+    values: answers?.nameCase === "keep" ? row.values : withAppNameCase(preview.entityType, row.values),
     importedFields: extraByRow.get(row.rowIndex) ?? {},
     matchId: row.match?.status === "accepted" ? row.match.candidateId : null,
     eventId: row.event?.eventId ?? null,
@@ -271,10 +326,27 @@ export async function confirmImport(input: {
   const applied = await applyToModules(input.organizationId, input.userId, preview.entityType, rows, {
     defaultProspectSourceId,
     defaultVatRateBasisPoints: (await defaultVatRate(input.organizationId)) ?? 0,
+    answers,
+    takeover,
     vendorTypeChoices: catalog ? (matches.vendorTypes ?? []).map(({ label, typeId, target }) => ({ label, typeId, target: vendorTypeTarget(target, catalog) })) : [],
     typeColumnHeader: typeColumn ? set.headers[typeColumn.columnIndex] || null : null,
     paymentLabels: starterBudgetImportPaymentLabels(input.locale ?? "fr"),
   });
+
+  // Lot 71a (C-56) : le total engagé et le réglé d'une fiche PDF vont au total « à répartir » de son
+  // évènement (module budget), au journal du même import.
+  if (preview.entityType === "event_sheets") {
+    const totals = sheetTotals(rows, applied.items);
+    if (totals.length > 0) {
+      try {
+        const written = await importUnallocatedTotals(input.organizationId, totals, input.importId);
+        applied.items.push(...written.items);
+      } catch (error) {
+        await undoItems(input.organizationId, input.userId, applied.items, () => true);
+        throw error;
+      }
+    }
+  }
 
   // Compté par ligne : une ligne de budget crée parfois deux éléments (poste
   // et ligne) ; une ligne est une création si elle a créé quelque chose.
@@ -303,7 +375,8 @@ export async function confirmImport(input: {
       recordAppliedImport(db, {
         organizationId: input.organizationId,
         importId: input.importId,
-        items: applied.items.map(({ module, kind, elementId, action, previous, written }) => ({ module, kind, elementId, action, previous, written })),
+        // Lot 71a (R7, I9) : les noms des champs écrits, sans valeur, pour « D'où viennent ces valeurs ? ».
+        items: applied.items.map(({ module, kind, elementId, action, previous, written }) => ({ module, kind, elementId, action, previous, written, fields: writtenFields(written) })),
         result,
       }),
     );
@@ -311,6 +384,16 @@ export async function confirmImport(input: {
     if (!recorded) await undoItems(input.organizationId, input.userId, applied.items, () => true);
   }
   if (!recorded) return { status: "not_found" };
+  // Lot 71a : la fiche (ou la liste) qui crée le mariage d'une reprise lui donne son mariage (ligne 2).
+  if (takeoverId && (preview.entityType === "event_sheets" || preview.entityType === "events")) {
+    const created = applied.items.filter((item) => item.module === "events" && item.kind === "event" && item.action === "created").map((item) => item.elementId);
+    if (created.length === 1) {
+      await withHubDb((db) => attachTakeoverEvent(db, { organizationId: input.organizationId, userId: input.userId, takeoverId, eventId: created[0]! })).catch((error: unknown) => {
+        // Le mariage a déjà sa reprise, ou la reprise un autre mariage : l'import reste écrit.
+        if (!(error instanceof TakeoverEventTakenError)) throw error;
+      });
+    }
+  }
   // Lot 15 (GEO-01) : les prestataires créés ou dont l'adresse a changé sont
   // placés sur la carte ensuite, en tâche de fond (la planner n'attend pas).
   if (preview.entityType === "vendors") {

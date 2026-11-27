@@ -295,8 +295,11 @@ for (const size of [
     });
 
     test.fixme("UX-14 crit. 9 — à 375 px, la première tâche de « Tâches » arrive à 200 px au plus", async () => {
-      // Dépend de la barre du haut de 60 px (paquet 70f) et de l'en-tête de « Tâches » avec son bouton
-      // « Filtres » (paquet 70d) : mesuré à la livraison de ces paquets.
+      // Lot 70d (27/11) : l'écran « Tâches » tient en 122 px au-dessus de sa première tâche (« Filtres » et
+      // « Mes tâches » sur la ligne du titre, liste sans carte ; mesuré par `lot-70d-ecran-taches.spec.ts`,
+      // 140 px au plus). Reste la part du paquet 70f : la barre du haut, qui prend encore 218 px à 375 px
+      // (deux rangées, recherche comprise), passe à 60 px ; la première tâche, aujourd'hui à 340 px,
+      // arrivera vers 200 px. Ce test s'écrit avec le 70f, qui retire ce `fixme`.
     });
 
     test("EVT-03 crit. 10 — l'ancienne adresse du rétroplanning ouvre l'onglet « Tâches » et la bonne tâche ; clavier", async ({ page }) => {

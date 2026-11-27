@@ -332,3 +332,32 @@ export const plannerInstalmentPayers = budgetSchema.table(
     unique("planner_instalment_payers_schedule_item_unique").on(table.scheduleItemId),
   ],
 );
+
+// Lot 71a (BUD-01, HUB-14, C-56 ; spécification du lot 71, § 4.3 ; migration 0223) — le total engagé et
+// réglé d'un mariage repris, tel que l'ancien outil l'a exporté sans le détail par prestataire
+// (« 21 650,50 € engagés selon votre fichier, dont 3 200,00 € réglés »). Une ligne par mariage au plus ;
+// le reste à répartir se calcule (total moins la somme des lignes du budget). Montants en centimes,
+// euros. event_id et source_import_id : identifiants opaques (pas de clé étrangère entre schémas).
+export const unallocatedTotals = budgetSchema.table(
+  "unallocated_totals",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    eventId: uuid("event_id").notNull(),
+    committedCents: integer("committed_cents").notNull(),
+    paidCents: integer("paid_cents").notNull().default(0),
+    currency: text("currency").notNull().default("EUR"),
+    sourceImportId: uuid("source_import_id"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    index("unallocated_totals_organization_idx").on(table.organizationId),
+    uniqueIndex("unallocated_totals_event_idx").on(table.organizationId, table.eventId),
+    check("unallocated_totals_amounts_check", sql`${table.committedCents} >= 0 and ${table.paidCents} >= 0`),
+    check("unallocated_totals_currency_check", sql`${table.currency} = 'EUR'`),
+  ],
+);

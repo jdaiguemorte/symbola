@@ -44,6 +44,8 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 //   colonnes anonymisés ;
 // - élément d'un import confirmé : valeurs gardées pour l'annulation
 //   effacées (l'élément n'est plus annulable) ;
+// - lot 71a (I4) : ce qu'un import n'avait pas repris (« import_leftovers »,
+//   l'annuaire d'un programme) est effacé ;
 // - preuve d'une demande close (RGPD-09, ADR 0048), seulement par la purge
 //   mensuelle validée : nom de la personne remplacé par « [anonymisé] » et
 //   motif de prolongation effacé ; le type, les dates et le journal restent.
@@ -62,6 +64,8 @@ async function hubErasure(input: ErasureInput, execute: boolean): Promise<Erasur
   const contactItems = await contactErasure(input, execute);
   const rowRefs = input.records.filter((record) => record.kind === "import_row" && UUID.test(record.recordId.split(":")[0] ?? ""));
   const itemIds = idsOfKind(input.records, "import_item");
+  // Lot 71a (I4) : l'annuaire non repris d'un programme (noms, rôles, téléphones) est effacé.
+  const leftoverIds = idsOfKind(input.records, "import_leftovers").filter((id) => UUID.test(id));
   const requestIds = idsOfKind(input.records, "privacy_request");
   const items: ErasurePlanItem[] = [];
   const db = appDatabase();
@@ -93,6 +97,11 @@ async function hubErasure(input: ErasureInput, execute: boolean): Promise<Erasur
       const rows = await tx.select({ id: importItems.id }).from(importItems).where(inArray(importItems.id, itemIds));
       if (execute && rows.length > 0) await tx.update(importItems).set({ previous: null, written: null }).where(inArray(importItems.id, rows.map((row) => row.id)));
       for (const row of rows) items.push({ kind: "import_item", recordId: row.id, fate: "anonymized", legalBasis: null, keptUntil: null });
+    }
+    if (leftoverIds.length > 0) {
+      const rows = await tx.select({ id: imports.id }).from(imports).where(and(inArray(imports.id, leftoverIds), isNotNull(imports.leftovers)));
+      if (execute && rows.length > 0) await tx.update(imports).set({ leftovers: null }).where(inArray(imports.id, rows.map((row) => row.id)));
+      for (const row of rows) items.push({ kind: "import_leftovers", recordId: row.id, fate: "deleted", legalBasis: null, keptUntil: null });
     }
     if (requestIds.length > 0) {
       const closed = await tx
@@ -178,6 +187,19 @@ export const hubPrivacy: PrivacyContractV1 = {
             fields: Object.fromEntries(row.map((cell, column) => [draft.headers[column] || `#${column + 1}`, cell]).filter(([, cell]) => cell !== "")),
             eventId: null,
           });
+        });
+      }
+      // Lot 71a (I4) : ce qu'un import n'a pas repris (l'annuaire d'un programme), tant qu'il est gardé.
+      for (const draft of await tx.select({ id: imports.id, fileName: imports.fileName, leftovers: imports.leftovers }).from(imports).where(isNotNull(imports.leftovers))) {
+        const values = texts(draft.leftovers);
+        if (!recordMatches(values, terms)) continue;
+        records.push({
+          module: MODULE,
+          kind: "import_leftovers",
+          recordId: draft.id,
+          label: draft.fileName,
+          fields: Object.fromEntries(values.filter((value) => !["directory", "role", "company", "contact", "phone"].includes(value)).map((value, index) => [`value${index + 1}`, value])),
+          eventId: null,
         });
       }
       for (const item of await tx.select().from(importItems).where(isNotNull(importItems.written))) {

@@ -356,6 +356,13 @@
           "type": "null"
         }
       ]
+    },
+    "origin": {
+      "type": "string",
+      "enum": [
+        "created",
+        "takeover"
+      ]
     }
   },
   "required": [
@@ -392,7 +399,8 @@
     "busyStartDayOffset",
     "busyStartTime",
     "busyEndDayOffset",
-    "busyEndTime"
+    "busyEndTime",
+    "origin"
   ],
   "additionalProperties": false,
   "$defs": {

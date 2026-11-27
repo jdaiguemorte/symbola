@@ -118,6 +118,9 @@ export const HUB_EXPORT_EXCLUSIONS: Readonly<Record<string, string>> = {
   imports: "technique : imports en cours ou confirmés, purgés ; les données importées sont dans leurs entités",
   import_items: "technique : détail des imports, gardé pour leur annulation puis purgé",
   import_jobs: "technique : traitements de fond des imports",
+  // Lot 71a (ADR 0119) : la reprise renvoie aux imports, qui ne sont pas exportés.
+  takeovers: "technique : suivi de la reprise d'un mariage (identifiants, dates), sans donnée ; les données reprises sont dans leurs entités",
+  takeover_steps: "technique : lignes de la reprise d'un mariage (états, import de chaque ligne), sans donnée",
   platform_settings: "exploitation : réglages de la plateforme Symbola",
   backup_runs: "exploitation : sauvegardes de la plateforme",
   connection_traces: "exploitation : adresses IP des connexions, pour l'enquête de sécurité",

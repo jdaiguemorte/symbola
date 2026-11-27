@@ -1315,6 +1315,9 @@ export async function removeEventBudgetData(organizationId: string, eventIds: st
   for (const key of fileKeys) await deletePrivateObject(storage, key);
 }
 
+// Lot 71a (BUD-01, C-56) — le total « à répartir » d'un mariage repris.
+export { closeUnallocatedTotals, getUnallocatedTotals, importUnallocatedTotals, setUnallocatedTotals, type UnallocatedTotals } from "./unallocated";
+
 // IMP-05 — fonctions d'import (lot 5, ADR 0022).
 export {
   findModifiedImportedBudgetElements,

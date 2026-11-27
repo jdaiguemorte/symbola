@@ -908,6 +908,42 @@
         "comments",
         "remarks"
       ]
+    },
+    "note": {
+      "fr": [
+        "note",
+        "remarque",
+        "commentaire"
+      ],
+      "en": [
+        "note",
+        "remark",
+        "comment"
+      ]
+    },
+    "total": {
+      "fr": [
+        "total",
+        "total engagé",
+        "montant total"
+      ],
+      "en": [
+        "total",
+        "total committed",
+        "grand total"
+      ]
+    },
+    "paid": {
+      "fr": [
+        "total payé",
+        "payé",
+        "déjà réglé"
+      ],
+      "en": [
+        "total paid",
+        "paid",
+        "already paid"
+      ]
     }
   },
   "choices": {

@@ -9,6 +9,7 @@ import { afterAll, describe, expect, it } from "vitest";
 import { createOrganization, createUser } from "@symbola/auth";
 import { createAppConnection } from "@symbola/db/client";
 import { readImportCorpusFile } from "@symbola/testing/import-corpus";
+import { getUnallocatedTotals } from "@/modules/budget/service";
 import { createProspect, createProspectSource, getEvent, getEventProgram, listEventPlaces, listEvents } from "@/modules/events/service";
 import { getImportColumns, getPlatformSettings, setPlatformSettings, startEventSheetsImport } from "@/modules/hub/service";
 import { runImportJobsUntilIdle } from "@/lib/import-jobs";
@@ -86,7 +87,7 @@ describe("IMP-08 — Importer ses événements depuis les fiches PDF", () => {
     expect(preview).toMatchObject({ counts: { creations: 1, updates: 0 }, rejectedCount: 2 });
   });
 
-  it("à la confirmation : mariés et coordonnées, date, lieux (le premier en lieu de réception) et programme avec leurs heures, budget souhaité ; payé, solde et note en champs importés", async () => {
+  it("à la confirmation : mariés et coordonnées, date, lieux (le premier en lieu de réception) et programme avec leurs heures, budget souhaité ; lot 71a : noms à la casse de l'app, note dans « Notes », total et réglé à répartir, rien en champs importés", async () => {
     const planner = await createPlanner();
     const importId = await startSheets(planner, [sheet("fiche-evenement-complete.pdf")]);
     const result = await confirmImport({ ...planner, importId, defaultProspectSourceId: planner.sourceId });
@@ -96,15 +97,19 @@ describe("IMP-08 — Importer ses événements depuis les fiches PDF", () => {
     const event = (await getEvent(planner.organizationId, summary!.id))!;
     expect(event).toMatchObject({ eventDate: "2027-06-12", venueName: "Domaine des Tilleuls", status: "confirmed", wantedBudgetCents: 2_500_000, prospectSourceId: planner.sourceId });
     expect(event.clients).toMatchObject([
-      { firstName: "Léa", lastName: "MARTIN", email: "lea.martin@example.org", phone: "06 39 98 01 01", addressLine: "12 rue des Lilas", postalCode: "86000", city: "POITIERS" },
-      { firstName: "Hugo", lastName: "BERNARD", email: "hugo.bernard@example.org", phone: null, city: "POITIERS" },
+      { firstName: "Léa", lastName: "Martin", email: "lea.martin@example.org", phone: "06 39 98 01 01", addressLine: "12 rue des Lilas", postalCode: "86000", city: "Poitiers" },
+      { firstName: "Hugo", lastName: "Bernard", email: "hugo.bernard@example.org", phone: null, city: "Poitiers" },
     ]);
     expect((await listEventPlaces(planner.organizationId, event.id)).map((place) => place.label)).toEqual(["Domaine des Tilleuls", "Église Saint-Exemple de Villefictive"]);
     expect((await getEventProgram(planner.organizationId, event.id)).items.map((item) => `${item.startTime.slice(0, 5)} ${item.label}`)).toEqual([
       "14:30 Domaine des Tilleuls",
       "16:00 Église Saint-Exemple de Villefictive",
     ]);
-    expect(event.importedFields).toMatchObject({ Note: "Cérémonie laïque", "Total Payé": "3200,00 €", Solde: "18450,50 €", Total: "21650,50 €" });
+    // Lot 71a (C-56) : la note va dans « Notes », le total et le réglé au total « à répartir » du budget ;
+    // le solde se recalcule. Plus rien en « Champs importés ».
+    expect(event.importedFields ?? null).toBeNull();
+    expect(event.notes).toBe("Cérémonie laïque");
+    expect(await getUnallocatedTotals(planner.organizationId, event.id)).toMatchObject({ committedCents: 2_165_050, paidCents: 320_000 });
   });
 
   it("décision J : confirmé (date à venir et lieu), clôturé (date passée, lot 34a) ; la planner change le statut d'une ligne dans l'aperçu", async () => {
@@ -166,7 +171,10 @@ describe("IMP-08 — Importer ses événements depuis les fiches PDF", () => {
     expect(await listEvents({ organizationId: planner.organizationId })).toHaveLength(3);
 
     const undo = await undoImport({ ...planner, importId });
-    expect(undo).toMatchObject({ status: "done", outcomes: { undone: 3, kept_modified: 0 } });
+    // Lot 71a : les trois évènements, et le total « à répartir » de chaque fiche qui en donne un.
+    expect(undo).toMatchObject({ status: "done", outcomes: { kept_modified: 0 } });
+    expect(undo.status === "done" ? undo.outcomes.undone : 0).toBeGreaterThanOrEqual(3);
+    expect(await getUnallocatedTotals(planner.organizationId, existing)).toBeNull();
     expect((await listEvents({ organizationId: planner.organizationId })).map((event) => event.id)).toEqual([existing]);
     const event = (await getEvent(planner.organizationId, existing))!;
     expect(event).toMatchObject({ wantedBudgetCents: null, venueName: null });

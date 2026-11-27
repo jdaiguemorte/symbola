@@ -169,7 +169,7 @@ export async function TodayFirst({
             </ul>
             {part.nature === "tasks" && doneToday > 0 ? (
               <p className="today-done-today">
-                {tLine("doneToday", { count: doneToday })} · <Link href="/taches?vue=faites">{tLine("review")}</Link>
+                {tLine("doneToday", { count: doneToday })} · <Link href="/taches?etat=faites">{tLine("review")}</Link>
               </p>
             ) : null}
           </div>

@@ -4,7 +4,7 @@
 // requête.
 import { z } from "zod";
 import { appDatabase } from "@symbola/db/client";
-import { IMPORT_ENTITY_MODULE, IMPORT_ENTITY_TYPES, isModuleEnabled, type ImportEntityType } from "@/modules/hub/service";
+import { IMPORT_ENTITY_MODULE, IMPORT_FILE_ENTITY_TYPES, isModuleEnabled, type ImportEntityType } from "@/modules/hub/service";
 
 export async function availableImportEntityTypes(organizationId: string): Promise<ImportEntityType[]> {
   const db = appDatabase();
@@ -13,7 +13,8 @@ export async function availableImportEntityTypes(organizationId: string): Promis
     // Lot 36b : le hub (contacts) est le noyau, jamais désactivé.
     enabled.set(moduleKey, moduleKey === "hub" ? true : await isModuleEnabled(db, organizationId, moduleKey));
   }
-  return IMPORT_ENTITY_TYPES.filter((type) => enabled.get(IMPORT_ENTITY_MODULE[type]));
+  // Lot 71a : les PDF des prestataires retenus et du programme passent encore par leur propre envoi.
+  return IMPORT_FILE_ENTITY_TYPES.filter((type) => enabled.get(IMPORT_ENTITY_MODULE[type]));
 }
 
 const idSchema = z.uuid();
@@ -23,5 +24,5 @@ export function isValidId(value: string): boolean {
 }
 
 export function parseEntityType(value: string): ImportEntityType | null {
-  return (IMPORT_ENTITY_TYPES as readonly string[]).includes(value) ? (value as ImportEntityType) : null;
+  return (IMPORT_FILE_ENTITY_TYPES as readonly string[]).includes(value) ? (value as ImportEntityType) : null;
 }

@@ -62,8 +62,9 @@ test("IMP-08 — reprendre ses évènements depuis les fiches PDF de l'outil act
   // Colonnes déjà reconnues ; lecture des fiches suivie, puis « Vérifier et confirmer ».
   await waitForSheetsRead(page);
   await expect(page.getByText("Fiche « pas-une-fiche.pdf » : ce n'est pas un PDF")).toBeVisible();
-  // Bilan : 2 créations, aucune mise à jour, les colonnes de la fiche gardées en champ libre, 1 fiche rejetée.
-  await expect(page.getByRole("region", { name: "Ce que va faire l'import" }).getByRole("definition")).toHaveText(["2", "0", "Note, Total Payé, Solde, Total", "1"]);
+  // Bilan : 2 créations, aucune mise à jour, 1 fiche rejetée. Lot 71a (C-56) : plus aucune colonne
+  // gardée en champ libre (la note va dans « Notes », le total et le réglé au total « à répartir »).
+  await expect(page.getByRole("region", { name: "Ce que va faire l'import" }).getByRole("definition")).toHaveText(["2", "0", "0", "1"]);
   await expectNoAxeViolation(page);
 
   const second = page.getByLabel(/Ligne 2 : Chloé PETIT & Antoine ROUX/);
@@ -92,13 +93,14 @@ test("IMP-08 — reprendre ses évènements depuis les fiches PDF de l'outil act
   await page.goto("/events");
   await page.getByRole("link", { name: /Léa & Hugo/ }).first().click();
   await expect(page.getByText("25 000,00 €").first()).toBeVisible();
-  await expect(page.getByRole("region", { name: "Champs importés" })).toContainText("Cérémonie laïque");
+  // Lot 71a : plus de « Champs importés » pour une fiche reprise.
+  await expect(page.getByRole("region", { name: "Champs importés" })).toHaveCount(0);
   await openEventTab(page, "Mariés");
-  const lea = page.getByRole("form", { name: "Coordonnées de Léa MARTIN" });
+  const lea = page.getByRole("form", { name: "Coordonnées de Léa Martin" });
   await expect(lea.getByLabel("E-mail")).toHaveValue("lea.martin@example.org");
   await expect(lea.getByLabel("Téléphone")).toHaveValue("06 39 98 01 01");
   await lea.getByLabel("Téléphone").fill("06 39 98 01 09");
-  await lea.getByRole("button", { name: "Enregistrer les coordonnées de Léa MARTIN" }).click();
+  await lea.getByRole("button", { name: "Enregistrer les coordonnées de Léa Martin" }).click();
   await expect(lea.getByText("Coordonnées enregistrées.")).toBeVisible();
   await expectNoAxeViolation(page);
 
@@ -108,7 +110,8 @@ test("IMP-08 — reprendre ses évènements depuis les fiches PDF de l'outil act
   // Lot 63b (HUB-14, UX-07) : l'annulation est repliée sous le bilan.
   await page.getByText("Annuler cet import", { exact: true }).click();
   await page.getByRole("button", { name: "Annuler l'import" }).click();
-  await expect(page.getByText("1 élément annulé ; 1 gardé car modifié à la main ; aucun gardé car utilisé.")).toBeVisible();
+  // Lot 71a : les totaux « à répartir » des fiches partent aussi avec l'import (plus d'un élément annulé).
+  await expect(page.getByText(/\d+ éléments annulés ; 1 gardé car modifié à la main ; aucun gardé car utilisé\./)).toBeVisible();
   await expectNoAxeViolation(page);
   await page.goto("/events");
   await expect(page.getByText("Chloé & Antoine")).toHaveCount(0);

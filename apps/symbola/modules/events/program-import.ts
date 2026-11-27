@@ -57,7 +57,7 @@ async function previewProgramPdf(input: {
   const { rows, problems } = programRowsFromExport(program, { eventDate: input.eventDate }, speakerSlots, slotLabels);
   return {
     status: "preview",
-    preview: { rows, problems, newMoments: [], unknownColumns: [], neutralizedCells: 0, source: "program_pdf", speakers, slots: input.slots },
+    preview: { rows, problems, newMoments: [], unknownColumns: [], neutralizedCells: parsed.neutralized, source: "program_pdf", speakers, slots: input.slots },
   };
 }
 

@@ -1,6 +1,6 @@
 {
-  "id": "08ee8f12-ddd9-4d38-bcbb-c77972d8dd72",
-  "prevId": "ead23ae4-d776-4ddd-9f7b-3da93214116e",
+  "id": "eec05060-3f87-4208-be27-b2335ad27c11",
+  "prevId": "5192899e-a7bd-4419-806b-954e372d600c",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -2734,6 +2734,136 @@
       },
       "policies": {},
       "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "budget.unallocated_totals": {
+      "name": "unallocated_totals",
+      "schema": "budget",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "organization_id": {
+          "name": "organization_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "event_id": {
+          "name": "event_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "committed_cents": {
+          "name": "committed_cents",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "paid_cents": {
+          "name": "paid_cents",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "currency": {
+          "name": "currency",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'EUR'"
+        },
+        "source_import_id": {
+          "name": "source_import_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "created_by": {
+          "name": "created_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_by": {
+          "name": "updated_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "unallocated_totals_organization_idx": {
+          "name": "unallocated_totals_organization_idx",
+          "columns": [
+            {
+              "expression": "organization_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "with": {},
+          "method": "btree",
+          "concurrently": false
+        },
+        "unallocated_totals_event_idx": {
+          "name": "unallocated_totals_event_idx",
+          "columns": [
+            {
+              "expression": "organization_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "event_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "with": {},
+          "method": "btree",
+          "concurrently": false
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "unallocated_totals_amounts_check": {
+          "name": "unallocated_totals_amounts_check",
+          "value": "\"budget\".\"unallocated_totals\".\"committed_cents\" >= 0 and \"budget\".\"unallocated_totals\".\"paid_cents\" >= 0"
+        },
+        "unallocated_totals_currency_check": {
+          "name": "unallocated_totals_currency_check",
+          "value": "\"budget\".\"unallocated_totals\".\"currency\" = 'EUR'"
+        }
+      },
       "isRLSEnabled": false
     },
     "budget.vendor_payments": {
@@ -8478,6 +8608,13 @@
           "notNull": true,
           "default": "now()"
         },
+        "date_known": {
+          "name": "date_known",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
         "effective_on": {
           "name": "effective_on",
           "type": "date",
@@ -9139,6 +9276,13 @@
           "type": "text",
           "primaryKey": false,
           "notNull": false
+        },
+        "done_date_known": {
+          "name": "done_date_known",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
         },
         "done_by_user_id": {
           "name": "done_by_user_id",
@@ -10188,6 +10332,12 @@
           "primaryKey": false,
           "notNull": false
         },
+        "takeover_contract": {
+          "name": "takeover_contract",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp with time zone",
@@ -10309,6 +10459,10 @@
       "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {
+        "event_vendor_candidates_takeover_contract_check": {
+          "name": "event_vendor_candidates_takeover_contract_check",
+          "value": "\"events\".\"event_vendor_candidates\".\"takeover_contract\" is null or \"events\".\"event_vendor_candidates\".\"takeover_contract\" in ('signed', 'unsigned', 'unknown')"
+        },
         "event_vendor_candidates_availability_check": {
           "name": "event_vendor_candidates_availability_check",
           "value": "\"events\".\"event_vendor_candidates\".\"availability\" is null or \"events\".\"event_vendor_candidates\".\"availability\" in ('available', 'unavailable')"
@@ -10684,6 +10838,13 @@
           "type": "time",
           "primaryKey": false,
           "notNull": false
+        },
+        "origin": {
+          "name": "origin",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'created'"
         }
       },
       "indexes": {
@@ -10692,6 +10853,27 @@
           "columns": [
             {
               "expression": "organization_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "with": {},
+          "method": "btree",
+          "concurrently": false
+        },
+        "events_origin_idx": {
+          "name": "events_origin_idx",
+          "columns": [
+            {
+              "expression": "organization_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "origin",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -10765,6 +10947,10 @@
       "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {
+        "events_origin_check": {
+          "name": "events_origin_check",
+          "value": "\"events\".\"events\".\"origin\" in ('created', 'takeover')"
+        },
         "events_busy_rule_complete_check": {
           "name": "events_busy_rule_complete_check",
           "value": "(\"events\".\"events\".\"busy_start_day_offset\" is null) = (\"events\".\"events\".\"busy_start_time\" is null) and (\"events\".\"events\".\"busy_start_day_offset\" is null) = (\"events\".\"events\".\"busy_end_day_offset\" is null) and (\"events\".\"events\".\"busy_start_day_offset\" is null) = (\"events\".\"events\".\"busy_end_time\" is null)"
@@ -12230,6 +12416,13 @@
           "notNull": true,
           "default": false
         },
+        "timing": {
+          "name": "timing",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'span'"
+        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp with time zone",
@@ -12338,6 +12531,10 @@
         "program_items_responsible_check": {
           "name": "program_items_responsible_check",
           "value": "\"events\".\"program_items\".\"responsible\" is null or char_length(\"events\".\"program_items\".\"responsible\") between 1 and 120"
+        },
+        "program_items_timing_check": {
+          "name": "program_items_timing_check",
+          "value": "\"events\".\"program_items\".\"timing\" in ('span', 'point', 'marker')"
         }
       },
       "isRLSEnabled": false
@@ -21800,6 +21997,12 @@
           "primaryKey": false,
           "notNull": false
         },
+        "fields": {
+          "name": "fields",
+          "type": "text[]",
+          "primaryKey": false,
+          "notNull": false
+        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp with time zone",
@@ -22153,6 +22356,18 @@
           "primaryKey": false,
           "notNull": false
         },
+        "takeover_id": {
+          "name": "takeover_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "leftovers": {
+          "name": "leftovers",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp with time zone",
@@ -22195,9 +22410,39 @@
           "with": {},
           "method": "btree",
           "concurrently": false
+        },
+        "imports_takeover_idx": {
+          "name": "imports_takeover_idx",
+          "columns": [
+            {
+              "expression": "takeover_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "with": {},
+          "method": "btree",
+          "concurrently": false
         }
       },
-      "foreignKeys": {},
+      "foreignKeys": {
+        "imports_takeover_id_takeovers_id_fk": {
+          "name": "imports_takeover_id_takeovers_id_fk",
+          "tableFrom": "imports",
+          "columnsFrom": [
+            "takeover_id"
+          ],
+          "tableTo": "takeovers",
+          "schemaTo": "hub",
+          "columnsTo": [
+            "id"
+          ],
+          "onUpdate": "no action",
+          "onDelete": "set null"
+        }
+      },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
@@ -25565,6 +25810,13 @@
           "notNull": true,
           "default": 90
         },
+        "import_leftovers_retention_days": {
+          "name": "import_leftovers_retention_days",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 90
+        },
         "import_max_sheets": {
           "name": "import_max_sheets",
           "type": "integer",
@@ -27264,6 +27516,327 @@
           "value": "\"hub\".\"storage_snapshots\".\"file_count\" >= 0 and \"hub\".\"storage_snapshots\".\"total_bytes\" >= 0"
         }
       },
+      "isRLSEnabled": false
+    },
+    "hub.takeover_steps": {
+      "name": "takeover_steps",
+      "schema": "hub",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "organization_id": {
+          "name": "organization_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "takeover_id": {
+          "name": "takeover_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "kind": {
+          "name": "kind",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "state": {
+          "name": "state",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'todo'"
+        },
+        "import_id": {
+          "name": "import_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "covered_by_step_id": {
+          "name": "covered_by_step_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "decided_at": {
+          "name": "decided_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "decided_by": {
+          "name": "decided_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "created_by": {
+          "name": "created_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_by": {
+          "name": "updated_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "takeover_steps_organization_idx": {
+          "name": "takeover_steps_organization_idx",
+          "columns": [
+            {
+              "expression": "organization_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "with": {},
+          "method": "btree",
+          "concurrently": false
+        },
+        "takeover_steps_import_idx": {
+          "name": "takeover_steps_import_idx",
+          "columns": [
+            {
+              "expression": "import_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "with": {},
+          "method": "btree",
+          "concurrently": false
+        },
+        "takeover_steps_kind_idx": {
+          "name": "takeover_steps_kind_idx",
+          "columns": [
+            {
+              "expression": "takeover_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "kind",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "with": {},
+          "method": "btree",
+          "concurrently": false
+        }
+      },
+      "foreignKeys": {
+        "takeover_steps_takeover_id_takeovers_id_fk": {
+          "name": "takeover_steps_takeover_id_takeovers_id_fk",
+          "tableFrom": "takeover_steps",
+          "columnsFrom": [
+            "takeover_id"
+          ],
+          "tableTo": "takeovers",
+          "schemaTo": "hub",
+          "columnsTo": [
+            "id"
+          ],
+          "onUpdate": "no action",
+          "onDelete": "cascade"
+        },
+        "takeover_steps_import_id_imports_id_fk": {
+          "name": "takeover_steps_import_id_imports_id_fk",
+          "tableFrom": "takeover_steps",
+          "columnsFrom": [
+            "import_id"
+          ],
+          "tableTo": "imports",
+          "schemaTo": "hub",
+          "columnsTo": [
+            "id"
+          ],
+          "onUpdate": "no action",
+          "onDelete": "set null"
+        },
+        "takeover_steps_covered_by_step_id_takeover_steps_id_fk": {
+          "name": "takeover_steps_covered_by_step_id_takeover_steps_id_fk",
+          "tableFrom": "takeover_steps",
+          "columnsFrom": [
+            "covered_by_step_id"
+          ],
+          "tableTo": "takeover_steps",
+          "schemaTo": "hub",
+          "columnsTo": [
+            "id"
+          ],
+          "onUpdate": "no action",
+          "onDelete": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "takeover_steps_kind_check": {
+          "name": "takeover_steps_kind_check",
+          "value": "\"hub\".\"takeover_steps\".\"kind\" in ('vendor_book', 'event', 'budget', 'event_vendors', 'tasks', 'program')"
+        },
+        "takeover_steps_state_check": {
+          "name": "takeover_steps_state_check",
+          "value": "\"hub\".\"takeover_steps\".\"state\" in ('todo', 'in_progress', 'done', 'no_file', 'covered')"
+        },
+        "takeover_steps_covered_check": {
+          "name": "takeover_steps_covered_check",
+          "value": "(\"hub\".\"takeover_steps\".\"state\" = 'covered') = (\"hub\".\"takeover_steps\".\"covered_by_step_id\" is not null)"
+        },
+        "takeover_steps_decided_check": {
+          "name": "takeover_steps_decided_check",
+          "value": "(\"hub\".\"takeover_steps\".\"state\" = 'todo') or \"hub\".\"takeover_steps\".\"decided_at\" is not null"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "hub.takeovers": {
+      "name": "takeovers",
+      "schema": "hub",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "organization_id": {
+          "name": "organization_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "event_id": {
+          "name": "event_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "completed_at": {
+          "name": "completed_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "checklist_closed_at": {
+          "name": "checklist_closed_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "created_by": {
+          "name": "created_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_by": {
+          "name": "updated_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "takeovers_organization_event_idx": {
+          "name": "takeovers_organization_event_idx",
+          "columns": [
+            {
+              "expression": "organization_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "event_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "with": {},
+          "method": "btree",
+          "concurrently": false
+        },
+        "takeovers_event_idx": {
+          "name": "takeovers_event_idx",
+          "columns": [
+            {
+              "expression": "organization_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "event_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "with": {},
+          "method": "btree",
+          "where": "event_id is not null",
+          "concurrently": false
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
       "isRLSEnabled": false
     },
     "hub.user_tour_seen": {
@@ -35118,7 +35691,9 @@
         "payment_methods",
         "vendors",
         "event_sheets",
-        "contacts"
+        "contacts",
+        "event_vendors",
+        "program"
       ]
     },
     "hub.import_status": {

@@ -577,6 +577,11 @@ export type TaskList = {
   late: number;
   // Seuil de « Bientôt » de l'organisation (M10).
   soonDays: number;
+  // Lot 70d (CHR-03 crit. 3, PAR-10) : toutes les tâches à faire que la personne voit, sans filtre (« 4 tâches
+  // sur 11 à faire » ; à faire + faites = total), et leur nombre par personne (« Bastien · 6 à faire ») :
+  // `member:<id>`, `clients`, `vendors`, `nobody`.
+  todoTotal: number;
+  todoByWho: Record<string, number>;
 };
 
 export type UpdateEventTaskInput = {
