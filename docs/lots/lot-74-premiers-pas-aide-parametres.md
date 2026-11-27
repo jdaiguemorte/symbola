@@ -2,7 +2,7 @@
 
 **Statut** : **spécification à valider par Julien**. Elle change les schémas `hub` et `events`
 (migrations 0244 à 0246) et le parcours P0 PAR-01 (le premier quart d'heure, SC-01). Aucun code n'est
-écrit avant sa validation. Décisions L74-D1 à L74-D12 (§ 9) : L74-D1 à L74-D10 tranchées le 27/11 ;
+écrit avant sa validation. Décisions L74-D1 à L74-D12 (§ 9) : L74-D1 à L74-D11 tranchées le 27/11 ;
 les autres restent à trancher.
 **Branche de la spécification** : `lot-74-premiers-pas-aide-parametres` (une PR vers `main`, ce
 fichier et `docs/QUESTIONS.md` seulement). Chaque paquet aura ensuite sa branche `lot-74<x>-…` et sa PR.
@@ -537,7 +537,7 @@ bulle) ; mis à jour : `lot-10-aide`, `aide-01-*` ; abus : la progression de A n
 | `packages/ui/src/help-drawer.tsx`, `app/help-button.tsx`, `app/screen-help.tsx` | Titre, un paragraphe, « Revoir la visite », bloc propre | Titre « Aide · {écran} » ; dans cet ordre : « Revoir la visite de cet écran » (si visite) ; « Sur cet écran » (ou « Pour commencer » à l'écran vide), en lignes courtes ; les questions fréquentes, qui s'ouvrent en place ; « Une autre question ? », champ qui cherche dans le centre d'aide et montre la meilleure réponse dans le panneau ; « Liens » (l'article, le tutoriel). Le bloc « Essai guidé » de `/events` devient « Ouvrir un mariage d'exemple » |
 | `app/globals.css:96, 1923-1931` | 380 px à droite à partir de 1 024 px ; sous 1 024 px, feuille en bas de 60 % | 420 px rangé à droite, l'écran resserré à côté, à partir de 1 100 px ; **sous 1 100 px, posé par-dessus à droite, de toute la hauteur, avec son défilement** (jamais coupé) ; sur téléphone, plein écran défilable, « Fermer » en haut |
 | Fenêtres (`app/ui/form-dialog.tsx` et fenêtres d'objet) | Pas de « ? » | Un « ? » dans l'en-tête de la fenêtre ; une question par champ difficile (`Help.<fenêtre>.fields`) ; la saisie reste intacte à la fermeture de l'aide |
-| `lib/help/screens.ts`, `Help.*` (fr, en) | 125 fiches, 40 avec questions fréquentes | Chaque fiche gagne `onScreen` (lignes) et `start` (écran vide) ; questions fréquentes selon L74-D11 |
+| `lib/help/screens.ts`, `Help.*` (fr, en) | 125 fiches, 40 avec questions fréquentes | Chaque fiche gagne `onScreen` (lignes) et `start` (écran vide) ; questions fréquentes pour une soixantaine d'écrans (L74-D11) |
 
 **Critères d'acceptation**
 
@@ -906,7 +906,7 @@ touchent le cahier des charges sont aussi dans `docs/QUESTIONS.md` (Q51).
 | L74-D8 | **Tranché le 27/11 : l'écrire** (après 71f). **Le tutoriel « Compléter un mariage repris »** du parcours « Je reprends » n'existe pas. (La seconde moitié, un espace préparé avant ce lot, est sans objet depuis L74-D6 : aucune production.) | Page 28 ; note 11, § 4 | **L'écrire** (un scénario joué sur un mariage d'exemple repris, après 71f) | Le remplacer par la visite de la fiche |
 | L74-D9 | **Tranché le 27/11 : une fois par jour.** **Qu'est-ce qu'une « venue » pour la ligne « Découvrir » (trois venues) ?** | Page 25 ; B11 | **Une ouverture de l'écran un jour différent** : recharger ou revenir dans la journée ne compte pas | Chaque ouverture |
 | L74-D10 | **Tranché le 27/11 : attendre** les paquets des lots 72 et 73. **L'ordre avec les lots 72 et 73.** La section « Réglages » vit dans le menu « ⋯ » de chaque écran, que les volets 3 et 4 créent ; les états vides de la liste des évènements et du carnet aussi. | § 5.2 | **74l et 74c après les paquets des lots 72 et 73 qui créent ces menus et ces écrans** ; d'ici là, la roue reste sur les écrans qui n'ont pas de menu « ⋯ » | 74l ajoute lui-même un menu « ⋯ » minimal aux écrans qui n'en ont pas, quitte à le refaire |
-| L74-D11 | **Les questions fréquentes du « ? »** : 85 fiches sur 125 n'en ont pas ; en écrire pour toutes est un gros travail de textes (FR et EN). | Page 26 ; § 6.5 | **Obligatoires pour les écrans à visite, les écrans vides, les fenêtres à champs difficiles et les rubriques de réglage** (une soixantaine) ; les autres montrent « Sur cet écran » et la recherche | Toutes les 125 dans ce lot |
+| L74-D11 | **Tranché le 27/11 : une soixantaine**, selon la proposition. **Les questions fréquentes du « ? »** : 85 fiches sur 125 n'en ont pas ; en écrire pour toutes est un gros travail de textes (FR et EN). | Page 26 ; § 6.5 | **Obligatoires pour les écrans à visite, les écrans vides, les fenêtres à champs difficiles et les rubriques de réglage** (une soixantaine) ; les autres montrent « Sur cet écran » et la recherche | Toutes les 125 dans ce lot |
 | L74-D12 | **Regarder le patron avant de l'étendre.** La règle du 27/11 écarte toute recette avant la fin des lots de réalisation. | § 7.2 | **Un rejeu local par Claude Code de la vague 1, captures dans la PR 74h**, que vous regardez avant que 74i et 74j partent ; ce n'est pas une recette de la planner | Basculer les trois vagues sans arrêt |
 
 **Points qui ne demandent pas de décision mais méritent d'être sus**
