@@ -42,6 +42,22 @@ export async function engagedVendors(organizationId: string, eventIds: string[])
   return result;
 }
 
+// Lot 70d (D1) : l'instant d'une coche, à l'heure de Paris : « 25 nov. », « 14 h 40 ».
+export function doneMoment(instant: string, locale: Locale): { day: string; date: string; time: string } {
+  const at = new Date(instant);
+  const intl = locale === "fr" ? "fr-FR" : "en-GB";
+  const date = new Intl.DateTimeFormat(intl, { day: "numeric", month: "short", timeZone: "Europe/Paris" }).format(at).replace(/[\u00a0\u202f]/g, " ");
+  const parts = new Intl.DateTimeFormat(intl, { hour: "numeric", minute: "2-digit", hour12: locale !== "fr", timeZone: "Europe/Paris" }).formatToParts(at);
+  const time =
+    locale === "fr"
+      ? `${parts.find((part) => part.type === "hour")?.value ?? ""} h ${parts.find((part) => part.type === "minute")?.value ?? ""}`
+      : parts
+          .map((part) => part.value)
+          .join("")
+          .replace(/[\u00a0\u202f]/g, " ");
+  return { day: parisToday(at), date, time };
+}
+
 export function dateShortcutOptions(locale: Locale, today: string = parisToday()): DateShortcutOption[] {
   return DATE_SHORTCUTS.map((key) => {
     const date = shortcutDate(key, today);
@@ -82,6 +98,7 @@ export async function buildTaskLines(input: TaskLinesInput): Promise<TaskLines> 
       clientsLabel,
       href: input.href,
       eventHref: (eventId) => eventTaskHref(eventId),
+      formatDone: (instant) => doneMoment(instant, input.locale),
     }),
   );
   const active = input.members.filter((member) => !member.removed);

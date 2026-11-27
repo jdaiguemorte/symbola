@@ -6,7 +6,7 @@
 // L'ordre : le titre (seule cible, il ouvre le panneau), l'évènement (ou « Hors évènement »), l'échéance
 // et son état en mots, qui s'en charge, « Fait », puis le menu « ⋯ ». L'état se lit sans la couleur :
 // un mot et une icône ; seul un vrai retard est rouge.
-import type { TaskDueState, TaskPriority, TaskResponsible } from "@symbola/contracts";
+import type { TaskDoneBy, TaskDueState, TaskPriority, TaskResponsible } from "@symbola/contracts";
 
 export const TASK_LINE_FORMS = ["list", "event", "today"] as const;
 export type TaskLineForm = (typeof TASK_LINE_FORMS)[number];
@@ -64,6 +64,9 @@ export type TaskLineSource = {
   priority: TaskPriority;
   done: boolean;
   dueState?: TaskDueState | null | undefined;
+  // Lot 70d (D1) : quand et par qui elle a été cochée.
+  doneAt?: string | null | undefined;
+  doneBy?: TaskDoneBy | null | undefined;
 };
 
 export type TaskLineContext = {
@@ -77,7 +80,16 @@ export type TaskLineContext = {
   // L'adresse qui ouvre le panneau de la tâche, sur l'écran courant.
   href: (task: TaskLineSource) => string;
   eventHref: (eventId: string) => string;
+  // Lot 70d (D1) : l'instant de la coche, à l'heure de Paris : le jour (« AAAA-MM-JJ »), la date courte et
+  // l'heure écrites.
+  formatDone?: (instant: string) => { day: string; date: string; time: string };
 };
+
+// Lot 70d (D1 ; rejeu : Valérie) : « Cochée par » dit qui a coché, pas qui s'en chargeait ; seulement ce qui
+// est sûr (A9) : sinon, rien.
+// `by` : en tête de colonne (« Vous », « Bastien », « Les mariés ») ; `byInSentence` : dans « Cochée à 14 h 40
+// par vous » (« vous », « Bastien », « les mariés »).
+export type TaskLineDone = { day: string; date: string; time: string; by: string | null; byInSentence: string | null };
 
 export type TaskLineView = {
   id: string;
@@ -95,7 +107,25 @@ export type TaskLineView = {
   done: boolean;
   // Valeur de « Confier à… » (« member:<id> », « clients », « vendor:<id> »).
   responsibleValue: string;
+  // Lot 70d : en retard (regroupement par personne) ; faite le, cochée par.
+  late: boolean;
+  doneInfo: TaskLineDone | null;
 };
+
+function doneByName(task: TaskLineSource, context: TaskLineContext): { by: string; byInSentence: string } | null {
+  const by = task.doneBy;
+  if (!by) return null;
+  if (by.kind === "clients") {
+    const clients = context.clientsLabel(task.eventId);
+    return { by: clients, byInSentence: clients.toLocaleLowerCase("fr") };
+  }
+  if (by.kind === "vendor") return { by: context.t("doneByVendorName"), byInSentence: context.t("doneByVendor") };
+  const member = by.userId ? context.members.find((candidate) => candidate.id === by.userId) : undefined;
+  if (!member) return null;
+  if (member.me) return { by: context.t("you"), byInSentence: context.t("doneByYou") };
+  const name = member.shortName ?? member.name;
+  return { by: name, byInSentence: name };
+}
 
 function whoOf(task: TaskLineSource, context: TaskLineContext): { name: string; initials: string | null } {
   const { t } = context;
@@ -121,6 +151,11 @@ export function responsibleValueOf(task: Pick<TaskLineSource, "responsible" | "v
   return task.responsible;
 }
 
+function doneInfoOf(task: TaskLineSource, doneAt: string, format: NonNullable<TaskLineContext["formatDone"]>, context: TaskLineContext): TaskLineDone {
+  const who = doneByName(task, context);
+  return { ...format(doneAt), by: who?.by ?? null, byInSentence: who?.byInSentence ?? null };
+}
+
 export function buildTaskLine(task: TaskLineSource, context: TaskLineContext): TaskLineView {
   return {
     id: task.id,
@@ -136,5 +171,7 @@ export function buildTaskLine(task: TaskLineSource, context: TaskLineContext): T
     priority: task.priority === "high",
     done: task.done,
     responsibleValue: responsibleValueOf(task),
+    late: !task.done && task.dueState?.kind === "late",
+    doneInfo: task.done && task.doneAt && context.formatDone ? doneInfoOf(task, task.doneAt, context.formatDone, context) : null,
   };
 }

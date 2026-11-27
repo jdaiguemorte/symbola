@@ -56,6 +56,7 @@ import { TaskPanelLoader, panelFromQuery } from "@/app/ui/task-panel-loader";
 import { TaskLineBoard } from "@/app/ui/task-line-board";
 import { TaskFiltersForm } from "@/app/ui/task-filters-form";
 import { buildTaskLines, clientsTerms, engagedVendors, linesByMonth } from "@/lib/tasks/task-lines";
+import { nameInitials } from "@/lib/tasks/task-line";
 import { filterEventTasks, filterFormValues, filtersQuery, readEventTaskFilters } from "@/lib/tasks/event-task-filters";
 import { legacyTaskTabRedirect } from "@/lib/tasks/task-tab";
 import { ensureTaskCategories } from "@/lib/events/task-categories";
@@ -1157,7 +1158,8 @@ export default async function EventDetailPage({
                 shortcuts={taskLines.shortcuts}
                 assignOptions={taskLines.assignOptions}
                 categories={taskCategories.map((category) => ({ value: category.id, label: category.label }))}
-                members={taskMembers.filter((member) => !member.removed).map((member) => ({ value: `member:${member.id}`, label: member.me ? tLine("you") : member.name }))}
+                members={taskMembers.filter((member) => !member.removed).map((member) => ({ value: `member:${member.id}`, label: member.me ? tLine("you") : member.name, initials: member.initials ?? nameInitials(member.name) }))}
+                clientsLabel={(await clientsTerms(organizationId, locale))(event.id)}
               />
             ) : null}
           </section>

@@ -63,7 +63,6 @@ export const HELP_SCREENS: HelpScreen[] = [
   { key: "followUps", group: "events", audience: "team", module: "events", path: "/parametres/relances", capture: true },
   // Lot 53 (HUB-24, CHR-10) : termes des clients par type, tâches hors évènement (écran Tâches).
   { key: "clientTerms", group: "events", audience: "team", module: "events", path: "/events/parametres/termes", capture: false },
-  { key: "standaloneTasks", group: "events", audience: "team", module: "events", path: "/taches", capture: false },
   // Lot 49 (INV-01 à INV-04, INV-07) : onglet Invités de la fiche, liste des régimes et allergies.
   { key: "guests", group: "events", audience: "team", module: "guests", path: null, capture: false },
   { key: "dietaryOptions", group: "events", audience: "team", module: "guests", path: "/events/parametres/regimes", capture: false },

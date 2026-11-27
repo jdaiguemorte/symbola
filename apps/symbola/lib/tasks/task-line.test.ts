@@ -102,3 +102,21 @@ describe("UX-06, UX-05 — L'état d'une échéance se lit sans la couleur (lot 
     for (const state of kinds) expect(dueWords(state, t)?.kind).not.toBe("late");
   });
 });
+
+describe("Lot 70d, D1 — une tâche faite dit quand et par qui elle a été cochée", () => {
+  const done = { ...context, formatDone: (instant: string) => ({ day: instant.slice(0, 10), date: `le ${instant.slice(0, 10)}`, time: "14 h 40" }) };
+
+  it("faite par vous, par un collègue, par les mariés ; « non connu » ne nomme personne (A9)", () => {
+    const at = "2026-11-25T13:40:00.000Z";
+    expect(buildTaskLine(task({ done: true, doneAt: at, doneBy: { kind: "member", userId: ME } }), done).doneInfo).toEqual({ day: "2026-11-25", date: "le 2026-11-25", time: "14 h 40", by: "you", byInSentence: "doneByYou" });
+    expect(buildTaskLine(task({ done: true, doneAt: at, doneBy: { kind: "member", userId: BASTIEN } }), done).doneInfo?.by).toBe("Bastien");
+    expect(buildTaskLine(task({ done: true, doneAt: at, doneBy: { kind: "clients", userId: null } }), done).doneInfo).toMatchObject({ by: "Les mariés", byInSentence: "les mariés" });
+    expect(buildTaskLine(task({ done: true, doneAt: at, doneBy: null }), done).doneInfo?.by).toBeNull();
+    expect(buildTaskLine(task({ done: false, doneAt: null }), done).doneInfo).toBeNull();
+  });
+
+  it("une tâche faite n'est plus en retard ; une tâche à faire échue l'est", () => {
+    expect(buildTaskLine(task(), done).late).toBe(true);
+    expect(buildTaskLine(task({ done: true, doneAt: "2026-11-25T13:40:00.000Z" }), done).late).toBe(false);
+  });
+});

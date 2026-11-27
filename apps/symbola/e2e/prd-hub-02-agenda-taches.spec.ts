@@ -112,13 +112,22 @@ test("PRD-HUB-02 / HUB-08 — agenda des mariages, tâches cochées depuis « Au
   await first.getByRole("button", { name: "Fait « Relancer le traiteur »" }).click();
   await expect(first.getByText("Relancer le traiteur")).toHaveCount(0);
 
-  // Écran Tâches : toutes les tâches à faire, avec leur mariage ; filtre « Toutes ».
+  // Écran Tâches : toutes les tâches à faire, avec leur mariage ; filtre « État : Toutes » (lot 70d : un
+  // filtre nommé, dans la barre à l'ordinateur, dans le panneau « Filtres » sur téléphone).
   await clickMenuLink(page, "Tâches");
   await expect(page).toHaveURL(/\/taches/);
   await expect(page.getByRole("heading", { level: 1, name: "Tâches" })).toBeVisible();
   await expect(page.getByRole("link", { name: "Tâche lointaine", exact: true })).toBeVisible();
   await expect(page.getByRole("link", { name: "Relancer le traiteur", exact: true })).toHaveCount(0);
-  await page.getByRole("link", { name: "Toutes", exact: true }).click();
+  if ((page.viewportSize()?.width ?? 1440) < 640) {
+    await page.getByRole("button", { name: /^Filtres/ }).click();
+    await page.getByRole("dialog", { name: "Filtres" }).getByRole("combobox", { name: "État", exact: true }).selectOption({ label: "Toutes" });
+    await expect(page).toHaveURL(/etat=toutes/);
+    await page.getByRole("dialog", { name: "Filtres" }).getByRole("button", { name: /^Voir/ }).click();
+  } else {
+    await page.getByRole("form", { name: "Filtrer les tâches" }).getByRole("combobox", { name: "État", exact: true }).selectOption({ label: "Toutes" });
+    await expect(page).toHaveURL(/etat=toutes/);
+  }
   await expect(page.getByRole("link", { name: "Relancer le traiteur", exact: true })).toBeVisible();
   await expectNoAxeViolation(page);
 
