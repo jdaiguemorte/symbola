@@ -1032,7 +1032,9 @@ Tous tranchés le 27/11 par Julien.
 
 Relevés en écrivant `docs/lots/lot-73-prestataires.md` (§ 7 et § 8), à partir des maquettes du volet 4
 (`docs/audits/2026-11-ux-parcours/10-maquettes-prestataires.md`), dont Julien a confirmé les choix V1 à
-V14 le 27/11 (décision P1 du lot). **Tranchés le 27/11 par Julien** avec les décisions P2 et P14 du lot.
+V14 le 27/11 (décision P1 du lot). **Tranchés le 27/11 par Julien** avec les décisions P2 et P14 du lot ;
+spécification validée le même jour (« Je valide le lot 73 »), accord compris pour les migrations 0234
+(`vendors`), 0235 (`events`) et 0236 (`hub`).
 
 1. **« Pressenti » remplacé à l'écran par « en comparaison » (PRE-02, choix V7, décision P2)**. Le
    cahier des charges nomme les statuts « Pressenti, Consulté, Devis reçu, Retenu, Contrat signé,

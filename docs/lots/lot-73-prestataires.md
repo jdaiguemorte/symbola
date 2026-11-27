@@ -1,9 +1,10 @@
 # Lot 73 — Réaliser le volet 4 des maquettes : « Prestataires »
 
-**Statut** : **décisions P1 à P14 tranchées le 27/11/2026, en attente de la validation de Julien**
-(§ 7). Le lot change le schéma de données des modules `vendors`, `events` et `hub` (migrations 0234 à
-0236 ; `hub.message_templates` avec l'accord de Julien, P10) et deux parcours P0 (PAR-04, SC-04 « Un devis de traiteur
-dans le budget » ; PRE-01 et PRE-02) : il attend sa validation avant tout code (CLAUDE.md § 8).
+**Statut** : **spécification validée par Julien le 27/11/2026** (« Je valide le lot 73 »), décisions
+P1 à P14 tranchées le même jour (§ 7). La validation vaut accord pour les trois migrations 0234 (schéma
+`vendors`), 0235 (schéma `events`) et 0236 (schéma `hub`), donc pour toucher deux schémas qui ne sont
+pas celui du module « Prestataires » (`hub.message_templates` : P10). Le lot touche aussi deux parcours
+P0 (PAR-04, SC-04 « Un devis de traiteur dans le budget » ; PRE-01 et PRE-02).
 **Branche de la spécification** : `lot-73-prestataires` (une PR vers `main`, ce fichier et
 `docs/QUESTIONS.md` seulement). Chaque paquet aura ensuite sa branche `lot-73<x>-…` et sa PR.
 **Date** : 27/11/2026, par Claude Code.
