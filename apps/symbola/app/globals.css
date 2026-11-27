@@ -2090,6 +2090,10 @@
     .has-tabbar .app-topbar .quick-create-button {
       @apply inline-flex !h-11 !min-h-11 !w-11 !min-w-0 flex-none items-center justify-center rounded-full border-0 !bg-transparent !p-0 text-ink hover:!bg-ground;
     }
+    /* Les quatre commandes de la barre du haut se ressemblent : des icônes de 44 px, sans contour. */
+    .has-tabbar .app-topbar > .help-button {
+      @apply border-0 hover:!bg-ground;
+    }
     .has-tabbar .app-topbar .quick-create-label {
       @apply sr-only;
     }
@@ -2155,6 +2159,13 @@
       @apply absolute top-0 right-[22%] left-[22%] h-[3px] rounded-b-sm bg-primary;
       content: "";
     }
+    /* « Plus » ouvert : lui seul est allumé (maquette). */
+    .app-tabbar:has(.app-tabbar-more[aria-expanded="true"]) a[aria-current="page"] {
+      @apply font-medium !text-ink-muted;
+    }
+    .app-tabbar:has(.app-tabbar-more[aria-expanded="true"]) a[aria-current="page"]::before {
+      @apply hidden;
+    }
     .app-tabbar .app-nav-label,
     .app-tabbar .app-tabbar-label {
       @apply block max-w-full truncate;
@@ -2211,7 +2222,14 @@
       @apply m-0;
     }
     .app-sheet-switch > summary {
-      @apply flex min-h-[52px] cursor-pointer flex-col justify-center px-4 text-body text-ink;
+      @apply flex min-h-[52px] w-full cursor-pointer flex-col items-start justify-center rounded-none border-0 bg-transparent px-4 text-left text-body font-normal text-ink;
+    }
+    .app-sheet-switch,
+    .app-sheet-switch[open] {
+      @apply m-0 max-w-none rounded-none border-0 bg-transparent p-0;
+    }
+    .app-sheet-switch[open] > summary {
+      @apply mb-0;
     }
     .app-sheet-switch > summary .meta {
       @apply text-label text-ink-muted;
