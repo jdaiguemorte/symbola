@@ -819,7 +819,11 @@ export default async function EventDetailPage({
             <dl className="identity-facts">
               <dt>{t("guestsLabel")}</dt>
               {/* Lot 49 (EVT-03) : avec le module Invités, le nombre confirmé vient des réponses. */}
-              <dd>{t("guestsSummary", { estimated: event.guestsEstimated === null ? notProvided(null) : String(event.guestsEstimated), confirmed: guestSummary ? String(guestSummary.confirmed) : event.guestsConfirmed === null ? notProvided(null) : String(event.guestsConfirmed) })}
+              {/* Lot 71f : sur un mariage repris, un nombre absent se dit une fois « non renseigné ». */}
+              <dd className={checklist && event.guestsEstimated === null && event.guestsConfirmed === null && !guestSummary ? "muted" : undefined}>
+                {checklist && event.guestsEstimated === null && event.guestsConfirmed === null && !guestSummary
+                  ? tSheet("notProvided")
+                  : t("guestsSummary", { estimated: event.guestsEstimated === null ? "—" : String(event.guestsEstimated), confirmed: guestSummary ? String(guestSummary.confirmed) : event.guestsConfirmed === null ? "—" : String(event.guestsConfirmed) })}
                 {showProvenance ? provenanceMark("guests") : null}
                 {/* Lot 48a (PRE-06) : invités au-delà de la capacité du lieu de réception. */}
                 {venueChecks ? <VenueCapacityNotice finding={venueChecks.capacity} /> : null}
@@ -1033,7 +1037,9 @@ export default async function EventDetailPage({
             ) : null}
             {/* Lot 67c (BUD-02 ; recette du 24/11/2026, R06) : les totaux en tête, sans descendre au pied
                 d'un tableau de vingt lignes (qui les garde). */}
-            {budgetRows && vendorSlots.length > 0 ? (
+            {/* Lot 71f : tant que le total du fichier reste à répartir, ses tuiles tiennent lieu de totaux (pas
+                de « 0,00 € » pour ce qui n'est pas encore réparti). */}
+            {budgetRows && vendorSlots.length > 0 && !(unallocated && unallocated.remainingCents > 0) ? (
               <dl className="health-tiles budget-totals" aria-label={tBudgetVendors("totalsLabel")}>
                 <div>
                   <dt>{tBudgetVendors("columnPlanned")}</dt>
