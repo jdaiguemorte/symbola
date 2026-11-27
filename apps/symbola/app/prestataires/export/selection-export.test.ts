@@ -18,7 +18,7 @@ const labels: ExportLabels = {
 };
 
 // Lot 73a : une ligne du carnet porte aussi contact, téléphone, mariages ensemble et état des pièces.
-const LIST_EXTRAS = { contactName: null, phone: null, workedWithCount: 0, documentState: { state: "none_requested" as const, document: null, othersToSettle: 0, reason: null } };
+const LIST_EXTRAS = { contactName: null, phone: null, email: null, workedWithCount: 0, documentState: { state: "none_requested" as const, document: null, othersToSettle: 0, reason: null } };
 
 describe("L11-PRE-11 — Exporter une sélection", () => {
   it("une ligne par prestataire, trajet estimé et étiquettes ; une cellule « = » est neutralisée", () => {

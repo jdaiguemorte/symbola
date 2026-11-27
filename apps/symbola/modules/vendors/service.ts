@@ -59,6 +59,11 @@ import {
   countRealVendors,
   archiveVendorRow,
   unarchiveVendorRow,
+  archiveVendorRows,
+  unarchiveVendorRows,
+  setVendorsTagRows,
+  restoreVendorsTagRows,
+  writeVendorsTypeLinks,
   deleteDemoVendors,
   deleteVendorFileRow,
   deleteVendorTag,
@@ -745,6 +750,87 @@ export async function unarchiveVendor(organizationId: string, vendorId: string):
   return unarchiveVendorRow(organizationId, vendorId);
 }
 
+// Lot 73b (PRE-01, UX-07, UX-15 ; spécification du lot 73, § 4.2, § 4.5 et § 5.2, critères 7 et 9) — les
+// actions en lot du carnet. Une seule fiche (ou un seul métier) hors de l'organisation fait refuser tout le
+// lot par le même message qu'une fiche inexistante (SEC-13) ; rien n'est alors écrit. Au plus 500 fiches.
+export const VENDOR_BULK_MAX = 500;
+
+function bulkIds(vendorIds: string[]): string[] {
+  const ids = [...new Set(vendorIds)];
+  if (ids.length === 0 || ids.length > VENDOR_BULK_MAX || ids.some((id) => !UUID.test(id))) throw new VendorNotFoundError();
+  return ids;
+}
+
+export type VendorTagsSnapshot = { id: string; tagIds: string[] }[];
+
+// « Ajouter une étiquette… » : l'étiquette s'ajoute aux fiches qui ne l'ont pas ; dans un groupe « palier »
+// (un seul choix), elle remplace l'autre palier du groupe. Rend les étiquettes d'avant des fiches changées.
+export async function tagVendors(organizationId: string, vendorIds: string[], tagId: string): Promise<{ changed: number; previous: VendorTagsSnapshot }> {
+  const ids = bulkIds(vendorIds);
+  if (!UUID.test(tagId)) throw new VendorTagNotFoundError();
+  const [tags, groups] = await Promise.all([findVendorTags(organizationId), findVendorTagGroups(organizationId)]);
+  const tag = tags.find((candidate) => candidate.id === tagId);
+  if (!tag) throw new VendorTagNotFoundError();
+  const exclusive = tag.groupId !== null && groups.some((group) => group.id === tag.groupId && group.exclusive);
+  const siblings = new Set(exclusive ? tags.filter((candidate) => candidate.groupId === tag.groupId && candidate.id !== tagId).map((candidate) => candidate.id) : []);
+  const previous = await setVendorsTagRows(organizationId, ids, (current) => (current.includes(tagId) ? current : [...current.filter((id) => !siblings.has(id)), tagId]));
+  if (!previous) throw new VendorNotFoundError();
+  return { changed: previous.length, previous };
+}
+
+// Son « Annuler » : chaque fiche retrouve ses étiquettes d'avant (étiquettes encore de l'organisation).
+export async function restoreVendorsTags(organizationId: string, previous: VendorTagsSnapshot): Promise<number> {
+  const ids = bulkIds(previous.map((entry) => entry.id));
+  const known = new Set((await findVendorTags(organizationId)).map((tag) => tag.id));
+  const cleaned = previous.filter((entry) => ids.includes(entry.id)).map((entry) => ({ id: entry.id, tagIds: [...new Set(entry.tagIds)].filter((id) => known.has(id)) }));
+  const restored = await restoreVendorsTagRows(organizationId, cleaned);
+  if (restored === null) throw new VendorNotFoundError();
+  return restored;
+}
+
+// « Archiver… » en lot : elles quittent le carnet, pas les mariages où elles sont. Rend celles qui ont été
+// archivées par ce geste (« Annuler » ne rend qu'elles).
+export async function archiveVendors(organizationId: string, vendorIds: string[]): Promise<string[]> {
+  const archived = await archiveVendorRows(organizationId, bulkIds(vendorIds));
+  if (!archived) throw new VendorNotFoundError();
+  return archived;
+}
+
+export async function unarchiveVendors(organizationId: string, vendorIds: string[]): Promise<number> {
+  const restored = await unarchiveVendorRows(organizationId, bulkIds(vendorIds));
+  if (restored === null) throw new VendorNotFoundError();
+  return restored;
+}
+
+// « Classer » (spécification, § 4.2) : un métier pour plusieurs fiches. Une fiche « à classer » (sans
+// métier, ou dont aucun métier n'a de famille) prend le nouveau comme principal et garde les autres ; une
+// fiche déjà classée le garde et prend le nouveau en plus. « replaces » (« Revoir », P13) : le métier que
+// la planner change sur l'écran ; il cède sa place au nouveau, qui devient principal.
+export type VendorTypeAssignment = { vendorId: string; typeId: string; replaces?: string | null | undefined };
+
+export async function setVendorsPrimaryType(organizationId: string, assignments: VendorTypeAssignment[]): Promise<string[]> {
+  const ids = bulkIds(assignments.map((assignment) => assignment.vendorId));
+  if (ids.length !== assignments.length || assignments.some((assignment) => !UUID.test(assignment.typeId) || (assignment.replaces != null && !UUID.test(assignment.replaces)))) throw new VendorNotFoundError();
+  const types = await listVendorTypes(organizationId);
+  const familyOf = new Map(types.map((type) => [type.id, type.familyId]));
+  const changed = await writeVendorsTypeLinks(
+    organizationId,
+    (links) =>
+      assignments.flatMap((assignment) => {
+        const current = links.get(assignment.vendorId)?.typeIds ?? [];
+        const replaced = assignment.replaces && current.includes(assignment.replaces) ? assignment.replaces : null;
+        const others = current.filter((id) => id !== assignment.typeId && id !== replaced);
+        const unclassified = current.every((id) => !familyOf.get(id));
+        const next = replaced || unclassified ? [assignment.typeId, ...others] : [...current.filter((id) => id !== assignment.typeId), assignment.typeId];
+        return next.length === current.length && next.every((id, index) => id === current[index]) ? [] : [{ vendorId: assignment.vendorId, typeIds: next }];
+      }),
+    ids,
+    assignments.map((assignment) => assignment.typeId),
+  );
+  if (!changed) throw new VendorNotFoundError();
+  return changed;
+}
+
 export async function getVendor(organizationId: string, vendorId: string): Promise<Vendor | null> {
   if (!UUID.test(vendorId)) return null;
   const found = await findVendor(organizationId, vendorId);
@@ -856,6 +942,7 @@ export async function findVendors(input: FindVendorsInput & { now?: Date }): Pro
         travel: distanceKm === null ? null : estimateTravel(distanceKm, settings),
         contactName: vendor.contactName,
         phone: vendor.phone,
+        email: vendor.email,
         workedWithCount: worked.get(vendor.id) ?? 0,
         documentState,
       } satisfies VendorListItem,

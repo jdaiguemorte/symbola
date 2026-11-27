@@ -212,6 +212,8 @@ export type VendorListItem = VendorSummary & {
   travel: TravelEstimate | null;
   contactName: string | null;
   phone: string | null;
+  // Lot 73b : « Écrire » au menu de la ligne.
+  email: string | null;
   workedWithCount: number;
   documentState: VendorDocumentState;
 };

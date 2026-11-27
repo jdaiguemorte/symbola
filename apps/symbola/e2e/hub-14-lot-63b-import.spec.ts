@@ -55,8 +55,10 @@ test("HUB-14 — import de prestataires : chargement visible, colonnes avec aper
 
   // Le bouton « Importer » de l'écran ouvre l'import réglé sur les prestataires. Lot 71b (I6) : il porte
   // le nom de l'écran, « Reprendre et importer ».
+  // Lot 73b : il est au menu « ⋯ » de l'en-tête du carnet.
   await page.goto("/prestataires");
-  await page.getByRole("link", { name: "Reprendre et importer", exact: true }).click();
+  await page.getByRole("button", { name: "Autres actions du carnet" }).click();
+  await page.getByRole("menuitem", { name: "Reprendre et importer" }).click();
   await expect(page).toHaveURL(/\/import\?type=vendors/);
   await page.getByLabel("Fichier (CSV, Excel .xlsx ou JSON)").setInputFiles({
     name: "prestataires-2026.csv",
@@ -128,11 +130,11 @@ test("HUB-14 — import de prestataires : chargement visible, colonnes avec aper
   // La liste filtrée sur l'import, pastille « Import du JJ/MM » retirable.
   await expect(page).toHaveURL(/\/prestataires\?import=/);
   await expect(page.getByText(/^Import du \d{2}\/\d{2}/)).toBeVisible();
-  await expect(page.getByText("3 résultats")).toBeVisible();
+  await expect(page.getByText("3 fiches sur 4, par nom")).toBeVisible();
   await expect(page.getByRole("link", { name: "Benjamin Dupuy" })).toHaveCount(0);
   await expectNoAxeViolation(page);
   await page.getByRole("link", { name: /^Retirer le filtre « Import du/ }).click();
-  await expect(page.getByText("4 résultats")).toBeVisible();
+  await expect(page.getByText("4 fiches, par nom")).toBeVisible();
 });
 
 test("CHR-08 — programme du jour J importé depuis le PDF de l'ancien logiciel : intervenants rattachés, ligne cachée des mariés importée cachée", async ({ page }) => {
