@@ -6,6 +6,7 @@
 // décale pas la ligne et que le pied de page (mentions légales, pagination) n'est jamais une ligne.
 import type { EventVendorsExportProfile } from "@symbola/starter-templates";
 import { decodeHtmlEntities, tidyText } from "../cleanup";
+import { neutralizeTexts } from "../neutralize";
 import type { PdfPage, PdfTextItem } from "../pdf";
 import { foldProgramText, frenchDate } from "./program-export";
 
@@ -24,7 +25,8 @@ export type EventVendorsExportRow = {
 
 export type EventVendorsExport = { eventDate: string | null; clients: string[]; rows: EventVendorsExportRow[] };
 
-export type EventVendorsExportResult = { ok: true; export: EventVendorsExport } | { ok: false; reason: "not_event_vendors_export" };
+// Lot 71a (SEC-21) : `neutralized`, le nombre de textes du fichier neutralisés (=, +, - ou @ en tête).
+export type EventVendorsExportResult = { ok: true; export: EventVendorsExport; neutralized: number } | { ok: false; reason: "not_event_vendors_export" };
 
 const COLUMNS = ["type", "name", "contact", "email", "phone", "instagram"] as const;
 type Column = (typeof COLUMNS)[number];
@@ -108,5 +110,9 @@ export function parseEventVendorsExport(
       planner: planner.has(roleKey(row.type)),
     }));
   if (rows.length === 0) return { ok: false, reason: "not_event_vendors_export" };
-  return { ok: true, export: { eventDate, clients, rows } };
+  // Lot 71a (SEC-21) : chaque texte lu passe par la neutralisation des cellules avant d'être gardé ;
+  // l'Instagram (« @compte ») n'est jamais gardé tel quel : validé, il devient une adresse
+  // (event-vendors-import-rules.ts, importedVendorInput).
+  const safe = neutralizeTexts({ eventDate, clients, rows }, new Set(["instagram"]));
+  return { ok: true, export: safe.value, neutralized: safe.neutralized };
 }
