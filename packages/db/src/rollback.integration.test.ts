@@ -1990,11 +1990,11 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
     expect(created!.status).toBe("option");
     // Lot 72a : « En préparation » n'existe qu'avant 0225 ; son annulation remet la valeur, que
     // l'annulation de 0132 doit encore ramener à « confirmé ».
-    // Lot 73a : ses migrations, plus récentes, s'annulent avant celles du 72a.
-    for (const tag of [...LOT_73A, ...LOT_72A]) await rollback(tag);
+    // Lot 73a, lot 72d : les migrations plus récentes s'annulent d'abord (NEWEST_FIRST, quel qu'en soit le nombre).
+    await rollbackThrough(LOT_72A[1]!);
     await inOrganization((tx) => tx`update events.events set status = 'in_preparation' where id = ${ids.confirmed!}`);
 
-    for (const tag of [...LOT_36.slice(LOT_73A.length + LOT_72A.length), ...LOT_35A, ...LOT_34B, ...LOT_34A]) await rollback(tag);
+    for (const tag of [...LOT_36.slice(LOT_36.indexOf(LOT_72A[1]!) + 1), ...LOT_35A, ...LOT_34B, ...LOT_34A]) await rollback(tag);
     const back = await inOrganization((tx) => tx<{ id: string; status: string }[]>`select id, status::text as status from events.events where id in (${ids.prospect!}, ${ids.confirmed!}, ${ids.done!}, ${ids.lost!})`);
     expect(Object.fromEntries(back.map((row) => [row.id, row.status]))).toEqual({ [ids.prospect!]: "prospect", [ids.confirmed!]: "confirmed", [ids.done!]: "done", [ids.lost!]: "lost" });
     expect(await hasColumn("events", "event_tasks", "offset_days")).toBe(false);

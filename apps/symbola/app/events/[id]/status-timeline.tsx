@@ -73,45 +73,24 @@ function Steps({ view, locale, labelId }: { view: EventTimelineView; locale: Loc
   );
 }
 
-// « Le contrat est signé… » : la question s'ouvre juste dessous (E2), avec « Signé le ».
-function SignGesture({ eventId, names, today, locale }: { eventId: string; names: string; today: string; locale: Locale }) {
+type ActionHandle<S> = { state: S; action: (formData: FormData) => void; pending: boolean };
+
+// « Le contrat est signé… » : la question s'ouvre juste dessous (E2), avec « Signé le ». L'état de l'action
+// est tenu par la frise : l'étape franchie, ce bouton disparaît, et le message de retour doit encore partir.
+function SignGesture({ eventId, names, today, sign }: { eventId: string; names: string; today: string; sign: ActionHandle<ContractSignedState> }) {
   const t = useTranslations("EventHeader.timeline");
-  const router = useRouter();
-  const feedback = useFeedback();
   const [asked, setAsked] = useState(false);
-  const [state, action, pending] = useActionState<ContractSignedState, FormData>(markContractSignedAction, {});
-  const [, undo] = useActionState<ChangeStatusFormState, FormData>(changeEventStatusAction, {});
+  const { state, action, pending } = sign;
   const id = useId();
   const button = useRef<HTMLButtonElement>(null);
   const field = useRef<HTMLInputElement>(null);
-  const announced = useRef<object | null>(null);
 
   useEffect(() => {
     if (asked) field.current?.focus();
   }, [asked]);
-
-  // Contrat signé : dit dans le message de retour, avec « Annuler » dix secondes (retour en demande).
   useEffect(() => {
-    if (!state.success || announced.current === state) return;
-    announced.current = state;
-    setAsked(false);
-    feedback?.show({
-      title: t("signedMessage", { names }),
-      detail: t("signedDetail", { date: shortDate(state.signedOn ?? today, locale) }),
-      action: {
-        kind: "undo",
-        label: t("undoSigned"),
-        run: () => {
-          const formData = new FormData();
-          formData.set("eventId", eventId);
-          formData.set("toStatus", "option");
-          startTransition(() => undo(formData));
-          feedback.show({ title: t("undoneSigned", { names }) });
-        },
-      },
-    });
-    router.refresh();
-  }, [state, feedback, names, t, today, locale, eventId, router, undo]);
+    if (state.success) setAsked(false);
+  }, [state]);
 
   return (
     <div className="event-gesture">
@@ -162,9 +141,9 @@ function SignGesture({ eventId, names, today, locale }: { eventId: string; names
   );
 }
 
-function Gesture(props: StatusTimelineProps) {
+function Gesture(props: StatusTimelineProps & { sign: ActionHandle<ContractSignedState> }) {
   const t = useTranslations("EventHeader.timeline");
-  if (props.view.gesture === "sign") return <SignGesture eventId={props.eventId} names={props.names} today={props.today} locale={props.locale} />;
+  if (props.view.gesture === "sign") return <SignGesture eventId={props.eventId} names={props.names} today={props.today} sign={props.sign} />;
   if (props.view.gesture === "close")
     return (
       <div className="event-gesture">
@@ -184,29 +163,13 @@ function Gesture(props: StatusTimelineProps) {
 }
 
 // La ligne d'état d'un évènement reporté, annulé ou archivé, et sa seule suite.
-function StatusLine(props: StatusTimelineProps) {
+function StatusLine(props: StatusTimelineProps & { restore: ActionHandle<ChangeStatusFormState>; confirm: ActionHandle<ChangeStatusFormState> }) {
   const t = useTranslations("EventHeader.timeline");
   const tEvents = useTranslations("Events");
-  const router = useRouter();
-  const feedback = useFeedback();
-  const [restoreState, restoreAction, restoring] = useActionState<ChangeStatusFormState, FormData>(reactivateEventAction, {});
-  const [confirmState, confirmAction, confirming] = useActionState<ChangeStatusFormState, FormData>(confirmPostponementAction, {});
+  const { state: restoreState, action: restoreAction, pending: restoring } = props.restore;
+  const { state: confirmState, action: confirmAction, pending: confirming } = props.confirm;
   const restoreRef = useRef<HTMLDialogElement>(null);
   const dateRef = useRef<HTMLDialogElement>(null);
-  const announced = useRef<object | null>(null);
-  useEffect(() => {
-    for (const [changed, title, dialog] of [
-      [restoreState, tEvents("statusRestoredMessage", { names: props.names }), restoreRef.current],
-      [confirmState, tEvents("statusChanged"), dateRef.current],
-    ] as const) {
-      if (changed.success && announced.current !== changed) {
-        announced.current = changed;
-        dialog?.close();
-        feedback?.show({ title });
-        router.refresh();
-      }
-    }
-  }, [restoreState, confirmState, feedback, props.names, tEvents, router]);
 
   const line = props.view.line!;
   if (line.kind === "archived") {
@@ -322,10 +285,54 @@ function StatusLine(props: StatusTimelineProps) {
 export function StatusTimeline(props: StatusTimelineProps) {
   const t = useTranslations("EventHeader");
   const tTimeline = useTranslations("EventHeader.timeline");
+  const tEvents = useTranslations("Events");
+  const router = useRouter();
+  const feedback = useFeedback();
   const sheet = usePopover();
   const opener = useRef<HTMLButtonElement>(null);
   const sheetTitle = useId();
-  if (props.view.line) return <StatusLine {...props} />;
+  // Les gestes de la frise ; tenus ici, car l'étape franchie, leur bouton disparaît (lot 70b : chaque
+  // changement est dit dans le message de retour).
+  const [signState, signAction, signing] = useActionState<ContractSignedState, FormData>(markContractSignedAction, {});
+  const [, undo] = useActionState<ChangeStatusFormState, FormData>(changeEventStatusAction, {});
+  const [restoreState, restoreAction, restoring] = useActionState<ChangeStatusFormState, FormData>(reactivateEventAction, {});
+  const [confirmState, confirmAction, confirming] = useActionState<ChangeStatusFormState, FormData>(confirmPostponementAction, {});
+  const announced = useRef<object | null>(null);
+  const { names, eventId, locale, today } = props;
+  useEffect(() => {
+    if (signState.success && announced.current !== signState) {
+      announced.current = signState;
+      // Contrat signé, avec « Annuler » dix secondes (retour en demande).
+      feedback?.show({
+        title: tTimeline("signedMessage", { names }),
+        detail: tTimeline("signedDetail", { date: shortDate(signState.signedOn ?? today, locale) }),
+        action: {
+          kind: "undo",
+          label: tTimeline("undoSigned"),
+          run: () => {
+            const formData = new FormData();
+            formData.set("eventId", eventId);
+            formData.set("toStatus", "option");
+            startTransition(() => undo(formData));
+            feedback.show({ title: tTimeline("undoneSigned", { names }) });
+          },
+        },
+      });
+      router.refresh();
+    }
+    for (const [changed, title] of [
+      [restoreState, tEvents("statusRestoredMessage", { names })],
+      [confirmState, tEvents("statusChanged")],
+    ] as const) {
+      if (changed.success && announced.current !== changed) {
+        announced.current = changed;
+        feedback?.show({ title });
+        router.refresh();
+      }
+    }
+  }, [signState, restoreState, confirmState, feedback, names, eventId, locale, today, tTimeline, tEvents, router, undo]);
+  const sign = { state: signState, action: signAction, pending: signing };
+  if (props.view.line) return <StatusLine {...props} restore={{ state: restoreState, action: restoreAction, pending: restoring }} confirm={{ state: confirmState, action: confirmAction, pending: confirming }} />;
   const currentIndex = props.view.steps.findIndex((step) => step.state === "current");
   const current = props.view.current;
   return (
@@ -333,7 +340,7 @@ export function StatusTimeline(props: StatusTimelineProps) {
       {/* À l'ordinateur : la frise sur une ligne, et le geste de l'étape suivante au bout. */}
       <div className="event-timeline-wide">
         <Steps view={props.view} locale={props.locale} />
-        <Gesture {...props} />
+        <Gesture {...props} sign={sign} />
       </div>
       {/* Sur téléphone : l'étape en cours, et « Les étapes » en panneau du bas (avec le geste). */}
       <p className="event-timeline-compact">
@@ -349,7 +356,7 @@ export function StatusTimeline(props: StatusTimelineProps) {
           {t("stepsTitle", { names: props.names })}
         </p>
         <Steps view={props.view} locale={props.locale} labelId={sheetTitle} />
-        <Gesture {...props} />
+        <Gesture {...props} sign={sign} />
         <button type="button" className="button-ghost" onClick={() => sheet.close()}>
           {t("close")}
         </button>

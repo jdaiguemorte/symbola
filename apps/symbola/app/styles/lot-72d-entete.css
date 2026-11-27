@@ -265,17 +265,22 @@
     .object-header-facts .object-header-date-short::before {
       @apply hidden;
     }
-    .event-timeline-compact {
-      @apply m-0 mt-1 flex flex-wrap items-center gap-x-1 text-body;
+    .event-sheet .object-header-facts {
+      @apply mt-0;
     }
+    .event-timeline-compact {
+      @apply m-0 flex flex-wrap items-center gap-x-1 text-body;
+    }
+    /* La cible garde ses 44 px ; la ligne n'en prend que la hauteur du texte (onglets à 224 px au plus). */
     .event-steps-open {
-      @apply !px-1;
+      @apply -my-2 !px-1;
     }
     .event-menu-title {
       @apply m-0 block px-2 pb-2 text-body-strong;
     }
 
     .event-tabbar {
+      @apply mt-0;
       top: var(--app-topbar-height);
     }
     .event-tabbar-summary {

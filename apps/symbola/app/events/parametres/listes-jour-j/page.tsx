@@ -30,7 +30,7 @@ export default async function DayChecklistTemplatesPage() {
       <h1>{t("title")}</h1>
       <ScreenHelp title={tHelp("dayChecklists.title")} body={tHelp("dayChecklists.body")} />
       {/* Lot 72d (EVT-02 ; J9) : en tête de l'écran, le délai de « Ouvrir le Jour J » dans l'en-tête de la fiche. */}
-      <section className="card" aria-label={t("lead.label")}>
+      <section className="card">
         <DayOfLeadDaysForm days={leadDays} />
       </section>
       <p>{t("intro")}</p>

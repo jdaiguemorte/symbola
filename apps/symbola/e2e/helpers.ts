@@ -104,10 +104,10 @@ export async function openEventTab(page: Page, name: string): Promise<void> {
   const pattern = new RegExp(`^(?:${escaped}|${short}(?: |$))`);
   const tab = tabs.getByRole("tab", { name: pattern });
   if (!(await tab.isVisible())) {
-    const more = page.getByRole("button", { name: "Autres sections de l'évènement" });
+    const more = page.getByRole("button", { name: "Plus de sections de l'évènement" });
     if (await more.isVisible()) {
       await more.click();
-      await page.getByRole("menu", { name: "Autres sections de l'évènement" }).getByRole("menuitem", { name: pattern }).click();
+      await page.getByRole("menu", { name: "Plus de sections de l'évènement" }).getByRole("menuitem", { name: pattern }).click();
       await expect(tab).toHaveAttribute("aria-selected", "true");
       return;
     }

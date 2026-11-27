@@ -132,8 +132,11 @@ export function EventTabs({ tabs, current, panelId, summary }: { tabs: EventTab[
     const tablist = list.current;
     const active = tablist?.querySelector<HTMLElement>("[aria-selected=true]");
     if (tablist && active && tablist.scrollWidth > tablist.clientWidth) {
-      const left = active.offsetLeft - tablist.offsetLeft;
-      if (left < tablist.scrollLeft || left + active.offsetWidth > tablist.scrollLeft + tablist.clientWidth) tablist.scrollLeft = Math.max(0, left - (tablist.clientWidth - active.offsetWidth) / 2);
+      // Amené entier dans le cadre de la barre, avec un peu d'air (la flèche est à côté, pas dessus).
+      const frame = tablist.getBoundingClientRect();
+      const box = active.getBoundingClientRect();
+      if (box.right > frame.right) tablist.scrollLeft += box.right - frame.right + 16;
+      else if (box.left < frame.left) tablist.scrollLeft -= frame.left - box.left + 16;
     }
     layout();
   }, [current, layout]);

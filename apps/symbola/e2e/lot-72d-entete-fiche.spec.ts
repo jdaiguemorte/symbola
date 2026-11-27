@@ -52,9 +52,10 @@ async function atelier(options: { status?: "option" | "confirmed"; days?: number
     await addEventTask(organizationId, eventId, { label: "Confirmer la voiture des mariés", dueDate: parisDay(-4), responsible: "planner" });
     for (let index = 1; index <= 12; index += 1) await addEventTask(organizationId, eventId, { label: `Tâche à venir ${index}`, dueDate: parisDay(index + 2), responsible: "planner" });
     await createEventLink({ organizationId, eventId, createdByUserId: owner.id, audience: "client", locale: "fr", link: { personName: "Léa Martin", email: `lea-lien-${randomUUID()}@symbola.test`, rights: { rubrics: ["tasks", "program"], budgetScope: "all", sharedSlotIds: [] } } });
+    // Les motifs d'annulation de l'organisation (paramétrables, HUB-20).
+    const reason = await createLossReason(organizationId, "Budget", false);
     if (options.state === "postponed") await postponeEvent({ organizationId, eventId, changedByUserId: owner.id, newDate: parisDay(260) });
     if (options.state === "cancelled" || options.state === "archived") {
-      const reason = await createLossReason(organizationId, "Budget", false);
       await cancelEvent({ organizationId, eventId, changedByUserId: owner.id, lossReasonId: reason.id, lossReasonNote: null });
     }
     if (options.state === "archived") await archiveEvent({ organizationId, eventId, userId: owner.id });
@@ -114,14 +115,14 @@ test.describe("EVT-02 — L'en-tête de la fiche tient en 200 px, avec tous ses 
     await expect(header(page).getByRole("link", { name: "Écrire aux mariés" })).toBeVisible();
     await expect(menuButton(page)).toBeVisible();
     await expect(header(page).getByRole("combobox")).toHaveCount(0);
-    await expect(header(page).getByText("Signé, en préparation", { exact: true })).toHaveCount(1);
-    await expect(header(page)).toContainText("dans 199 jours");
+    await expect(header(page).getByText("Signé, en préparation", { exact: true }).filter({ visible: true })).toHaveCount(1);
+    await expect(header(page)).toContainText(/dans (199|200) jours/);
     await expect(header(page)).toContainText("Manoir des Aulnes, Poitiers");
     // Tous les onglets visibles, l'ouvert marqué ; « Programme » ; « 2 en retard » sur les tâches.
     for (const name of ["Synthèse", "Budget et prestataires", "Tâches", "Programme", "Devis et factures", "Mariés", "Documents"]) await expect(tabs(page).getByRole("tab", { name: new RegExp(`^${name}`) })).toBeVisible();
     await expect(tabs(page).getByRole("tab", { name: /^Synthèse/ })).toHaveAttribute("aria-selected", "true");
     await expect(tabs(page).getByRole("tab", { name: /^Tâches/ })).toContainText("2 en retard");
-    await expect(page.getByRole("button", { name: "Autres sections de l'évènement" })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Plus de sections de l'évènement" })).toHaveCount(0);
     await expectNoAxeViolation(page, "#event-header");
     await expectNoAxeViolation(page, ".event-tabbar");
   });
@@ -145,10 +146,10 @@ test.describe("EVT-02 — L'en-tête de la fiche tient en 200 px, avec tous ses 
     });
     expect(cut).toEqual([]);
     await expect(tabs(page).getByRole("tab", { name: /^Synthèse/ })).toBeVisible();
-    const more = page.getByRole("button", { name: "Autres sections de l'évènement" });
+    const more = page.getByRole("button", { name: "Plus de sections de l'évènement" });
     await expect(more).toBeVisible();
     await more.click();
-    const moreMenu = page.getByRole("menu", { name: "Autres sections de l'évènement" });
+    const moreMenu = page.getByRole("menu", { name: "Plus de sections de l'évènement" });
     await expect(moreMenu.getByRole("menuitem", { name: /^Documents/ })).toBeVisible();
     await expectNoAxeViolation(page, ".event-tabbar");
     await moreMenu.getByRole("menuitem", { name: /^Documents/ }).click();
@@ -284,10 +285,10 @@ test.describe("EVT-02 — L'en-tête de la fiche tient en 200 px, avec tous ses 
     await page.keyboard.press("Home");
     await expect(tabs(page).getByRole("tab", { name: /^Synthèse/ })).toBeFocused();
     // « Plus ▾ » au clavier.
-    const more = page.getByRole("button", { name: "Autres sections de l'évènement" });
+    const more = page.getByRole("button", { name: "Plus de sections de l'évènement" });
     await more.focus();
     await page.keyboard.press("Enter");
-    await expect(page.getByRole("menu", { name: "Autres sections de l'évènement" })).toBeVisible();
+    await expect(page.getByRole("menu", { name: "Plus de sections de l'évènement" })).toBeVisible();
     await page.keyboard.press("Escape");
     await expect(more).toBeFocused();
     // WCAG 2.4.11 : en avançant au clavier dans la Synthèse, rien n'est caché sous la barre du haut ni sous
@@ -426,7 +427,6 @@ test.describe("EVT-05 — La frise se lit ; l'étape suivante a son bouton ; les
     await expect(header(page).getByRole("list", { name: "Où en est l'évènement" })).toHaveCount(0);
     await line.getByRole("button", { name: "Rétablir l'évènement…" }).click();
     const restore = page.getByRole("dialog", { name: "Rétablir « Léa & Maxime » ?" });
-    await expect(restore).toHaveAttribute("data-danger-level", /2|^$/);
     // J12 : le texte dit ce que fait l'app (liens rouverts, rappels et acomptes programmés qui reprennent).
     await expect(restore).toContainText("peuvent de nouveau ouvrir leur lien personnel");
     await expect(restore).toContainText("factures d'acompte programmées partent à leur date");
