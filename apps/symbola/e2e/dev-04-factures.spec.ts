@@ -8,6 +8,7 @@ import { createAppConnection } from "@symbola/db/client";
 import { createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
 import { openEventTab, readyOrganization, signIn as signInByLink } from "./helpers";
+import { createEventByForm } from "./new-event";
 import { openQuoteForm, openQuoteRubric } from "./devis-rubriques";
 import { saveOnboardingStep } from "../modules/hub/service";
 
@@ -58,11 +59,7 @@ test("DEV-04 — facturer un devis signé (acompte, solde, avoir) puis exporter 
   await page.getByLabel("Nouvelle source").fill("Salon");
   await page.getByRole("button", { name: "Ajouter la source" }).click();
   await expect(page.getByText("Source ajoutée.")).toBeVisible();
-  await page.goto("/events/new");
-  await page.getByLabel(/^Prénom du premier marié( \*)?$/).fill("Inès");
-  await page.getByLabel("Nom du premier marié", { exact: true }).fill("Martin");
-  await page.getByLabel("Source du prospect").selectOption({ label: "Salon" });
-  await page.getByRole("button", { name: "Créer le prospect" }).click();
+  await createEventByForm(page, { name: "Inès", clientFirstName: "Inès", clientLastName: "Martin" });
   await expect(page.getByRole("heading", { name: "Inès" })).toBeVisible();
   await page.waitForLoadState("networkidle");
   await openEventTab(page, "Mes devis et factures");

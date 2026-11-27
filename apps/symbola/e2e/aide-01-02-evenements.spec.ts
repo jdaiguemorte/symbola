@@ -41,7 +41,7 @@ test("HUB-11 / AIDE-02 — visite du module évènements, puis essai guidé supp
   await expect(tour.getByRole("heading", { name: "La liste", level: 2 })).toBeFocused();
   await expectNoAxeViolation(page);
   await tour.getByRole("button", { name: "Suivant" }).click();
-  await expect(tour.getByRole("heading", { name: "Nouveau prospect", level: 2 })).toBeVisible();
+  await expect(tour.getByRole("heading", { name: "Nouvel évènement", level: 2 })).toBeVisible();
   await expect(tour).toContainText("2 sur 5");
   await skipTour(page, "Liste des évènements");
 

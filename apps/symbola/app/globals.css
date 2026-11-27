@@ -1916,13 +1916,24 @@
   .app-topbar > .help-button {
     @apply ml-auto flex-none;
   }
+  /* Lot 70e (WCAG 2.4.11) : la barre fixe ne cache pas le champ qui reçoit le focus ni la cible d'une ancre. */
+  @media (min-width: 768px) {
+    html {
+      scroll-padding-top: 5.5rem;
+    }
+  }
   /* Lot 70e (C-12, C-13, M7) : la barre du haut reste en place quand la page défile, blanche, de 68 px,
      toutes ses commandes de 44 px ; elle déborde du remplissage de la page pour toucher ses bords. */
   .app-topbar {
-    @apply sticky top-0 z-40 -mx-4 -mt-6 min-h-[68px] border-b border-line bg-surface px-4 py-3 sm:-mx-8 sm:px-8 md:-mt-8;
+    @apply -mx-4 -mt-6 min-h-[68px] flex-wrap border-b border-line bg-surface px-4 py-3 sm:-mx-8 sm:px-8 md:sticky md:top-0 md:z-40 md:-mt-8 md:flex-nowrap;
+  }
+  /* Sur téléphone, la barre garde ses deux rangées et ne reste pas fixe : sa barre de 60 px est celle
+     du paquet 70f. */
+  .app-topbar > * {
+    @apply m-0;
   }
   .app-topbar .search-box {
-    @apply min-w-0 flex-1;
+    @apply min-w-0 flex-[1_1_100%] md:flex-1;
   }
   .app-topbar .search-box input,
   .app-topbar .quick-create-button,
@@ -3726,6 +3737,26 @@
   .quick-create-hint {
     @apply m-0 border-t border-line px-2 pt-2 text-label text-ink-muted max-md:hidden;
   }
+  /* Lot 70e (C-82, M7) : sans le bloc du compte (200 px de moins), le menu latéral tient en entier à
+     911 × 512 ; sur un écran bas, les lignes se resserrent (32 px, au-dessus du minimum de 24 px de
+     WCAG 2.5.8) au lieu de défiler. Sur les écrans plus hauts, rien ne change (44 px). */
+  @media (min-width: 768px) and (max-height: 640px) {
+    .app-sidebar {
+      @apply gap-2 py-3;
+    }
+    .app-collapsible {
+      @apply gap-2;
+    }
+    .app-nav {
+      @apply gap-0;
+    }
+    .app-nav a {
+      @apply min-h-8 py-0;
+    }
+    .app-sidebar-header {
+      @apply min-h-9;
+    }
+  }
   /* Lot 70e (D8, M12, M13) : « Nouvel évènement » — la question « Où en est-il ? » et la porte de reprise. */
   .standing-choice {
     @apply m-0 flex flex-col gap-2 border-0 p-0;
@@ -3753,7 +3784,7 @@
     @apply border-t border-line;
   }
   .account-menu-name {
-    @apply max-w-[12ch] truncate;
+    @apply max-w-[12ch] truncate max-sm:sr-only;
   }
   /* Lot 70e (M7) : le menu du compte, sous le prénom, dans la barre du haut. */
   .account-menu {
@@ -4765,7 +4796,7 @@
    notifications, réglages, automatisations, radar des risques, tâches hors évènement, santé expliquée. */
 @layer components {
   .notification-bell {
-    @apply relative ml-auto inline-flex h-10 w-10 flex-none items-center justify-center rounded-full text-ink hover:bg-ground;
+    @apply relative ml-auto inline-flex h-11 w-11 flex-none items-center justify-center rounded-full text-ink hover:bg-ground;
   }
   .app-topbar > .notification-bell + .help-button {
     @apply ml-0;

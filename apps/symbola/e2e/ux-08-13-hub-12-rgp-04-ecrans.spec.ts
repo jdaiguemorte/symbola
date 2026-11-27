@@ -73,7 +73,7 @@ test("UX-15 — un écran qui tarde laisse place à son squelette, puis à l'éc
   await expect(skeleton.getByRole("status")).toHaveText("Chargement de la page…");
   // L'écran courant laisse sa place : un seul contenu principal à la fois.
   await expect(page.getByRole("main")).toHaveCount(1);
-  await expect(page.getByRole("heading", { level: 1, name: "Nouveau prospect" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "Nouvel évènement" })).toBeVisible();
   await expect(skeleton).toHaveCount(0);
 });
 
@@ -131,8 +131,8 @@ test("HUB-12 — ⌘K propose aussi des actions, filtrées par les modules sousc
   const option = page.getByRole("option", { name: /Ouvrir la corbeille/ });
   await expect(option).toBeVisible();
   await expect(page.getByRole("group", { name: "Actions" })).toBeVisible();
-  await search.press("ArrowDown");
-  await search.press("Enter");
+  // Lot 70e (A15 bis) : les actions passent après les résultats, Entrée ouvre le premier résultat ; l'action se choisit.
+  await option.click();
   await expect(page).toHaveURL(/\/parametres\/corbeille$/);
 });
 

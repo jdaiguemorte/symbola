@@ -245,9 +245,9 @@ test("UX-10 — « Nouvel évènement » envoyé vide : les erreurs de Symbola, 
   await page.goto("/events/new");
   await page.waitForLoadState("networkidle");
   await page.getByRole("button", { name: /Créer/ }).last().click();
-  // Le prénom manquant se dit dans le vocabulaire du type (ADR 0045) : ici, un mariage.
-  await expect(page.getByText("Le prénom du premier marié est obligatoire.")).toBeVisible();
-  await expect(page.getByText("Choisissez d'où vient la demande.")).toBeVisible();
+  // Lot 70e : deux erreurs seulement, la réponse à « Où en est-il ? » et le nom.
+  await expect(page.getByText("Donnez un nom à l'évènement, par exemple « Léa & Maxime ».")).toBeVisible();
+  await expect(page.getByText("Choisissez où en est cet évènement.")).toBeVisible();
   await expect(page.getByRole("alert").filter({ hasText: "Erreur : 2 champs à remplir avant de créer l'évènement." })).toBeVisible();
   await expect(page).toHaveURL(/\/events\/new/);
   await expectNoAxeViolation(page, "main");

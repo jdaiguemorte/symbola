@@ -85,7 +85,8 @@ import { EditDialog } from "@/app/ui/edit-dialog";
 import { commitDecisionExpenseAction, replaceDecisionAction, retainDecisionChoiceAction, withdrawDecisionAction } from "./decision-actions";
 import { answerSentence } from "@/app/portail/client-decisions";
 import { choiceName, decisionLabel } from "@/app/portail/decision-label";
-import { requestAudience } from "@/lib/vocabulary";
+import { clientFieldLabelsByAudience, requestAudience } from "@/lib/vocabulary";
+import { AddClientForm, EventSourceForm } from "./event-origin-forms";
 import { ProgramEditor } from "./program-editor";
 import { ProgramShiftProposal, type ShiftProposalView } from "./program-shift";
 import { durationText } from "@/lib/program-spans";
@@ -1566,6 +1567,23 @@ export default async function EventDetailPage({
           <p className="meta">
             <Link href="/devis/modeles">{tQuotes("templatesLink")}</Link>
           </p>
+        </section>
+      ) : null}
+
+      {/* Lot 70e (A14) : la source et un client de plus, que « Nouvel évènement » ne demande plus. */}
+      {tab === "maries" && !event.archivedAt ? (
+        <section className="card" aria-labelledby="event-origin-title">
+          <h2 id="event-origin-title">{t("originTitle")}</h2>
+          <EventSourceForm eventId={event.id} sources={sources.map((candidate) => ({ id: candidate.id, label: candidate.label }))} current={event.prospectSourceId} />
+          {event.clients.length < 2 ? (
+            <AddClientForm
+              eventId={event.id}
+              labels={{
+                firstName: clientFieldLabelsByAudience(locale)[eventTypes.find((type) => type.id === event.eventTypeId)?.audience ?? "couple"][event.clients.length === 0 ? "client1FirstName" : "client2FirstName"],
+                lastName: clientFieldLabelsByAudience(locale)[eventTypes.find((type) => type.id === event.eventTypeId)?.audience ?? "couple"][event.clients.length === 0 ? "client1LastName" : "client2LastName"],
+              }}
+            />
+          ) : null}
         </section>
       ) : null}
 

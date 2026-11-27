@@ -68,22 +68,20 @@ test("HUB-07 / UX-03 / CRM-04 — créer un prospect, une tâche, une dépense e
   const setup = await atelier();
   await login(page, setup.email);
 
-  // Prospect depuis « Aujourd'hui » : « Créer », « Prospect », « Créer le prospect » (trois gestes).
+  // Évènement depuis « Aujourd'hui » : « Créer », « Nouvel évènement » (lot 70e : plus de « Prospect »).
   // La date choisie annonce les évènements du même jour, sans empêcher d'enregistrer (CRM-04).
   await page.getByRole("button", { name: "Créer", exact: true }).click();
-  await expect(quickMenu(page).getByRole("button")).toHaveText(["Prospect", "Tâche", "Dépense", "Devis"]);
-  await quickMenu(page).getByRole("button", { name: "Prospect" }).click();
-  const prospect = page.getByRole("dialog", { name: "Nouveau prospect" });
-  await prospect.getByLabel("Prénom du client").fill("Chloé");
-  await prospect.getByLabel("Source du contact").selectOption({ label: "Salon" });
-  await prospect.getByLabel("Date de l'évènement (facultatif)").fill(setup.date);
-  await expect(prospect.getByRole("status").filter({ hasText: "vous avez déjà" })).toContainText("Léa & Maxime (confirmé), Inès & Sacha (option)");
+  await expect(quickMenu(page).locator("strong")).toHaveText(["Nouvel évènement", "Tâche", "Prestataire", "Contact", "Devis", "Dépense"]);
+  await quickMenu(page).getByRole("link", { name: /^Nouvel évènement/ }).click();
+  await expect(page).toHaveURL(/\/events\/new$/);
+  await page.getByLabel(/^Nom de l'évènement/).fill("Chloé");
+  await page.getByLabel(/^Date/).fill(setup.date);
+  await expect(page.getByRole("status").filter({ hasText: "vous avez déjà" })).toContainText("Léa & Maxime (confirmé), Inès & Sacha (option)");
   await expectNoAxeViolation(page);
-  await prospect.getByRole("button", { name: "Créer le prospect" }).click();
-  await expect(prospect.getByRole("status").filter({ hasText: "Prospect Chloé créé." })).toBeVisible();
-  await expect(page).toHaveURL(/\/$/);
-  await prospect.getByRole("button", { name: "Fermer" }).click();
-  await expect(prospect).toBeHidden();
+  await page.getByRole("radio", { name: /^Une demande en cours/ }).check();
+  await page.getByRole("button", { name: "Créer l'évènement" }).click();
+  await expect(page).toHaveURL(/\/events\/[0-9a-f-]{36}/);
+  await expect(page.getByRole("heading", { level: 1, name: "Chloé" })).toBeVisible();
 
   // Tâche par la touche N, sur la fiche de Léa et Maxime : l'évènement de l'écran est proposé.
   await page.goto(`/events/${setup.lea}`);
@@ -167,7 +165,7 @@ test("HUB-07 / UX-03 / CRM-04 — créer un prospect, une tâche, une dépense e
   }
   await page.reload();
   await page.getByRole("button", { name: "Créer", exact: true }).click();
-  await expect(quickMenu(page).getByRole("button")).toHaveText(["Prospect", "Tâche", "Dépense"]);
+  await expect(quickMenu(page).locator("strong")).toHaveText(["Nouvel évènement", "Tâche pour Léa & Maxime", "Prestataire", "Contact", "Dépense pour Léa & Maxime"]);
 });
 
 test("EVT-07 / CHR-03 — le portefeuille en liste et en calendrier, la charge par mois, le calendrier des tâches", async ({ page }) => {
@@ -227,18 +225,15 @@ test("SEC-12 / SEC-13 — la création rapide et l'alerte de date ne touchent ja
   await login(page, other.email);
 
   // L'alerte de date annonce les évènements de l'agence, jamais ceux d'une autre.
-  await page.getByRole("button", { name: "Créer", exact: true }).click();
-  await quickMenu(page).getByRole("button", { name: "Prospect" }).click();
-  const prospect = page.getByRole("dialog", { name: "Nouveau prospect" });
-  const date = prospect.getByLabel("Date de l'évènement (facultatif)");
+  await page.goto("/events/new");
+  const date = page.getByLabel(/^Date/);
   await date.fill(other.date);
-  await expect(prospect.getByRole("status").filter({ hasText: "vous avez déjà" })).toContainText("Zoé (option)");
+  await expect(page.getByRole("status").filter({ hasText: "vous avez déjà" })).toContainText("Zoé (option)");
   const answered = page.waitForResponse((response) => response.request().method() === "POST");
   await date.fill(camille.date);
   await answered;
-  await expect(prospect.getByRole("status").filter({ hasText: "vous avez déjà" })).toHaveCount(0);
-  await expect(prospect).not.toContainText("Léa");
-  await prospect.getByRole("button", { name: "Fermer" }).click();
+  await expect(page.getByRole("status").filter({ hasText: "vous avez déjà" })).toHaveCount(0);
+  await expect(page.locator("main")).not.toContainText("Léa");
 
   // Un identifiant d'évènement forgé (celui de Camille) : refusé, rien n'est créé chez elle.
   await page.getByRole("button", { name: "Créer", exact: true }).click();

@@ -156,7 +156,7 @@ export function SearchBox({ actions = [] }: { actions?: PaletteAction[] }) {
         aria-expanded={expanded}
         aria-controls={`${listId}-list`}
         aria-autocomplete="list"
-        aria-activedescendant={active >= 0 ? `${listId}-option-${active}` : undefined}
+        aria-activedescendant={expanded && active >= 0 && flat.length > 0 ? `${listId}-option-${active}` : undefined}
       />
       <kbd className="search-box-shortcut" aria-hidden="true">
         {t("shortcut")}
