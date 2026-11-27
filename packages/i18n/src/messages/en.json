@@ -13436,5 +13436,109 @@
     "notFound": "This takeover cannot be found.",
     "oneSheet": "One sheet only for this wedding: drop its PDF on its own.",
     "backToTakeover": "Back to the takeover"
+  },
+  "TakeoverSheet": {
+    "origin": "Taken over on {date} {files, plural, =0 {} one {from # file} other {from # files}}",
+    "originLink": "See the takeover",
+    "checklistTitle": "To complete after the takeover",
+    "checklistCount": "{total, plural, one {# item} other {# items}} · {done} done",
+    "checklistLabel": "What is left to complete after the takeover",
+    "pointDone": "Done",
+    "point": {
+      "amounts": {
+        "title": "{count, plural, =0 {Amounts to allocate} one {Amount for # vendor} other {Amounts for # vendors}}",
+        "bodyRemaining": "Your file gave a total, not the detail: {amount} to allocate across the items.",
+        "body": "The planned amount of these items is not provided.",
+        "bodyDone": "Every retained item has its amount; nothing is left to allocate.",
+        "action": "Enter the amounts"
+      },
+      "contracts": {
+        "title": "{count, plural, =0 {Contracts} one {# unsigned contract} other {# unsigned contracts}}",
+        "body": "{names}: unsigned or not provided, as you said during the takeover. No reminder is created.",
+        "bodyDone": "The contracts taken over are signed.",
+        "action": "See the items"
+      },
+      "tasks": {
+        "title": "Tasks",
+        "body": "Left in your former tool. Deadlines already past will not be marked late.",
+        "bodyDone": "The wedding's tasks are here.",
+        "action": "Take over a list",
+        "actionTemplate": "Start from a template"
+      },
+      "endTimes": {
+        "title": "{count, plural, =0 {Programme end times} one {# end time in the programme} other {# end times in the programme}}",
+        "body": "Not provided in the file. The programme shows “to complete” while they are missing.",
+        "bodyDone": "Every moment of the programme has its end time.",
+        "action": "Complete"
+      },
+      "clientLink": {
+        "title": "The couple's personal link",
+        "body": "So they can see their programme and documents.",
+        "bodyDone": "The couple have their link.",
+        "action": "Create the links"
+      },
+      "guests": {
+        "title": "Number of guests",
+        "body": "Not provided in the files taken over.",
+        "bodyDone": "The number of guests is entered.",
+        "action": "Enter"
+      }
+    },
+    "completed": "Takeover completed on {date}",
+    "completedBody": "{count, plural, one {The item is done.} other {All # items are done.}}",
+    "completedReview": "Review the list",
+    "planningNoOpinion": "No tasks yet: no opinion",
+    "budgetFromFile": "{amount} actual",
+    "budgetEnvelope": "envelope {envelope}",
+    "budgetFromFileDetail": "According to your file; {paid} paid; {allocated} allocated across the items.",
+    "vendorsSummary": "{retained} retained · {signed, plural, =0 {no signed contract} one {# signed contract} other {# signed contracts}}",
+    "notProvided": "not provided",
+    "sourceNotProvided": "not provided",
+    "signedOn": "Signed on",
+    "provenanceShow": "Where do these values come from?",
+    "provenanceHide": "Hide where the values come from",
+    "provenanceYou": "you, during the takeover",
+    "provenanceFile": "File: {file}",
+    "unallocatedTitle": "To complete: {amount} actual according to your file, of which {paid} paid.",
+    "unallocatedBody": "Your former tool did not export the detail per vendor. Enter the amount of each item: the amount left to allocate goes down as you go.",
+    "unallocatedTiles": "What your file says",
+    "tileEnvelope": "envelope",
+    "tileFromFile": "actual according to the file",
+    "tileAllocated": "allocated across the items",
+    "tileRemaining": "left to allocate",
+    "contract": {
+      "signed": "contract signed",
+      "unsigned": "contract not signed",
+      "unknown": "contract not provided"
+    },
+    "markFiles": "Taken over · {settled} of {total} files",
+    "markPoints": "Taken over · {count, plural, one {# item to complete} other {# items to complete}}",
+    "markLabel": "{mark} — open the takeover of {event}",
+    "originFilter": "Origin",
+    "originAll": "All",
+    "originTakeover": "Taken over",
+    "originCreated": "Created in Symbola",
+    "inProgressTitle": "Takeovers in progress",
+    "inProgressCount": "{count, plural, one {# wedding} other {# weddings}}",
+    "inProgressFiles": "{settled} of {total} files",
+    "inProgressRunning": "import {step} in progress",
+    "inProgressFinished": "takeover finished {when}",
+    "inProgressPoints": "{count, plural, one {# item to complete} other {# items to complete}}",
+    "inProgressSeeRest": "See what is left",
+    "inProgressContinue": "Continue",
+    "inProgressSeeRestFor": "See what is left for {event}",
+    "inProgressContinueFor": "Continue the takeover of {event}",
+    "today": "today",
+    "yesterday": "yesterday",
+    "onDate": "on {date}",
+    "runningStep": {
+      "vendor_book": "of the vendor book",
+      "event": "of the event sheet",
+      "budget": "of the budget",
+      "event_vendors": "of the retained vendors",
+      "tasks": "of the tasks",
+      "program": "of the programme"
+    },
+    "vendorCompletion": "{complete, plural, =0 {No complete item} one {# complete item} other {# complete items}} of {total}"
   }
 }

@@ -15,7 +15,13 @@ import { isFloorplansAvailable } from "@/app/plans-de-salle/access";
 import { ProspectExchanges } from "./prospect-exchanges";
 import { appDatabase } from "@symbola/db/client";
 import { clientTermForEvent, getEvent, getEventProgram, getEventProgramPublication, listProgramRecipients, proposeProgramShift, getEventStatusDates, closingDue, eventNames, getTaskRecalculation, previewTaskRecalculation, getActiveEventsTrial, listEventActivity, getEventProspectRequest, listEventDecisions, listEventDocuments, listEventDayContacts, listDayDocumentChoices, listEventLinks, listLinkProfiles, listEventTasks, periodRange, listEventVendorSlots, listVendorCandidates, listVendorFollowUps, listEventPlaces, listTaskTemplates, listLossReasons, listProgramTemplates, listProspectSources, summarizeVendorSlots, type EventVendorSlot, getEventIdentityState } from "@/modules/events/service";
-import { getEventBudget, listBudgetLines } from "@/modules/budget/service";
+import { getEventBudget, getUnallocatedTotals, listBudgetLines } from "@/modules/budget/service";
+import { getEventSignedOn } from "@/modules/events/service";
+import { taskListViewer } from "@/lib/event-visibility";
+import { loadEventChecklist, slotPlannedAmounts } from "@/lib/takeover/checklist";
+import { completeSlots } from "@/lib/takeover/checklist-rules";
+import { loadEventProvenance, type ProvenanceRow } from "@/lib/takeover/provenance";
+import { FileText } from "lucide-react";
 import { confirmEventBudgetAction } from "@/app/budget/[eventId]/actions";
 import { listEventQuotes, listQuoteInvoices, listQuoteTemplates } from "@/modules/quotes/service";
 import { createQuoteAction, startQuotesTrialAction } from "@/app/devis/actions";
@@ -115,7 +121,7 @@ const LINK_STATUS_KEYS = {
 const TABS = ["apercu", "budget", "taches", "programme", "devis", "maries", "documents", "invites"] as const;
 type Tab = (typeof TABS)[number];
 
-type SearchParams = { importer?: string; reprendre?: string; reprise?: string; cote?: string; groupe?: string; sansReponse?: string; suppression?: string; exemple?: string; onglet?: string; poste?: string; tache?: string; vue?: string; qui?: string; filtre?: string; visite?: string; decalage?: string; depuis?: string; fait?: string; evenement?: string; modifier?: string; periode?: string; categorie?: string; etat?: string; nouvelle?: string; copie?: string };
+type SearchParams = { importer?: string; reprendre?: string; reprise?: string; cote?: string; groupe?: string; sansReponse?: string; suppression?: string; exemple?: string; onglet?: string; poste?: string; tache?: string; vue?: string; qui?: string; filtre?: string; visite?: string; decalage?: string; depuis?: string; fait?: string; evenement?: string; modifier?: string; periode?: string; categorie?: string; etat?: string; nouvelle?: string; copie?: string; provenance?: string; revoir?: string };
 
 // Lot 28a (PRE-02) : postes pourvus (un prestataire retenu) ou non requis.
 const SETTLED_SLOT_STATUSES = new Set<string>(["retained", "contract_signed", "paid_off", "not_required"]);
@@ -472,6 +478,29 @@ export default async function EventDetailPage({
   const tToday = await getTranslations("Today");
   const clientTerm = await clientTermForEvent(organizationId, event.id, locale === "en" ? "en" : "fr");
 
+  // Lot 71f (EVT-02 ; R7 à R9, I7 ; maquette 09) : la reprise du mariage (null pour un mariage créé dans
+  // Symbola : rien ne change pour lui), ses points « À compléter », la provenance de ses valeurs, et les
+  // postes complets (un prestataire retenu et un prévu connu) pour tous les mariages.
+  const tSheet = await getTranslations("TakeoverSheet");
+  const checklist = await loadEventChecklist(organizationId, id, { viewer: await taskListViewer(auth), today });
+  const showProvenance = Boolean(checklist) && tab === "apercu" && query.provenance === "1";
+  const provenance = showProvenance && checklist ? await loadEventProvenance(organizationId, id, checklist.takeover) : {};
+  const signedOn = checklist && tab === "apercu" ? await getEventSignedOn(organizationId, id) : null;
+  const slotBudget = budgetView ?? ((await isBudgetModuleEnabled(organizationId)) ? await listBudgetLines(organizationId, id) : null);
+  const slotCompletion = slotBudget ? completeSlots(slotPlannedAmounts(vendorSlots, slotBudget.categories)) : { complete: progress.booked, total: progress.required };
+  const unallocated = checklist && slotBudget ? await getUnallocatedTotals(organizationId, id) : null;
+  const notProvided = (value: string | null | undefined) => (value ? value : checklist ? tSheet("notProvided") : "—");
+  const provenanceMark = (row: ProvenanceRow) => {
+    const source = provenance[row];
+    if (!source) return null;
+    return (
+      <span className="provenance-mark">
+        <FileText size={14} aria-hidden="true" /> {source.kind === "you" ? tSheet("provenanceYou") : tSheet("provenanceFile", { file: source.fileName })}
+      </span>
+    );
+  };
+  const retainedVendors = vendorSlots.flatMap((slot) => slot.retainedVendors);
+
   // AIDE-05 : visite focus de la fiche, à la première ouverture.
   const tour = await loadPageTour(auth.user.id, "event", query.visite);
   // Lot 29b (JRJ-04, D8) : documents de l'événement, et ceux embarqués pour le jour J.
@@ -480,7 +509,7 @@ export default async function EventDetailPage({
     tab === "documents" ? new Set((await listDayDocumentChoices(organizationId, id)).filter((choice) => choice.source === "event_document").map((choice) => choice.sourceId)) : new Set<string>();
   const tabs: { key: Tab; label: string; href: string; count?: string; alert?: boolean }[] = [
     { key: "apercu", label: t("tabOverview"), href: tabHref("apercu") },
-    { key: "budget", label: t("vendorSlotsTitle"), href: tabHref("budget"), count: `${progress.booked}/${progress.required}` },
+    { key: "budget", label: t("vendorSlotsTitle"), href: tabHref("budget"), count: `${slotCompletion.complete}/${slotCompletion.total}` },
     {
       key: "taches",
       label: tLine("tabTitle"),
@@ -594,6 +623,14 @@ export default async function EventDetailPage({
           </>
         }
       />
+      {/* Lot 71f (P-06, C-55) : sous l'en-tête, la marque de la reprise et le lien vers sa page. L'en-tête
+          lui-même relève du volet 3 (lot 72d). */}
+      {checklist ? (
+        <p className="takeover-origin">
+          <FileText size={16} aria-hidden="true" /> {tSheet("origin", { date: formatCalendarDate(parisToday(checklist.takeover.createdAt), locale), files: checklist.fileCount }).trim()} ·{" "}
+          <Link href={`/reprise/${checklist.takeover.id}`}>{tSheet("originLink")}</Link>
+        </p>
+      ) : null}
       {undoneTask ? (
         <UndoTaskNotice key={undoneTask.id} eventId={event.id} taskId={undoneTask.id} message={tToday("undo.taskDone", { label: undoneTask.label })} undoLabel={tToday("undo.action")} returnTo="event" />
       ) : null}
@@ -713,7 +750,8 @@ export default async function EventDetailPage({
           </ul>
         </section>
       ) : null}
-      {tab !== "apercu" ? stepBanner : null}
+      {/* Lot 71f (C-24) : sur un mariage repris, le bandeau devient un point de « À compléter ». */}
+      {tab !== "apercu" && checklist?.block.kind !== "open" ? stepBanner : null}
 
       <nav aria-label={t("eventTabsLabel")} className="tabs" data-tour="event-tabs">
         {tabs.map((item) => (
@@ -727,7 +765,36 @@ export default async function EventDetailPage({
       {tab === "apercu" ? (
         <>
           {/* Lot 32a (EVT-02, UX-01, UX-06 ; D5) : prochaine action, santé, quatorze prochains jours. */}
-          <EventCockpit organizationId={organizationId} eventId={event.id} tasks={tasks} quotesAvailable={quotesAvailable} today={today} locale={locale} afterNextAction={stepBanner} vendorProgress={progress} />
+          <EventCockpit
+            organizationId={organizationId}
+            eventId={event.id}
+            tasks={tasks}
+            quotesAvailable={quotesAvailable}
+            today={today}
+            locale={locale}
+            afterNextAction={stepBanner}
+            vendorProgress={slotCompletion}
+            takeover={
+              checklist
+                ? {
+                    block: checklist.block,
+                    hrefs: {
+                      budget: tabHref("budget"),
+                      tasksTakeover: `/reprise?evenement=${event.id}&ligne=tasks`,
+                      tasksTemplate: tabHref("taches"),
+                      program: tabHref("programme"),
+                      clients: tabHref("maries"),
+                      guests: tabHref("apercu", { modifier: "infos" }),
+                    },
+                    reviewHref: tabHref("apercu", { revoir: "1" }),
+                    review: query.revoir === "1",
+                    unallocated,
+                    retained: retainedVendors.length,
+                    signed: retainedVendors.filter((vendor) => vendor.takeoverContract === "signed").length,
+                  }
+                : null
+            }
+          />
           {/* Lot 52 (EVT-06 ; D2, D3) : l'équipe de l'évènement et ses renforts du jour J. */}
           <EventTeamCard organizationId={organizationId} eventId={event.id} />
           {/* Lot 64 (HUB-29, RDV-02 ; maquette M3) : la plage occupée de l'évènement. */}
@@ -737,14 +804,23 @@ export default async function EventDetailPage({
             {/* Lot 39c (UX-13, relevé validé le 17/11) : « Modifier les informations » ouvre un panneau. */}
             <div className="section-head">
               <h2 id="identity-title">{t("identityTitle")}</h2>
-              <Link className="button-link" href={tabHref("apercu", { modifier: "infos" })} scroll={false}>
-                {tToday("cockpit.editInfo")}
-              </Link>
+              <div className="row-wrap">
+                {/* Lot 71f (R7) : à la demande, le fichier de chaque valeur reprise. */}
+                {checklist ? (
+                  <Link className="button-link" href={showProvenance ? tabHref("apercu") : tabHref("apercu", { provenance: "1" })} scroll={false} aria-current={showProvenance ? "true" : undefined}>
+                    {showProvenance ? tSheet("provenanceHide") : tSheet("provenanceShow")}
+                  </Link>
+                ) : null}
+                <Link className="button-link" href={tabHref("apercu", { modifier: "infos" })} scroll={false}>
+                  {tToday("cockpit.editInfo")}
+                </Link>
+              </div>
             </div>
             <dl className="identity-facts">
               <dt>{t("guestsLabel")}</dt>
               {/* Lot 49 (EVT-03) : avec le module Invités, le nombre confirmé vient des réponses. */}
-              <dd>{t("guestsSummary", { estimated: event.guestsEstimated === null ? "—" : String(event.guestsEstimated), confirmed: guestSummary ? String(guestSummary.confirmed) : event.guestsConfirmed === null ? "—" : String(event.guestsConfirmed) })}
+              <dd>{t("guestsSummary", { estimated: event.guestsEstimated === null ? notProvided(null) : String(event.guestsEstimated), confirmed: guestSummary ? String(guestSummary.confirmed) : event.guestsConfirmed === null ? notProvided(null) : String(event.guestsConfirmed) })}
+                {showProvenance ? provenanceMark("guests") : null}
                 {/* Lot 48a (PRE-06) : invités au-delà de la capacité du lieu de réception. */}
                 {venueChecks ? <VenueCapacityNotice finding={venueChecks.capacity} /> : null}
               </dd>
@@ -752,18 +828,39 @@ export default async function EventDetailPage({
               <dd>
                 {places.length === 0 ? t("noPlaces") : places.map((place) => (place.startTime ? `${place.label} (${place.startTime})` : place.label)).join(" · ")}{" "}
                 <Link href={tabHref("programme")}>{t("placesManage")}</Link>
+                {showProvenance ? provenanceMark("places") : null}
               </dd>
               <dt>{t("interlocutorsLabel")}</dt>
               <dd>
                 {[
                   ...event.clients.map((client) => [client.firstName, client.lastName].filter(Boolean).join(" ")),
                   ...places.filter((place) => place.contactName).map((place) => t("interlocutorOfPlace", { name: place.contactName!, place: place.label })),
-                ].join(" · ") || "—"}
+                ].join(" · ") || notProvided(null)}
+                {showProvenance ? provenanceMark("clients") : null}
               </dd>
+              {/* Lot 71f (C-64) : un mariage repris dit « Signé le : non renseigné » et sa source « non renseignée ». */}
+              {checklist && signedOn ? (
+                <>
+                  <dt>{tSheet("signedOn")}</dt>
+                  <dd className={signedOn.known ? undefined : "muted"}>{signedOn.known ? formatCalendarDate(signedOn.on, locale) : tSheet("notProvided")}</dd>
+                </>
+              ) : null}
+              {checklist ? (
+                <>
+                  <dt>{t("source")}</dt>
+                  <dd className={sourceLabel ? undefined : "muted"}>{sourceLabel ?? tSheet("sourceNotProvided")}</dd>
+                </>
+              ) : null}
               <dt>{t("eventStyle")}</dt>
-              <dd>{event.style ?? "—"}</dd>
+              <dd className={checklist && !event.style ? "muted" : undefined}>
+                {notProvided(event.style)}
+                {showProvenance ? provenanceMark("style") : null}
+              </dd>
               <dt>{t("eventNotes")}</dt>
-              <dd className="task-comment-body">{event.notes ?? "—"}</dd>
+              <dd className={checklist && !event.notes ? "task-comment-body muted" : "task-comment-body"}>
+                {notProvided(event.notes)}
+                {showProvenance ? provenanceMark("notes") : null}
+              </dd>
             </dl>
           </section>
           {/* Lot 49 (EVT-04 premier pas, D2) : temps forts de l'évènement ; le RSVP les reprend. */}
@@ -824,7 +921,8 @@ export default async function EventDetailPage({
               )}
             </SidePanel>
           ) : null}
-          <ImportedFields fields={event.importedFields} />
+          {/* Lot 71f (C-56) : plus de « Champs importés » pour un mariage repris : chaque valeur est à sa place. */}
+          {checklist ? null : <ImportedFields fields={event.importedFields} />}
           {suggestConfirmBudget ? (
             <section aria-labelledby="confirm-budget-title">
               <h2 id="confirm-budget-title">{t("confirmBudgetTitle")}</h2>
@@ -901,6 +999,38 @@ export default async function EventDetailPage({
                 <SettingsLink href="/events/parametres" back="event" label={t("vendorSlotsSettings")} />
               </div>
             </div>
+            {/* Lot 71f (C-56, P-06) : le total du fichier, en tête, « à répartir », là où le calcul s'affiche ;
+                le bandeau disparaît quand tout est réparti. */}
+            {unallocated && unallocated.remainingCents > 0 ? (
+              <>
+                <div className="notice notice-attention takeover-unallocated" role="status">
+                  <p>
+                    <strong>{tSheet("unallocatedTitle", { amount: formatAmount(unallocated.committedCents, locale), paid: formatAmount(unallocated.paidCents, locale) })}</strong>
+                  </p>
+                  <p>{tSheet("unallocatedBody")}</p>
+                </div>
+                <dl className="health-tiles budget-totals" aria-label={tSheet("unallocatedTiles")}>
+                  {budgetView.envelope ? (
+                    <div>
+                      <dt>{tSheet("tileEnvelope")}</dt>
+                      <dd>{formatAmount(budgetView.envelope.amountCents, locale)}</dd>
+                    </div>
+                  ) : null}
+                  <div>
+                    <dt>{tSheet("tileFromFile")}</dt>
+                    <dd>{formatAmount(unallocated.committedCents, locale)}</dd>
+                  </div>
+                  <div>
+                    <dt>{tSheet("tileAllocated")}</dt>
+                    <dd>{formatAmount(unallocated.allocatedCents, locale)}</dd>
+                  </div>
+                  <div>
+                    <dt>{tSheet("tileRemaining")}</dt>
+                    <dd>{formatAmount(unallocated.remainingCents, locale)}</dd>
+                  </div>
+                </dl>
+              </>
+            ) : null}
             {/* Lot 67c (BUD-02 ; recette du 24/11/2026, R06) : les totaux en tête, sans descendre au pied
                 d'un tableau de vingt lignes (qui les garde). */}
             {budgetRows && vendorSlots.length > 0 ? (
@@ -928,7 +1058,7 @@ export default async function EventDetailPage({
                 </div>
               </dl>
             ) : null}
-            <p id="vendor-progress-label">{t("vendorProgress", { booked: progress.booked, required: progress.required })}</p>
+            <p id="vendor-progress-label">{tSheet("vendorCompletion", slotCompletion)}</p>
             {/* Lot 28a (BUD-02) : le dépassement du seuil d'alerte, en haut du budget. */}
             {budgetView.envelope?.exceeded ? (
               <p role="alert" className="notice notice-attention">
@@ -938,7 +1068,7 @@ export default async function EventDetailPage({
                 })}
               </p>
             ) : null}
-            <progress aria-labelledby="vendor-progress-label" value={progress.booked} max={Math.max(progress.required, 1)} />
+            <progress aria-labelledby="vendor-progress-label" value={slotCompletion.complete} max={Math.max(slotCompletion.total, 1)} />
             {/* Lot 67e (HUB-14, PRE-02 ; R07) : reprendre d'un PDF les prestataires retenus de l'évènement. */}
             {vendorsAvailable ? <VendorsImportForm eventId={event.id} open={query.reprendre === "1"} takeoverId={query.reprise && isValidId(query.reprise) ? query.reprise : null} /> : null}
             {vendorSlots.length === 0 ? <p>{t("noVendorSlots")}</p> : null}
@@ -965,6 +1095,7 @@ export default async function EventDetailPage({
                 slotVendors={Object.fromEntries(vendorSlots.map((slot) => [slot.id, candidatesBySlot(slot.id).filter((candidate) => candidate.status !== "dismissed").map((candidate) => ({ id: candidate.id, name: candidate.vendorName }))]))}
                 statusLabels={Object.fromEntries(Object.entries(VENDOR_STATUS_LABEL_KEYS).map(([status, key]) => [status, t(key)]))}
                 statusClasses={VENDOR_STATUS_CLASSES}
+                takenOver={checklist !== null}
               />
             ) : null}
             <AddVendorSlotForm eventId={event.id} />
@@ -978,8 +1109,8 @@ export default async function EventDetailPage({
               <h2 id="vendor-slots-title">{t("vendorSlotsTitle")}</h2>
               <SettingsLink href="/events/parametres" back="event" label={t("vendorSlotsSettings")} />
             </div>
-            <p id="vendor-progress-label">{t("vendorProgress", { booked: progress.booked, required: progress.required })}</p>
-            <progress aria-labelledby="vendor-progress-label" value={progress.booked} max={Math.max(progress.required, 1)} />
+            <p id="vendor-progress-label">{tSheet("vendorCompletion", slotCompletion)}</p>
+            <progress aria-labelledby="vendor-progress-label" value={slotCompletion.complete} max={Math.max(slotCompletion.total, 1)} />
             <nav aria-label={t("vendorSlotsFilter")} className="pills">
               <Link href={tabHref("budget")} aria-current={slotFilter === "tous" ? "true" : undefined}>
                 {t("vendorSlotsAll", { count: vendorSlots.length })}

@@ -19,6 +19,8 @@ import { isValidId } from "./events/module-access";
 import { PrivacyPurgeAlertBlock, PrivacyRequestsAlertBlock } from "./rgpd/dashboard-block";
 import { PageTour } from "./page-tour";
 import { loadPageTour } from "@/lib/help/page-tour";
+import { TakeoversInProgress } from "./accueil/takeovers-in-progress";
+import { taskListViewer } from "@/lib/event-visibility";
 import { longDate, MyEvents, TodayFirst, TodayRest, todayWords, UnavailableNotice } from "./accueil/today-view";
 import { UndoTaskNotice } from "./accueil/today-client";
 import { OnboardingChecklist } from "./accueil/onboarding-checklist";
@@ -184,6 +186,8 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
         <UndoTaskNotice key={undone.taskId} eventId={undone.eventId} taskId={undone.taskId} message={t("undo.taskDone", { label: undone.label })} undoLabel={t("undo.action")} returnTo="home" />
       ) : null}
       <UnavailableNotice sources={unavailable} />
+      {/* Lot 71f (HUB-08 ; maquette 09) : les reprises en cours, en tête, hors du compteur des points. */}
+      {modules.events ? <TakeoversInProgress organizationId={organizationId} viewer={await taskListViewer({ user: { id: auth.user.id, role: auth.user.role, organizationId } })} locale={locale} today={today} /> : null}
       {/* Lot 65c (HUB-08, UX-01 ; maquette M15) : les sept lignes à traiter en premier, par nature, puis
           le calendrier sur toute la largeur (visible sans défiler sur un écran courant), puis le reste. */}
       <TodayFirst ranked={ranked} locale={locale} modules={{ quotes: modules.quotes, events: modules.events }} taskLines={taskLines} doneToday={doneToday} />

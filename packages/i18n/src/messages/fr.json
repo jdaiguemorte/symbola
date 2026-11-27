@@ -13436,5 +13436,109 @@
     "notFound": "Cette reprise est introuvable.",
     "oneSheet": "Une seule fiche pour ce mariage : déposez son PDF seul.",
     "backToTakeover": "Retour à la reprise"
+  },
+  "TakeoverSheet": {
+    "origin": "Repris le {date} {files, plural, =0 {} one {de # fichier} other {de # fichiers}}",
+    "originLink": "Voir la reprise",
+    "checklistTitle": "À compléter après la reprise",
+    "checklistCount": "{total, plural, one {# point} other {# points}} · {done, plural, =0 {0 fait} one {# fait} other {# faits}}",
+    "checklistLabel": "Ce qui reste à compléter après la reprise",
+    "pointDone": "Fait",
+    "point": {
+      "amounts": {
+        "title": "{count, plural, =0 {Montants à répartir} one {Montant de # prestataire} other {Montants de # prestataires}}",
+        "bodyRemaining": "Votre fichier donnait un total, pas le détail : {amount} à répartir sur les postes.",
+        "body": "Le prévu de ces postes n'est pas renseigné.",
+        "bodyDone": "Chaque poste retenu a son montant, rien ne reste à répartir.",
+        "action": "Saisir les montants"
+      },
+      "contracts": {
+        "title": "{count, plural, =0 {Contrats} one {# contrat non signé} other {# contrats non signés}}",
+        "body": "{names} : non signé ou non renseigné, comme vous l'avez dit à la reprise. Aucune relance n'est créée.",
+        "bodyDone": "Les contrats repris sont signés.",
+        "action": "Voir les postes"
+      },
+      "tasks": {
+        "title": "Les tâches",
+        "body": "Restées dans votre ancien outil. Les échéances déjà passées ne seront pas mises en retard.",
+        "bodyDone": "Les tâches du mariage sont là.",
+        "action": "Reprendre une liste",
+        "actionTemplate": "Partir d'un modèle"
+      },
+      "endTimes": {
+        "title": "{count, plural, =0 {Les heures de fin du programme} one {# heure de fin dans le programme} other {# heures de fin dans le programme}}",
+        "body": "Non renseignées dans le fichier. Le programme porte « à compléter » tant qu'elles manquent.",
+        "bodyDone": "Chaque moment du programme a son heure de fin.",
+        "action": "Compléter"
+      },
+      "clientLink": {
+        "title": "Le lien personnel des mariés",
+        "body": "Pour qu'ils voient leur programme et leurs pièces.",
+        "bodyDone": "Les mariés ont leur lien.",
+        "action": "Créer les liens"
+      },
+      "guests": {
+        "title": "Le nombre d'invités",
+        "body": "Non renseigné dans les fichiers repris.",
+        "bodyDone": "Le nombre d'invités est saisi.",
+        "action": "Saisir"
+      }
+    },
+    "completed": "Reprise complétée le {date}",
+    "completedBody": "{count, plural, one {Le point est fait.} other {Les # points sont faits.}}",
+    "completedReview": "Revoir la liste",
+    "planningNoOpinion": "Pas encore de tâches : pas d'avis",
+    "budgetFromFile": "{amount} de réel",
+    "budgetEnvelope": "enveloppe {envelope}",
+    "budgetFromFileDetail": "Selon votre fichier ; dont {paid} réglés ; {allocated} répartis sur les postes.",
+    "vendorsSummary": "{retained, plural, =0 {Aucun retenu} one {# retenu} other {# retenus}} · {signed, plural, =0 {aucun contrat signé} one {# contrat signé} other {# contrats signés}}",
+    "notProvided": "non renseigné",
+    "sourceNotProvided": "non renseignée",
+    "signedOn": "Signé le",
+    "provenanceShow": "D'où viennent ces valeurs ?",
+    "provenanceHide": "Masquer d'où viennent les valeurs",
+    "provenanceYou": "vous, à la reprise",
+    "provenanceFile": "Fichier : {file}",
+    "unallocatedTitle": "À compléter : {amount} de réel selon votre fichier, dont {paid} réglés.",
+    "unallocatedBody": "Votre ancien outil n'a pas exporté le détail par prestataire. Saisissez le montant de chaque poste : le reste à répartir baisse à mesure.",
+    "unallocatedTiles": "Ce que dit votre fichier",
+    "tileEnvelope": "enveloppe",
+    "tileFromFile": "de réel selon le fichier",
+    "tileAllocated": "répartis sur les postes",
+    "tileRemaining": "reste à répartir",
+    "contract": {
+      "signed": "contrat signé",
+      "unsigned": "contrat non signé",
+      "unknown": "contrat non renseigné"
+    },
+    "markFiles": "Repris · {settled} {settled, plural, one {fichier} other {fichiers}} sur {total}",
+    "markPoints": "Repris · {count, plural, one {# point à compléter} other {# points à compléter}}",
+    "markLabel": "{mark} — ouvrir la reprise de {event}",
+    "originFilter": "Origine",
+    "originAll": "Toutes",
+    "originTakeover": "Repris",
+    "originCreated": "Créés dans Symbola",
+    "inProgressTitle": "Reprises en cours",
+    "inProgressCount": "{count, plural, one {# mariage} other {# mariages}}",
+    "inProgressFiles": "{settled} {settled, plural, one {fichier} other {fichiers}} sur {total}",
+    "inProgressRunning": "import {step} en cours",
+    "inProgressFinished": "reprise terminée {when}",
+    "inProgressPoints": "{count, plural, one {# point à compléter} other {# points à compléter}}",
+    "inProgressSeeRest": "Voir ce qui reste",
+    "inProgressContinue": "Continuer",
+    "inProgressSeeRestFor": "Voir ce qui reste pour {event}",
+    "inProgressContinueFor": "Continuer la reprise de {event}",
+    "today": "aujourd'hui",
+    "yesterday": "hier",
+    "onDate": "le {date}",
+    "runningStep": {
+      "vendor_book": "du carnet",
+      "event": "de la fiche",
+      "budget": "du budget",
+      "event_vendors": "des prestataires retenus",
+      "tasks": "des tâches",
+      "program": "du programme"
+    },
+    "vendorCompletion": "{complete, plural, =0 {Aucun poste complet} one {# poste complet} other {# postes complets}} sur {total}"
   }
 }

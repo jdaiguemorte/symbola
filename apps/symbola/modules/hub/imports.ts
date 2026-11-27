@@ -51,7 +51,6 @@ import {
   type ImportItemRow,
   type ImportRow,
   type NewImportItem,
-  findImportedEvents,
   findElementProvenance,
   type ElementProvenance,
 } from "./import-repository";
@@ -864,7 +863,3 @@ export async function listElementProvenance(organizationId: string, element: { m
   return findElementProvenance(appDatabase(), organizationId, element);
 }
 
-// Lot 70d (UX-08, C-55) : les évènements créés par un import encore appliqué, et sa date (mariage repris).
-export async function listImportedEvents(organizationId: string): Promise<{ eventId: string; importedAt: string }[]> {
-  return findImportedEvents(appDatabase(), organizationId);
-}
