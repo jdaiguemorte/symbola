@@ -346,16 +346,15 @@ export async function createImportPendingEvent(actor: TakeoverActor, importId: s
   await attachImportToTakeoverStep(db(), { organizationId: actor.organizationId, userId: actor.userId, takeoverId, kind, importId, viewer: actor.viewer });
   if (kind === "budget") await coverTakeoverFromBudgetProposal(db(), actor.organizationId, importId);
   if (!(await setImportTargetEvent(db(), { organizationId: actor.organizationId, importId, eventId }))) return null;
-  // Les postes de départ (identifiants de l'agence) → les postes du mariage, par leur intitulé.
+  // Les postes de départ (identifiants de l'agence) → les postes du mariage, copiés dans le même ordre
+  // (même rang, même intitulé) ; plusieurs lignes du fichier peuvent aller sous le même poste.
   const defaults = await listDefaultVendorSlots(actor.organizationId);
   const slots = await listEventVendorSlots(actor.organizationId, eventId);
-  const used = new Set<string>();
   const slotFor = (defaultId: string): string | null => {
-    const label = defaults.find((slot) => slot.id === defaultId)?.label;
-    const slot = slots.find((candidate) => candidate.label === label && !used.has(candidate.id));
-    if (!slot) return null;
-    used.add(slot.id);
-    return slot.id;
+    const index = defaults.findIndex((slot) => slot.id === defaultId);
+    const label = defaults[index]?.label;
+    if (index < 0 || label === undefined) return null;
+    return (slots[index]?.label === label ? slots[index] : slots.find((candidate) => candidate.label === label))?.id ?? null;
   };
   const matching = set.matching ?? { matches: [], rowEvents: [] };
   const matches = matching.matches.flatMap((match) => {

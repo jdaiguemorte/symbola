@@ -7,6 +7,7 @@
 import type { ImportAnswers, ImportApplyResult, ImportApplyRow, ImportCellValue, ImportedItem, ImportEntityType, ImportUndoItem, ImportUndoOutcome } from "@symbola/contracts";
 import { appNameCase } from "@symbola/import-engine";
 import { parisToday } from "@symbola/i18n";
+import { eventStatusForStage } from "@symbola/contracts";
 import { createImportPendingEvent } from "@/lib/takeover/flow";
 import { applyPastDueAnswer } from "./question-rules";
 import { getImportQuestions } from "./questions";
@@ -292,6 +293,12 @@ async function arrangeImportedTags(organizationId: string, importId: string, loc
   }
 }
 
+function withoutStage(answers: ImportAnswers): ImportAnswers {
+  const rest = { ...answers };
+  delete rest.eventStage;
+  return rest;
+}
+
 function withoutSource(answers: ImportAnswers): ImportAnswers {
   const rest = { ...answers };
   delete rest.prospectSourceId;
@@ -343,7 +350,12 @@ export async function confirmImport(input: {
 
   // Lot 71c (R16) : les tâches passées gardées, redatées ou dites faites, selon la réponse.
   const importable = preview.entityType === "tasks" ? applyPastDueAnswer(matches.rows.filter(isImportable), answers?.pastDueTasks, parisToday(now)) : matches.rows.filter(isImportable);
-  const rows: ImportApplyRow[] = importable.map((row) => ({
+  // Lot 71c (C-64) : « Où en est-il ? » donne le statut de chaque fiche, sauf celle dont la planner a
+  // choisi le statut dans l'aperçu (décision J, lot 63a), qui l'emporte.
+  const chosenStatus = new Map((set.matching?.rowStatuses ?? []).map((entry) => [entry.rowIndex, entry.status]));
+  const stageStatus = preview.entityType === "event_sheets" && answers?.eventStage ? eventStatusForStage(answers.eventStage) : null;
+  const withStatus = (row: (typeof importable)[number]) => (stageStatus && !chosenStatus.has(row.rowIndex) ? { ...row, values: { ...row.values, status: stageStatus } } : row);
+  const rows: ImportApplyRow[] = importable.map(withStatus).map((row) => ({
     rowIndex: row.rowIndex,
     // Lot 71a : noms et villes à la casse de l'app, sauf « Garder les capitales ».
     values: answers?.nameCase === "keep" ? row.values : withAppNameCase(preview.entityType, row.values),
@@ -355,7 +367,8 @@ export async function confirmImport(input: {
   const applied = await applyToModules(input.organizationId, input.userId, preview.entityType, rows, {
     defaultProspectSourceId,
     defaultVatRateBasisPoints: (await defaultVatRate(input.organizationId)) ?? 0,
-    answers,
+    // Le statut des fiches est déjà posé ligne par ligne (ci-dessus).
+    answers: stageStatus && answers ? withoutStage(answers) : answers,
     takeover,
     vendorTypeChoices: catalog ? (matches.vendorTypes ?? []).map(({ label, typeId, target }) => ({ label, typeId, target: vendorTypeTarget(target, catalog) })) : [],
     typeColumnHeader: typeColumn ? set.headers[typeColumn.columnIndex] || null : null,
