@@ -1,5 +1,6 @@
 import type { NextConfig } from "next";
 import createNextIntlPlugin from "next-intl/plugin";
+import { MERGED_RUBRIC_REDIRECTS } from "./app/settings-menu";
 
 const withNextIntl = createNextIntlPlugin("./i18n/request.ts");
 
@@ -98,6 +99,8 @@ const nextConfig: NextConfig = {
     return [
       { source: "/espace", destination: "/lien", permanent: false },
       { source: "/espace/:path*", destination: "/lien", permanent: false },
+      // Lot 74g (§ 7.1) : une rubrique fondue dans une autre mène à son bloc.
+      ...MERGED_RUBRIC_REDIRECTS.map((rule) => ({ ...rule, permanent: false })),
     ];
   },
 };
