@@ -36,7 +36,7 @@ async function expectPhoneRules(page: Page) {
   const small = await page.evaluate(() => {
     const words = (element: Element | null) => (element?.textContent ?? "").replace(/\s+/g, " ").trim();
     const inSentence = (link: HTMLElement) => getComputedStyle(link).display === "inline" && words(link.parentElement).length > words(link).length;
-    return [...document.querySelectorAll<HTMLElement>("main button, main summary, main a[href], .ready-takeover-actions a")]
+    return [...document.querySelectorAll<HTMLElement>("main button, main summary, main a[href]")]
       .filter((element) => !(element.tagName === "A" && inSentence(element)))
       .map((element) => ({ element, box: element.getBoundingClientRect() }))
       .filter(({ element, box }) => box.width > 0 && box.height > 0 && getComputedStyle(element).visibility !== "hidden")
@@ -241,12 +241,15 @@ test.describe("HUB-14 — La page de reprise et ses portes (lot 71b)", () => {
     const card = page.getByRole("region", { name: "Reprendre un mariage en cours" });
     await expect(card).toContainText("Vous suivez aujourd'hui vos mariages dans un tableur (Excel, Google Sheets…).");
     await expect(card).toContainText("Six fichiers au plus");
-    const start = card.getByRole("link", { name: "Reprendre un mariage en cours" });
-    const create = card.getByRole("link", { name: "Créer un nouveau mariage" });
+    // À l'ordinateur, dans la carte ; sur téléphone, dans la barre collée en bas (un seul jeu visible).
+    const start = page.getByRole("link", { name: "Reprendre un mariage en cours" });
+    const create = page.getByRole("link", { name: "Créer un nouveau mariage" });
+    await expect(start).toHaveCount(1);
     await expect(start).toHaveClass(/button-link-primary/);
     await expect(create).not.toHaveClass(/button-link-primary/);
     await expect(start).toHaveAttribute("href", "/reprise");
     if (isPhone(page)) {
+      await expect(page.locator(".ready-takeover-bar")).toBeVisible();
       const [first, second] = [await start.boundingBox(), await create.boundingBox()];
       expect(first!.y).toBeLessThan(second!.y);
       // Collés en bas de l'écran, le principal au-dessus.

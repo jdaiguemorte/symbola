@@ -111,6 +111,17 @@ export default async function ReadyPage() {
           <Link href="/">{t("ready.goHome")}</Link>
         </section>
       )}
+      {/* Lot 71b (critère 9) : sur téléphone, les deux boutons collés en bas, le principal en haut. */}
+      {takeoverFirst ? (
+        <div className="ready-takeover-bar">
+          <Link className="button-link button-link-primary" href="/reprise">
+            {t("ready.takeoverStart")}
+          </Link>
+          <Link className="button-link" href="#ready-first-event">
+            {t("ready.takeoverCreate")}
+          </Link>
+        </div>
+      ) : null}
     </main>
   );
 }
