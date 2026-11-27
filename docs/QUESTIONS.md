@@ -1004,6 +1004,28 @@ aucun retard ni relance né de l'import, mêmes nombres à « Vérifier » et au
 compléter cité sans hésiter, retrait possible), rejoué à chaque paquet du lot 71. À trancher : le
 scénario reste-t-il local, ou entre-t-il au § 17 du cahier des charges comme SC-13 ?
 
+### Q51 — Lot 74 : réaliser les volets 5 et 6 des maquettes, trois écarts avec le cahier des charges (27 novembre 2026, tranchée)
+
+Relevés en écrivant la spécification `docs/lots/lot-74-premiers-pas-aide-parametres.md` (§ 9 et
+§ 10). **Tous trois tranchés le 27/11 par Julien**, qui pose la règle : une divergence se tranche
+en faveur de la décision la plus récente. (Numéro choisi après Q48 du lot 71, en laissant Q49 et
+Q50 aux lots 72 et 73 écrits en même temps ; à renuméroter à la fusion si besoin.)
+
+1. **Le volume annuel quitte le questionnaire d'accueil (B2)**. HUB-09 cite le volume parmi les
+   questions, et l'étape 2 de SC-01 dit « douze par an ». La maquette validée (B2) le sort de
+   l'assistant, puisqu'il n'est lu nulle part, et le met dans la fiche de l'entreprise. Proposition :
+   accepter l'écart (HUB-09 dit aussi « tout reste modifiable dans les réglages »), ADR court au
+   paquet 74a, `gap.csv` (HUB-09) et compte rendu de SC-01. Décision L74-D5 du lot. **Tranché : écart accepté** (B2, plus récente, l'emporte).
+2. **Les formulaires de réglage à champs liés s'enregistrent par un bouton (D7)**. Même écart avec
+   UX-09 que M1 (Q47, point 1) : barre collée en bas, jamais grisée, question à la sortie, brouillon
+   gardé. Proposition : un avenant à l'ADR de M1, au paquet 74h. **Tranché : D7 l'emporte**, avenant
+   écrit au paquet 74h.
+3. **« Je ne sais pas encore » pour la TVA (B5)**. Point fiscal : en attendant la réponse, la note 11
+   garde la franchise en base, dont la mention part sur les devis. Je ne tranche pas. Proposition :
+   aucun devis envoyé tant que la réponse manque (le brouillon reste possible), à faire confirmer par
+   l'expert-comptable. Décision L74-D4 du lot. **Tranché : « il faut qu'elle choisisse »** : aucun devis envoyé tant
+   que la réponse manque, le brouillon reste possible.
+
 ## Remarques sur le nouveau document lui-même
 
 - Les tableaux PRE, INV, POR, DOC, MSG, JRJ, RPT et TPS sont placés en annexe (§ 20), alors que
