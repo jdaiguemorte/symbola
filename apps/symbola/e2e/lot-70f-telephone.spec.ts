@@ -246,6 +246,22 @@ test.describe("UX-05 — La barre du bas et la barre du haut du téléphone (lot
       });
       expect(measure.lowest, `${path} : la dernière ligne finit à ${Math.round(measure.lowest)} px, la barre commence à ${Math.round(measure.barTop)} px`).toBeLessThanOrEqual(measure.barTop + 1);
     }
+    // L'action flottante de « Tâches » (« Nouvelle tâche », lot 70d) se pose au-dessus de la barre du bas.
+    await page.goto("/taches");
+    const floating = (await page.getByRole("button", { name: "Nouvelle tâche" }).or(page.getByRole("link", { name: "Nouvelle tâche" })).first().boundingBox())!;
+    const bar = (await tabBar(page).boundingBox())!;
+    expect(floating.y + floating.height).toBeLessThanOrEqual(bar.y);
+    // En mode sélection, la barre de sélection (lot 70d) remplace la barre du bas, sans cacher la dernière ligne.
+    await page.getByRole("button", { name: "Sélectionner" }).click();
+    await expect(tabBar(page)).toBeHidden();
+    const bulk = page.locator(".task-bulk");
+    await expect(bulk).toBeVisible();
+    await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+    const lastLine = (await page.locator(".task-lines .task-line").last().boundingBox())!;
+    const bulkBox = (await bulk.boundingBox())!;
+    expect(lastLine.y + lastLine.height).toBeLessThanOrEqual(bulkBox.y + 1);
+    await bulk.getByRole("button", { name: "Terminer" }).click();
+    await expect(tabBar(page)).toBeVisible();
     // Le message de retour se pose au-dessus de la barre du bas.
     await page.goto("/");
     const line = page.locator(".task-line").filter({ hasText: "Faire signer le contrat du photographe" }).first();

@@ -2270,6 +2270,10 @@
     .has-tabbar .tutorial-panel {
       bottom: var(--app-tabbar-height);
     }
+    /* « Nouvelle tâche » (lot 70d) flotte au-dessus de la barre du bas. */
+    .has-tabbar .task-new-button {
+      bottom: calc(var(--app-tabbar-height) + 1rem);
+    }
   }
   @media (max-width: 767px) and (prefers-reduced-motion: no-preference) {
     .app-sidebar.has-tabbar {
