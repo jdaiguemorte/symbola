@@ -116,7 +116,7 @@ Tables non exportées :
 | `event_vendor_slots` | `id`, `eventId`, `label`, `notRequired`, `position`, `importedFields`, `brief`, `icon`, `createdAt`, `updatedAt`, `createdBy`, `updatedBy` | [event_vendor_slots.schema.json](events/event_vendor_slots.schema.json) |
 | `vendor_briefs` | `id`, `eventId`, `vendorSlotId`, `need`, `guestCount`, `indicativeBudgetCents`, `showBudget`, `deadline`, `sentAt`, `sentByUserId`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [vendor_briefs.schema.json](events/vendor_briefs.schema.json) |
 | `vendor_brief_documents` | `id`, `briefId`, `documentId`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [vendor_brief_documents.schema.json](events/vendor_brief_documents.schema.json) |
-| `event_vendor_candidates` | `id`, `eventId`, `vendorSlotId`, `vendorId`, `vendorName`, `status`, `contactedOn`, `quoteAmountCents`, `currency`, `quoteFileKey`, `quoteMime`, `quoteSizeBytes`, `shownToClients`, `shareRibWithClients`, `position`, `briefId`, `availability`, `answeredAt`, `answerMessage`, `remindedAt`, `dismissalReason`, `invoiceDocumentId`, `takeoverContract`, `createdAt`, `updatedAt`, `createdBy`, `updatedBy` | [event_vendor_candidates.schema.json](events/event_vendor_candidates.schema.json) |
+| `event_vendor_candidates` | `id`, `eventId`, `vendorSlotId`, `vendorId`, `vendorName`, `status`, `contactedOn`, `quoteAmountCents`, `currency`, `quoteFileKey`, `quoteMime`, `quoteSizeBytes`, `shownToClients`, `shareRibWithClients`, `position`, `briefId`, `availability`, `answeredAt`, `answerMessage`, `remindedAt`, `dismissalReason`, `invoiceDocumentId`, `takeoverContract`, `retainedAt`, `createdAt`, `updatedAt`, `createdBy`, `updatedBy` | [event_vendor_candidates.schema.json](events/event_vendor_candidates.schema.json) |
 | `vendor_scenarios` | `id`, `eventId`, `name`, `position`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [vendor_scenarios.schema.json](events/vendor_scenarios.schema.json) |
 | `vendor_scenario_choices` | `id`, `scenarioId`, `vendorSlotId`, `candidateId`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [vendor_scenario_choices.schema.json](events/vendor_scenario_choices.schema.json) |
 | `vendor_roadmaps` | `id`, `candidateId`, `stage`, `sentAt`, `confirmedAt`, `programVersion`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [vendor_roadmaps.schema.json](events/vendor_roadmaps.schema.json) |
@@ -161,7 +161,7 @@ Tables non exportées :
 - `event_link_sessions` — secret : sessions ouvertes par les liens personnels (jetons hachés)
 - `event_task_reminders` — technique : rappels déjà envoyés par les liens, qui ne sont pas repris
 - `link_push_subscriptions` — technique : abonnements push des appareils des clients (adresse du service de push, clés publiques), propres à chaque appareil
-- `task_change_snapshots` — technique : valeurs d'avant d'un changement de date ou de personne, pour « Annuler », purgées après dix minutes
+- `task_change_snapshots` — technique : valeurs d'avant d'un changement de date ou de personne, ou d'un ajout de prestataire à un mariage (lot 73a), pour « Annuler », purgées après dix minutes
 
 ## Module `budget`
 
@@ -242,7 +242,7 @@ Tables non exportées :
 | `vendor_type_links` | `id`, `vendorId`, `typeId`, `isPrimary`, `position`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [vendor_type_links.schema.json](vendors/vendor_type_links.schema.json) |
 | `vendor_files` | `id`, `vendorId`, `kind`, `fileName`, `fileKey`, `mime`, `sizeBytes`, `uploadedByUserId`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [vendor_files.schema.json](vendors/vendor_files.schema.json) |
 | `vendor_settings` | `detourFactorPermille`, `averageSpeedKmh`, `familiesSeededAt`, `documentAlertDays`, `documentKindsSeededAt`, `venueFieldsSeededAt`, `updatedAt`, `createdAt`, `createdBy`, `updatedBy` | [vendor_settings.schema.json](vendors/vendor_settings.schema.json) |
-| `vendor_document_kinds` | `id`, `label`, `expires`, `starterKey`, `position`, `archivedAt`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [vendor_document_kinds.schema.json](vendors/vendor_document_kinds.schema.json) |
+| `vendor_document_kinds` | `id`, `label`, `expires`, `starterKey`, `shortLabel`, `requestedByDefault`, `position`, `archivedAt`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [vendor_document_kinds.schema.json](vendors/vendor_document_kinds.schema.json) |
 | `vendor_documents` | `id`, `vendorId`, `kindId`, `status`, `fileName`, `fileKey`, `mime`, `sizeBytes`, `validUntil`, `uploadedByUserId`, `uploadedByLinkId`, `uploadedAt`, `requestedAt`, `verifiedAt`, `verifiedByUserId`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [vendor_documents.schema.json](vendors/vendor_documents.schema.json) |
 | `vendor_bank_changes` | `id`, `vendorId`, `previousMasked`, `nextMasked`, `changedByUserId`, `changedByLinkId`, `changedAt`, `verifiedAt`, `verifiedByUserId`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [vendor_bank_changes.schema.json](vendors/vendor_bank_changes.schema.json) |
 | `vendor_evaluations` | `id`, `vendorId`, `eventId`, `rating`, `punctuality`, `quality`, `value`, `comment`, `evaluatedBy`, `evaluatedAt`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [vendor_evaluations.schema.json](vendors/vendor_evaluations.schema.json) |

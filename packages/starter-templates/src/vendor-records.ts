@@ -16,14 +16,15 @@ const time = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/);
 const documentKindsSchema = z.object({
   version: z.literal(1),
   alertDaysBefore: z.number().int().min(1).max(180),
-  items: z.array(z.object({ key: z.string().regex(/^[a-z_]+$/), label, expires: z.boolean() })).min(1),
+  // Lot 73a (P3, P4) : un nom court (« Assurance ») et la nature demandée d'habitude à un nouveau prestataire.
+  items: z.array(z.object({ key: z.string().regex(/^[a-z_]+$/), label, shortLabel: z.object({ fr: z.string().min(1).max(40), en: z.string().min(1).max(40) }), expires: z.boolean(), requestedByDefault: z.boolean() })).min(1),
 });
 const documentKinds = documentKindsSchema.parse(vendorDocumentKindsFile);
 
-export type StarterVendorDocumentKind = { key: string; label: string; expires: boolean };
+export type StarterVendorDocumentKind = { key: string; label: string; shortLabel: string; expires: boolean; requestedByDefault: boolean };
 
 export function starterVendorDocumentKinds(locale: Locale): StarterVendorDocumentKind[] {
-  return documentKinds.items.map((item) => ({ key: item.key, label: item.label[locale], expires: item.expires }));
+  return documentKinds.items.map((item) => ({ key: item.key, label: item.label[locale], shortLabel: item.shortLabel[locale], expires: item.expires, requestedByDefault: item.requestedByDefault }));
 }
 
 // PRE-05 : alerte N jours avant la fin de validité (réglage de l'organisation, valeur proposée).

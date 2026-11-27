@@ -77,9 +77,9 @@ test("L11-EVT-10 / L11-EVT-11 — comparer deux devis pour une ligne du budget, 
   await candidates.getByRole("button", { name: "Ajouter", exact: true }).click();
   const tables = candidates.getByRole("listitem", { name: "Les Tables de Flandre" });
   await expect(tables).toBeVisible();
-  // Lot 28a (PRE-02) : un prestataire ajouté est « Pressenti » ; le poste montre le statut le plus avancé.
+  // Lot 28a (PRE-02) : un prestataire ajouté est « en comparaison » (lot 73a, P2 : « Pressenti » ne s'affiche plus) ; le poste montre le statut le plus avancé.
   await closeSlotWindow(page, "Traiteur");
-  await expect(page.getByRole("region", { name: "Budget et prestataires, par poste" }).getByRole("row", { name: /Traiteur/ })).toContainText("Pressenti");
+  await expect(page.getByRole("region", { name: "Budget et prestataires, par poste" }).getByRole("row", { name: /Traiteur/ })).toContainText("En comparaison");
   // Lot 65b : la ligne dit « 2 en comparaison ».
   await expect(page.getByRole("region", { name: "Budget et prestataires, par poste" }).getByRole("row", { name: /Traiteur/ })).toContainText("2 en comparaison");
   await openSlotWindow(page, "Traiteur");

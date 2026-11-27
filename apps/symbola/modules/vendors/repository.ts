@@ -370,6 +370,10 @@ export function findVendorRows(
     minRating?: number | undefined;
     around?: VendorAround | undefined;
     includeArchived: boolean;
+    // Lot 73a : tri fait par la base (nom, métier principal, évaluation, distance) et son sens ; le nom
+    // départage toujours.
+    sort?: "name" | "type" | "rating" | "distance";
+    direction?: "asc" | "desc";
     limit: number;
   },
 ): Promise<{ vendor: VendorRow; distanceKm: number | null }[]> {
@@ -400,11 +404,22 @@ export function findVendorRows(
       .select({ vendor: vendors, distanceKm: distance ?? sql<null>`null` })
       .from(vendors)
       .where(conditions.length > 0 ? and(...conditions) : undefined)
-      .orderBy(...(distance ? [asc(distance)] : []), asc(vendors.name))
+      .orderBy(...vendorOrder(input.sort ?? (distance ? "distance" : "name"), input.direction ?? "asc", distance))
       .limit(input.limit);
     const typed = await withTypeLinks(tx, rows.map((row) => row.vendor));
     return rows.map((row, index) => ({ vendor: typed[index]!, distanceKm: row.distanceKm === null ? null : Number(row.distanceKm) }));
   });
+}
+
+// Lot 73a : l'ordre du carnet. Une fiche sans métier ou sans évaluation vient après les autres, dans les
+// deux sens ; le nom départage.
+function vendorOrder(sort: "name" | "type" | "rating" | "distance", direction: "asc" | "desc", distance: SQL<number> | null): SQL[] {
+  const way = direction === "desc" ? sql`desc` : sql`asc`;
+  const name = sql`${vendors.name} ${way}`;
+  if (sort === "type") return [sql`(select ${vendorTypes.label} from ${vendorTypeLinks} join ${vendorTypes} on ${vendorTypes.id} = ${vendorTypeLinks.typeId} where ${vendorTypeLinks.vendorId} = ${vendors.id} and ${vendorTypeLinks.isPrimary} limit 1) ${way} nulls last`, asc(vendors.name)];
+  if (sort === "rating") return [sql`${vendors.rating} ${way} nulls last`, asc(vendors.name)];
+  if (sort === "distance" && distance) return [sql`${distance} ${way}`, asc(vendors.name)];
+  return [name];
 }
 
 // Recherche globale (AIDE-08) : jamais les fiches d'exemple ni archivées.

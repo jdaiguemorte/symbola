@@ -7,7 +7,7 @@ import { assertOrganizationIsolation } from "@symbola/testing";
 import { eq } from "drizzle-orm";
 import { afterAll, describe, expect, it } from "vitest";
 import { createAppConnection } from "./client";
-import { eventPlaces, eventVendorCandidateNotes, eventVendorCandidates, events, eventVendorSlots } from "./schema/events";
+import { eventPlaces, eventVendorCandidateNotes, eventVendorCandidates, events, eventVendorSlots, taskChangeSnapshots } from "./schema/events";
 import { vendorBankChanges, vendorDocumentKinds, vendorDocuments, vendorFiles, vendors, vendorSettings, vendorTags, vendorTypeFields, vendorTypeLinks, vendorTypes } from "./schema/vendors";
 import { withOrganization } from "./with-organization";
 
@@ -207,6 +207,51 @@ describe("L11-EVT-10 / L11-PRE-01 — Isolation entre organisations (prestataire
         affectedRows: (
           await withOrganization(db, organizationId, (tx) => tx.update(vendorDocumentKinds).set({ label: "falsifié" }).where(eq(vendorDocumentKinds.id, target.id)).returning())
         ).length,
+      }),
+    });
+  });
+
+  // Lot 73a (PRE-05, PRE-02 ; migrations 0234 et 0235) : le nom court et « demandée d'habitude » d'une
+  // nature, la date de rétention d'un prestataire rattaché, et l'état d'avant d'un ajout à un mariage.
+  it("lot 73a (PRE-05) — nom court et « demandée d'habitude » des natures de pièces", async () => {
+    await assertOrganizationIsolation({
+      seed: (organizationId) =>
+        withOrganization(db, organizationId, async (tx) => first(await tx.insert(vendorDocumentKinds).values({ organizationId, label: "Assurance RC", shortLabel: "Assurance", requestedByDefault: true }).returning())),
+      listVisible: (organizationId) => withOrganization(db, organizationId, (tx) => tx.select().from(vendorDocumentKinds)),
+      attemptCrossOrganizationUpdate: async (organizationId, target) => ({
+        affectedRows: (
+          await withOrganization(db, organizationId, (tx) => tx.update(vendorDocumentKinds).set({ shortLabel: "falsifié", requestedByDefault: false }).where(eq(vendorDocumentKinds.id, target.id)).returning())
+        ).length,
+      }),
+    });
+  });
+
+  it("lot 73a (PRE-02) — date de rétention d'un prestataire rattaché", async () => {
+    await assertOrganizationIsolation({
+      seed: (organizationId) => withOrganization(db, organizationId, async (tx) => first(await tx.update(eventVendorCandidates).set({ status: "retained" }).where(eq(eventVendorCandidates.id, (await seedCandidate(tx, organizationId)).id)).returning())),
+      listVisible: (organizationId) => withOrganization(db, organizationId, (tx) => tx.select().from(eventVendorCandidates)),
+      attemptCrossOrganizationUpdate: async (organizationId, target) => ({
+        affectedRows: (
+          await withOrganization(db, organizationId, (tx) => tx.update(eventVendorCandidates).set({ retainedAt: new Date("2000-01-01") }).where(eq(eventVendorCandidates.id, target.id)).returning())
+        ).length,
+      }),
+    });
+  });
+
+  it("lot 73a (UX-07) — état d'avant d'un ajout à un mariage (« Annuler »)", async () => {
+    await assertOrganizationIsolation({
+      seed: (organizationId) =>
+        withOrganization(db, organizationId, async (tx) =>
+          first(
+            await tx
+              .insert(taskChangeSnapshots)
+              .values({ organizationId, userId: randomUUID(), payload: { kind: "vendor_addition", eventId: randomUUID(), slotId: randomUUID(), slotCreated: false, created: [], changed: [] }, expiresAt: new Date(Date.now() + 60_000) })
+              .returning(),
+          ),
+        ),
+      listVisible: (organizationId) => withOrganization(db, organizationId, (tx) => tx.select().from(taskChangeSnapshots)),
+      attemptCrossOrganizationUpdate: async (organizationId, target) => ({
+        affectedRows: (await withOrganization(db, organizationId, (tx) => tx.delete(taskChangeSnapshots).where(eq(taskChangeSnapshots.id, target.id)).returning())).length,
       }),
     });
   });

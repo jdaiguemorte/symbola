@@ -15,6 +15,8 @@ import type {
   VendorDocument,
   VendorDocumentKind,
   VendorDocumentNotice,
+  VendorDocumentState,
+  VendorRetainedEvent,
   VenueCapacityFinding,
   VenueConstraintSet,
   VenueProgramFinding,
@@ -22,7 +24,7 @@ import type {
 import { createStorageClient, deletePrivateObject, PrivateObjectNotFoundError, readPrivateObject, uploadFile } from "@symbola/files";
 import { starterVendorDocumentAlertDays, starterVendorDocumentKinds, starterVenueRuleFields, starterVenueRules, type StarterLocale } from "@symbola/starter-templates";
 import { cleanBankDetails, maskIban, vendorBankPlace, vendorNotePlace } from "./bank-details";
-import { documentAlert, documentsLapsingBefore } from "./documents";
+import { documentAlert, documentState, documentsLapsingBefore, type StateDocument } from "./documents";
 import {
   archiveDocumentKindRow,
   deleteDocumentRow,
@@ -38,6 +40,7 @@ import {
   saveDocumentAlertDays,
   seedDocumentKindRows,
   seedVenueRuleFieldRows,
+  updateDocumentKindRow,
   updateDocumentRow,
   verifyBankChangeRows,
   writeVendorBankRow,
@@ -86,8 +89,8 @@ function today(now: Date): string {
 
 // PRE-05 — natures de pièces.
 
-function toKind(row: { id: string; label: string; expires: boolean; starterKey: string | null; position: number }): VendorDocumentKind {
-  return { id: row.id, label: row.label, expires: row.expires, starterKey: row.starterKey, position: row.position };
+function toKind(row: { id: string; label: string; shortLabel: string | null; requestedByDefault: boolean; expires: boolean; starterKey: string | null; position: number }): VendorDocumentKind {
+  return { id: row.id, label: row.label, shortLabel: row.shortLabel, requestedByDefault: row.requestedByDefault, expires: row.expires, starterKey: row.starterKey, position: row.position };
 }
 
 export async function listVendorDocumentKinds(organizationId: string, locale: StarterLocale = "fr"): Promise<VendorDocumentKind[]> {
@@ -99,6 +102,22 @@ export async function addVendorDocumentKind(organizationId: string, input: { lab
   const label = input.label.trim();
   if (label.length < 1 || label.length > 120) throw new RangeError("libellé de nature de pièce invalide");
   return toKind(await insertDocumentKindRow(organizationId, { label, expires: input.expires }));
+}
+
+// Lot 73a (P3, P4) : le nom court (1 à 40 caractères, sans caractère de contrôle ; vide = le libellé
+// complet) et « demandée d'habitude ». Aucun genre grammatical (P3).
+export async function setVendorDocumentKindUsage(organizationId: string, kindId: string, input: { shortLabel?: string | null; requestedByDefault?: boolean }): Promise<VendorDocumentKind> {
+  if (!UUID.test(kindId)) throw new VendorDocumentNotFoundError();
+  const values: { shortLabel?: string | null; requestedByDefault?: boolean } = {};
+  if (input.shortLabel !== undefined) {
+    const shortLabel = input.shortLabel?.trim() ?? "";
+    if (shortLabel.length > 40 || /[\u0000-\u001f\u007f]/.test(shortLabel)) throw new RangeError("nom court invalide (40 caractères au plus)");
+    values.shortLabel = shortLabel || null;
+  }
+  if (input.requestedByDefault !== undefined) values.requestedByDefault = input.requestedByDefault;
+  const row = await updateDocumentKindRow(organizationId, kindId, values);
+  if (!row) throw new VendorDocumentNotFoundError();
+  return toKind(row);
 }
 
 export async function archiveVendorDocumentKind(organizationId: string, kindId: string): Promise<boolean> {
@@ -201,6 +220,57 @@ export async function requestVendorDocument(input: { organizationId: string; ven
     if (error instanceof Error && /introuvable/.test(error.message)) throw new VendorDocumentNotFoundError();
     throw error;
   }
+}
+
+// Lot 73a (P4) : « Demander l'assurance et le Kbis » — les natures demandées d'habitude qui ne sont ni
+// déjà demandées, ni déposées et encore valables. Rend les pièces demandées par ce geste.
+export async function requestUsualVendorDocuments(input: { organizationId: string; vendorId: string; now?: Date }): Promise<VendorDocument[]> {
+  if (!UUID.test(input.vendorId)) throw new VendorDocumentNotFoundError();
+  const now = input.now ?? new Date();
+  const [kinds, documents, alertDays] = await Promise.all([listVendorDocumentKinds(input.organizationId), listVendorDocuments(input.organizationId, input.vendorId, now), getVendorDocumentAlertDays(input.organizationId)]);
+  const day = today(now);
+  const covered = new Set(documents.filter((document) => document.status === "requested" || documentAlert(document, day, alertDays) !== "expired").map((document) => document.kindId));
+  const requested: VendorDocument[] = [];
+  for (const kind of kinds.filter((entry) => entry.requestedByDefault && !covered.has(entry.id))) {
+    requested.push(await requestVendorDocument({ organizationId: input.organizationId, vendorId: input.vendorId, kindId: kind.id, now }));
+  }
+  return requested;
+}
+
+// Lot 73a (PRE-05 ; spécification du lot 73, § 4.2) — l'état résumé des pièces de chaque fiche, en une
+// lecture pour toute la liste (NFR-02, ADR 0115). Les mariages à venir où chaque fiche est retenue viennent
+// de l'appelant (module Évènements) ; le nom d'un mariage seulement s'il le donne (la personne le voit).
+export async function summarizeVendorDocuments(
+  organizationId: string,
+  vendorIds: string[],
+  // Les mariages peuvent arriver en promesse : leur lecture part avec celle des pièces (NFR-02).
+  input: { now?: Date; retainedEventsByVendor?: Map<string, VendorRetainedEvent[]> | Promise<Map<string, VendorRetainedEvent[]>>; eventNames?: Record<string, string> } = {},
+): Promise<Map<string, VendorDocumentState & { sortDate: string }>> {
+  const ids = vendorIds.filter((id) => UUID.test(id));
+  const states = new Map<string, VendorDocumentState & { sortDate: string }>();
+  if (ids.length === 0) return states;
+  const [rows, alertDays, retainedEventsByVendor] = await Promise.all([findDocumentRows(organizationId, { vendorIds: ids }), getVendorDocumentAlertDays(organizationId), input.retainedEventsByVendor]);
+  const day = today(input.now ?? new Date());
+  const byVendor = new Map<string, StateDocument[]>();
+  for (const row of rows) {
+    const list = byVendor.get(row.document.vendorId) ?? [];
+    list.push({
+      documentId: row.document.id,
+      kindId: row.document.kindId,
+      label: row.kindLabel,
+      shortLabel: row.kindShortLabel,
+      status: row.document.status,
+      validUntil: row.document.validUntil,
+      requestedAt: row.document.requestedAt?.toISOString() ?? null,
+      uploadedAt: row.document.uploadedAt?.toISOString() ?? null,
+    });
+    byVendor.set(row.document.vendorId, list);
+  }
+  for (const id of ids) {
+    const retainedEvents = (retainedEventsByVendor?.get(id) ?? []).map((event) => ({ ...event, couple: input.eventNames?.[event.eventId] ?? null }));
+    states.set(id, documentState({ documents: byVendor.get(id) ?? [], today: day, alertDays, retainedEvents }));
+  }
+  return states;
 }
 
 // D3 : pièces demandées à ce prestataire (pour son lien).

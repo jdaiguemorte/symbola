@@ -3,8 +3,12 @@
 // le futur contrat HTTP /v1/vendors si le carnet devient une app autonome.
 import { createStorageClient, deletePrivateObject, PrivateObjectNotFoundError, readPrivateObject, uploadFile } from "@symbola/files";
 import type {
+  BudgetLine,
   FileDownload,
   FindVendorsInput,
+  VendorDocumentFilter,
+  VendorDocumentStateKind,
+  VendorSort,
   SaveVendorResult,
   Vendor,
   VendorContact,
@@ -38,13 +42,15 @@ import type {
   VendorTypeSplitStep,
 } from "@symbola/contracts";
 import { BUDGET_LINE_ICONS } from "@symbola/starter-templates";
-import { VENDOR_SOCIAL_NETWORKS, type VendorSocialLink } from "@symbola/contracts";
+import { VENDOR_DOCUMENT_FILTERS, VENDOR_SOCIAL_NETWORKS, VENDOR_SORTS, type VendorSocialLink } from "@symbola/contracts";
 import { searchWords } from "@symbola/db/search";
 import { listBudgetLines } from "@/modules/budget/service";
-import { listSelectedVendorIds, listVendorConsultations } from "@/modules/events/service";
+import { countWorkedWithByVendor, listSelectedVendorIds, listUpcomingRetainedEventsByVendor, listVendorConsultations } from "@/modules/events/service";
+import { slotActualCents } from "@/modules/budget/service";
 import type { ImportUndoItem, ImportUndoOutcome } from "@symbola/contracts";
 import { cleanFieldValues, isUsableFilter } from "./fields";
-import { getVendorBankSummary } from "./records";
+import { getVendorBankSummary, summarizeVendorDocuments } from "./records";
+import { compareDocumentStates } from "./documents";
 import { undoImportedVendorsElements as undoImportRows } from "./import";
 import { configuredGeocoder } from "./geocoder";
 import { proposeTierGroups, tierUnitKey } from "./tag-tiers";
@@ -773,7 +779,23 @@ async function onlyVendorIds(input: FindVendorsInput): Promise<string[] | undefi
   return ids ?? worked;
 }
 
-export async function findVendors(input: FindVendorsInput): Promise<VendorListItem[]> {
+// Lot 73a (PRE-05 ; § 4.2) : « Pièces » — à régler (à renouveler, bientôt, à recevoir, à vérifier), à jour,
+// demandées (à recevoir), à vérifier, expirées ou bientôt.
+const DOCUMENT_FILTERS: Record<VendorDocumentFilter, (state: VendorDocumentStateKind) => boolean> = {
+  to_settle: (state) => state === "expired" || state === "expiring" || state === "requested" || state === "to_verify",
+  up_to_date: (state) => state === "up_to_date",
+  requested: (state) => state === "requested",
+  to_verify: (state) => state === "to_verify",
+  expired_or_soon: (state) => state === "expired" || state === "expiring",
+};
+// Lot 73a : 500 fiches au plus (200 avant) ; au-delà, l'écran le dit.
+export const VENDOR_LIST_LIMIT = 500;
+
+function today(now: Date): string {
+  return new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Paris", year: "numeric", month: "2-digit", day: "2-digit" }).format(now);
+}
+
+export async function findVendors(input: FindVendorsInput & { now?: Date }): Promise<VendorListItem[]> {
   const [types, settings] = await Promise.all([listVendorTypes(input.organizationId), getVendorSettings(input.organizationId)]);
   const fieldsById = new Map(types.flatMap((type) => type.fields).map((field) => [field.id, field]));
   const fieldFilters: (VendorFieldFilter & { kind: VendorFieldKind })[] = [];
@@ -785,13 +807,24 @@ export async function findVendors(input: FindVendorsInput): Promise<VendorListIt
     input.around && Number.isFinite(input.around.latitude) && Number.isFinite(input.around.longitude) && input.around.radiusKm > 0
       ? input.around
       : undefined;
-  // Lot 16 (L16-PRE-14) : une famille, ou « à classer » (types sans famille et
-  // fiches sans type).
+  // Lot 16 (L16-PRE-14) : une famille, ou « à classer » (types sans
+  // famille et fiches sans type).
   const typeScope = input.unclassified
     ? { typeIds: types.filter((type) => type.familyId === null).map((type) => type.id), includeUntyped: true }
     : input.familyId
       ? { typeIds: types.filter((type) => type.familyId === input.familyId).map((type) => type.id), includeUntyped: false }
       : undefined;
+  // Lot 73a : un filtre ou un tri inconnu est ignoré, jamais en erreur. Le tri par nom, métier, évaluation
+  // et distance est fait par la base ; « Avec vous » et « Pièces » (un autre module, un calcul de date) ici.
+  const documentsFilter = input.documents && (VENDOR_DOCUMENT_FILTERS as readonly string[]).includes(input.documents) ? input.documents : undefined;
+  const sort: VendorSort = input.sort && (VENDOR_SORTS as readonly string[]).includes(input.sort) ? input.sort : around ? "distance" : "name";
+  const direction = input.direction === "desc" ? "desc" : "asc";
+  const limit = Math.min(Math.max(input.limit ?? VENDOR_LIST_LIMIT, 1), VENDOR_LIST_LIMIT);
+  const sqlSort = sort === "type" || sort === "rating" || (sort === "distance" && around) ? sort : "name";
+  const sortedInMemory = sort === "worked_with" || sort === "documents";
+  // NFR-02 (ADR 0115) : le compteur « Avec vous » part avec la recherche ; les pièces et les mariages où
+  // chaque fiche est retenue partent ensemble ensuite.
+  const workedPromise = countWorkedWithByVendor(input.organizationId);
   const rows = await findVendorRows(input.organizationId, {
     words: searchWords(input.text ?? ""),
     typeIds: input.typeIds?.filter((id) => UUID.test(id)),
@@ -804,30 +837,66 @@ export async function findVendors(input: FindVendorsInput): Promise<VendorListIt
     minRating: input.minRating !== undefined && Number.isInteger(input.minRating) && input.minRating >= 1 && input.minRating <= VENDOR_RATING_MAX ? input.minRating : undefined,
     around,
     includeArchived: input.includeArchived ?? false,
-    limit: Math.min(Math.max(input.limit ?? 200, 1), 500),
+    sort: sqlSort as "name" | "type" | "rating" | "distance",
+    direction: sortedInMemory ? "asc" : direction,
+    // Filtrées ou triées ici : toutes les fiches qui répondent, dans la limite.
+    limit: documentsFilter || sortedInMemory ? VENDOR_LIST_LIMIT : limit,
   });
-  return rows.map(({ vendor, distanceKm }) => ({
-    ...toSummary(vendor),
-    travel: distanceKm === null ? null : estimateTravel(distanceKm, settings),
-  }));
+  const ids = rows.map((row) => row.vendor.id);
+  const now = input.now ?? new Date();
+  const [worked, states] = await Promise.all([
+    workedPromise,
+    summarizeVendorDocuments(input.organizationId, ids, { now, retainedEventsByVendor: ids.length > 0 ? listUpcomingRetainedEventsByVendor(input.organizationId, ids, today(now)) : new Map() }),
+  ]);
+  let items = rows.map(({ vendor, distanceKm }) => {
+    const { sortDate, ...documentState } = states.get(vendor.id)!;
+    return {
+      item: {
+        ...toSummary(vendor),
+        travel: distanceKm === null ? null : estimateTravel(distanceKm, settings),
+        contactName: vendor.contactName,
+        phone: vendor.phone,
+        workedWithCount: worked.get(vendor.id) ?? 0,
+        documentState,
+      } satisfies VendorListItem,
+      sortDate,
+    };
+  });
+  if (documentsFilter) items = items.filter((entry) => DOCUMENT_FILTERS[documentsFilter](entry.item.documentState.state));
+  const byName = (a: { item: VendorListItem }, b: { item: VendorListItem }) => a.item.name.localeCompare(b.item.name, "fr");
+  const sign = direction === "desc" ? -1 : 1;
+  if (sort === "worked_with") items.sort((a, b) => sign * (b.item.workedWithCount - a.item.workedWithCount) || byName(a, b));
+  // « Pièces » (et le filtre « À régler ») : ce qui presse d'abord, puis par date.
+  if (sort === "documents" || (documentsFilter && !sortedInMemory && input.sort === undefined)) {
+    items.sort((a, b) => sign * compareDocumentStates({ ...a.item.documentState, sortDate: a.sortDate }, { ...b.item.documentState, sortDate: b.sortDate }) || byName(a, b));
+  }
+  return items.slice(0, limit).map((entry) => entry.item);
 }
 
-// L11-PRE-09 — historique : consultations (module events) et prix final (réel
-// du budget, module budget) ; prix moyen sur les prestations retenues.
+// L11-PRE-09 — historique : consultations (module events) et montant du mariage (module budget) ; prix
+// moyen sur les prestations retenues. Lot 73a (P9, C-48) : le montant est le réel du poste — la somme de
+// ses lignes de budget (celles du prestataire quand le poste en a d'autres), même calcul que la colonne
+// « Réel » du budget —, une fois soldé le total réglé ; à défaut, le devis du prestataire retenu.
 export async function getVendorHistory(organizationId: string, vendorId: string, options: { budget?: boolean } = {}): Promise<VendorHistory> {
   const consultations = await listVendorConsultations(organizationId, vendorId);
-  const actualBySlot = new Map<string, number | null>();
+  const linesBySlot = new Map<string, BudgetLine[]>();
   if (options.budget !== false) {
     const eventIds = [...new Set(consultations.filter((entry) => entry.outcome === "selected").map((entry) => entry.eventId))];
-    for (const eventId of eventIds) {
-      const view = await listBudgetLines(organizationId, eventId);
-      for (const line of view.lines) actualBySlot.set(line.eventVendorSlotId, line.committedAmountCents);
+    const views = await Promise.all(eventIds.map((eventId) => listBudgetLines(organizationId, eventId)));
+    for (const view of views) {
+      for (const line of view.lines) linesBySlot.set(line.eventVendorSlotId, [...(linesBySlot.get(line.eventVendorSlotId) ?? []), line]);
     }
   }
-  const entries = consultations.map(({ slotId, ...entry }) => ({
-    ...entry,
-    finalCents: entry.outcome === "selected" ? (actualBySlot.get(slotId) ?? null) : null,
-  }));
+  const entries = consultations.map(({ slotId, candidateId, status, ...entry }) => {
+    if (entry.outcome !== "selected") return { ...entry, finalCents: null };
+    const slotLines = linesBySlot.get(slotId) ?? [];
+    const own = slotLines.filter((line) => line.vendorCandidateId === candidateId);
+    const lines = own.length > 0 ? own : slotLines.filter((line) => line.vendorCandidateId === null);
+    const actual = slotActualCents(lines);
+    const paid = lines.reduce((sum, line) => sum + (line.paidAmountCents ?? 0), 0);
+    const finalCents = status === "paid_off" && paid > 0 ? paid : (actual ?? entry.quotedCents);
+    return { ...entry, finalCents };
+  });
   const finals = entries.map((entry) => entry.finalCents).filter((value): value is number => value !== null);
   return { entries, averageFinalCents: finals.length > 0 ? Math.round(finals.reduce((sum, value) => sum + value, 0) / finals.length) : null };
 }
@@ -1019,8 +1088,11 @@ export {
   readVendorConfidentialNote,
   receiveVendorDocumentByLink,
   removeVendorDocument,
+  requestUsualVendorDocuments,
   requestVendorDocument,
   saveVendorNote,
+  setVendorDocumentKindUsage,
+  summarizeVendorDocuments,
   setVendorBankDetails,
   setVendorDocumentAlertDays,
   setVendorDocumentValidity,
@@ -1034,6 +1106,10 @@ export {
   type ProgramSequenceInput,
 } from "./records";
 export { InvalidBankDetailsError, maskIban } from "./bank-details";
+// Lot 73a (PRE-05, PRE-01 ; spécification du lot 73, § 4.2) : l'état résumé des pièces (fonction pure) et
+// le métier proposé d'après le nom d'une fiche (rien n'est enregistré).
+export { compareDocumentStates, documentState, documentStateNeedsAction } from "./documents";
+export { proposeVendorTypeFromName, type VendorTypeProposal } from "./type-proposal";
 
 // Lot 58 (PRE-08 ; ADR 0097) : évaluation après l'évènement et historique des collaborations, internes.
 export { evaluateVendor, EvaluationVendorNotFoundError, getVendorCollaborationHistory, listEventEvaluations, type CollaborationHistory, type VendorEvaluation } from "./evaluations";

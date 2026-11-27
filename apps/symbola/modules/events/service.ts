@@ -3255,7 +3255,9 @@ export async function listUncontractedVendors(organizationId: string, today: str
     vendorId: candidate.vendorId,
     vendorName: candidate.vendorName,
     slotLabel,
-    since: parisToday(candidate.updatedAt),
+    // Lot 73a (P5, P6) : depuis le jour où il a été retenu, plus depuis sa dernière modification ; rien
+    // pour un prestataire retenu avant ce lot.
+    since: candidate.retainedAt ? parisToday(candidate.retainedAt) : null,
   }));
 }
 
@@ -3278,7 +3280,7 @@ export async function recordVendorReminder(input: {
   recallOn?: string | null;
   note?: string | null;
   today?: string;
-}): Promise<{ vendorName: string; vendorId: string | null; slotLabel: string }> {
+}): Promise<{ reminderId: string; vendorName: string; vendorId: string | null; slotLabel: string }> {
   const today = input.today ?? parisToday(new Date());
   const remindedOn = input.remindedOn ?? today;
   assertDate(remindedOn);
@@ -5117,3 +5119,10 @@ function dayReminderOpenItems(slots: { label: string; status: string }[], tasks:
 
 // Lot 70e (A14) : la source et un client de plus, complétés depuis la fiche.
 export { addEventClient, EventClientsFullError, InvalidProspectSourceError, setEventProspectSource } from "./event-origin";
+
+// Lot 73a (PRE-02, BUD-01, PRE-05, UX-07 ; spécification du lot 73, § 4.2 ; P7, P12) : ajouter un
+// prestataire du carnet à un mariage (« En comparaison », « Retenu », « Remplacer », « Retenir aussi »),
+// l'annuler, les évènements proposés, les mariages à venir où une fiche est retenue, « Annuler » une
+// relance ; la correspondance calculée entre un poste et un métier.
+export { addVendorToEventSlot, listEventsForVendorAddition, listUpcomingRetainedEventsByVendor, undoVendorAddition, undoVendorReminder, VENDOR_UNDO_GRACE_SECONDS } from "./vendor-addition";
+export { matchSlotToVendorType, proposeSlotForVendorType, proposeVendorTypeForSlot, type SlotMatchCatalog, type SlotVendorMatch } from "./vendor-slot-match";

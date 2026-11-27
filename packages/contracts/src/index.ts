@@ -152,6 +152,10 @@ export type {
   EventActivityKind,
   PendingDecision,
   UncontractedVendor,
+  VendorAdditionMode,
+  AddVendorToEventSlotInput,
+  VendorAdditionResult,
+  VendorAdditionEvent,
   EventLink,
   EventLinkDelivery,
   EventLinkInput,
@@ -183,7 +187,7 @@ export type { DayHelper, DayHelperInput, EventTeamMember, EventTeamRole } from "
 export type { EventDisplayStep, EventTaskProgress, MarkContractSignedInput } from "./events/service-contract";
 export { EVENT_DISPLAY_STEPS } from "./events/service-contract";
 export * from "./hub/today";
-export { DAY_DOCUMENT_SOURCES, DECISION_KINDS, ENGAGED_CANDIDATE_STATUSES, EVENT_TEAM_ROLES, LINK_AUDIENCES, LINK_BUDGET_SCOPES, LINK_RUBRICS, VENDOR_CANDIDATE_STATUSES } from "./events/service-contract";
+export { DAY_DOCUMENT_SOURCES, DECISION_KINDS, ENGAGED_CANDIDATE_STATUSES, EVENT_TEAM_ROLES, LINK_AUDIENCES, LINK_BUDGET_SCOPES, LINK_RUBRICS, VENDOR_ADDITION_MODES, VENDOR_CANDIDATE_STATUSES } from "./events/service-contract";
 // Lot 70a (CHR-02, CHR-04 ; A7, A9) : qui a coché une tâche, note interne, états de la liste.
 export { TASK_DONE_BY_KINDS, TASK_LIST_STATES, TASK_NOTE_MAX } from "./events/service-contract";
 export type {
@@ -415,6 +419,12 @@ export type {
   VendorDocumentAlert,
   VendorDocument,
   VendorDocumentNotice,
+  VendorDocumentFilter,
+  VendorSort,
+  VendorDocumentStateKind,
+  VendorDocumentReason,
+  VendorDocumentState,
+  VendorRetainedEvent,
   VendorBankCheck,
   VendorBankSummary,
   VendorBankChange,
@@ -428,7 +438,7 @@ export {
   vendorTypeMergedPayloadSchema,
   type VendorTypeMergedPayload,
 } from "./vendors/events";
-export { VENDOR_SOCIAL_NETWORKS } from "./vendors/service-contract";
+export { VENDOR_SOCIAL_NETWORKS, VENDOR_DOCUMENT_FILTERS, VENDOR_SORTS, VENDOR_DOCUMENT_STATES } from "./vendors/service-contract";
 // Lot 35a (HUB-13, DAT-13, ADR 0068) : contrat export/v1 de l'export complet d'une organisation.
 export {
   exportManifestSchema,
