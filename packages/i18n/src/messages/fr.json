@@ -13225,7 +13225,9 @@
     "bulkDated": "{count, plural, =0 {Aucune tâche changée} one {# tâche au {date}} other {# tâches au {date}}}",
     "bulkAssigned": "{count, plural, =0 {Aucune tâche confiée} one {# tâche confiée} other {# tâches confiées}}",
     "bulkCategorized": "{count, plural, =0 {Aucune tâche changée} one {Catégorie changée pour # tâche} other {Catégorie changée pour # tâches}}",
-    "bulkDeleted": "{count, plural, =0 {Aucune tâche supprimée} one {# tâche supprimée} other {# tâches supprimées}}"
+    "bulkDeleted": "{count, plural, =0 {Aucune tâche supprimée} one {# tâche supprimée} other {# tâches supprimées}}",
+    "firstShown": "Les {shown} premières tâches sur {count}.",
+    "showMore": "Afficher {count, plural, one {la suivante} other {les # suivantes}}"
   },
   "Account": {
     "menu": "Menu du compte",

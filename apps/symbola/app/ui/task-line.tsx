@@ -10,7 +10,7 @@
 // « Supprimer »). L'état de l'échéance a un mot et une icône ; seul un vrai retard est rouge. Pas de case
 // hors du mode « Sélectionner ».
 import Link from "next/link";
-import { useRef, useState, useTransition, type KeyboardEvent } from "react";
+import { useEffect, useRef, useState, useTransition, type KeyboardEvent, type RefObject } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { lineParts, type TaskLineForm, type TaskLineView } from "@/lib/tasks/task-line";
@@ -40,14 +40,40 @@ function moveFocus(event: KeyboardEvent<HTMLElement>) {
   event.preventDefault();
 }
 
-function LineMenu({ line, shortcuts, assignOptions }: { line: TaskLineView; shortcuts: DateShortcutOption[]; assignOptions: AssignOption[] }) {
+type MenuProps = { line: TaskLineView; shortcuts: DateShortcutOption[]; assignOptions: AssignOption[] };
+
+// Lot 70d (NFR-02) : le bouton « ⋯ » seul sur chaque ligne ; son menu et ses deux petits panneaux ne sont
+// montés qu'au premier clic. Avant, chaque ligne les portait fermés dans la page : 500 tâches faisaient
+// 2,7 Mio de HTML.
+function LineMenu(props: MenuProps) {
+  const t = useTranslations("TaskLine");
+  const trigger = useRef<HTMLButtonElement>(null);
+  // Chaque clic demande l'ouverture du menu ; 0 : jamais ouvert, rien n'est monté.
+  const [requests, setRequests] = useState(0);
+  const [pending, setPending] = useState(false);
+  return (
+    <>
+      <button ref={trigger} type="button" className="task-menu-button" aria-haspopup="menu" aria-label={t("menuLabel", { label: props.line.label })} onClick={() => setRequests((count) => count + 1)} disabled={pending}>
+        <span aria-hidden="true">⋯</span>
+      </button>
+      {requests > 0 ? <LineMenuPanels {...props} trigger={trigger} requests={requests} onPending={setPending} /> : null}
+    </>
+  );
+}
+
+function LineMenuPanels({ line, shortcuts, assignOptions, trigger, requests, onPending }: MenuProps & { trigger: RefObject<HTMLButtonElement | null>; requests: number; onPending: (pending: boolean) => void }) {
   const t = useTranslations("TaskLine");
   const router = useRouter();
   const menu = usePopover();
   const dates = usePopover();
   const assign = usePopover();
-  const trigger = useRef<HTMLButtonElement>(null);
   const [pending, startTransition] = useTransition();
+  useEffect(() => onPending(pending), [pending, onPending]);
+  // Ouvre le menu à chaque demande (le premier clic monte ce composant, les suivants le rouvrent).
+  const open = menu.open;
+  useEffect(() => {
+    open(trigger.current);
+  }, [requests, open, trigger]);
   const clients = assignOptions.find((option) => option.value === "clients")?.label ?? "";
 
   const remove = () =>
@@ -62,18 +88,6 @@ function LineMenu({ line, shortcuts, assignOptions }: { line: TaskLineView; shor
 
   return (
     <>
-      <button
-        ref={trigger}
-        type="button"
-        className="task-menu-button"
-        aria-haspopup="menu"
-        aria-controls={menu.id}
-        aria-label={t("menuLabel", { label: line.label })}
-        onClick={() => menu.open(trigger.current)}
-        disabled={pending}
-      >
-        <span aria-hidden="true">⋯</span>
-      </button>
       <TaskPopover handle={menu} label={t("menuLabel", { label: line.label })} className="task-menu">
         <div role="menu" aria-label={t("menuLabel", { label: line.label })} onKeyDown={moveFocus}>
           {line.done ? null : (
