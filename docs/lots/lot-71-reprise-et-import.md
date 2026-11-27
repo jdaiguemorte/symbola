@@ -1,7 +1,8 @@
 # Lot 71 — Réaliser le volet 2 des maquettes : la reprise d'un mariage en cours et l'import
 
-**Statut** : **spécification à valider par Julien** (le lot change le schéma de données des modules
-`hub`, `events` et `budget`, et un parcours P0, PAR-01). Aucun code n'est écrit avant sa validation.
+**Statut** : **spécification validée par Julien le 27/11/2026**, décisions I1 à I11 tranchées (§ 7).
+La validation vaut accord pour toucher les schémas `hub`, `events` et `budget` (migrations 0218 à
+0223) et le parcours P0 PAR-01. L'ADR 0119 s'écrit au paquet 71a ; 71b attend la fusion de 70b (#189).
 **Branche de la spécification** : `lot-71-reprise-et-import` (une PR vers `main`, ce fichier et
 `docs/QUESTIONS.md` seulement). Chaque paquet aura ensuite sa branche `lot-71<x>-…` et sa PR.
 **Date** : 27/11/2026, par Claude Code.
