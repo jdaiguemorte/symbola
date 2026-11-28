@@ -155,13 +155,13 @@ test("BUD-01, BUD-03, BUD-04 — Budget et prestataires : réel, écart, réglé
   await expect(totals).toBeVisible();
   await expect(page.getByLabel("Totaux du budget").getByText("Reste à payer")).toBeVisible();
 
-  // « + Ajouter des prestataires » sur la ligne des fleurs (lot 65b, M14 C) : le fleuriste du carnet,
-  // sans rien taper ; « Comparer » ne le retient pas, « Retenir » le retient.
+  // « + Ajouter des prestataires » sur la ligne des fleurs (lot 65b, M14 C ; lot 73c, panneau du poste) :
+  // le fleuriste du carnet, sans rien taper ; « Mettre en comparaison » ne le retient pas.
   const flowers = table.getByRole("row").filter({ hasText: "Fleurs" }).first();
   await flowers.getByRole("button", { name: /\+ Ajouter des prestataires/ }).click();
-  const results = page.getByRole("list", { name: "Prestataires de votre catalogue" });
+  const results = page.getByRole("group", { name: "Ajouter un prestataire à « Fleurs »" });
   await expect(results.getByRole("listitem").first()).toContainText("Atelier Floréal");
-  await expect(page.getByRole("link", { name: /Voir tout le carnet \(1 fiche du métier\)/ })).toBeVisible();
+  await expect(results.getByRole("link", { name: /Chercher dans tout le carnet \(\d+ fiches?\)/ })).toBeVisible();
   await results.getByRole("button", { name: "Mettre en comparaison — Atelier Floréal", exact: true }).click();
   await expect(results.getByRole("listitem").first()).toContainText("Dans la comparaison");
   await page.keyboard.press("Escape");
