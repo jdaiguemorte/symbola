@@ -5,6 +5,7 @@
 import { describe, expect, it } from "vitest";
 import { TAKEOVER_STEP_KINDS, type TakeoverStepKind, type TakeoverStepState } from "@symbola/contracts";
 import {
+  importFigureCount,
   importFigureKey,
   takeoverImportEntityType,
   takeoverPageState,
@@ -121,5 +122,14 @@ describe("HUB-14 — La fin de la reprise (critère 6)", () => {
     const first = new Date("2026-11-24T17:00:00Z");
     expect(withdrawDeadline([new Date("2026-11-25T09:00:00Z"), first], 90)?.toISOString()).toBe("2027-02-22T17:00:00.000Z");
     expect(withdrawDeadline([], 90)).toBeNull();
+  });
+});
+
+// Lot 71d (HUB-14 ; spécification du lot 71, § 5.4, critère 5) : la page de reprise redit le bilan.
+describe("HUB-14 — La page de reprise redit les nombres du bilan (lot 71d)", () => {
+  it("un budget : ses lignes, comptées par importFigures ; un autre fichier : ses lignes ; un import d'avant : créés et mis à jour", () => {
+    expect(importFigureCount({ created: 20, updated: 3, figures: { kind: "budget", lines: 14 } })).toBe(14);
+    expect(importFigureCount({ created: 5, updated: 2, figures: { kind: "rows", rows: 7 } })).toBe(7);
+    expect(importFigureCount({ created: 5, updated: 2 })).toBe(7);
   });
 });

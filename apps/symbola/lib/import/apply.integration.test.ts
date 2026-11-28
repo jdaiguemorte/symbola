@@ -152,7 +152,7 @@ describe("IMP-05 — Aperçu et annulation", () => {
 
     expect(await confirmWithAnswers({ ...planner, importId, defaultProspectSourceId: randomUUID() })).toEqual({ status: "invalid_default_source" });
     const confirmed = await confirmWithAnswers({ ...planner, importId, defaultProspectSourceId: other.id });
-    expect(confirmed).toEqual({ status: "applied", result: { created: 2, updated: 1, unchanged: 0, rejected: 0 } });
+    expect(confirmed).toEqual({ status: "applied", result: { created: 2, updated: 1, unchanged: 0, rejected: 0, figures: { kind: "rows", rows: 3 } } });
 
     // Mise à jour : seules les cellules remplies remplacent, le champ libre s'ajoute.
     const updated = await getEvent(planner.organizationId, existing);
@@ -213,7 +213,7 @@ describe("IMP-05 — Aperçu et annulation", () => {
     await getImportMatchesView(planner.organizationId, importId);
     await withOrganization(db, planner.organizationId, (tx) => tx.update(events).set({ isDemo: true }).where(eq(events.id, second)));
 
-    expect(await confirmWithAnswers({ ...planner, importId })).toEqual({ status: "applied", result: { created: 1, updated: 0, unchanged: 0, rejected: 1 } });
+    expect(await confirmWithAnswers({ ...planner, importId })).toEqual({ status: "applied", result: { created: 1, updated: 0, unchanged: 0, rejected: 1, figures: expect.any(Object) } });
     expect((await listEventTasks(planner.organizationId, first)).map((task) => task.label)).toEqual(["Réserver le traiteur"]);
   });
 

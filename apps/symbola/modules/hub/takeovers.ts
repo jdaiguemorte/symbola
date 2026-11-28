@@ -468,3 +468,50 @@ export async function markTakeoverStepImported(
     return readView(tx, takeover);
   });
 }
+
+// —— Retrait d'un import de reprise (lot 71d) ——————————————————————————————————————————
+
+// Lot 71d (HUB-14 ; spécification du lot 71, § 5.4, critère 6) : un import retiré rend sa ligne « à
+// faire », et la ligne des prestataires retenus qu'il couvrait (« avec le budget ») aussi. Le mariage
+// qu'il avait créé, retiré avec lui, n'est plus celui de la reprise.
+export async function releaseTakeoverStepsOfImport(
+  db: AppDatabase,
+  input: { organizationId: string; importId: string; removedEventIds?: readonly string[]; now?: Date },
+): Promise<void> {
+  const now = input.now ?? new Date();
+  await withOrganization(db, input.organizationId, async (tx) => {
+    const steps = await tx.select().from(takeoverSteps).where(eq(takeoverSteps.importId, input.importId));
+    if (steps.length === 0) return;
+    const ids = steps.map((step) => step.id);
+    const reset = { state: "todo" as const, importId: null, coveredByStepId: null, decidedAt: null, decidedBy: null, updatedAt: now };
+    await tx.update(takeoverSteps).set(reset).where(inArray(takeoverSteps.id, ids));
+    await tx.update(takeoverSteps).set(reset).where(and(eq(takeoverSteps.state, "covered"), inArray(takeoverSteps.coveredByStepId, ids)));
+    const removed = [...(input.removedEventIds ?? [])];
+    if (removed.length === 0) return;
+    const takeoverIds = [...new Set(steps.map((step) => step.takeoverId))];
+    const gone = await tx.select({ id: takeovers.id }).from(takeovers).where(and(inArray(takeovers.id, takeoverIds), inArray(takeovers.eventId, removed)));
+    if (gone.length === 0) return;
+    const goneIds = gone.map((row) => row.id);
+    await tx.update(takeovers).set({ eventId: null, updatedAt: now }).where(inArray(takeovers.id, goneIds));
+    await tx.update(takeoverSteps).set(reset).where(and(inArray(takeoverSteps.takeoverId, goneIds), eq(takeoverSteps.kind, "event")));
+  });
+}
+
+export type TakeoverImport = { id: string; entityType: string; fileName: string; appliedAt: Date };
+
+// Lot 71d (I10) : les imports appliqués d'une reprise, du plus récent au plus ancien.
+export async function listTakeoverAppliedImports(db: AppDatabase, organizationId: string, takeoverId: string): Promise<TakeoverImport[]> {
+  return withOrganization(db, organizationId, async (tx) => {
+    const rows = await tx
+      .select({ id: imports.id, entityType: imports.entityType, fileName: imports.fileName, appliedAt: imports.appliedAt })
+      .from(imports)
+      .where(and(eq(imports.takeoverId, takeoverId), eq(imports.status, "applied")))
+      .orderBy(desc(imports.appliedAt));
+    return rows.flatMap((row) => (row.appliedAt ? [{ ...row, appliedAt: row.appliedAt }] : []));
+  });
+}
+
+// Lot 71d (I10) : « Retirer toute la reprise… » efface la page de reprise une fois le mariage retiré.
+export async function deleteTakeover(db: AppDatabase, input: { organizationId: string; takeoverId: string }): Promise<void> {
+  await withOrganization(db, input.organizationId, (tx) => tx.delete(takeovers).where(eq(takeovers.id, input.takeoverId)));
+}

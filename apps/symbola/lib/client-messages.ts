@@ -47,6 +47,11 @@ export const SERVER_ONLY_NAMESPACES = [
   "Organizations",
   "Manifest",
   "Loading",
+  // Lot 71d : les nombres, « Doublons », le bilan et le retrait d'un import, rendus côté serveur.
+  "ImportFigures",
+  "ImportDoublons",
+  "ImportBilan",
+  "ImportWithdraw",
   // Lot 74g : les 38 rubriques et « Vos données », lus côté serveur ; l'accueil des Paramètres reçoit ses
   // textes en propriétés, sa recherche les siens (« SettingsSearch »).
   "SettingsMenu",

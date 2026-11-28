@@ -11,8 +11,11 @@ import { describeVendorsForImportUndo, listVendorTypes } from "@/modules/vendors
 import { isValidId } from "../../access";
 import { retryImportJobAction } from "../../actions";
 import { JobProgress } from "../../job-progress";
-import { undoImportAction } from "./actions";
-import { takeoverBackLink } from "@/lib/takeover/flow";
+import { importEventNames, takeoverBackLink } from "@/lib/takeover/flow";
+import { takeoverRemoval } from "@/lib/import/apply";
+import { getImportAnswers } from "@/modules/hub/service";
+import { ImportWithdraw } from "./withdraw";
+import { BudgetBilan } from "./budget-bilan";
 
 function count(value: string | undefined): number | null {
   const number = Number(value);
@@ -49,7 +52,7 @@ export default async function ImportJournalPage({
   searchParams,
 }: {
   params: Promise<{ importId: string }>;
-  searchParams: Promise<{ annule?: string; gardes?: string; utilises?: string }>;
+  searchParams: Promise<{ annule?: string; gardes?: string; utilises?: string; retrait?: string }>;
 }) {
   const auth = await requirePlanner();
   const organizationId = auth.user.organizationId;
@@ -68,10 +71,15 @@ export default async function ImportJournalPage({
   const t = await getTranslations("Import");
   const tTakeover = await getTranslations("Takeover");
   const tHelp = await getTranslations("Help");
+  const tBilan = await getTranslations("ImportBilan");
   // Lot 71b (HUB-14) : le bilan d'un import de reprise ramène à sa page.
   const back = await takeoverBackLink(organizationId, importId);
   const locale = (await getLocale()) as Locale;
   const query = await searchParams;
+  // Lot 71d (HUB-14, I10) : le mariage de l'import, et la reprise entière pour la fiche d'un mariage.
+  const eventName = (await importEventNames(organizationId, [view])).get(view.id) ?? back?.eventName ?? null;
+  const removal = await takeoverRemoval(organizationId, importId);
+  const budgetFigures = view.entityType === "budget_lines" && view.result?.figures?.kind === "budget" ? view.result : null;
   const undone = count(query.annule);
 
   const itemTitle = (item: UndoPreviewItem): string => {
@@ -102,7 +110,6 @@ export default async function ImportJournalPage({
   };
 
   const modified = view.pendingItems.filter((item) => item.modified && !item.usedElsewhere);
-  const usedElsewhere = view.pendingItems.filter((item) => item.usedElsewhere);
 
   // Lot 63b (HUB-14, UX-07) : le bilan d'abord, chaque nombre mène aux éléments ; puis la
   // vérification (liste filtrée sur l'import) ; l'annulation, repliée, nomme les fiches modifiées.
@@ -125,6 +132,12 @@ export default async function ImportJournalPage({
     return [vendor.typeId ? typeLabels.get(vendor.typeId) : null, vendor.city].filter(Boolean).join(" · ") || null;
   };
   const modifiedAt = (item: UndoPreviewItem): Date | null => vendorDetails.find((entry) => entry.id === item.elementId)?.updatedAt ?? null;
+  // Lot 63b, gardé au lot 71d : la fenêtre de retrait nomme les fiches modifiées à la main depuis.
+  const modifiedNames = modified.map((item) => {
+    const detail = modifiedDetail(item);
+    const at = modifiedAt(item);
+    return [itemTitle(item), detail, at ? t("undoModifiedAt", { date: formatDateTime(at, locale) }) : null].filter(Boolean).join(" · ");
+  });
   const summary = view.result
     ? [
         { key: "created", value: view.result.created, href: listHref("crees") ?? (createdItems.length > 0 ? "#elements-crees" : null) },
@@ -145,15 +158,25 @@ export default async function ImportJournalPage({
           <Link href={finishHref}>‹ {t(`finishBack.${view.entityType}`)}</Link>
         </p>
       ) : null}
-      <h1>{view.status === "applied" ? t("finishTitle") : t("journalEntryTitle", { fileName: view.fileName })}</h1>
+      <h1>{budgetFigures && eventName && view.status === "applied" ? tBilan("title", { event: eventName }) : view.status === "applied" ? t("finishTitle") : t("journalEntryTitle", { fileName: view.fileName })}</h1>
       <ScreenHelp title={tHelp("importUndo.title")} body={tHelp("importUndo.body")} />
+      {query.retrait ? <p role="alert">{tBilan(`takeoverFailed.${query.retrait === "expired" || query.retrait === "in_use" ? query.retrait : "failed"}`)}</p> : null}
       {undone !== null ? (
         <p role="status">
           {t("undoResult", { undone, kept: count(query.gardes) ?? 0, used: count(query.utilises) ?? 0 })}
         </p>
       ) : null}
 
-      {view.result ? (
+      {budgetFigures ? (
+        <BudgetBilan
+          view={view}
+          eventName={eventName}
+          author={author?.email ?? null}
+          answers={await getImportAnswers(db, organizationId, importId)}
+          back={back}
+          budgetHref={view.targetEventId ? `/events/${view.targetEventId}?onglet=budget` : null}
+        />
+      ) : view.result ? (
         <section className="card stack" aria-labelledby="import-summary-title">
           <h2 id="import-summary-title" className="sr-only">
             {t("finishSummaryTitle")}
@@ -213,7 +236,7 @@ export default async function ImportJournalPage({
         </section>
       ) : null}
 
-      {!filteredList && createdItems.length > 0 ? (
+      {!filteredList && !budgetFigures && createdItems.length > 0 ? (
         <details id="elements-crees">
           <summary>{t("finishCount", { count: createdItems.length, label: t("finishFigure.created", { count: createdItems.length }) })}</summary>
           <ul>
@@ -223,7 +246,7 @@ export default async function ImportJournalPage({
           </ul>
         </details>
       ) : null}
-      {!filteredList && updatedItems.length > 0 ? (
+      {!filteredList && !budgetFigures && updatedItems.length > 0 ? (
         <details id="elements-maj">
           <summary>{t("finishCount", { count: updatedItems.length, label: t("finishFigure.updated", { count: updatedItems.length }) })}</summary>
           <ul>
@@ -274,81 +297,12 @@ export default async function ImportJournalPage({
         </dl>
       </details>
 
-      {view.undoable ? (
-        <details className="card import-undo">
-          <summary id="undo-import">{t("undoTitle")}</summary>
-          <p>{t("undoIntro", { date: view.undoDeadline ? formatDateTime(view.undoDeadline, locale) : "" })}</p>
-          <p>{t("undoWhat", { created: createdItems.length, updated: updatedItems.length })}</p>
-          {modified.length > 0 ? (
-            <>
-              <p>{t("undoModifiedNamed", { count: modified.length })}</p>
-              <div className="list-table-wrap" role="region" aria-label={t("undoModifiedLegend", { count: modified.length })} tabIndex={0}>
-                <table className="list-table">
-                  <caption className="sr-only">{t("undoModifiedLegend", { count: modified.length })}</caption>
-                  <tbody>
-                    {modified.map((item) => {
-                      const detail = modifiedDetail(item);
-                      const at = modifiedAt(item);
-                      return (
-                        <tr key={item.id}>
-                          <th scope="row">
-                            {itemTitle(item)}
-                            {detail ? <span className="meta"> · {detail}</span> : null}
-                          </th>
-                          <td className="meta">{at ? t("undoModifiedAt", { date: formatDateTime(at, locale) }) : t("undoModifiedSince")}</td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            </>
-          ) : null}
-          {usedElsewhere.length > 0 ? (
-            <div>
-              <p>{t("undoUsedElsewhereIntro")}</p>
-              <ul>
-                {usedElsewhere.map((item) => (
-                  <li key={item.id}>{itemTitle(item)}</li>
-                ))}
-              </ul>
-            </div>
-          ) : null}
-          <div className="import-undo-actions">
-            {modified.length > 0 ? (
-              <>
-                <form action={undoImportAction}>
-                  <input type="hidden" name="importId" value={view.id} />
-                  <input type="hidden" name="mode" value="keep" />
-                  <button type="submit" className="button-danger">
-                    {t("undoExceptModified", { count: modified.length })}
-                  </button>
-                </form>
-                <form action={undoImportAction}>
-                  <input type="hidden" name="importId" value={view.id} />
-                  <input type="hidden" name="mode" value="all" />
-                  <button type="submit" className="button-danger">
-                    {t("undoAll")}
-                  </button>
-                </form>
-              </>
-            ) : (
-              <form action={undoImportAction}>
-                <input type="hidden" name="importId" value={view.id} />
-                <input type="hidden" name="mode" value="keep" />
-                <button type="submit" className="button-danger">
-                  {t("undoSubmit")}
-                </button>
-              </form>
-            )}
-          </div>
-        </details>
-      ) : view.status === "applied" ? (
-        <p>{t("undoExpired")}</p>
-      ) : null}
+      <ImportWithdraw view={view} eventName={eventName} removal={removal} fromTakeover={back !== null} modifiedNames={modifiedNames} />
 
       <p>
-        <Link href="/import">{t("finishHistory")}</Link>
+        <Link href="/import" className="button-link">
+          {t("finishHistory")}
+        </Link>
       </p>
     </main>
   );

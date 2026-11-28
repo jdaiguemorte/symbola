@@ -60,7 +60,22 @@
       "en": [
         "Photographer",
         "Photography"
-      ]
+      ],
+      "details": {
+        "fr": [
+          "photo",
+          "photos",
+          "reportage",
+          "shooting",
+          "séance"
+        ],
+        "en": [
+          "photo",
+          "photos",
+          "photography",
+          "shoot"
+        ]
+      }
     },
     {
       "key": "videographer",
@@ -72,7 +87,23 @@
       "en": [
         "Videographer",
         "Video"
-      ]
+      ],
+      "details": {
+        "fr": [
+          "film",
+          "vidéo",
+          "clip",
+          "drone",
+          "montage"
+        ],
+        "en": [
+          "film",
+          "video",
+          "clip",
+          "drone",
+          "footage"
+        ]
+      }
     },
     {
       "key": "music",
@@ -86,7 +117,8 @@
         "Live band",
         "Groupe live",
         "Chanteur",
-        "Chanteuse"
+        "Chanteuse",
+        "Musique"
       ],
       "en": [
         "DJ / musicians",
@@ -95,7 +127,8 @@
         "Musicians",
         "Band",
         "Live band",
-        "Singer"
+        "Singer",
+        "Music"
       ]
     },
     {
