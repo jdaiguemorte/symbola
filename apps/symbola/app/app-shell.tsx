@@ -376,7 +376,8 @@ export async function AppShell({ children }: { children: ReactNode }) {
     ? settingsMenu(settingsFlags).map((group) => ({
         key: group.key,
         label: tSettings(group.label),
-        items: group.items.map((item) => ({ href: item.href, label: tSettings(item.label), paths: item.paths })),
+        // Les anciennes adresses d'une rubrique, seulement quand elle en a : ce menu part avec chaque page.
+        items: group.items.map((item) => ({ href: item.href, label: tSettings(item.label), ...(item.paths.length > 0 ? { paths: item.paths } : {}) })),
       }))
     : [];
   const yourDataSection: SettingsGroup | null = organizationId

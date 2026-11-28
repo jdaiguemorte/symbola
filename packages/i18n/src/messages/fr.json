@@ -6166,11 +6166,8 @@
   },
   "SettingsMenu": {
     "privacyAlerts": "{count, plural, one {# demande RGPD en alerte} other {# demandes RGPD en alerte}}",
-    "search": "Chercher un réglage",
-    "searchCount": "{count, plural, =0 {Aucun réglage ne porte ce nom.} one {# réglage trouvé} other {# réglages trouvés}}",
     "homeTitle": "Paramètres",
     "homeIntro": "Ce qui se règle une fois pour toute l'agence, et vos réglages à vous. {rubrics, plural, one {# rubrique} other {# rubriques}} en {groups, plural, one {# groupe} other {# groupes}}.",
-    "ownerTag": "titulaire",
     "allSettings": "Tous les paramètres",
     "otherGroups": "Autres groupes",
     "back": "Paramètres",
@@ -6421,6 +6418,11 @@
         "hint": "Les transmissions de la réforme"
       }
     }
+  },
+  "SettingsSearch": {
+    "search": "Chercher un réglage",
+    "searchCount": "{count, plural, =0 {Aucun réglage ne porte ce nom.} one {# réglage trouvé} other {# réglages trouvés}}",
+    "ownerTag": "titulaire"
   },
   "SettingsLists": {
     "hint": "Chaque modification s'enregistre quand vous quittez le champ.",

@@ -17,6 +17,7 @@ export default async function YourDataPage() {
   const organizationId = auth.user.organizationId;
   const t = await getTranslations("SettingsMenu");
   const tHelp = await getTranslations("Help");
+  const tSearch = await getTranslations("SettingsSearch");
   const flags = await loadSettingsFlags(organizationId, auth.user.role);
   const alerts = await loadPrivacyAlerts(organizationId, flags.isOwner);
   const lines = yourDataLines(flags);
@@ -43,7 +44,7 @@ export default async function YourDataPage() {
               </strong>
               <span className="meta">
                 {t(line.hint)}
-                {line.owner ? ` · ${t("ownerTag")}` : ""}
+                {line.owner ? ` · ${tSearch("ownerTag")}` : ""}
               </span>
               {line.secondary.length > 0 ? (
                 <span className="your-data-secondary">

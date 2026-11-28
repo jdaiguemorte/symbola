@@ -21,7 +21,7 @@ export function SettingsHome({
   groups: SettingsHomeGroup[];
   yourData: { href: string; label: string; hint: string; open: string; count: number; countLabel: string };
 }) {
-  const t = useTranslations("SettingsMenu");
+  const t = useTranslations("SettingsSearch");
   const searchId = useId();
   const [query, setQuery] = useState("");
   const searching = query.trim() !== "";

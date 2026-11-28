@@ -6166,11 +6166,8 @@
   },
   "SettingsMenu": {
     "privacyAlerts": "{count, plural, one {# privacy request needs attention} other {# privacy requests need attention}}",
-    "search": "Search settings",
-    "searchCount": "{count, plural, =0 {No setting has that name.} one {# setting found} other {# settings found}}",
     "homeTitle": "Settings",
     "homeIntro": "What is set once for the whole agency, and your own settings. {rubrics, plural, one {# section} other {# sections}} in {groups, plural, one {# group} other {# groups}}.",
-    "ownerTag": "owner",
     "allSettings": "All settings",
     "otherGroups": "Other groups",
     "back": "Settings",
@@ -6421,6 +6418,11 @@
         "hint": "Transmissions under the reform"
       }
     }
+  },
+  "SettingsSearch": {
+    "search": "Search settings",
+    "searchCount": "{count, plural, =0 {No setting has that name.} one {# setting found} other {# settings found}}",
+    "ownerTag": "owner"
   },
   "SettingsLists": {
     "hint": "Each change is saved when you leave the field.",
