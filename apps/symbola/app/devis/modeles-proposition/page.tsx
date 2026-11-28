@@ -16,12 +16,13 @@ export default async function ProposalTemplatesPage() {
   const auth = await requirePlanner();
   const organizationId = auth.user.organizationId;
   const t = await getTranslations("ProposalTemplates");
+  const tMenu = await getTranslations("SettingsMenu");
   const tHelp = await getTranslations("Help");
   const locale = (await getLocale()) as Locale;
   if (!(await isQuotesModuleEnabled(organizationId))) {
     return (
       <main>
-        <h1>{t("title")}</h1>
+        <h1>{tMenu("rubrics.proposalTemplates.label")}</h1>
         <p>{t("moduleUnavailable")}</p>
       </main>
     );
@@ -31,7 +32,7 @@ export default async function ProposalTemplatesPage() {
   const freeTypes = eventTypes.filter((type) => !templates.some((template) => template.eventTypeId === type.id)).map((type) => ({ id: type.id, label: type.label }));
   return (
     <main>
-      <h1>{t("title")}</h1>
+      <h1>{tMenu("rubrics.proposalTemplates.label")}</h1>
       <ScreenHelp title={tHelp("proposalTemplates.title")} body={tHelp("proposalTemplates.body")} />
       {/* Lot 61 : un modèle par carte. Dans une « item-list », le formulaire passait en grille de trois
           colonnes et le mot d'accueil se retrouvait coincé dans la colonne du milieu. */}

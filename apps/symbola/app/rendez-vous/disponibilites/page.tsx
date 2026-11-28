@@ -16,11 +16,12 @@ import { addCalendarSourceAction, addClosureAction, refreshCalendarSourceAction,
 export default async function AvailabilityPage({ searchParams }: { searchParams: Promise<{ ok?: string; erreur?: string }> }) {
   const auth = await appointmentsPlanner();
   const t = await getTranslations("Appointments");
+  const tMenu = await getTranslations("SettingsMenu");
   const tHelp = await getTranslations("Help");
   if (!auth) {
     return (
       <main>
-        <h1>{t("availabilityTitle")}</h1>
+        <h1>{tMenu("rubrics.appointmentAvailability.label")}</h1>
         <p>{t("moduleUnavailable")}</p>
       </main>
     );
@@ -32,7 +33,7 @@ export default async function AvailabilityPage({ searchParams }: { searchParams:
   
   return (
     <main>
-      <PageHeader title={t("availabilityTitle")} subtitle={t("availabilitySubtitle")} actions={<Link href="/rendez-vous">{t("backToList")}</Link>} />
+      <PageHeader title={tMenu("rubrics.appointmentAvailability.label")} subtitle={t("availabilitySubtitle")} actions={<Link href="/rendez-vous">{t("backToList")}</Link>} />
       <ScreenHelp title={tHelp("appointmentAvailability.title")} body={tHelp("appointmentAvailability.body")} />
       <Notice ok={query.ok} error={query.erreur} />
 

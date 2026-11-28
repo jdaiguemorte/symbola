@@ -15,11 +15,13 @@ export default async function SourcesSettingsPage() {
 
   const t = await getTranslations("Events");
 
+  const tMenu = await getTranslations("SettingsMenu");
+
   const tHelp = await getTranslations("Help");
   if (!(await isEventsModuleEnabled(organizationId))) {
     return (
       <main>
-        <h1>{t("title")}</h1>
+        <h1>{tMenu("rubrics.sourcesReasons.label")}</h1>
         <p>{t("moduleUnavailable")}</p>
       </main>
     );
@@ -28,7 +30,7 @@ export default async function SourcesSettingsPage() {
 
   return (
     <main>
-      <h1>{t("sourcesReasonsTitle")}</h1>
+      <h1>{tMenu("rubrics.sourcesReasons.label")}</h1>
       <ScreenHelp title={tHelp("eventsSources.title")} body={tHelp("eventsSources.body")} />
       {sources.length === 0 || reasons.length === 0 ? (
         <section aria-labelledby="starter-lists-title" className="card">

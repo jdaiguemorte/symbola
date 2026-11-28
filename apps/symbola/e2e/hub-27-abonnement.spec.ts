@@ -60,7 +60,7 @@ test("HUB-27 — essai, passage à la suite Solo (Rendez-vous fermé à la requ�
 
   await banner.getByRole("link", { name: "Choisir une offre" }).click();
   await expect(page).toHaveURL(/\/parametres\/abonnement$/);
-  await expect(page.getByRole("heading", { level: 1, name: "Mon abonnement" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "Abonnement et modules" })).toBeVisible();
   await expect(page.getByRole("region", { name: "Votre offre" })).toContainText(/Essai jusqu'au/);
   await expect(page.getByRole("region", { name: "Stockage" })).toBeVisible();
   await expect(page.getByRole("region", { name: "Votre offre" })).toContainText("aucune facture ne vous sera envoyée");
@@ -89,9 +89,10 @@ test("HUB-27 — essai, passage à la suite Solo (Rendez-vous fermé à la requ�
     clicks += 1;
     await page.getByRole(role, { name, exact: true }).click();
   };
-  await page.getByRole("navigation", { name: "Rubriques des paramètres" }).getByRole("link", { name: "Mon abonnement", exact: true }).click();
+  // Lot 74g : l'accueil des Paramètres liste « Abonnement et modules » dans « Votre entreprise ».
+  await page.locator(".settings-home-link", { hasText: "Abonnement et modules" }).click();
   clicks += 1;
-  await expect(page.getByRole("heading", { level: 1, name: "Mon abonnement" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "Abonnement et modules" })).toBeVisible();
   await click("Résilier", "link");
   await expect(page.getByRole("heading", { name: "Confirmer la résiliation ?" })).toBeVisible();
   await expectNoAxeViolation(page);

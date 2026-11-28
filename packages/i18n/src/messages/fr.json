@@ -497,8 +497,8 @@
       ]
     },
     "settings": {
-      "title": "Entreprise et TVA",
-      "body": "La fiche de votre entreprise (SIREN, adresse, forme juridique, métier) et votre régime de TVA : ils figurent sur vos devis et factures. Le métier règle le vocabulaire et les modèles de départ. Les autres réglages sont rangés par rubrique dans le menu de gauche. Complétez le code postal et la ville avant votre première facture, et, si vous êtes assujettie, dites si vous avez opté pour la TVA sur les débits. Identité, adresse et coordonnées imprimées s'enregistrent ensemble, par « Enregistrer la fiche ».",
+      "title": "Fiche de l'entreprise",
+      "body": "La fiche de votre entreprise (SIREN, adresse, forme juridique, métier) et votre régime de TVA : ils figurent sur vos devis et factures. Le métier règle le vocabulaire et les modèles de départ. Complétez le code postal et la ville avant votre première facture, et, si vous êtes assujettie, dites si vous avez opté pour la TVA sur les débits. Identité, adresse et coordonnées imprimées s'enregistrent ensemble, par « Enregistrer la fiche ».",
       "faq": [
         {
           "q": "Je passe de la franchise à la TVA : que faire ?",
@@ -1539,6 +1539,18 @@
           "a": "Non : il est « Signé, en préparation », et ses tâches viennent de votre liste. Sans liste, vous pourrez partir d'un modèle depuis la fiche."
         }
       ]
+    },
+    "companyMentions": {
+      "title": "Mentions et logo des documents",
+      "body": "L'assurance de responsabilité civile professionnelle, le médiateur de la consommation et vos conditions générales, repris sur chaque devis, et le logo imprimé en tête de vos documents. Un devis qui ne peut pas partir sans l'une de ces mentions vous mène ici, au bon bloc."
+    },
+    "settingsHome": {
+      "title": "Paramètres",
+      "body": "Tout ce qui se règle, rangé en groupes, dans l'ordre du travail : votre entreprise, vos réglages à vous, l'évènement, son déroulé, son budget, ses devis, ses messages, les rendez-vous. Chaque rubrique dit en une phrase ce qu'elle règle ; « titulaire » marque ce que seule la titulaire change. « Chercher un réglage » filtre les rubriques par leur nom. Ce qui n'est pas un réglage (copie des données, corbeille, historique, stockage, fermeture de l'espace) est dans « Vos données », en bas de la page."
+    },
+    "yourData": {
+      "title": "Vos données",
+      "body": "La copie de toutes vos données, la reprise d'une copie Symbola, la corbeille, l'historique des actions et des e-mails envoyés, les demandes sur les données personnelles, le stockage et la comptabilité. Chaque ligne ouvre son écran, avec les droits d'aujourd'hui : la titulaire voit tout, l'équipe ce qui lui est ouvert. « Reprendre et importer » fait entrer un mariage en cours, des contacts ou un carnet. « Fermer l'espace » est seul, en bas."
     },
     "importQuestions": {
       "title": "Les questions de l'import",
@@ -6154,67 +6166,264 @@
     "documentsColorInvalid": "Cette couleur n'est pas valide."
   },
   "SettingsMenu": {
-    "groupCompany": "Mon entreprise",
-    "company": "Entreprise et TVA",
-    "account": "Mon compte",
-    "groupEvents": "Évènements",
-    "budgetLines": "Lignes du budget",
-    "sourcesReasons": "Sources et motifs",
-    "retroplanning": "Rétroplanning",
-    "program": "Programme du jour J",
-    "allocation": "Répartition du budget",
-    "followUp": "Relances des prospects",
-    "groupSales": "Ventes",
-    "catalog": "Catalogue",
-    "quotes": "Devis et factures",
-    "eReporting": "E-reporting",
-    "groupData": "Prestataires et données",
-    "vendorTypes": "Types de prestataires",
-    "vendorTags": "Étiquettes",
-    "vendorTravel": "Estimation des trajets",
-    "import": "Reprendre et importer",
-    "privacy": "Données personnelles",
-    "eventTypes": "Types d'évènements",
-    "documents": "Documents",
     "privacyAlerts": "{count, plural, one {# demande RGPD en alerte} other {# demandes RGPD en alerte}}",
-    "activityLog": "Journal d'activité",
-    "accountingArchive": "Archive comptable",
-    "team": "Équipe",
-    "quoteTemplates": "Modèles de devis",
-    "contractTemplates": "Modèles de contrat",
-    "export": "Exporter mes données",
-    "organizationImport": "Reprendre un export",
-    "organizationClosure": "Fermer l'espace",
-    "storage": "Stockage",
-    "emailTemplates": "Modèles d'e-mails",
-    "messageTemplates": "Modèles de messages",
-    "trash": "Corbeille",
-    "dietaryOptions": "Régimes et allergies",
-    "mealTypes": "Types de repas",
-    "groupAppointments": "Rendez-vous",
-    "appointmentTypes": "Types et page de réservation",
-    "appointmentAvailability": "Mes disponibilités et agendas",
-    "pipelineStages": "Étapes du pipeline",
-    "contactForm": "Formulaire de contact",
-    "questionnaires": "Questionnaires",
-    "vendorCoordination": "Prestataires par lien",
-    "dayChecklists": "Listes du jour J",
-    "proposalTemplates": "Modèles de proposition",
-    "paymentReminders": "Relances de devis et de paiement",
-    "vendorDocuments": "Pièces des prestataires",
-    "notifications": "Notifications",
-    "automations": "Automatisations",
-    "riskRadar": "Radar des risques",
-    "clientTerms": "Termes des clients",
-    "accountingExports": "Exports comptables",
-    "eventTemplates": "Modèles d'évènement",
-    "subscription": "Mon abonnement",
-    "senderAddress": "Adresse d'envoi",
-    "emailDeliveries": "Journal des envois",
+    "homeTitle": "Paramètres",
+    "homeIntro": "Ce qui se règle une fois pour toute l'agence, et vos réglages à vous. {rubrics, plural, one {# rubrique} other {# rubriques}} en {groups, plural, one {# groupe} other {# groupes}}.",
+    "allSettings": "Tous les paramètres",
+    "otherGroups": "Autres groupes",
+    "back": "Paramètres",
+    "backTo": "Retour à {name}",
+    "groupMenu": "Rubriques du groupe {group}",
+    "yourData": "Vos données",
+    "yourDataHint": "Ce ne sont pas des réglages : la copie de vos données, la corbeille, l'historique, le stockage, la fermeture de l'espace.",
+    "yourDataOpen": "Ouvrir « Vos données »",
+    "yourDataIntro": "Ce ne sont pas des réglages : vos données, leur copie, leur historique. Ouvert depuis l'accueil des Paramètres et le menu de votre compte.",
+    "open": "Ouvrir",
+    "openNamed": "Ouvrir « {name} »",
+    "importTitle": "Faire entrer des données",
+    "importBody": "Un mariage en cours, vos contacts, votre carnet de prestataires : la page « Reprendre et importer ».",
+    "importLink": "Reprendre et importer",
+    "closureTitle": "Fermer l'espace",
+    "closureBody": "Toutes les données de {organization} sont effacées après un préavis de 30 jours. Faites d'abord une copie de vos données.",
+    "closureLink": "Fermer l'espace…",
+    "allModules": "Tous les modules",
+    "allModulesHint": "Ce qui est ouvert, ce qui peut l'être",
+    "yourDataMenuHint": "Copie, corbeille, historique, stockage",
+    "groups": {
+      "company": {
+        "label": "Votre entreprise",
+        "hint": "Ce que vos documents et vos clients voient de vous"
+      },
+      "you": {
+        "label": "Vous",
+        "hint": "Vos réglages à vous ; chaque membre de l'équipe a les siens"
+      },
+      "events": {
+        "label": "Évènements",
+        "hint": "Ce que reçoit chaque nouvel évènement"
+      },
+      "planning": {
+        "label": "Tâches, programme et jour J",
+        "hint": "Les modèles du déroulé d'un mariage"
+      },
+      "budgetVendors": {
+        "label": "Budget et prestataires",
+        "hint": "Les postes et le carnet"
+      },
+      "sales": {
+        "label": "Devis et factures",
+        "hint": "Ce qui s'imprime et se numérote"
+      },
+      "messages": {
+        "label": "Messages et automatismes",
+        "hint": "Ce qui part en votre nom, et ce que Symbola fait seul"
+      },
+      "appointments": {
+        "label": "Rendez-vous",
+        "hint": "Votre page de réservation"
+      }
+    },
+    "rubrics": {
+      "companySheet": {
+        "label": "Fiche de l'entreprise",
+        "hint": "Identité, adresse, coordonnées, TVA, activité"
+      },
+      "companyMentions": {
+        "label": "Mentions et logo des documents",
+        "hint": "Assurance, médiateur, conditions générales, logo"
+      },
+      "team": {
+        "label": "Équipe et accès",
+        "hint": "Inviter, changer un rôle, retirer un accès"
+      },
+      "subscription": {
+        "label": "Abonnement et modules",
+        "hint": "Votre forfait, les modules ouverts"
+      },
+      "profile": {
+        "label": "Votre profil et votre connexion",
+        "hint": "Nom, signature, sessions, sécurité"
+      },
+      "notifications": {
+        "label": "Vos notifications",
+        "hint": "Ce qui vous est envoyé, par où et quand"
+      },
+      "eventTypes": {
+        "label": "Types d'évènements et termes des clients",
+        "hint": "Mariage, baptême… et « mariés », « parents »"
+      },
+      "sourcesReasons": {
+        "label": "Sources et motifs",
+        "hint": "D'où viennent vos demandes, pourquoi elles se perdent"
+      },
+      "pipeline": {
+        "label": "Demandes : étapes et formulaire de contact",
+        "hint": "Les étapes d'une demande, le formulaire de votre site"
+      },
+      "eventTemplates": {
+        "label": "Modèles d'évènement",
+        "hint": "Un évènement type, sans donnée personnelle"
+      },
+      "questionnaires": {
+        "label": "Questionnaires des clients",
+        "hint": "Les questions posées aux mariés"
+      },
+      "guestOptions": {
+        "label": "Invités : régimes et repas",
+        "hint": "Les choix proposés dans les réponses des invités"
+      },
+      "busyRanges": {
+        "label": "Plages occupées dans l'agenda",
+        "hint": "Les heures qu'un évènement bloque, par type"
+      },
+      "taskCategories": {
+        "label": "Tâches : catégories et échéances",
+        "hint": "Catégories, priorité, ce qui est « Bientôt »"
+      },
+      "retroplanning": {
+        "label": "Rétroplanning : modèles",
+        "hint": "Les tâches créées d'un geste, de J-365 à J+30"
+      },
+      "program": {
+        "label": "Programme du jour J : modèles",
+        "hint": "Le déroulé type de la journée"
+      },
+      "dayChecklists": {
+        "label": "Jour J : listes de contrôle",
+        "hint": "Ce que l'équipe coche sur place"
+      },
+      "budget": {
+        "label": "Budget : postes de départ et répartition",
+        "hint": "Les postes de chaque nouveau mariage et leur part"
+      },
+      "vendorTypes": {
+        "label": "Prestataires : métiers et familles",
+        "hint": "Fleuriste, traiteur… et les champs de chaque métier"
+      },
+      "vendorTags": {
+        "label": "Prestataires : étiquettes",
+        "hint": "« Coup de cœur », « Bio »…"
+      },
+      "vendorDocuments": {
+        "label": "Prestataires : assurances et pièces",
+        "hint": "Quelles pièces demander, quand prévenir avant leur fin"
+      },
+      "vendorTravel": {
+        "label": "Prestataires : trajets",
+        "hint": "L'estimation des temps de trajet"
+      },
+      "vendorCoordination": {
+        "label": "Prestataires par lien",
+        "hint": "Briefs, feuilles de route, suivi"
+      },
+      "catalog": {
+        "label": "Catalogue des prestations",
+        "hint": "Vos prestations et leurs prix"
+      },
+      "quoteSettings": {
+        "label": "Numérotation, échéances et paiement",
+        "hint": "Séries, acomptes, RIB, délais"
+      },
+      "quoteDocuments": {
+        "label": "Apparence des devis et factures",
+        "hint": "Mise en page, textes, aperçu en PDF"
+      },
+      "quoteTemplates": {
+        "label": "Modèles de devis",
+        "hint": "Les devis types"
+      },
+      "contractTemplates": {
+        "label": "Modèles de contrat",
+        "hint": "Les contrats types"
+      },
+      "proposalTemplates": {
+        "label": "Modèles de proposition",
+        "hint": "La page envoyée avec un devis"
+      },
+      "messageTemplates": {
+        "label": "Messages types : ce que vous envoyez",
+        "hint": "Les messages que vous préparez depuis une fiche"
+      },
+      "emailTemplates": {
+        "label": "E-mails automatiques : ce que Symbola envoie",
+        "hint": "Accès, signature, rendez-vous, rappels"
+      },
+      "senderAddress": {
+        "label": "Adresse d'envoi et réponses",
+        "hint": "D'où partent les e-mails, où arrivent les réponses"
+      },
+      "automations": {
+        "label": "Automatismes : en marche ou coupés",
+        "hint": "Chaque automatisme, son heure, son journal"
+      },
+      "riskRadar": {
+        "label": "Radar des risques : règles et seuils",
+        "hint": "Ce que le radar surveille chaque matin"
+      },
+      "followUp": {
+        "label": "Prospects : délai avant relance",
+        "hint": "Quand une demande sans nouvelle vous est signalée"
+      },
+      "paymentReminders": {
+        "label": "Paiements et propositions : relances",
+        "hint": "Les relances envoyées au client"
+      },
+      "appointmentTypes": {
+        "label": "Rendez-vous : types et page de réservation",
+        "hint": "Durées, lieux, lien à partager"
+      },
+      "appointmentAvailability": {
+        "label": "Disponibilités et agendas",
+        "hint": "Vos heures, vos agendas reliés"
+      }
+    },
+    "data": {
+      "export": {
+        "label": "Copie de toutes vos données",
+        "hint": "Un fichier à télécharger, gratuit, à tout moment"
+      },
+      "organizationImport": {
+        "label": "Reprendre une copie Symbola",
+        "hint": "Dans un espace vide seulement"
+      },
+      "trash": {
+        "label": "Corbeille",
+        "hint": "Ce qui a été supprimé depuis moins de 30 jours, prêt à revenir"
+      },
+      "activityLog": {
+        "label": "Historique des actions",
+        "hint": "Qui a fait quoi, quand"
+      },
+      "emailDeliveries": {
+        "label": "Historique des e-mails envoyés",
+        "hint": "Envoyé, remis, refusé ; 13 mois"
+      },
+      "privacy": {
+        "label": "Demandes sur les données personnelles",
+        "hint": "Accès, copie, effacement demandés par une personne"
+      },
+      "storage": {
+        "label": "Stockage",
+        "hint": "La place prise par vos fichiers"
+      },
+      "accounting": {
+        "label": "Comptabilité : exports, archive, facturation électronique",
+        "hint": "Pour votre expert-comptable"
+      },
+      "accountingArchive": {
+        "label": "Archive comptable",
+        "hint": "Les pièces gardées dix ans"
+      },
+      "eReporting": {
+        "label": "Facturation électronique",
+        "hint": "Les transmissions de la réforme"
+      }
+    }
+  },
+  "SettingsSearch": {
     "search": "Chercher un réglage",
     "searchCount": "{count, plural, =0 {Aucun réglage ne porte ce nom.} one {# réglage trouvé} other {# réglages trouvés}}",
-    "busyRanges": "Plages occupées",
-    "taskCategories": "Catégories des tâches"
+    "ownerTag": "titulaire"
   },
   "SettingsLists": {
     "hint": "Chaque modification s'enregistre quand vous quittez le champ.",

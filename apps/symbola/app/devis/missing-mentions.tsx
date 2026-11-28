@@ -6,15 +6,15 @@ import type { MissingMention } from "@/modules/quotes/service";
 import { anchorHref } from "./[quoteId]/rubrics";
 
 const WHERE: Record<MissingMention, string> = {
-  organizationName: "/parametres#profil-entreprise",
-  address: "/parametres#profil-entreprise",
-  siren: "/parametres#profil-entreprise",
-  registration: "/parametres#coordonnees-documents",
-  shareCapital: "/parametres#coordonnees-documents",
-  vatNumber: "/parametres#coordonnees-documents",
-  insurance: "/parametres#informations-professionnel",
-  mediator: "/parametres#informations-professionnel",
-  generalTerms: "/parametres#informations-professionnel",
+  organizationName: "/parametres/entreprise#profil-entreprise",
+  address: "/parametres/entreprise#profil-entreprise",
+  siren: "/parametres/entreprise#profil-entreprise",
+  registration: "/parametres/entreprise#coordonnees-documents",
+  shareCapital: "/parametres/entreprise#coordonnees-documents",
+  vatNumber: "/parametres/entreprise#coordonnees-documents",
+  insurance: "/parametres/mentions#informations-professionnel",
+  mediator: "/parametres/mentions#informations-professionnel",
+  generalTerms: "/parametres/mentions#informations-professionnel",
   paymentTerms: "/devis/parametres#invoiceMentions",
   // Lot 62d : les ancres du devis mènent à leur rubrique (`?rubrique=`).
   advanceKind: anchorHref("#acompte-arrhes"),
@@ -23,8 +23,8 @@ const WHERE: Record<MissingMention, string> = {
   latePenaltyRate: "/devis/parametres#latePenaltyRate",
   earnestSingleInstalment: anchorHref("#echeancier"),
   // Lot 41 (FAC-10, JUR-02, JUR-12 ; D6, D7, D11).
-  postalCode: "/parametres#profil-entreprise",
-  city: "/parametres#profil-entreprise",
+  postalCode: "/parametres/entreprise#profil-entreprise",
+  city: "/parametres/entreprise#profil-entreprise",
   buyerCompany: anchorHref("#acheteur"),
   buyerSiren: anchorHref("#acheteur"),
   buyerAddress: anchorHref("#acheteur"),

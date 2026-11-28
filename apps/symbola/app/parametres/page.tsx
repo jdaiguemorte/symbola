@@ -1,92 +1,38 @@
-import Link from "next/link";
+// Lot 74g (G1, G2 ; page 29 des maquettes du lot 68) — l'accueil des Paramètres : huit groupes, leurs
+// rubriques et leur phrase, puis « Vos données ». « Entreprise et TVA », qu'ouvrait « Paramètres », est
+// devenu deux rubriques (/parametres/entreprise, /parametres/mentions) ; ses anciennes ancres y mènent.
 import { getTranslations } from "next-intl/server";
 import { ScreenHelp } from "@/app/screen-help";
-import { LogoForm } from "@/app/logo/logo-form";
-import { appDatabase } from "@symbola/db/client";
-import { getOrganizationProfile, getSellerDetails, isModuleEnabled } from "@/modules/hub/service";
 import { requirePlanner } from "@/lib/guards";
-import { CompanySheetForm } from "./company-sheet-form";
-import { CompanyTabs } from "./company-tabs";
-import { ProfessionalMentionsForm } from "./professional-mentions-form";
-import { VatRegimeForm } from "./vat-regime-form";
-import { VatOnDebitsForm } from "./vat-on-debits-form";
+import { settingsMenu, YOUR_DATA_PATH } from "../settings-menu";
+import { loadPrivacyAlerts, loadSettingsFlags } from "../settings-flags";
+import { CompanyAnchorRedirect } from "./company-anchor-redirect";
+import { SettingsHome } from "./settings-home";
 
-export default async function SettingsPage() {
+export default async function SettingsHomePage() {
   const auth = await requirePlanner();
-
-  const t = await getTranslations("Settings");
-  const tHelp = await getTranslations("Help");
-  const tMenu = await getTranslations("SettingsMenu");
-  const db = appDatabase();
   const organizationId = auth.user.organizationId;
-  const [profile, details, quotes] = await Promise.all([
-    getOrganizationProfile(db, organizationId),
-    getSellerDetails(db, organizationId),
-    isModuleEnabled(db, organizationId, "quotes"),
-  ]);
-  const logoVersion = profile.logoKey?.split("/").pop() ?? null;
+  const t = await getTranslations("SettingsMenu");
+  const tHelp = await getTranslations("Help");
+  const flags = await loadSettingsFlags(organizationId, auth.user.role);
+  const alerts = await loadPrivacyAlerts(organizationId, flags.isOwner);
+  const groups = settingsMenu(flags).map((group) => ({
+    key: group.key,
+    label: t(group.label),
+    hint: t(group.hint),
+    items: group.items.map((item) => ({ href: item.href, label: t(item.label), hint: t(item.hint), owner: item.owner })),
+  }));
+  const rubrics = groups.reduce((total, group) => total + group.items.length, 0);
 
   return (
     <main>
-      {/* Lot 16 (L16-HUB-20) : le titre est la rubrique ouverte ; le menu des rubriques est la structure. */}
-      <h1>{tMenu("company")}</h1>
-      <ScreenHelp title={tHelp("settings.title")} body={tHelp("settings.body")} />
-      {/* Lot 62b (UX-12) : deux rubriques. La fiche (identité, adresse, coordonnées imprimées, un seul
-          « Enregistrer la fiche ») et la TVA d'abord ; les mentions des devis et le logo ensuite. */}
-      <CompanyTabs
-        label={t("sheetTabsLabel")}
-        tabs={[
-          {
-            id: "fiche",
-            label: t("sheetTabCompany"),
-            anchors: ["profil-entreprise", "coordonnees-documents", "tva", "tva-debits"],
-            panel: (
-              <>
-                <div id="profil-entreprise">
-                  <CompanySheetForm profile={profile} details={details} />
-                </div>
-                {/* La TVA dans sa carte, en formulaires en ligne. Lot 41 (JUR-02, D10) : option pour la
-                    TVA sur les débits, datée (assujetti seulement). */}
-                <section className="card" aria-labelledby="tva">
-                  <h2 id="tva">{t("vatCardTitle")}</h2>
-                  <p>
-                    {t("currentRegime")} :{" "}
-                    <strong>{profile.vatRegime === "franchise" ? t("vatRegimeFranchise") : profile.vatRegime === "assujetti" ? t("vatRegimeAssujetti") : t("vatRegimeUnset")}</strong>
-                  </p>
-                  <VatRegimeForm currentRegime={profile.vatRegime} />
-                  <h3 id="tva-debits">{t("vatOnDebitsTitle")}</h3>
-                  <p className="field-hint">{t("vatOnDebitsHint")}</p>
-                  {profile.vatRegime === "assujetti" ? <VatOnDebitsForm value={profile.vatOnDebits} from={profile.vatOnDebitsFrom} /> : <p>{t("vatOnDebitsFranchise")}</p>}
-                </section>
-              </>
-            ),
-          },
-          {
-            id: "documents",
-            label: t("sheetTabDocuments"),
-            anchors: ["informations-professionnel", "logo"],
-            panel: (
-              <>
-                {/* Lot 31a (JUR-09, D4) : assurance, médiateur et conditions générales, repris sur les devis. */}
-                <section className="card" aria-labelledby="informations-professionnel">
-                  <h2 id="informations-professionnel">{t("professionalMentionsTitle")}</h2>
-                  <p className="field-hint">{t("professionalMentionsHint")}</p>
-                  <ProfessionalMentionsForm details={details} />
-                </section>
-                {/* Lot 17 (DEV-07, DEV-08, décision A) : logo des documents. */}
-                <section className="card company-logo" aria-labelledby="logo">
-                  <h2 id="logo">{t("logoTitle")}</h2>
-                  <LogoForm version={logoVersion} />
-                  {quotes ? (
-                    <p className="field-hint">
-                      {t("documentsSettingsHint")} <Link href="/devis/parametres/documents">{t("documentsSettingsLink")}</Link>
-                    </p>
-                  ) : null}
-                </section>
-              </>
-            ),
-          },
-        ]}
+      <CompanyAnchorRedirect />
+      <h1>{t("homeTitle")}</h1>
+      <ScreenHelp title={tHelp("settingsHome.title")} body={tHelp("settingsHome.body")} />
+      <p className="settings-home-intro">{t("homeIntro", { rubrics, groups: groups.length })}</p>
+      <SettingsHome
+        groups={groups}
+        yourData={{ href: YOUR_DATA_PATH, label: t("yourData"), hint: t("yourDataHint"), open: t("yourDataOpen"), count: alerts, countLabel: t("privacyAlerts", { count: alerts }) }}
       />
     </main>
   );

@@ -20,6 +20,7 @@ import {
   Contact,
   FileText,
   GraduationCap,
+  Database,
   LayoutGrid,
   LifeBuoy,
   ListChecks,
@@ -56,7 +57,7 @@ import { NavigationOrigin } from "./navigation-origin";
 import { LogoutButton } from "./logout-button";
 import { OfflineGuard } from "./offline-guard";
 import { SettingsNav, type SettingsGroup } from "./settings-nav";
-import { settingsMenu } from "./settings-menu";
+import { CLOSURE_PATH, YOUR_DATA_PATH, settingsMenu, showsClosure, yourDataLines } from "./settings-menu";
 import { cookies, headers } from "next/headers";
 import { HelpBar, type TutorialInvite } from "./help-bar";
 import { AUTO_TOURS_COOKIE } from "@/lib/help/preferences";
@@ -367,23 +368,41 @@ export async function AppShell({ children }: { children: ReactNode }) {
   // « Aujourd'hui » et sur la page Tâches ; les deux lectures partent ensemble.
   const overdue = events && organizationId ? await overdueTaskCount(organizationId, parisToday()) : 0;
 
-  // Paramètres : une pastille par solution souscrite (L11-HUB-12, lot 11).
-  // Lot 13 (L13-HUB-16) : une rubrique par sujet, rangées en quatre groupes ;
-  // seules apparaissent celles des modules souscrits.
+  // Lot 74g (G1, G7) : le menu du groupe d'une rubrique ouverte, et « Vos données » comme un groupe ; la
+  // liste des rubriques vit dans settings-menu.ts (source unique, avec settings-paths.ts).
   const tSettings = await getTranslations("SettingsMenu");
-  // Lot 61 : la liste des rubriques vit dans settings-menu.ts (source unique, avec settings-paths.ts).
+  const settingsFlags = { events, budget, quotes, vendors, guests, appointments, isOwner, selfService };
   const settingsSections: SettingsGroup[] = organizationId
-    ? settingsMenu({ events, budget, quotes, vendors, guests, appointments, isOwner, selfService }).map((group) => ({
+    ? settingsMenu(settingsFlags).map((group) => ({
+        key: group.key,
         label: tSettings(group.label),
-        icon: group.icon,
-        items: group.items.map((item) => ({
-          href: item.href,
-          label: tSettings(item.label),
-          // Lot 18 : demandes RGPD en alerte, repère visuel sur « Données personnelles ».
-          ...(item.href === "/rgpd" && privacyAlerts > 0 ? { count: privacyAlerts } : {}),
-        })),
+        // Les anciennes adresses d'une rubrique, seulement quand elle en a : ce menu part avec chaque page.
+        items: group.items.map((item) => ({ href: item.href, label: tSettings(item.label), ...(item.paths.length > 0 ? { paths: item.paths } : {}) })),
       }))
     : [];
+  const yourDataSection: SettingsGroup | null = organizationId
+    ? {
+        key: "data",
+        label: tSettings("yourData"),
+        ...(privacyAlerts > 0 ? { count: privacyAlerts } : {}),
+        items: [
+          ...yourDataLines(settingsFlags).flatMap((line) => [
+            // Lot 18 : demandes RGPD en alerte, repère visuel sur leur ligne.
+            { href: line.href, label: tSettings(line.label), ...(line.key === "privacy" && privacyAlerts > 0 ? { count: privacyAlerts } : {}) },
+            ...line.secondary.map((other) => ({ href: other.href, label: tSettings(other.label) })),
+          ]),
+          ...(showsClosure(settingsFlags) ? [{ href: CLOSURE_PATH, label: tSettings("closureTitle") }] : []),
+        ],
+      }
+    : null;
+  // Le repère des demandes en alerte, sur « Vos données » (menu du compte, « Plus »).
+  const privacyBadge =
+    privacyAlerts > 0 ? (
+      <span className="nav-count nav-count-alert" title={tSettings("privacyAlerts", { count: privacyAlerts })}>
+        <span aria-hidden="true">{privacyAlerts}</span>
+        <span className="sr-only">{tSettings("privacyAlerts", { count: privacyAlerts })}</span>
+      </span>
+    ) : null;
 
   // Lot 52 (HUB-04 ; ADR 0094) — le Comptable : un menu réduit à ses écrans de lecture comptable.
   if (auth.user.role === "accountant") {
@@ -568,7 +587,8 @@ export async function AppShell({ children }: { children: ReactNode }) {
   // Le nom de l'écran dans la barre du haut du téléphone : celui de son entrée du menu.
   const phoneScreens: PhoneScreen[] = [
     ...Object.values(tabEntries).map((item) => ({ href: item.href, label: item.label, ...(item.except ? { except: item.except } : {}) })),
-    { href: "/apps", label: t("apps") },
+    // Lot 74g : « Vos données » a son nom ; « Tous les modules » (/apps) est sous « Paramètres ».
+    { href: YOUR_DATA_PATH, label: tSettings("yourData") },
     { href: "/parametres", label: t("settings"), settings: true },
     { href: "/tutoriels", label: tAide("tutorialsLink") },
     { href: "/aide", label: tAide("link") },
@@ -584,6 +604,20 @@ export async function AppShell({ children }: { children: ReactNode }) {
           <li>
             <AppNavLink href="/profil" icon={<UserRound {...iconProps} />} label={currentOrganizationName ? tAccount("phoneIdentity", { name: personShortName(accountPerson), organization: currentOrganizationName }) : personShortName(accountPerson)} />
           </li>
+          {/* Lot 74g (G5) : « Vos données », avec le repère des demandes en alerte. */}
+          {organizationId ? (
+            <li>
+              <AppNavLink href={YOUR_DATA_PATH} icon={<Database {...iconProps} />} label={tSettings("yourData")}>
+                {privacyBadge}
+              </AppNavLink>
+            </li>
+          ) : null}
+          {/* Lot 74g (G11) : « Tous les modules », pour la titulaire, comme dans le menu du compte. */}
+          {isOwner ? (
+            <li>
+              <AppNavLink href="/apps" icon={<LayoutGrid {...iconProps} />} label={tSettings("allModules")} />
+            </li>
+          ) : null}
         </ul>
         <details className="app-sheet-switch">
           <summary>
@@ -612,7 +646,7 @@ export async function AppShell({ children }: { children: ReactNode }) {
         moreLabel={t("more")}
         account={phoneAccount}
       >
-          <nav aria-label={t("navLabel")}>
+          <nav aria-label={t("navLabel")} className="app-nav-main">
             <ul className="app-nav">
               <li className={tabbed("today")}>
                 <AppNavLink href="/" icon={<CalendarDays {...iconProps} />} label={t("agenda")} />
@@ -661,48 +695,13 @@ export async function AppShell({ children }: { children: ReactNode }) {
                 </>
               ) : null}
             </ul>
-            <ul className="app-nav app-nav-secondary">
-              {/* Lot 63g (HUB-06, HUB-27, ARC-07 ; ADR 0108) : les apps du catalogue, activées ou non, pour
-                  la Propriétaire ; le seul endroit qui nomme une app non activée. */}
-              {isOwner ? (
-                <li>
-                  <AppNavLink href="/apps" icon={<LayoutGrid {...iconProps} />} label={t("apps")} />
-                </li>
-              ) : null}
+            {/* Lot 74g (G11) : « Paramètres » et « Aide » tenus en bas ; la liste des modules défile seule si
+                besoin. « Tous les modules » est dans « Abonnement et modules » et le menu du compte, « Tutoriels »
+                dans « Aide », le repère des demandes en alerte sur « Vos données ». */}
+            <ul className="app-nav app-nav-secondary app-nav-footer">
               {organizationId ? (
                 <li>
-                  <AppNavLink href="/parametres" settings tour="nav-settings" icon={<Settings {...iconProps} />} label={t("settings")}>
-                    {/* Repère visuel : le nom du lien reste « Paramètres » ; le détail est dans Données personnelles. */}
-                    {privacyAlerts > 0 ? (
-                      <span
-                        className="nav-count nav-count-alert"
-                        aria-hidden="true"
-                        title={tSettings("privacyAlerts", {
-                          count: privacyAlerts,
-                        })}
-                      >
-                        {privacyAlerts}
-                      </span>
-                    ) : null}
-                  </AppNavLink>
-                </li>
-              ) : null}
-              {/* Lot 13 (AIDE-10) : les tutoriels ont leur page, avec leur compteur. */}
-              {helpBar ? (
-                <li>
-                  <AppNavLink href="/tutoriels" icon={<GraduationCap {...iconProps} />} label={tAide("tutorialsLink")}>
-                    {/* Repère visuel : le nom du lien reste « Tutoriels ». */}
-                    <span
-                      className="nav-count"
-                      aria-hidden="true"
-                      title={tAide("tutorialsCount", {
-                        completed: helpBar.completed,
-                        total: helpBar.total,
-                      })}
-                    >
-                      {helpBar.completed}/{helpBar.total}
-                    </span>
-                  </AppNavLink>
+                  <AppNavLink href="/parametres" settings tour="nav-settings" icon={<Settings {...iconProps} />} label={t("settings")} />
                 </li>
               ) : null}
               <li>
@@ -753,6 +752,12 @@ export async function AppShell({ children }: { children: ReactNode }) {
                     role: tAccount(auth.user.role === "owner" ? "role.owner" : "role.member"),
                   })}
                   labels={{ menu: tAccount("menu"), profile: tAccount("profile"), profileHint: tAccount("profileHint"), switch: tAccount("switch"), switchHint: tAccount("switchHint") }}
+                  // Lot 74g (G5, G11) : « Vos données » (avec le repère des demandes en alerte) et, pour la
+                  // titulaire, « Tous les modules ».
+                  links={[
+                    ...(organizationId ? [{ href: YOUR_DATA_PATH, label: tSettings("yourData"), hint: tSettings("yourDataMenuHint"), badge: privacyBadge }] : []),
+                    ...(isOwner ? [{ href: "/apps", label: tSettings("allModules"), hint: tSettings("allModulesHint") }] : []),
+                  ]}
                   switcher={<OrganizationSwitcher organizations={organizationsOfUser} current={organizationId} />}
                   logout={<LogoutButton label={t("logout")} menu />}
                 />
@@ -761,7 +766,8 @@ export async function AppShell({ children }: { children: ReactNode }) {
             {settingsSections.length > 0 ? (
               <SettingsNav
                 groups={settingsSections}
-                label={t("settingsSections")}
+                data={yourDataSection}
+                labels={{ nav: t("settingsSections"), all: tSettings("allSettings"), others: tSettings("otherGroups"), back: tSettings("back"), groupMenu: tSettings("groupMenu", { group: "{group}" }) }}
               />
             ) : null}
             {/* L'invitation à un tutoriel s'affiche dans la page, plus en surimpression. */}

@@ -26,6 +26,6 @@ export async function saveClientTermAction(_prev: ClientTermFormState, formData:
     if (error instanceof PlanningInputError) return { error: t("invalid") };
     throw error;
   }
-  revalidatePath("/events/parametres/termes");
+  revalidatePath("/events/parametres/types");
   return { success: true };
 }

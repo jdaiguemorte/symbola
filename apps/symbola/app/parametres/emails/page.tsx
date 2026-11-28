@@ -14,6 +14,7 @@ export default async function EmailTemplatesPage({ searchParams }: { searchParam
   const auth = await requirePlanner();
   const organizationId = auth.user.organizationId;
   const t = await getTranslations("EmailTemplates");
+  const tMenu = await getTranslations("SettingsMenu");
   const tHelp = await getTranslations("Help");
   const locale = templateLocale((await searchParams).langue, await getLocale());
   const [templates, modules, sender] = await Promise.all([listEmailTemplates(organizationId, locale), enabledTemplateModules(organizationId), getRelationMailSender(organizationId)]);
@@ -22,7 +23,7 @@ export default async function EmailTemplatesPage({ searchParams }: { searchParam
 
   return (
     <main>
-      <PageHeader title={t("title")} subtitle={t("subtitle")} />
+      <PageHeader title={tMenu("rubrics.emailTemplates.label")} subtitle={t("subtitle")} />
       <ScreenHelp title={tHelp("emailTemplates.title")} body={tHelp("emailTemplates.body")} />
       {/* Lot 65d (MSG-01 ; ADR 0110) : qui envoie les messages de la relation. */}
       <section aria-labelledby="email-sender-title" className="card">

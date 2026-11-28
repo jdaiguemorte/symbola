@@ -14,7 +14,7 @@ import { createUser } from "@symbola/auth";
 import { createAppConnection } from "@symbola/db/client";
 import { starterAppCatalog } from "@symbola/starter-templates";
 import { expect, test, type Page } from "@playwright/test";
-import { clickAdminMenuLink, mainMenu, openMenu, readyOrganization, signIn } from "./helpers";
+import { clickAdminMenuLink, mainMenu, openAccountMenu, openMenu, readyOrganization, signIn } from "./helpers";
 
 const apps = starterAppCatalog();
 const app = (key: string) => apps.find((entry) => entry.key === key)!;
@@ -51,8 +51,9 @@ test("HUB-06 — la Propriétaire voit les apps, demande « Plans de salle », l
   const contextOptions = { ...(baseURL ? { baseURL } : {}), ...(viewport ? { viewport } : {}) };
 
   await signIn(page, ownerEmail);
-  await openMenu(page);
-  await mainMenu(page).getByRole("link", { name: "Tous les modules", exact: true }).click();
+  // Lot 74g (G11) : « Tous les modules » quitte le menu latéral pour le menu du compte (« Plus » sur téléphone).
+  await openAccountMenu(page);
+  await page.getByRole("link", { name: /^Tous les modules/ }).filter({ visible: true }).first().click();
   await expect(page).toHaveURL(/\/apps$/);
   await expect(page.getByRole("heading", { level: 1, name: "Tous les modules" })).toBeVisible();
   await expect(page.getByText("Pendant le pilote", { exact: true })).toBeVisible();

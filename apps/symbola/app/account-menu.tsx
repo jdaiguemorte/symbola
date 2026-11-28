@@ -9,6 +9,8 @@ import { ChevronDown } from "lucide-react";
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 
 export type AccountMenuLabels = { menu: string; profile: string; profileHint: string; switch: string; switchHint: string };
+// Lot 74g (G5, G11) : « Vos données » et « Tous les modules », sous « Mon compte ».
+export type AccountMenuLink = { href: string; label: string; hint: string; badge?: ReactNode };
 
 export function AccountMenu({
   initials,
@@ -18,6 +20,7 @@ export function AccountMenu({
   context,
   organization,
   labels,
+  links = [],
   switcher,
   logout,
 }: {
@@ -31,6 +34,7 @@ export function AccountMenu({
   // dit où l'on est) ; null : une seule organisation, rien à ajouter.
   organization: string | null;
   labels: AccountMenuLabels;
+  links?: AccountMenuLink[];
   switcher: ReactNode;
   logout: ReactNode;
 }) {
@@ -99,6 +103,15 @@ export function AccountMenu({
             <strong>{labels.profile}</strong>
             <span className="meta">{labels.profileHint}</span>
           </Link>
+          {links.map((link) => (
+            <Link key={link.href} href={link.href} className="account-menu-item" onClick={() => setOpen(false)}>
+              <strong>
+                {link.label}
+                {link.badge}
+              </strong>
+              <span className="meta">{link.hint}</span>
+            </Link>
+          ))}
           <div className="account-menu-item account-menu-switch">
             <strong>{labels.switch}</strong>
             <span className="meta">{labels.switchHint}</span>
