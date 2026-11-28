@@ -1,0 +1,68 @@
+/* Lot 74b (EVT-01, CHR-01, UX-06 ; B7, M8 ; page 23 des maquettes du lot 68) — « Nouvel évènement » : le
+   rétroplanning annoncé avec son compte, « Changer », et l'étape des échéances déjà passées. Les réponses
+   « Déjà fait » et « À faire » sont une bascule : l'option choisie pleine, en encre, texte blanc (M8), jamais
+   dans la couleur d'action. Sur téléphone, chaque option fait 44 px ; la liste défile, « Créer l'évènement »
+   reste collé en bas, au-dessus de la barre du bas. Jetons de DESIGN.md seulement. */
+@layer components {
+  .new-event-step {
+    @apply m-0;
+  }
+  .new-event-template {
+    @apply mt-2 flex flex-col gap-1 rounded-md border border-line bg-surface px-4 py-3;
+  }
+  .new-event-template p {
+    @apply m-0;
+  }
+  .new-event-template-change > summary {
+    @apply inline-flex min-h-11 cursor-pointer items-center underline;
+  }
+  .new-event-template-change fieldset {
+    @apply m-0 grid gap-1 border-0 p-0;
+  }
+  .new-event-template-tasks {
+    @apply m-0 mt-1 grid gap-1 pl-6;
+  }
+  .past-due-step {
+    @apply flex flex-col gap-3;
+  }
+  .past-due-step h2,
+  .past-due-step p {
+    @apply m-0;
+  }
+  .past-due-shortcuts {
+    @apply flex flex-wrap gap-3;
+  }
+  .past-due-list {
+    @apply m-0 grid list-none gap-2 p-0;
+  }
+  .past-due-task {
+    @apply m-0 grid gap-1 rounded-md border border-line bg-surface px-4 py-3;
+  }
+  .past-due-task > legend {
+    @apply float-left w-full p-0 font-semibold text-ink;
+  }
+  .past-due-task > legend + * {
+    @apply clear-left;
+  }
+  .segmented-radio.past-due-toggle > label:has(input:checked) {
+    @apply bg-ink font-semibold text-on-primary;
+  }
+  .past-due-spread {
+    @apply m-0 grid gap-2 border-0 p-0;
+  }
+  .past-due-spread > legend {
+    @apply mb-1 p-0 font-semibold;
+  }
+  @media (max-width: 767px) {
+    .past-due-toggle {
+      @apply w-full;
+    }
+    .past-due-toggle > label {
+      @apply min-h-11 flex-1 justify-center;
+    }
+    .past-due-step ~ .button-primary {
+      @apply sticky z-10 w-full;
+      bottom: calc(var(--app-tabbar-height, 0px) + 0.5rem);
+    }
+  }
+}

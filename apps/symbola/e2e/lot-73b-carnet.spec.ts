@@ -15,6 +15,7 @@ import { vendorCatalogInput } from "../lib/vendors/catalog";
 import { createVendor, createVendorTag, getVendor, listVendorDocumentKinds, listVendorTypes, requestVendorDocument, seedStarterVendorCatalog } from "../modules/vendors/service";
 import { feedback, readyOrganization, signIn } from "./helpers";
 import { bookFilters, bookResults, closeBookFilters, isPhone } from "./vendor-book";
+import { reportMeasure } from "./mesure";
 
 async function expectNoAxeViolation(page: Page) {
   const result = await new AxeBuilder({ page }).analyze();
@@ -440,7 +441,7 @@ test.describe("NFR-02 — Un carnet de 500 fiches (lot 73b)", () => {
       series.push(times[Math.ceil(0.95 * times.length) - 1]!);
     }
     series.sort((a, b) => a - b);
-    testInfo.annotations.push({ type: "NFR-02 carnet de 510 fiches", description: `${Math.round(series[1]!)} ms (séries : ${series.map(Math.round).join(", ")})` });
+    reportMeasure(testInfo, { mesure: "Lot 73b — NFR-02, carnet de 510 fiches (médiane des 95e centiles de 3 séries)", valeur: series[1]!, seuil: 300, detail: `séries : ${series.map(Math.round).join(", ")} ms` });
     expect(series[1]!).toBeLessThan(300);
   });
 });

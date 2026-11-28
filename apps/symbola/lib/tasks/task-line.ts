@@ -35,6 +35,9 @@ export function dueWords(state: TaskDueState | null | undefined, t: Translate): 
       return { kind: "soon", text: t("dueSoon", { days: state.days }), icon: "clock" };
     case "later":
       return null;
+    // Lot 74b (B7) : « À dater », neutre, sans icône d'horloge ni rouge.
+    case "undated":
+      return { kind: "undated", text: t("dueUndated"), icon: null };
   }
 }
 

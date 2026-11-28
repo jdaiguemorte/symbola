@@ -1,13 +1,24 @@
 name: CI
 
 on:
+  # Lot 76 (ADR 0124) : « labeled », pour qu'une PR étiquetée « suite-complete » rejoue la CI avec la
+  # suite complète des parcours.
   pull_request:
+    types: [opened, synchronize, reopened, labeled]
   push:
     branches: [main]
+  # Lot 76 : la suite complète à la demande (sur n'importe quelle branche), et chaque nuit sur main
+  # (dates du jour, parcours instables), même sans fusion.
+  workflow_dispatch:
+  schedule:
+    - cron: "30 1 * * *"
 
+# Une PR ne garde que sa dernière exécution. Sur main, une exécution en cours n'est jamais coupée par
+# la fusion suivante (lot 76) : sinon, avec des fusions rapprochées, la suite complète ne finirait
+# jamais ; GitHub ne garde en attente que la plus récente.
 concurrency:
-  group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  group: ci-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   lint-typecheck-test:
@@ -114,38 +125,62 @@ jobs:
       - run: pnpm --filter @symbola/files test:integration
       - run: pnpm --filter @symbola/app test:integration
 
+  # Lot 76 (ARC-20, SEC-36 ; ADR 0124) : une CI en deux vitesses. Ce job choisit les parcours de bout
+  # en bout à jouer (tools/ci-pipeline/plan-parcours.mjs) :
+  # - sur une pull request, la voie rapide : le socle (apps/symbola/e2e/socle.ts) et les fichiers de
+  #   parcours que la PR modifie ou ajoute, sous Chromium, en ordinateur et en 375 px, et les mesures
+  #   du temps de réponse dans leur propre job (une PR qui alourdit les pages s'arrête avant la
+  #   fusion) ;
+  # - sur main après chaque fusion, chaque nuit, à la demande (workflow_dispatch) ou sur une PR
+  #   étiquetée « suite-complete » : la suite complète, sous Chromium en quatre parts, les scénarios
+  #   sous Firefox et WebKit, et les mesures du temps de réponse dans leur propre job.
+  # Aucun parcours n'est supprimé : tous tournent sur main, et l'image n'est publiée (donc
+  # déployable, ADR 0075) que si toute la suite est verte.
+  plan-e2e:
+    name: Parcours à jouer (voie rapide ou suite complète)
+    runs-on: ubuntu-latest
+    outputs:
+      complete: ${{ steps.plan.outputs.complete }}
+      matrix: ${{ steps.plan.outputs.matrix }}
+      fichiers: ${{ steps.plan.outputs.fichiers }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Le commit d'une PR est sa fusion dans main : son premier parent suffit pour le différentiel.
+          fetch-depth: 2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Choisir les parcours
+        id: plan
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          LABELS: ${{ toJSON(github.event.pull_request.labels.*.name) }}
+        run: node tools/ci-pipeline/plan-parcours.mjs
+
   e2e:
     name: Parcours bout en bout (${{ matrix.partie }})
+    needs: plan-e2e
     runs-on: ubuntu-latest
     # Lot 33 : chaque connexion passe par le lien, Mailpit et Logto ; les parcours tournent en
-    # série (un seul worker par job).
-    # 23/11/2026 (lots 65 et 66) : une moitié atteignait 43 à 45 min avec ses reprises et a été coupée
-    # sur main (d64419a) ; la limite passe à 60 min. Trois tiers déplaçaient la mesure du serveur
-    # (NFR-02) en tête d'un tiers, où elle mesurait 412 à 450 ms : les deux moitiés restent.
-    # 28/11/2026 (lots 70 à 74) : la moitié 1 compte 435 parcours et prend 48 min sur main
-    # (6c8f2b5c) ; avec trois reprises, celle de la PR #218 a été coupée à 60 min au 420e parcours
-    # sur 430, sans rendre ses traces. La limite passe à 90 min, le temps de repartager la suite
-    # sans déplacer la mesure du serveur (reste à faire, à part).
-    timeout-minutes: 90
+    # série (un seul worker par job), chaque job avec sa propre base et ses propres services.
+    # Historique des durées : 18/11/2026, la suite dépasse 45 min et passe en deux moitiés ; 23/11,
+    # une moitié atteint 45 min, la limite passe à 60 ; trois tiers sont essayés puis abandonnés,
+    # car ils déplaçaient la mesure du serveur (NFR-02) en tête d'un tiers, où elle mesurait 412 à
+    # 450 ms ; 28/11, la moitié 1 compte 435 parcours et prend 48 min (74 min de parcours en tout),
+    # et celle de la PR #218 est coupée à 60 min sans rendre ses traces. Lot 76 : quatre parts
+    # d'environ 20 min sur main, les mesures dans leur propre job (elles ne bougent plus quand la
+    # suite grandit), et une voie rapide sur les PR.
+    # Limites (plan-parcours.mjs) : l'étape des parcours a la sienne, plus courte que celle du job,
+    # et Playwright s'arrête proprement deux minutes avant : les traces partent même quand le temps
+    # manque.
+    timeout-minutes: ${{ matrix.limite_job }}
     # Lot 40c (NFR-17 à NFR-19, NFR-01, NFR-02 ; ADR 0078) : la suite sous Chromium (ordinateur et
-    # 375 px, axe-core en WCAG 2.2 AA, mesures du temps de réponse, clavier, zoom à 200 %), et les
-    # parcours des scénarios rejoués sous Firefox et WebKit, à 360 et à 1 920 px, et SC-10 à 150 %.
-    # 18/11/2026 (lots 41, 46, 49) : la suite sous Chromium dépassait les 45 min d'un job ; elle est
-    # partagée en deux moitiés (--shard), chacune sur son runner, avec sa propre base et ses
-    # propres services : environ 20 min chacune au lieu de 40.
+    # 375 px, axe-core en WCAG 2.2 AA, clavier, zoom à 200 %), les parcours des scénarios rejoués sous
+    # Firefox et WebKit, à 360 et à 1 920 px, et SC-10 à 150 %, et les mesures du temps de réponse.
     strategy:
       fail-fast: false
-      matrix:
-        include:
-          - partie: Chromium, ordinateur et 375 px, axe-core, mesures, moitié 1 sur 2
-            navigateurs: chromium
-            projets: --project=desktop --project=mobile-375 --shard=1/2
-          - partie: Chromium, ordinateur et 375 px, axe-core, mesures, moitié 2 sur 2
-            navigateurs: chromium
-            projets: --project=desktop --project=mobile-375 --shard=2/2
-          - partie: scénarios sous Firefox et WebKit, 360 et 1 920 px, zoom à 150 %
-            navigateurs: chromium firefox webkit
-            projets: --project=firefox --project=webkit --project=mobile-360 --project=desktop-1920 --project=zoom-150
+      matrix: ${{ fromJSON(needs.plan-e2e.outputs.matrix) }}
     services:
       postgres:
         image: postgres:16-alpine
@@ -191,8 +226,9 @@ jobs:
       LOGTO_M2M_APP_ID: symbola-bootstrap
       # Version compilée, NODE_ENV=test : faux fournisseur de signature permis
       # (jamais en production, packages/env). Lot 24a (SEC-20) : la sortie du
-      # serveur est gardée, puis contrôlée après les parcours.
-      E2E_SERVER_COMMAND: NODE_ENV=test pnpm exec next start -p 3000 2>&1 | tee e2e-server.log
+      # serveur est gardée, puis contrôlée après les parcours (lot 76 : ajoutée au
+      # journal, le job des mesures appelant Playwright deux fois).
+      E2E_SERVER_COMMAND: NODE_ENV=test pnpm exec next start -p 3000 2>&1 | tee -a e2e-server.log
     steps:
       - uses: actions/checkout@v4
       # Lot 16 (L16-SEC-01, ADR 0037) : clé de chiffrement de la double
@@ -233,8 +269,23 @@ jobs:
             echo "::warning::Dépendances système de Playwright indisponibles (miroirs Ubuntu) : navigateurs installés sans elles."
             pnpm --filter @symbola/app exec playwright install ${{ matrix.navigateurs }}
           }
+      # Lot 76 : le cache de compilation de Next (.next/cache) est repris de la dernière exécution
+      # sur main ; il n'est écrit que sur main, par un seul job, pour ne pas encombrer les caches.
+      - name: Cache de compilation de Next (lecture)
+        uses: actions/cache/restore@v4
+        with:
+          path: apps/symbola/.next/cache
+          key: next-build-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ github.sha }}
+          restore-keys: |
+            next-build-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-
       - name: Construire l'app (next build)
         run: pnpm --filter @symbola/app build
+      - name: Cache de compilation de Next (écriture, sur main)
+        if: github.event_name == 'push' && matrix.mode == 'mesures'
+        uses: actions/cache/save@v4
+        with:
+          path: apps/symbola/.next/cache
+          key: next-build-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ github.sha }}
       - name: Attendre que Garage et ClamAV soient prêts
         run: |
           timeout 120 bash -c 'until curl -sf http://localhost:3903/health; do sleep 2; done'
@@ -251,16 +302,97 @@ jobs:
             -e ENDPOINT=http://localhost:3001 -e ADMIN_ENDPOINT=http://localhost:3002 \
             --entrypoint sh svhd/logto:1.46.0 -c "npm run cli db seed -- --swe --dapc && npm start"
           pnpm --filter @symbola/auth configure-identity
-      - name: Parcours Playwright
-        run: pnpm --filter @symbola/app test:e2e ${{ matrix.projets }}
+
+      # Voie rapide (pull request). Le socle doit sélectionner exactement un parcours par entrée de
+      # e2e/socle.ts et par projet : un titre renommé le ferait sinon fondre en silence.
+      - name: Voie rapide — le socle sélectionne un parcours par entrée
+        if: matrix.mode == 'rapide'
+        env:
+          E2E_SOCLE: "1"
+        run: |
+          expected=$(( $(grep -c '^  { fichier: "' apps/symbola/e2e/socle.ts) * 2 ))
+          listed=$(pnpm --filter @symbola/app exec playwright test --list ${{ matrix.projets }} | grep -Ec '^\s+\[(desktop|mobile-375)\] ')
+          echo "Socle : $listed parcours sélectionnés, $expected attendus (ordinateur et 375 px)."
+          test "$listed" -eq "$expected"
+      - name: Parcours Playwright (voie rapide — socle et parcours modifiés par la PR)
+        if: matrix.mode == 'rapide'
+        timeout-minutes: ${{ matrix.limite }}
+        env:
+          E2E_SOCLE: "1"
+          E2E_FICHIERS: ${{ needs.plan-e2e.outputs.fichiers }}
+          # Les tests de mesure des fichiers modifiés tournent dans le job des mesures, serveur chaud.
+          E2E_SANS_MESURES: "1"
+        run: pnpm --filter @symbola/app test:e2e ${{ matrix.projets }} --global-timeout=$(( (${{ matrix.limite }} - 2) * 60000 ))
+
+      # Suite complète : une part sous Chromium, ou les scénarios sous Firefox et WebKit. Les tests de
+      # mesure n'y sont pas : ils ont leur job.
+      - name: Parcours Playwright (${{ matrix.partie }})
+        if: matrix.mode == 'part'
+        timeout-minutes: ${{ matrix.limite }}
+        env:
+          E2E_SANS_MESURES: "1"
+        run: pnpm --filter @symbola/app test:e2e ${{ matrix.projets }} --global-timeout=$(( (${{ matrix.limite }} - 2) * 60000 ))
+
+      # Mesures du temps de réponse (NFR-01, NFR-02 ; ADR 0078, 0114, 0115), sur chaque PR comme sur
+      # main : tous les tests dont le titre porte « NFR-01 » ou « NFR-02 » (nfr-01-02-mesures et les
+      # mesures des paquets : lots 70d, 71f, 73b…), à place fixe et serveur chaud. Le serveur est
+      # démarré une fois, réchauffé par le socle (ordinateur et 375 px), puis mesuré sans redémarrer.
+      # Avant le lot 76, ces tests tombaient où la découpe de la suite les plaçait : 229 ms pour
+      # NFR-02 sur main le 28/11/2026 (6c8f2b5c), 412 à 450 ms en tête d'une part. Chaque mesure dit
+      # sa valeur ; le résumé du job reçoit le tableau des valeurs, seuils et marges.
+      - name: Mesures — démarrer le serveur (gardé jusqu'à la fin du job)
+        if: matrix.mode == 'mesures'
+        working-directory: apps/symbola
+        run: |
+          nohup sh -c "$E2E_SERVER_COMMAND" > /dev/null 2>&1 &
+          timeout 90 bash -c 'until curl -sf -o /dev/null http://localhost:3000/login; do sleep 1; done'
+      - name: Mesures — réchauffer le serveur par le socle (375 px)
+        if: matrix.mode == 'mesures'
+        timeout-minutes: 15
+        # Un échec du réchauffement n'empêche pas les mesures : le socle est joué, et jugé, par la
+        # voie rapide et la suite complète.
+        continue-on-error: true
+        env:
+          E2E_SERVEUR_PARTAGE: "1"
+          E2E_SOCLE: "1"
+        run: pnpm --filter @symbola/app test:e2e --project=mobile-375
+      # Les mesures des parcours P0 d'abord : les mesures des paquets créent chacune des centaines de
+      # lignes (500 tâches, 200 évènements, 510 fiches) dont le serveur traite ensuite les événements ;
+      # jouées avant, elles alourdissaient les mesures P0 (1er essai du lot 76 : coche à 97 ms au lieu
+      # de 17 à 25 sur main). Elles se jouent dans la même invocation que le socle en ordinateur, dont
+      # les fichiers rangés avant « nfr- » passent d'abord : le navigateur est chaud lui aussi, comme
+      # au milieu de la suite (3e essai : coche à 101 ms avec un navigateur neuf, 20 à la reprise).
+      - name: Parcours Playwright (socle en ordinateur et mesures des parcours P0, NFR-01 et NFR-02)
+        if: matrix.mode == 'mesures'
+        timeout-minutes: ${{ matrix.limite }}
+        env:
+          E2E_SERVEUR_PARTAGE: "1"
+          E2E_SOCLE: "1"
+          E2E_FICHIERS: nfr-01-02-mesures.spec.ts
+          E2E_MESURES_FICHIER: ${{ github.workspace }}/mesures.jsonl
+        run: pnpm --filter @symbola/app test:e2e ${{ matrix.projets }} --global-timeout=$(( (${{ matrix.limite }} - 2) * 60000 ))
+      - name: Parcours Playwright (mesures des paquets, NFR-02)
+        if: (success() || failure()) && matrix.mode == 'mesures'
+        timeout-minutes: ${{ matrix.limite }}
+        env:
+          E2E_SERVEUR_PARTAGE: "1"
+          E2E_MESURES: "1"
+          E2E_MESURES_FICHIER: ${{ github.workspace }}/mesures.jsonl
+        run: pnpm --filter @symbola/app test:e2e ${{ matrix.projets }} --grep-invert=nfr-01-02-mesures --global-timeout=$(( (${{ matrix.limite }} - 2) * 60000 ))
+      - name: Mesures — tableau des valeurs, seuils et marges (résumé du job)
+        if: always() && matrix.mode == 'mesures'
+        run: node tools/ci-pipeline/tableau-mesures.mjs "$GITHUB_WORKSPACE/mesures.jsonl" | tee -a "$GITHUB_STEP_SUMMARY"
+
       - name: Journaux du serveur sans adresse e-mail ni téléphone (SEC-20)
         run: pnpm --filter @symbola/privacy check:logs "$GITHUB_WORKSPACE/apps/symbola/e2e-server.log"
+      # Lot 76 : publiées après tout échec, y compris un parcours arrêté par sa limite de durée.
       - name: Traces des parcours en échec
-        if: failure()
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-traces-${{ strategy.job-index }}
+          name: playwright-traces-${{ matrix.cle }}
           path: apps/symbola/test-results/
+          if-no-files-found: ignore
           retention-days: 7
 
   # Lot 41 (FAC-10, D4, ADR 0081) : chaque cas de facture (acompte, solde avec acomptes déduits, avoirs,

@@ -17,6 +17,7 @@ type TodayTranslator = Awaited<ReturnType<typeof getTranslations<"Today">>>;
 export function todayWords(t: TodayTranslator): TodayWords {
   return {
     clientTask: t("words.clientTask"),
+    clientTaskWaiting: t("words.clientTaskWaiting"),
     amount: (label, amount) => t("words.amount", { label, amount }),
     decision: (title) => t("words.decision", { title }),
     paymentDeclaration: (label, amount) => t("words.paymentDeclaration", { label, amount }),
@@ -62,7 +63,10 @@ function whenLabel(item: RankedItem, t: TodayTranslator, locale: Locale): string
 }
 
 function actorLabel(item: RankedItem, t: TodayTranslator): string {
-  return item.actor.kind === "vendor" ? t("actor.vendor", { name: item.actor.name }) : t(`actor.${item.actor.kind}`);
+  if (item.actor.kind === "vendor") return t("actor.vendor", { name: item.actor.name });
+  // Lot 74b (page 23) : une tâche des mariés, avant et après l'ouverture de leur espace.
+  if (item.actor.kind === "client" && item.actor.portalOpen !== undefined) return t(item.actor.portalOpen ? "actor.clientWaiting" : "actor.clientWith");
+  return t(`actor.${item.actor.kind}`);
 }
 
 export async function TodayItemLine({ item, locale, returnTo, taskLine }: { item: RankedItem; locale: Locale; returnTo: "home" | "event"; taskLine?: TaskLineView | undefined }) {

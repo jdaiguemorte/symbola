@@ -11,6 +11,7 @@ import { expect, test, type Page } from "@playwright/test";
 import { addEventTask, addEventVendorSlot, changeEventStatus, createProspect, createProspectSource, getEvent, updateEventClientContact } from "../modules/events/service";
 import { saveOnboardingStep, setModuleEnabled } from "../modules/hub/service";
 import { eventCommand, readyOrganization, signIn as signInByLink } from "./helpers";
+import { submitNewEvent } from "./new-event";
 
 const PASSWORD = "mot-de-passe-de-mardi";
 
@@ -77,7 +78,7 @@ test("HUB-07 / UX-03 / CRM-04 — créer un prospect, une tâche, une dépense e
   await expect(page.getByRole("status").filter({ hasText: "vous avez déjà" })).toContainText("Léa & Maxime (confirmé), Inès & Sacha (option)");
   await expectNoAxeViolation(page);
   await page.getByRole("radio", { name: /^Une demande en cours/ }).check();
-  await page.getByRole("button", { name: "Créer l'évènement" }).click();
+  await submitNewEvent(page);
   await expect(page).toHaveURL(/\/events\/[0-9a-f-]{36}/);
   await expect(page.getByRole("heading", { level: 1, name: "Chloé" })).toBeVisible();
 
