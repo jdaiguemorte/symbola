@@ -7,7 +7,8 @@
 import type { HelpModule } from "./catalog";
 import type { TourKey } from "./tours";
 
-export type HelpGroup = "events" | "appointments" | "vendors" | "quotes" | "budget" | "company" | "data" | "admin";
+// Lot 74f (maquette 27) : « Reprise et import » devient un sujet à part, hors de « Vos données ».
+export type HelpGroup = "events" | "appointments" | "vendors" | "quotes" | "budget" | "import" | "company" | "data" | "admin";
 // Lot 26a : les tiers (portail par lien) n'ont pas de compte ; leur aide est
 // sur l'écran même (ScreenHelp), pas dans le centre d'aide.
 export type HelpAudience = "team" | "admin";
@@ -153,20 +154,20 @@ export const HELP_SCREENS: HelpScreen[] = [
   { key: "tutorials", group: "company", audience: "team", path: "/tutoriels", capture: true },
   { key: "setup", group: "company", audience: "team", path: null, capture: false },
   // Données : import et données personnelles
-  { key: "importFile", group: "data", audience: "team", path: "/import", capture: true },
+  { key: "importFile", group: "import", audience: "team", path: "/import", capture: true },
   // Lot 71b (HUB-14, PAR-01) : la page « Reprendre un mariage en cours ».
-  { key: "takeover", group: "data", audience: "team", module: "events", path: "/reprise", capture: false },
-  { key: "importColumns", group: "data", audience: "team", path: null, capture: false },
+  { key: "takeover", group: "import", audience: "team", module: "events", path: "/reprise", capture: false },
+  { key: "importColumns", group: "import", audience: "team", path: null, capture: false },
   // Lot 16 (IMP-12) : étape « Types » de l'assistant (prestataires).
-  { key: "importTypes", group: "data", audience: "team", path: null, capture: false },
+  { key: "importTypes", group: "import", audience: "team", path: null, capture: false },
   // Lot 36b (D11) : lignes à écarter d'un import de contacts.
-  { key: "importRows", group: "data", audience: "team", path: null, capture: false },
+  { key: "importRows", group: "import", audience: "team", path: null, capture: false },
   // Lot 71c (HUB-14 ; maquette 07) : ce que le fichier ne dit pas, demandé une fois.
-  { key: "importQuestions", group: "data", audience: "team", path: null, capture: false },
-  { key: "importMatches", group: "data", audience: "team", path: null, capture: false },
-  { key: "importGaps", group: "data", audience: "team", path: null, capture: false },
-  { key: "importConfirm", group: "data", audience: "team", path: null, capture: false },
-  { key: "importUndo", group: "data", audience: "team", path: null, capture: false },
+  { key: "importQuestions", group: "import", audience: "team", path: null, capture: false },
+  { key: "importMatches", group: "import", audience: "team", path: null, capture: false },
+  { key: "importGaps", group: "import", audience: "team", path: null, capture: false },
+  { key: "importConfirm", group: "import", audience: "team", path: null, capture: false },
+  { key: "importUndo", group: "import", audience: "team", path: null, capture: false },
   // Lot 18 (RGPD-07) : les demandes sont l'accueil ; la recherche a son onglet ;
   // export et effacement se font dans le dossier d'une demande.
   { key: "privacyRequests", group: "data", audience: "team", ownerOnly: true, path: "/rgpd", capture: true },
@@ -195,7 +196,7 @@ export const HELP_SCREENS: HelpScreen[] = [
   // Lot 35a (HUB-13, D5) : export complet des données, titulaire seulement.
   { key: "organizationExport", group: "data", audience: "team", ownerOnly: true, path: "/parametres/export", capture: true },
   // Lot 35b (HUB-13, D6) : reprise d'un export Symbola dans un espace vide, titulaire seulement.
-  { key: "organizationImport", group: "data", audience: "team", ownerOnly: true, path: "/parametres/reprise", capture: false },
+  { key: "organizationImport", group: "import", audience: "team", ownerOnly: true, path: "/parametres/reprise", capture: false },
   // Lot 35c (RGP-11, D8) : fermer l'espace, titulaire seulement.
   { key: "organizationClosure", group: "data", audience: "team", ownerOnly: true, path: "/parametres/fermeture", capture: false },
   // Lot 37b (DOC-12, D12) : relevé mensuel du stockage, titulaire seulement.
@@ -217,7 +218,7 @@ export const HELP_SCREENS: HelpScreen[] = [
   { key: "adminSettings", group: "admin", audience: "admin", path: "/exploitation/parametres", capture: false },
 ];
 
-export const HELP_GROUP_ORDER: HelpGroup[] = ["events", "appointments", "vendors", "quotes", "budget", "company", "data", "admin"];
+export const HELP_GROUP_ORDER: HelpGroup[] = ["events", "appointments", "vendors", "quotes", "budget", "import", "company", "data", "admin"];
 
 export type HelpViewer = { audience: HelpAudience; isOwner: boolean; modules: Record<HelpModule, boolean> };
 

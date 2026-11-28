@@ -504,7 +504,8 @@
           "q": "I am moving from the VAT exemption to charging VAT: what do I do?",
           "a": "Change the regime here: new quotes and invoices apply the rate; documents already issued do not change."
         }
-      ]
+      ],
+      "keywords": "SIRET, SIREN, company number, company name, address, VAT scheme"
     },
     "admin": {
       "title": "Console overview",
@@ -580,6 +581,13 @@
           "q": "Where do I enter the source or a second client?",
           "a": "On the event page, Couple tab: \"Source and clients\"."
         }
+      ],
+      "keywords": "create a wedding, new event, add a wedding, new enquiry",
+      "steps": [
+        "Open “Events”, then “New event”.",
+        "Say where it stands: an enquiry, or a wedding already signed.",
+        "Give the couple's names and the date, even approximate.",
+        "The event page opens with its starting timeline."
       ]
     },
     "eventsDetail": {
@@ -796,6 +804,13 @@
           "q": "What happens to my file?",
           "a": "It is checked by the antivirus and then discarded: only its rows are kept, until the import is finished."
         }
+      ],
+      "keywords": "import contacts, bring in a spreadsheet, Excel or CSV file, bring in your clients, vendor book",
+      "steps": [
+        "Open “Import and take over”, then choose what the file holds: contacts, vendors or lists.",
+        "Drop your file: Excel or CSV, one row per contact.",
+        "Check the columns Symbola recognised (“NAME First name”, “mobile”…).",
+        "Nothing is saved before “Import”; a possible duplicate is shown to you."
       ]
     },
     "importColumns": {
@@ -1006,7 +1021,8 @@
     },
     "vendorNew": {
       "title": "New supplier",
-      "body": "A name is enough to create the record; its trades and the rest are filled in section by section, now or later. A vendor can have several trades. The address you enter places the supplier on the map, and you can move the point by hand."
+      "body": "A name is enough to create the record; its trades and the rest are filled in section by section, now or later. A vendor can have several trades. The address you enter places the supplier on the map, and you can move the point by hand.",
+      "keywords": "add a vendor, new vendor, create a vendor record"
     },
     "search": {
       "title": "Search",
@@ -1126,7 +1142,8 @@
           "q": "Can I open the archive in a spreadsheet?",
           "a": "Yes: each table has its CSV file (semicolon separator, UTF-8). The JSON files are the reference: they keep the links between tables."
         }
-      ]
+      ],
+      "keywords": "export my data, copy of all my data, backup, archive"
     },
     "organizationImport": {
       "title": "Restore a Symbola export",
@@ -1138,7 +1155,8 @@
     },
     "contactsList": {
       "title": "Contacts",
-      "body": "Each person exists only once in your space: a couple who comes back for a second event keeps their record, details and history. Search by name, address or phone; an email address belongs to one contact only. A household links people (a couple, a family); a company, its contact persons, with its SIREN and VAT number. “Add a contact” opens a blank record in a panel; “Import contacts” brings in your file (CSV or Excel). Trial contacts do not appear here."
+      "body": "Each person exists only once in your space: a couple who comes back for a second event keeps their record, details and history. Search by name, address or phone; an email address belongs to one contact only. A household links people (a couple, a family); a company, its contact persons, with its SIREN and VAT number. “Add a contact” opens a blank record in a panel; “Import contacts” brings in your file (CSV or Excel). Trial contacts do not appear here.",
+      "keywords": "address book, clients, couples, households"
     },
     "contactDetail": {
       "title": "Contact record",
@@ -1206,7 +1224,8 @@
           "q": "Does the client see the plan or the constraints?",
           "a": "No. The plan is built by the team; constraints never leave it, neither to the client nor in a summary."
         }
-      ]
+      ],
+      "keywords": "seating plan, seat the guests, tables"
     },
     "catererSummary": {
       "title": "Send the summary to the caterer",
@@ -1238,7 +1257,8 @@
     },
     "appointmentAvailability": {
       "title": "My availability",
-      "body": "My week: one row per day; the switch opens or closes the day, “+ Range” adds a second range, “Copy Monday to open days” copies Monday; a single “Save”. Then your closed days and calendars: connect your Google, Apple or Outlook calendar by its secret iCal address; only busy hours are read, every fifteen minutes, never the content. If a calendar can no longer be read, no slot is offered until it is read again."
+      "body": "My week: one row per day; the switch opens or closes the day, “+ Range” adds a second range, “Copy Monday to open days” copies Monday; a single “Save”. Then your closed days and calendars: connect your Google, Apple or Outlook calendar by its secret iCal address; only busy hours are read, every fifteen minutes, never the content. If a calendar can no longer be read, no slot is offered until it is read again.",
+      "keywords": "availability, appointment hours, linked calendar, closed days"
     },
     "eventsPipeline": {
       "title": "Follow your requests in columns",
@@ -1538,6 +1558,13 @@
           "q": "Does the wedding I type in get a schedule of tasks?",
           "a": "No: it is \"Signed, in preparation\", and its tasks come from your list. Without a list, you can start from a template on its page."
         }
+      ],
+      "keywords": "take over an ongoing wedding, wedding followed in another tool, takeover",
+      "steps": [
+        "Open “Take over an ongoing wedding” from “Events” or the home screen.",
+        "Drop the files in the suggested order: sheet, budget, vendors, to-do list, programme.",
+        "Each file is reviewed with you; nothing is saved before you agree.",
+        "The wedding's page then says what is left to complete."
       ]
     },
     "companyMentions": {
@@ -4674,6 +4701,10 @@
       "documents": {
         "title": "Personalise your quotes and invoices",
         "description": "Details, logo, colour, texts and IBAN: documents that look like you, with a sample PDF."
+      },
+      "complete-takeover": {
+        "title": "Complete a wedding you took over",
+        "description": "On a sample wedding taken over from a spreadsheet, complete what the files did not say: guests, tasks."
       }
     },
     "intro": "Every screen has its own page: what it is for, its guided tour and frequently asked questions. On the screen itself, “? › Replay the tour” starts the tour again.",
@@ -4694,7 +4725,8 @@
       "quotes": "Quotes and invoices",
       "budget": "Budget",
       "company": "My company and account",
-      "data": "Import and personal data",
+      "import": "Takeover and import",
+      "data": "Your data and personal data",
       "admin": "Suite operations",
       "clients": "Your space",
       "appointments": "Appointments"
@@ -4753,7 +4785,8 @@
     "dayFuture": "in {days, plural, one {# day} other {# days}}",
     "dayPast": "{days, plural, one {# day} other {# days}} ago",
     "openFullScreen": "Search",
-    "closeFullScreen": "Close search"
+    "closeFullScreen": "Close search",
+    "articleDetail": "Help article"
   },
   "AdminOnboarding": {
     "title": "Organisations getting started",
@@ -5090,6 +5123,34 @@
         {
           "title": "Finish",
           "body": "Your quotes and invoices now look like you. You will find these settings in Settings › Sales › Documents."
+        }
+      ]
+    },
+    "complete-takeover": {
+      "steps": [
+        {
+          "title": "Understand",
+          "body": "A wedding taken over from a spreadsheet arrives with what your files said; the rest is completed on its page: the guest count, the tasks, the amounts. Let's create a sample wedding, as if taken over from a spreadsheet, to do it."
+        },
+        {
+          "title": "Create the sample",
+          "body": "Symbola creates Juliette and Romain's fictional wedding, with no tasks and no guest count."
+        },
+        {
+          "title": "Look at the page",
+          "body": "The sample's Summary shows what is missing: here, the guest count and the timeline."
+        },
+        {
+          "title": "The guest count",
+          "body": "On the Summary, “Edit the details”, then enter the “Estimated guests”: the page saves on its own."
+        },
+        {
+          "title": "The tasks",
+          "body": "In the Planning timeline tab, choose a template and click “Apply template”, or add a task."
+        },
+        {
+          "title": "Finish",
+          "body": "You know how to complete a wedding you took over. On a real one, the page lists the remaining points under “To complete after the takeover”. The sample will be deleted."
         }
       ]
     }
@@ -5995,24 +6056,15 @@
     },
     "checklist": {
       "title": "Getting started",
-      "items": {
-        "essentials": "Set up the essentials: company, address, VAT",
-        "first_vendor": "Add a first vendor"
-      },
-      "count": "{done} of {total}",
-      "remaining": "left: {steps}",
       "hide": "Hide",
       "hiddenMessage": "\"Getting started\" is hidden.",
       "shownMessage": "\"Getting started\" is back.",
       "hideFailed": "\"Getting started\" could not be hidden. Try again.",
-      "short": {
-        "essentials": "set up the essentials",
-        "first_vendor": "a first vendor"
-      },
-      "action": {
-        "essentials": "Complete",
-        "first_vendor": "Add"
-      }
+      "steps": "{done, plural, one {# step done} other {# steps done}} of {total}",
+      "next": "Next: {stage}, {minutes} minutes",
+      "nextNoMinutes": "Next: {stage}",
+      "continue": "Continue",
+      "seeJourney": "See the path"
     }
   },
   "Setup": {
@@ -6459,32 +6511,91 @@
   },
   "TutorialsPage": {
     "title": "Tutorials",
-    "intro": "Learn Symbola by doing, in the suggested order. Each tutorial creates a sample, then offers to delete it.",
-    "progress": "Tutorials done: {done} of {total}",
-    "remaining": "about {minutes} min left",
-    "inProgress": "In progress: {title} (step {step})",
+    "intro": "Learn Symbola by doing, on a sample that contacts nobody and is deleted at the end.",
+    "remaining": "about {minutes} minutes left",
+    "inProgress": "Step {step}",
     "resume": "Resume",
     "stageNumber": "Step {number}",
-    "stageCount": "{done}/{total}",
     "minutes": "{minutes} min",
-    "stages": {
-      "activity": "Set up your business",
-      "templates": "Prepare your templates",
-      "first_event": "Your first event",
-      "sales": "Sell and invoice",
-      "clients": "With the couple",
-      "other": "Other tutorials"
-    },
-    "states": {
-      "done": "Done",
-      "current": "In progress",
-      "next": "Suggested next",
-      "todo": "To do"
-    },
     "conflictTitle": "A tutorial is already in progress",
     "conflictBody": "You are at step {step} of “{title}”. One tutorial at a time: finish it first, or abandon it (its sample will be deleted) to start “{next}”.",
     "conflictFinish": "Finish it first",
-    "conflictAbandon": "Abandon it and start this one"
+    "conflictAbandon": "Abandon it and start this one",
+    "currentLabel": "In progress",
+    "journeyTitle": "Your path: {path}",
+    "paths": {
+      "takeover": "I'm taking over my ongoing weddings",
+      "scratch": "I'm starting from scratch"
+    },
+    "chosenBy": {
+      "answer": "Chosen from your answer when you started",
+      "choice": "Chosen by you",
+      "default": "Suggested until you answer the start-up questions"
+    },
+    "journeyMeta": "{done, plural, one {# step done} other {# steps done}} of {total}",
+    "change": {
+      "open": "Change path",
+      "title": "Your path",
+      "intro": "What you have already done stays done in the other path.",
+      "submit": "Confirm",
+      "cancel": "Cancel",
+      "invalid": "Choose one of the two paths.",
+      "options": {
+        "takeover": {
+          "title": "I'm taking over my ongoing weddings",
+          "body": "The takeover first, then completing a wedding you took over."
+        },
+        "scratch": {
+          "title": "I'm starting from scratch",
+          "body": "A wedding, its timeline, its vendors."
+        }
+      }
+    },
+    "stages": {
+      "takeover": {
+        "takeover": "Take over an ongoing wedding",
+        "complete": "Complete a wedding you took over",
+        "vendors": "Your vendors",
+        "templates": "The timeline and the programme",
+        "sales": "Quotes and invoices",
+        "first_event": "Create your first wedding"
+      },
+      "scratch": {
+        "first_event": "Create your first wedding",
+        "templates": "Its timeline",
+        "vendors": "Its vendors",
+        "sales": "Quotes and invoices",
+        "takeover": "Take over an ongoing wedding",
+        "complete": "Complete a wedding you took over"
+      }
+    },
+    "stageBody": {
+      "takeover": "Book, sheet, budget, retained vendors, to-do list, programme: file by file, nothing saved before you agree.",
+      "complete": "What the files did not say: the guest count, the tasks, the amounts, the programme times.",
+      "first_event": "The wedding, its couple and its date: its page opens with its starting timeline.",
+      "templates": "The templates for your next weddings.",
+      "vendors": "The book, the records to sort, the quotes to compare.",
+      "sales": "Your company record, your catalogue, a signed quote, the deposit then the balance."
+    },
+    "states": {
+      "done": "Done",
+      "doneOn": "Done on {date}",
+      "current": "In progress",
+      "next": "Next",
+      "todo": "To do"
+    },
+    "gestures": {
+      "takeover": "Open a wedding takeover",
+      "takeover_complete": "Complete the page of my wedding taken over",
+      "first_event": "Create my first wedding",
+      "first_vendor": "Add a first vendor",
+      "essentials": "Set up the essentials: company, address, VAT"
+    },
+    "stageMeta": "{count, plural, one {# tutorial} other {# tutorials}} · {minutes} min",
+    "start": "Start · {minutes} min",
+    "doOnMine": "Do it on my wedding",
+    "review": "Review the tutorial",
+    "others": "Other tutorials"
   },
   "HelpUi": {
     "toggle": "Help on this screen",
@@ -14511,5 +14622,51 @@
     "nextTitle": "What next",
     "nextTakeover": "The “Budget” line of the takeover of “{event}” is ticked.",
     "backToTakeover": "Back to the takeover"
+  },
+  "HelpHome": {
+    "intro": "Ask your question in your own words, or browse by topic.",
+    "search": {
+      "label": "Your question",
+      "placeholder": "For example: import my contacts, what is a SIRET…",
+      "submit": "Search",
+      "clear": "Clear the search"
+    },
+    "settingsLabel": "Help settings",
+    "autoTours": "Offer a screen's tour the first time it is opened",
+    "topics": {
+      "title": "By topic",
+      "count": "{count, plural, one {# article} other {# articles}}"
+    },
+    "topic": {
+      "back": "‹ Help"
+    },
+    "start": {
+      "title": "Getting started",
+      "path": "Your path: {path} · {done, plural, one {# step done} other {# steps done}} of {total}",
+      "next": "Step {number}: {stage}",
+      "minutes": "{minutes} min",
+      "seeAll": "See the whole path",
+      "allDone": "Your path is done. The tutorials stay here to review them."
+    },
+    "discover": {
+      "title": "To explore",
+      "tours": "Screen tours",
+      "toursCount": "{count, plural, one {# screen} other {# screens}}",
+      "example": "Open a sample wedding",
+      "exampleOpen": "Open the sample wedding again",
+      "exampleDays": "30 days",
+      "tutorials": "Tutorials",
+      "tutorialsMeta": "{count}, from {min} to {max} min"
+    },
+    "answers": {
+      "count": "{count, plural, one {# article answers} other {# articles answer}} “{query}”",
+      "understood": "understood: {words}",
+      "bestLabel": "The best answer · {topic}",
+      "openScreen": "Open the screen",
+      "readArticle": "Read the whole article",
+      "others": "Other answers · {count}",
+      "noneTitle": "No article answers “{query}”",
+      "noneHint": "Try a word from the menu (“Events”, “Vendors”…), or browse by topic."
+    }
   }
 }

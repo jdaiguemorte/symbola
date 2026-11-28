@@ -1,5 +1,5 @@
 // Lot 10 (AIDE-06, AIDE-07) — catalogue de l'aide : les tutoriels (la
-// progression « N sur M » les compte ; 11 depuis le lot 18) et les visites focus des écrans. Les
+// progression « N sur M » les compte ; 11 depuis le lot 18, 12 depuis le lot 74f) et les visites focus des écrans. Les
 // titres et textes sont dans les messages (« HelpCenter.items.<clé> ») ; un
 // élément dont le module n'est pas souscrit n'est pas proposé (CLAUDE.md §2.3).
 import type { TourKey } from "./tours";
@@ -21,7 +21,9 @@ export type TutorialKey =
   | "import"
   | "vendor-quotes"
   // Lot 18 (AIDE-13) : personnaliser ses devis et factures.
-  | "documents";
+  | "documents"
+  // Lot 74f (L74-D8) : compléter un mariage repris, sur un exemple.
+  | "complete-takeover";
 
 export type TutorialDefinition = {
   key: TutorialKey;
@@ -29,6 +31,9 @@ export type TutorialDefinition = {
   minutes: number;
   // Écran où le tutoriel est proposé à la première visite (AIDE-06).
   screen: string;
+  // Lot 74f : un tutoriel proposé seulement par son parcours, jamais à la première visite d'un écran (rien de
+  // plus n'est envoyé avec chaque page).
+  invite?: false;
 };
 
 // Ordre conseillé de prise en main.
@@ -45,6 +50,8 @@ export const TUTORIALS: TutorialDefinition[] = [
   { key: "import", module: "hub", minutes: 4, screen: "/import" },
   // Lot 11 : comparer plusieurs devis pour un poste (sans carnet : saisie libre).
   { key: "vendor-quotes", module: "events", minutes: 4, screen: "/prestataires" },
+  // Lot 74f (L74-D8 ; maquette 28) : le tutoriel de la fiche, joué sur un mariage d'exemple « repris ».
+  { key: "complete-takeover", module: "events", minutes: 2, screen: "/events", invite: false },
 ];
 
 export type TourDefinition = { key: TourKey; module: HelpModule; path: string | null };

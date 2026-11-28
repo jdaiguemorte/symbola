@@ -1,0 +1,75 @@
+{
+  "_comment": "Lot 74f (HUB-12, C-07 ; maquette 27 du lot 68) — les mots de la recherche de l'aide, par langue : les petits mots écartés d'une phrase, puis les mots voisins de la planner (un groupe = des mots qui veulent dire la même chose pour la recherche). Données traduisibles, comme les synonymes de l'import (règle 6 du dépôt). Les mots sont écrits sans accent ni majuscule ; une expression de plusieurs mots est cherchée telle quelle dans la phrase.",
+  "fr": {
+    "stopWords": [
+      "a", "ai", "au", "aux", "avec", "c", "ca", "ce", "cela", "ces", "cet", "cette", "comment", "d", "dans", "de", "des", "dois", "doit", "du", "elle", "elles", "en", "est", "et", "faut", "il", "ils", "j", "je", "l", "la", "le", "les", "leur", "leurs", "m", "ma", "me", "mes", "mon", "n", "ne", "nos", "notre", "nous", "on", "ou", "par", "pas", "peut", "peux", "pour", "puis", "qu", "quand", "que", "quel", "quelle", "quelles", "quels", "qui", "quoi", "s", "sa", "se", "ses", "si", "son", "sur", "t", "ta", "te", "tes", "ton", "tu", "un", "une", "veux", "voudrais", "vos", "votre", "vous", "y", "chose", "svp", "aide", "aider", "possible"
+    ],
+    "synonyms": [
+      ["importer", "import", "imports", "importation", "reprendre", "reprise", "faire entrer", "charger", "recuperer"],
+      ["contact", "contacts", "client", "clients", "maries", "couple", "carnet d'adresses"],
+      ["tableur", "tableau", "excel", "csv", "xlsx", "fichier", "feuille de calcul", "google sheets"],
+      ["evenement", "evenements", "mariage", "mariages", "noce", "fete", "seminaire", "anniversaire"],
+      ["prestataire", "prestataires", "fournisseur", "fournisseurs", "traiteur", "fleuriste", "photographe", "dj"],
+      ["devis", "proposition", "offre", "chiffrage", "estimation"],
+      ["facture", "factures", "facturer", "acompte", "solde", "avoir"],
+      ["paiement", "paiements", "encaissement", "encaissements", "reglement", "virement", "payer", "paye"],
+      ["signer", "signature", "signe", "signee", "accord"],
+      ["retroplanning", "planning", "taches", "tache", "liste a faire", "to do", "echeances", "checklist"],
+      ["programme", "deroule", "chrono", "timing", "jour j"],
+      ["invite", "invites", "convives", "rsvp"],
+      ["plan de table", "placement", "tables"],
+      ["regime", "regimes", "allergie", "allergies", "vegetarien", "repas"],
+      ["siret", "siren", "kbis", "numero d'entreprise"],
+      ["tva", "taxe", "franchise", "hors taxe", "ttc"],
+      ["logo", "couleur", "apparence", "mise en page", "en-tete"],
+      ["creer", "ajouter", "nouveau", "nouvelle", "saisir", "enregistrer"],
+      ["supprimer", "effacer", "retirer", "corbeille"],
+      ["exporter", "export", "telecharger", "sauvegarde", "copie"],
+      ["rendez-vous", "rdv", "reservation", "agenda", "creneau", "disponibilites"],
+      ["rgpd", "donnees personnelles", "vie privee", "oubli", "cnil"],
+      ["equipe", "collaboratrice", "collaborateur", "assistante", "inviter"],
+      ["mot de passe", "connexion", "se connecter", "double authentification", "securite"],
+      ["modele", "modeles", "gabarit"],
+      ["budget", "depenses", "prevu", "enveloppe"],
+      ["relance", "relances", "rappel", "rappels", "relancer"],
+      ["message", "messages", "e-mail", "email", "mail", "mails", "courriel"],
+      ["espace client", "portail", "lien personnel", "partager"]
+    ]
+  },
+  "en": {
+    "stopWords": [
+      "a", "an", "and", "are", "can", "could", "do", "does", "for", "from", "get", "help", "how", "i", "i'm", "in", "into", "is", "it", "me", "my", "of", "on", "or", "our", "please", "should", "the", "their", "there", "this", "to", "want", "what", "where", "which", "who", "why", "with", "would", "you", "your", "s"
+    ],
+    "synonyms": [
+      ["import", "imports", "importing", "upload", "bring in", "take over", "takeover", "migrate", "load"],
+      ["contact", "contacts", "client", "clients", "couple", "address book", "customers"],
+      ["spreadsheet", "excel", "csv", "xlsx", "file", "sheet", "google sheets"],
+      ["event", "events", "wedding", "weddings", "party", "seminar", "birthday"],
+      ["vendor", "vendors", "supplier", "suppliers", "caterer", "florist", "photographer", "dj"],
+      ["quote", "quotes", "proposal", "estimate", "offer"],
+      ["invoice", "invoices", "bill", "deposit", "balance", "credit note"],
+      ["payment", "payments", "collect", "transfer", "pay", "paid"],
+      ["sign", "signature", "signed", "agreement"],
+      ["timeline", "planning", "tasks", "task", "to do", "checklist", "deadlines"],
+      ["program", "programme", "schedule", "run of show", "day of"],
+      ["guest", "guests", "rsvp", "attendees"],
+      ["seating plan", "seating", "tables"],
+      ["diet", "diets", "dietary", "allergy", "allergies", "vegetarian", "meal", "meals"],
+      ["siret", "siren", "company number", "registration"],
+      ["vat", "tax", "exemption"],
+      ["logo", "colour", "color", "branding", "layout", "header"],
+      ["create", "add", "new", "enter", "record"],
+      ["delete", "remove", "erase", "trash", "bin"],
+      ["export", "download", "backup", "copy"],
+      ["appointment", "appointments", "booking", "calendar", "slot", "availability"],
+      ["gdpr", "personal data", "privacy", "erasure"],
+      ["team", "colleague", "assistant", "invite"],
+      ["password", "sign in", "login", "two-factor", "security"],
+      ["template", "templates", "model"],
+      ["budget", "spending", "planned", "expenses"],
+      ["reminder", "reminders", "follow-up", "follow up", "nudge"],
+      ["message", "messages", "email", "e-mail", "mail"],
+      ["client space", "portal", "personal link", "share"]
+    ]
+  }
+}

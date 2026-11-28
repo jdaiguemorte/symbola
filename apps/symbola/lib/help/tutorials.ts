@@ -246,6 +246,22 @@ export const TUTORIAL_SCRIPTS: Record<TutorialKey, TutorialScript> = {
     ],
     cleanup: async () => {},
   },
+  // Lot 74f (L74-D8 ; maquette 28, étape « Compléter un mariage repris ») : ce que les fichiers d'un mariage
+  // repris ne disaient pas, complété sur la fiche d'un exemple (sans tâches ni nombre d'invités, comme un
+  // tableur repris). Un exemple fictif ne peut pas être une vraie reprise (lot 71b) : la fiche se complète de
+  // la même façon, et le tutoriel se fait aussi sur son propre mariage (« Le faire sur mon mariage »).
+  "complete-takeover": {
+    setup: (env) => exampleEvent(env, "complete-takeover"),
+    steps: [
+      { kind: "explain" },
+      { kind: "setup" },
+      { kind: "look", href: eventTab("apercu") },
+      { kind: "do", href: eventTab("apercu"), check: async (env) => (await getEvent(env.organizationId, env.context.eventId!))?.guestsEstimated != null },
+      { kind: "do", href: eventTab("taches"), check: async (env) => (await listEventTasks(env.organizationId, env.context.eventId!)).length > 0 },
+      { kind: "finish" },
+    ],
+    cleanup: (env) => removeExampleEvent(env),
+  },
   "vendor-quotes": {
     setup: async (env) => {
       const context = await exampleEvent(env, "vendor-quotes");
