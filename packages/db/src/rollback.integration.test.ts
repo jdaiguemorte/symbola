@@ -138,6 +138,8 @@ const LOT_73A = ["0235_lot73a_events_candidate_retained_at", "0234_lot73a_vendor
 // Lot 74a : réponses « mariages en cours » et « TVA à dire » de l'assistant de démarrage (0244, hub) ; la plus
 // récente.
 const LOT_74A = ["0244_lot74a_hub_onboarding_answers"];
+// Lot 74b : la marque « à dater » des tâches (0245, events) ; la plus récente.
+const LOT_74B = ["0245_lot74b_events_task_due_date_known"];
 // Lot 71a : reprise d'un mariage (0218, 0219, hub), origine et dates non renseignées (0220), contrat
 // déclaré (0221), forme des moments (0222, events), total à répartir (0223, budget) ; les plus récentes.
 const LOT_71A = [
@@ -245,6 +247,24 @@ afterAll(async () => {
 // Lot 47 : chaque test remonte la chaîne des annulations, qui s'allonge à chaque lot ; la limite par
 // défaut (5 s) ne suffit plus sur un poste chargé.
 describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)", { timeout: 60_000 }, () => {
+  it("lot 74b (EVT-01, CHR-01 ; B7, L74-D3) — 0245 s'annule et se rejoue sur une base vide ; une tâche est datée d'office ; l'annulation est refusée tant qu'une tâche est « à dater »", async () => {
+    await migrateAll();
+    const [organization] = await target<{ id: string }[]>`insert into hub.organizations (name) values ('Atelier 0245') returning id`;
+    const organizationId = organization!.id;
+    const [event] = await target<{ id: string }[]>`insert into events.events (organization_id, event_date) values (${organizationId}, '2027-06-12') returning id`;
+    const [task] = await target<{ id: string; due_date_known: boolean }[]>`insert into events.event_tasks (organization_id, event_id, label, due_date) values (${organizationId}, ${event!.id}, 'Réserver le lieu', '2027-06-12') returning id, due_date_known`;
+    expect(task!.due_date_known).toBe(true);
+    await target`update events.event_tasks set due_date_known = false where id = ${task!.id}`;
+
+    await rollbackNewerThan(LOT_74B[0]!);
+    await expect(rollback(LOT_74B[0]!)).rejects.toThrow(/à dater/);
+    await target`update events.event_tasks set due_date_known = true where id = ${task!.id}`;
+    await rollback(LOT_74B[0]!);
+    expect(await hasColumn("events", "event_tasks", "due_date_known")).toBe(false);
+    await migrateAll();
+    expect(await hasColumn("events", "event_tasks", "due_date_known")).toBe(true);
+  });
+
   it("lot 74a (HUB-09 ; B3, B5, L74-D4) — 0244 s'annule et se rejoue sur une base vide ; « mariages en cours » n'accepte que oui ou non, le drapeau de TVA est faux d'office", async () => {
     await migrateAll();
     const [organization] = await target<{ id: string }[]>`insert into hub.organizations (name) values ('Atelier 0244') returning id`;
