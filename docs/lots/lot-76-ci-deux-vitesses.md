@@ -18,7 +18,7 @@ parcours sous Chromium, 74 min en série, plus 15 min de scénarios sous Firefox
 | Quand | Parcours de bout en bout joués | Durée visée |
 | --- | --- | --- |
 | **Pull request** (voie rapide) | le **socle** (20 parcours essentiels, `apps/symbola/e2e/socle.ts`) et les **fichiers de parcours modifiés ou ajoutés** par la PR, sous Chromium, en ordinateur et en 375 px ; en parallèle, les **mesures du temps de réponse** dans leur job | moins de 15 min |
-| **Push sur `main`** (chaque fusion), **chaque nuit** (1 h 30 UTC), **à la demande** (`workflow_dispatch`), ou PR étiquetée **`suite-complete`** | la **suite complète** : Chromium (ordinateur et 375 px, axe-core) en **quatre parts**, les scénarios sous Firefox et WebKit (360 et 1 920 px, zoom à 150 %), et les **mesures du temps de réponse** (NFR-01, NFR-02) dans leur **propre job** | environ 25 min |
+| **Push sur `main`** (chaque fusion), **chaque nuit** (1 h 30 UTC), **à la demande** (`workflow_dispatch`), ou PR étiquetée **`suite-complete`** | la **suite complète** : Chromium (ordinateur et 375 px, axe-core) en **quatre parts**, les scénarios sous Firefox et WebKit (360 et 1 920 px, zoom à 150 %), et les **mesures du temps de réponse** (NFR-01, NFR-02) dans leur **propre job** | 20 à 31 min selon la part (§ 8) |
 
 - **Le socle** couvre : inscription et connexion par lien, page de connexion, « Aujourd'hui », le
   scénario du lundi matin (SC-03), création d'un évènement puis confirmation et annulation, création
@@ -136,3 +136,38 @@ parcours qui ne testent pas la connexion elle-même les reprennent. Les parcours
 (SEC-07, HUB-01, liens des tiers) resteraient en série. Il faudrait aussi que chaque parcours crée
 ses propres données (c'est déjà le cas, par `atelier`) et que les mesures restent seules. À mesurer
 avant d'y aller : le gain dépend de la part du temps passée dans la connexion.
+
+## 8. Résultats mesurés (PR #220, 28/11/2026)
+
+Durées des jobs, préparation comprise (installation, compilation de Next sans cache, base, Logto :
+environ 6 min).
+
+| Exécution | Job | Durée | Parcours |
+| --- | --- | ---: | --- |
+| Voie rapide, 1er envoi (aucun fichier de parcours modifié) | voie rapide | **8 min 13 s** | 40 (socle), 3 min 23 s |
+| Voie rapide, 2e envoi (quatre fichiers de parcours modifiés, 94 parcours) | voie rapide | 15 min 20 s | 94, 9 min |
+| | mesures | 13 min 25 s | réchauffement 4 min 50, mesures 2 min 20 |
+| Suite complète (étiquette `suite-complete`) | part 1 sur 4 | 28 min 42 s | 208 + 1 instable, 22,8 min |
+| | part 2 sur 4 | 19 min 20 s | 183 + 1 instable, 14,6 min |
+| | part 3 sur 4 | 30 min 47 s | 201, 24,5 min |
+| | part 4 sur 4 | 20 min 04 s | 180 + 1 instable, 15,0 min |
+| | Firefox et WebKit | 16 min 08 s | 87, 11,2 min |
+| | mesures | 12 min 20 s | 40 + 3 + 3 |
+
+- **Voie rapide** : sous 15 min tant que la PR modifie peu de fichiers de parcours (le cas courant) ;
+  chaque parcours modifié ajoute environ 6 s par taille d'écran. Le job des mesures tourne en
+  parallèle et finit en 12 à 13 min : la PR a son verdict en **13 à 15 min**.
+- **Suite complète** : 31 min pour la part la plus longue (au lieu de 48 à 60 pour une moitié).
+  Les parts sont égales en nombre de parcours, pas en durée (Playwright découpe dans l'ordre des
+  fichiers) : les parts 1 et 3 portent les fichiers les plus lents. Rééquilibrer est une suite
+  possible (cinq parts, ou listes de fichiers par part).
+- **Parcours instables** (passés à la reprise, signalés, non masqués) : `lot-20-retours-recette:111`
+  (ordinateur), `lot-72c-agence:160` (375 px), `lot-72d-entete-fiche:322` (ordinateur).
+- **Mesures** (2e essai, mesures P0 jouées avant celles des paquets) : NFR-02 pages P0 **245 ms**
+  (séries 403, 245, 227 ; main : 205 à 232 ms les 28/11), recherche 93 ms, coche 21 ms (main : 17 à
+  25), affichages à froid de 1 884 à 2 020 ms. Les mesures des paquets donnent 244 à 245 ms
+  (lot 70d : 148 à 156 ms sur main, au milieu d'une moitié). Les valeurs sont dans la plage des
+  seuils mais **plus hautes de 15 à 90 ms** que sur main : un job court sur un runner partagé, et les
+  séries qui montent (70d : 181, 245, 253) laissent penser que le serveur traite encore les
+  événements des créations du test. Aucun seuil ni aucune méthode n'a changé ; la marge, désormais
+  affichée, est d'environ 55 ms (18 %) pour chaque mesure du serveur.
