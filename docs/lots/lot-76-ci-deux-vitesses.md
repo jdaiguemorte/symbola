@@ -163,11 +163,23 @@ environ 6 min).
   possible (cinq parts, ou listes de fichiers par part).
 - **Parcours instables** (passés à la reprise, signalés, non masqués) : `lot-20-retours-recette:111`
   (ordinateur), `lot-72c-agence:160` (375 px), `lot-72d-entete-fiche:322` (ordinateur).
-- **Mesures** (2e essai, mesures P0 jouées avant celles des paquets) : NFR-02 pages P0 **245 ms**
-  (séries 403, 245, 227 ; main : 205 à 232 ms les 28/11), recherche 93 ms, coche 21 ms (main : 17 à
-  25), affichages à froid de 1 884 à 2 020 ms. Les mesures des paquets donnent 244 à 245 ms
-  (lot 70d : 148 à 156 ms sur main, au milieu d'une moitié). Les valeurs sont dans la plage des
-  seuils mais **plus hautes de 15 à 90 ms** que sur main : un job court sur un runner partagé, et les
-  séries qui montent (70d : 181, 245, 253) laissent penser que le serveur traite encore les
-  événements des créations du test. Aucun seuil ni aucune méthode n'a changé ; la marge, désormais
-  affichée, est d'environ 55 ms (18 %) pour chaque mesure du serveur.
+- **Mesures, trois essais** (mêmes tests, mêmes seuils, seul l'ordre du job change) :
+
+  | Mesure | 1er essai | 2e essai | 3e essai (retenu) | main, 28/11 | Seuil |
+  | --- | ---: | ---: | ---: | ---: | ---: |
+  | NFR-02, pages des parcours P0 | 247 ms | 245 ms | **172 ms** | 205 à 232 ms | 300 ms |
+  | HUB-12, recherche | 63 ms | 93 ms | **43 ms** | 152 ms | 500 ms |
+  | UX-15, coche d'une tâche | 97 ms | 21 ms (puis 101 → 20 à la reprise) | **19 ms** | 17 à 25 ms | 100 ms |
+  | Lot 70d, 500 tâches | 221 ms | 245 ms | **137 ms** | 148 à 156 ms | 300 ms |
+  | Lot 71f, 200 évènements | 231 ms | 244 ms | **176 ms** | 328 à 396 ms (deux PR en échec le 28/11) | 300 ms |
+  | Lot 73b, 510 fiches | 211 ms | 244 ms | **174 ms** | non affichée | 300 ms |
+  | NFR-01, affichages à froid | 1 896 à 2 036 ms | 1 884 à 2 020 ms | 1 876 à 2 004 ms | — | 2 500 ms |
+
+  1er essai : les mesures des paquets passaient avant les mesures P0 ; leurs centaines de créations
+  chargeaient encore le serveur. 2e essai : mesures P0 d'abord, mais navigateur neuf (le réchauffement
+  était une autre invocation de Playwright) : la coche oscillait entre 20 et 101 ms. 3e essai : le
+  socle en ordinateur et les mesures P0 dans la même invocation (les fichiers du socle rangés avant
+  « nfr- » passent d'abord), après un réchauffement du serveur par le socle en 375 px : **valeurs
+  comparables à main, ou meilleures**, et marges de 41 à 54 % pour les mesures du serveur.
+- Parcours instable de plus, dans le réchauffement : `dev-04-factures:42` (ordinateur, passé à la
+  reprise).
