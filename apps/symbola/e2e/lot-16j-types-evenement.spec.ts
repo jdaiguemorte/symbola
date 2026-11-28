@@ -74,9 +74,9 @@ test("lot 16 — une wedding planner organise un séminaire : sa fiche parle du 
   await expect(typeWindow).toBeHidden();
   await expect(page.getByRole("heading", { name: "Coordonnées des mariés" })).toBeVisible();
 
-  // Les écrans qui mêlent plusieurs évènements gardent le vocabulaire du métier.
+  // Lot 72f (P-21) : la liste nomme sa colonne « Évènement », quel que soit le métier ; le type se lit dessous.
   await page.goto("/events");
-  await expect(page.getByRole("columnheader", { name: "Mariés" })).toBeVisible();
+  await expect(page.getByRole("columnheader", { name: "Mariés" })).toHaveCount(0);
 });
 
 test("lot 16 — une agence organise un mariage : sa fiche parle des mariés, la liste garde « Clients »", async ({ page }) => {
@@ -91,7 +91,7 @@ test("lot 16 — une agence organise un mariage : sa fiche parle des mariés, la
   await expectNoAxeViolation(page);
 
   await page.goto("/events");
-  await expect(page.getByRole("columnheader", { name: "Clients" })).toBeVisible();
+  await expect(page.getByRole("columnheader", { name: "Clients" })).toHaveCount(0);
 });
 
 test("lot 16 — Paramètres › Types d'évènements : ajouter un type qui parle des mariés", async ({ page }) => {

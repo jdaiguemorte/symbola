@@ -177,18 +177,23 @@ test("EVT-07 / CHR-03 — le portefeuille en liste et en calendrier, la charge p
 
   // Liste : deux évènements le même jour sont signalés.
   await page.goto("/events");
-  await expect(page.getByRole("row", { name: /^Léa & Maxime/ })).toContainText("Même jour : Inès & Sacha");
-  await expect(page.getByRole("row", { name: /^Inès & Sacha/ })).toContainText("Même jour : Léa & Maxime");
-  // Charge par mois : le mois du mariage compte un confirmé et une option.
-  const load = page.getByRole("region", { name: "Charge des douze prochains mois" });
-  const row = load.getByRole("row", { name: new RegExp(monthName(setup.date), "i") });
-  await expect(row.getByRole("cell").nth(0)).toHaveText("1");
-  await expect(row.getByRole("cell").nth(1)).toHaveText("1");
+  // Lot 72f (critère 3) : « 2 le même jour » dans la date, en texte neutre.
+  await expect(page.getByRole("row", { name: /^Léa & Maxime/ })).toContainText("2 le même jour");
+  await expect(page.getByRole("row", { name: /^Inès & Sacha/ })).toContainText("2 le même jour");
   await expectNoAxeViolation(page);
 
   // Calendrier : l'agenda des mois à venir, le jour partagé signalé.
-  await page.getByRole("navigation", { name: "Affichage" }).getByRole("link", { name: "Calendrier" }).click();
+  // Lot 72f : sur téléphone, les autres vues sont au menu « ⋯ ».
+  if ((page.viewportSize()?.width ?? 1280) < 640) {
+    await page.getByRole("button", { name: /^Autres actions/ }).click();
+    await page.getByRole("menuitem", { name: "Calendrier" }).click();
+  } else await page.getByRole("navigation", { name: "Affichage" }).getByRole("link", { name: "Calendrier" }).click();
   await expect(page).toHaveURL(/affichage=calendrier/);
+  // Lot 72f (E8) : la charge par mois est sous le calendrier ; le mois du mariage compte un confirmé et une option.
+  const load = page.getByRole("region", { name: "Charge des mois à venir, en tableau" });
+  const row = load.getByRole("row", { name: new RegExp(monthName(setup.date), "i") });
+  await expect(row.getByRole("cell").nth(0)).toHaveText("1");
+  await expect(row.getByRole("cell").nth(1)).toHaveText("1");
   const agenda = page.getByRole("region", { name: "Agenda" });
   await agenda.getByRole("link", { name: "Voir l'année" }).click();
   await expect(page).toHaveURL(/agenda=12/);

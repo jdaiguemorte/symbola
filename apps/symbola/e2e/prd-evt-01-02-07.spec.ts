@@ -43,7 +43,9 @@ test("PRD-EVT-07 — la planner paramètre ses sources et motifs de perte, puis 
 
   // Lot 63c (UX-09, ADR 0107) : la roue « Réglages » ouvre les réglages dans le panneau latéral, au-dessus
   // de la liste ; la page complète garde son adresse.
-  await page.getByRole("link", { name: "Paramètres des évènements" }).first().click();
+  // Lot 72f (G14) : au menu « ⋯ » de l'en-tête, section « Réglages ».
+  await page.getByRole("button", { name: /^Autres actions/ }).click();
+  await page.getByRole("menuitem", { name: "Paramètres des évènements" }).click();
   await expect(page.getByRole("complementary", { name: "Réglages" })).toBeVisible();
   await expect(page.getByRole("complementary", { name: "Réglages" }).getByRole("heading", { level: 1 })).toBeVisible();
   await page.goto("/events/parametres");
@@ -116,7 +118,8 @@ test("PRD-EVT-01/02 / EVT-05 — un prospect apparaît dans la liste en Option, 
   // L13-EVT-18 : une ligne du tableau par évènement.
   const item = page.getByRole("row", { name: new RegExp(`${firstName} & Sacha`) });
   await expect(item).toContainText("Date à définir");
-  await expect(item).toContainText("Option");
+  // Lot 72f : le statut se dit avec les mots de la frise.
+  await expect(item).toContainText("Une demande en cours");
   // L13-EVT-18 : l'année se choisit dans une liste (jamais 1 ni −1) et les
   // filtres ont tous la même hauteur.
   const years = await page.getByLabel("Année").locator("option").allTextContents();
@@ -130,10 +133,11 @@ test("PRD-EVT-01/02 / EVT-05 — un prospect apparaît dans la liste en Option, 
   expect(new Set(heights.map((height) => Math.round(height))).size).toBe(1);
   // PRD-EVT-07 : filtrable par source.
   // L13-EVT-18 : les filtres s'appliquent à la saisie, sans bouton.
-  await page.getByLabel("Source du prospect").selectOption({ label: "Salon" });
+  // Lot 72f : « Venu par », l'ancien filtre « Source du prospect ».
+  await page.getByLabel("Venu par").selectOption({ label: "Salon" });
   await expect(page).toHaveURL(/source=/);
   await expect(item).toBeVisible();
-  await page.getByLabel("Rechercher un nom").fill(firstName);
+  await page.getByLabel("Rechercher", { exact: true }).fill(firstName);
   await expect(page).toHaveURL(/search=/);
   await expect(item).toBeVisible();
 
@@ -144,7 +148,7 @@ test("PRD-EVT-01/02 / EVT-05 — un prospect apparaît dans la liste en Option, 
   // Lot 72d (E2) : « Le contrat est signé… », puis « Passer en signé » (le message de retour le dit).
   await changeEventStatus(page, "Confirmé");
   await page.goto("/events");
-  await expect(item).toContainText("Confirmé");
+  await expect(item).toContainText("Signé, en préparation");
 
   // PRD-EVT-02, EVT-05 (lot 34a, D6) : l'annulation exige un motif, et une précision pour le motif
   // « Autre » ; la question nomme l'évènement (UX-07).
@@ -166,7 +170,7 @@ test("PRD-EVT-01/02 / EVT-05 — un prospect apparaît dans la liste en Option, 
   // Les évènements annulés sont dans l'onglet séparé « Terminés ».
   await page.goto("/events");
   await expect(item).toHaveCount(0);
-  await page.getByRole("link", { name: "Terminés" }).click();
+  await page.getByRole("navigation", { name: "Période" }).getByRole("link", { name: /^Terminés/ }).click();
   await expect(page).toHaveURL(/tab=termines/);
   await expect(item).toContainText("Annulé");
   await expectNoAxeViolation(page);
