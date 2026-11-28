@@ -1,0 +1,196 @@
+/* Lot 73d — la fenêtre unique de création d'un prestataire et sa fiche (spécification du lot 73, § 5.4,
+   critères 1, 6 et 9 ; maquette 20). Mêmes jetons que globals.css (DESIGN.md), aucun style en ligne (CSP).
+   La fenêtre suit la règle des fenêtres (ADR 0107) : courte sur ordinateur, une page entière sur
+   téléphone. La fiche : un en-tête en 200 px au plus, une seule action pleine, deux colonnes. */
+@layer components {
+  /* La fenêtre de création : les six champs, « Plus de détails » en place, « Comment l'ajouter ? ». */
+  .vendor-create {
+    @apply w-[min(36rem,calc(100vw-2rem))];
+  }
+  /* Une fenêtre montée fermée (« Demander au prestataire ») ne s'affiche pas : la règle « .window » donne
+     sa mise en page à la fenêtre, sans passer devant le « non ouvert » du navigateur. */
+  .vendor-sheet dialog.window:not([open]) {
+    @apply hidden;
+  }
+  .vendor-create-for {
+    @apply m-0 -mt-2;
+  }
+  .vendor-create-form {
+    @apply flex flex-col gap-4;
+  }
+  .vendor-create-main {
+    @apply m-0 flex min-w-0 flex-col gap-3 border-0 p-0;
+  }
+  .vendor-create-main > label,
+  .vendor-create-details label:not(.checkbox):not(.tag-chip) {
+    @apply flex flex-col gap-1;
+  }
+  .vendor-create-main input:not([type="checkbox"], [type="radio"]),
+  .vendor-create-main select,
+  .vendor-create-main textarea {
+    @apply w-full;
+  }
+  .vendor-create-similar {
+    @apply m-0 -mt-1;
+  }
+  .vendor-create-details {
+    @apply rounded-md border border-line px-3 py-2;
+  }
+  .vendor-create-details > summary {
+    @apply min-h-11 cursor-pointer py-2 font-medium;
+  }
+  .vendor-create-details fieldset {
+    @apply m-0 flex flex-col gap-3 border-0 p-0;
+  }
+  .vendor-create-how {
+    @apply m-0 flex flex-col gap-2 border-0 p-0;
+  }
+  .vendor-create-how > legend {
+    @apply mb-1 p-0 font-semibold;
+  }
+  .vendor-create-how .standing-option {
+    @apply flex min-h-11 cursor-pointer items-start gap-3 rounded-md border border-line px-3 py-2;
+  }
+  .vendor-create-how .standing-option:has(input:checked) {
+    @apply border-primary bg-ground;
+  }
+  .vendor-create-how .standing-option > span {
+    @apply flex min-w-0 flex-col gap-1;
+  }
+  .vendor-create-actions {
+    @apply flex flex-wrap items-center justify-end gap-2;
+  }
+  .vendor-create-actions .required-legend {
+    @apply m-0 mr-auto;
+  }
+
+  /* La fiche : l'en-tête d'objet en 200 px (D10), le contact cliquable, une action et le menu « ⋯ ». */
+  .vendor-sheet {
+    @apply min-w-0;
+  }
+  .vendor-sheet-head {
+    @apply mb-4 grid grid-cols-1 gap-2 border-b border-line pb-4;
+  }
+  .vendor-sheet-back {
+    @apply m-0 text-label;
+  }
+  .vendor-sheet-identity {
+    @apply flex min-w-0 flex-col gap-1;
+  }
+  .vendor-sheet-identity h1 {
+    @apply m-0;
+  }
+  .vendor-sheet-facts {
+    @apply m-0 flex flex-wrap items-center gap-2;
+  }
+  .vendor-sheet-contact {
+    @apply m-0 flex list-none flex-wrap gap-x-4 gap-y-1 p-0;
+  }
+  .vendor-sheet-actions {
+    @apply flex items-center gap-2;
+  }
+  @media (min-width: 768px) {
+    .vendor-sheet-head {
+      @apply grid-cols-[minmax(0,1fr)_auto] items-end;
+    }
+    .vendor-sheet-back {
+      @apply col-span-2;
+    }
+  }
+  .vendor-sheet-missing {
+    @apply text-ink-muted;
+  }
+
+  /* Les alertes juste sous l'en-tête, chacune avec le geste qui la règle. */
+  .vendor-sheet-alerts {
+    @apply m-0 mb-4 flex list-none flex-col gap-2 p-0;
+  }
+  .vendor-sheet-alerts > li {
+    @apply m-0 flex flex-wrap items-center gap-3;
+  }
+  .vendor-sheet-alerts > li > span:nth-child(2) {
+    @apply min-w-0 flex-1;
+  }
+  .vendor-sheet-alert-icon {
+    @apply font-bold;
+  }
+
+  /* Deux colonnes sur ordinateur : à gauche ce qui sert à choisir, à droite ce qui se consulte. */
+  .vendor-sheet-columns {
+    @apply grid grid-cols-1 gap-4;
+  }
+  .vendor-sheet-main,
+  .vendor-sheet-side {
+    @apply flex min-w-0 flex-col gap-4;
+  }
+  .vendor-sheet-columns .card {
+    @apply m-0;
+  }
+  /* Une valeur par rang dans la colonne de droite : le libellé, puis la valeur. */
+  .vendor-sheet-side .vendor-summary {
+    @apply grid-cols-1;
+  }
+  .vendor-sheet-side .vendor-summary > div {
+    @apply grid-cols-[minmax(0,10rem)_minmax(0,1fr)] items-baseline gap-x-3;
+  }
+  @media (min-width: 1024px) {
+    .vendor-sheet-columns {
+      @apply grid-cols-[minmax(0,3fr)_minmax(0,2fr)] items-start;
+    }
+  }
+
+  /* Une seule action pleine sur la fiche : l'envoi des formulaires des blocs reste discret. */
+  .vendor-sheet-columns button[type="submit"]:not(.button-primary),
+  .vendor-sheet-alerts button[type="submit"]:not(.button-primary) {
+    @apply border-line-strong bg-surface font-medium text-ink hover:border-ink hover:bg-ground;
+  }
+
+  .vendor-sheet-date {
+    @apply block font-normal;
+  }
+  .vendor-sheet-documents {
+    @apply m-0 flex list-none flex-col gap-3 p-0;
+  }
+  .vendor-sheet-documents > li {
+    @apply flex flex-col gap-1 border-b border-line pb-3;
+  }
+  .vendor-sheet-document-name {
+    @apply font-medium;
+  }
+  .vendor-sheet-document-actions {
+    @apply flex flex-wrap items-center gap-2;
+  }
+  .vendor-sheet-document-gestures {
+    @apply mt-3;
+  }
+  .vendor-sheet-add {
+    @apply mt-2;
+  }
+  .vendor-sheet-add > summary {
+    @apply min-h-11 cursor-pointer py-2 font-medium text-primary;
+  }
+
+  /* Sur téléphone, « Avec vous » devient une carte par mariage, sans défilement de côté. */
+  @media (max-width: 639px) {
+    .vendor-sheet-history table,
+    .vendor-sheet-history tbody,
+    .vendor-sheet-history tr,
+    .vendor-sheet-history th,
+    .vendor-sheet-history td {
+      @apply block w-full;
+    }
+    .vendor-sheet-history thead {
+      @apply sr-only;
+    }
+    .vendor-sheet-history tr {
+      @apply border-b border-line py-2;
+    }
+    .vendor-sheet-history td {
+      @apply border-0 px-0 py-1 text-left;
+    }
+    .vendor-sheet-history td[data-label]::before {
+      content: attr(data-label) " : ";
+      @apply text-ink-muted;
+    }
+  }
+}

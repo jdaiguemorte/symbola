@@ -3,13 +3,10 @@
 // Lot 11 (L11-PRE-01 à L11-PRE-03, L11-PRE-10) — actions du carnet de prestataires.
 // Chaque action vérifie session, organisation et module ; entrées validées.
 import { offerUndo } from "@/lib/undo";
-import { unexpectedActionError } from "@/lib/action-errors";
-import { discardMyFormDraft } from "@/lib/form-drafts";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { z } from "zod";
-import { VENDOR_SOCIAL_NETWORKS } from "@symbola/contracts";
 import {
   addVendorTypeField,
   arrangeVendorTags,
@@ -23,14 +20,8 @@ import {
   VENDOR_BULK_MAX,
   type VendorTagsSnapshot,
   type VendorTypeAssignment,
-  createVendor,
   createVendorTag,
   createVendorTagGroup,
-  InvalidVendorFieldValueError,
-  InvalidVendorLinkError,
-  InvalidVendorRatingError,
-  listVendorTypes,
-  parseFieldInput,
   removeVendorFile,
   removeVendorTag,
   removeVendorTagGroup,
@@ -38,18 +29,13 @@ import {
   saveVendorSettings,
   setVendorLocation,
   setVendorTypeFieldFilter,
-  updateVendor,
   updateVendorTag,
   updateVendorTagGroup,
   VendorNotFoundError,
   VendorTagGroupNotFoundError,
   VendorTagNotFoundError,
-  VendorTagTierConflictError,
   VendorTypeNotFoundError,
-  type SaveVendorResult,
   type VendorFieldKind,
-  type VendorFieldValue,
-  type VendorInput,
 } from "@/modules/vendors/service";
 import { getPlannerAuthContext } from "@/lib/auth-context";
 import { addStarterVendorCatalog } from "@/lib/vendors/catalog";
@@ -76,94 +62,6 @@ const text = (formData: FormData, name: string) => String(formData.get(name) ?? 
 
 async function starterLocale(): Promise<"fr" | "en"> {
   return (await getLocale()) === "en" ? "en" : "fr";
-}
-
-async function readVendorInput(organizationId: string, formData: FormData): Promise<VendorInput> {
-  // Lot 63e (PRE-01 ; ADR 0105) : les métiers cochés et le principal ; les champs de chacun.
-  const typeIds = [...new Set(formData.getAll("typeIds").map(String).filter(isValidId))];
-  const primaryTypeId = isValidId(text(formData, "primaryTypeId")) && typeIds.includes(text(formData, "primaryTypeId")) ? text(formData, "primaryTypeId") : (typeIds[0] ?? null);
-  const types = typeIds.length > 0 ? (await listVendorTypes(organizationId)).filter((candidate) => typeIds.includes(candidate.id)) : [];
-  const fieldValues: Record<string, VendorFieldValue> = {};
-  for (const field of types.flatMap((type) => type.fields)) {
-    const raw = field.kind === "boolean" ? (formData.get(`field_${field.id}`) === "on" ? "true" : "") : text(formData, `field_${field.id}`);
-    const value = parseFieldInput(field.kind, raw);
-    if (value !== null) fieldValues[field.id] = value;
-  }
-  return {
-    name: text(formData, "name"),
-    typeIds,
-    primaryTypeId,
-    contactName: text(formData, "contactName"),
-    email: text(formData, "email"),
-    phone: text(formData, "phone"),
-    addressLine: text(formData, "addressLine"),
-    postalCode: text(formData, "postalCode"),
-    city: text(formData, "city"),
-    country: text(formData, "country") || "FR",
-    internalNote: text(formData, "internalNote"),
-    // Lot 28c (PRE-01) : évaluation de 1 à 5 ; vide = aucune.
-    rating: /^[1-5]$/.test(text(formData, "rating")) ? Number(text(formData, "rating")) : null,
-    indicativePrices: text(formData, "indicativePrices"),
-    website: text(formData, "website"),
-    socialLinks: VENDOR_SOCIAL_NETWORKS.map((network) => ({ network, url: text(formData, `social_${network}`) })).filter((link) => link.url !== ""),
-    siret: text(formData, "siret"),
-    fieldValues,
-    // Lot 20 (décision 5) : pastilles cochées, plus le palier choisi de chaque groupe « palier ».
-    tagIds: [
-      ...formData.getAll("tagIds").map(String),
-      ...[...formData.entries()].filter(([key]) => key.startsWith("tagTier-")).map(([, value]) => String(value)),
-    ].filter(isValidId),
-  };
-}
-
-function geocodingNotice(t: Awaited<ReturnType<typeof getTranslations>>, result: SaveVendorResult): string | undefined {
-  if (result.geocoding === "placed") return t("geocodingPlaced");
-  if (result.geocoding === "not_found") return t("geocodingNotFound");
-  return undefined;
-}
-
-export async function saveVendorAction(_prev: VendorFormState, formData: FormData): Promise<VendorFormState> {
-  const t = await getTranslations("VendorBook");
-  const access = await authorize();
-  if (!access) return { error: t("unauthorized") };
-  const vendorId = text(formData, "vendorId");
-  const input = await readVendorInput(access.organizationId, formData);
-  if (!input.name.trim()) return { error: t("nameRequired") };
-  if (input.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input.email.trim())) return { error: t("invalidEmail") };
-  let result: SaveVendorResult;
-  try {
-    result = isValidId(vendorId) ? await updateVendor(access.organizationId, vendorId, input) : await createVendor(access.organizationId, input);
-  } catch (error) {
-    if (error instanceof InvalidVendorFieldValueError) return { error: t("invalidFieldValue") };
-    if (error instanceof VendorTagTierConflictError) return { error: t("tagTierConflict") };
-    if (error instanceof InvalidVendorLinkError) return { error: t(error.field === "siret" ? "invalidSiret" : "invalidWebsite") };
-    if (error instanceof InvalidVendorRatingError) return { error: t("invalidRating") };
-    if (error instanceof VendorNotFoundError || error instanceof VendorTypeNotFoundError) return { error: t("notFound") };
-    return { error: await unexpectedActionError(error) };
-  }
-  revalidatePath("/prestataires");
-  // Lot 39b (UX-09) : la fiche est enregistrée, le brouillon de la saisie n'a plus lieu d'être.
-  await discardMyFormDraft(isValidId(vendorId) ? `vendor:${vendorId}` : "vendor-new");
-  const notice = geocodingNotice(t, result);
-  const intent = text(formData, "intent") === "close" ? "close" : "next";
-  if (!isValidId(vendorId)) {
-    // Créée depuis un poste : on y revient pour l'ajouter.
-    const back = text(formData, "back");
-    if (back.startsWith("/prestataires?")) redirect(back);
-    // Lot 63e (ADR 0107) : créée à la première rubrique, la fiche s'ouvre dans sa fenêtre, à la
-    // rubrique suivante ; « Créer » à la dernière mène à la fiche.
-    const next = text(formData, "nextRubric");
-    const params = new URLSearchParams();
-    if (notice) params.set("placement", result.geocoding);
-    if (intent === "next" && /^[a-z]{1,20}$/.test(next)) {
-      params.set("modifier", "1");
-      params.set("rubrique", next);
-    }
-    const query = params.toString();
-    redirect(`/prestataires/${result.vendor.id}${query ? `?${query}` : ""}`);
-  }
-  revalidatePath(`/prestataires/${vendorId}`);
-  return { success: true, intent, ...(notice ? { notice } : {}) };
 }
 
 export async function setVendorLocationAction(_prev: VendorFormState, formData: FormData): Promise<VendorFormState> {

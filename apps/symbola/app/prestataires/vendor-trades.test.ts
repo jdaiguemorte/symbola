@@ -1,8 +1,8 @@
 // Lot 63e (PRE-01 ; ADR 0105, maquettes M4 et M11) — étiquettes proposées sur une fiche à plusieurs
-// métiers, et rubriques de la fiche.
+// métiers.
 import { describe, expect, it } from "vitest";
 import type { VendorFamily, VendorTag, VendorType } from "@/modules/vendors/service";
-import { parseRubric, tagSectionsFor } from "./vendor-trades";
+import { tagSectionsFor } from "./vendor-trades";
 
 const family = (id: string, label: string): VendorFamily => ({ id, label, color: "#000000", icon: "other", position: 0, starterKey: null });
 const type = (id: string, label: string, familyId: string | null): VendorType => ({ id, label, color: "#000000", position: 0, familyId, starterKey: null, fields: [] });
@@ -24,11 +24,5 @@ describe("PRE-01 — Étiquettes de chaque métier, puis pour tous", () => {
   it("sans métier, toutes les étiquettes ; un métier « à classer » n'a que les étiquettes pour tous", () => {
     expect(tagSectionsFor([], families, tags)).toEqual([{ key: "any", kind: "any", label: "", tags }]);
     expect(tagSectionsFor([type("x", "Mannequin", null)], families, tags).map((section) => section.kind)).toEqual(["common"]);
-  });
-
-  it("une rubrique inconnue ouvre l'identité", () => {
-    expect(parseRubric("trades")).toBe("trades");
-    expect(parseRubric("banque")).toBe("identity");
-    expect(parseRubric(undefined)).toBe("identity");
   });
 });

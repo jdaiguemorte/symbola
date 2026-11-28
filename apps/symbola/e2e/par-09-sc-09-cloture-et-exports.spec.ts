@@ -132,9 +132,10 @@ test("PAR-09 / PRE-08 / EVT-08 — SC-09 : Camille clôture l'évènement en moi
   await expect(page.getByRole("heading", { name: "Mariage champêtre" })).toBeVisible();
   await expectNoAxeViolation(page);
 
-  // L'historique du traiteur, sur sa fiche, garde la note (interne).
+  // L'historique du traiteur, sur sa fiche, garde la note (interne). Lot 73d : « Avec vous » réunit les deux
+  // historiques ; la note du mariage est sur sa ligne.
   await page.goto(`/prestataires/${setup.vendorId}`);
-  await expect(page.getByRole("region", { name: "Historique des collaborations" })).toContainText("5 sur 5");
+  await expect(page.getByRole("region", { name: "Avec vous" })).toContainText("5 sur 5");
 });
 
 test("FAC-11 — SC-09 étape 5 : l'export du mois se contrôle au centime ; le Comptable le télécharge en lecture seule", async ({ page, browser }) => {

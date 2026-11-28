@@ -58,6 +58,9 @@ export const SERVER_ONLY_NAMESPACES = [
   // Lot 74g : les 38 rubriques et « Vos données », lus côté serveur ; l'accueil des Paramètres reçoit ses
   // textes en propriétés, sa recherche les siens (« SettingsSearch »).
   "SettingsMenu",
+  // Lot 73d : la fenêtre de création et la fiche d'un prestataire reçoivent leurs textes de l'écran.
+  "VendorCreate",
+  "VendorSheet",
 ] as const;
 
 const SERVER_ONLY = new Set<string>(SERVER_ONLY_NAMESPACES);
