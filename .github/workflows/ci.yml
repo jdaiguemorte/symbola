@@ -122,7 +122,11 @@ jobs:
     # 23/11/2026 (lots 65 et 66) : une moitié atteignait 43 à 45 min avec ses reprises et a été coupée
     # sur main (d64419a) ; la limite passe à 60 min. Trois tiers déplaçaient la mesure du serveur
     # (NFR-02) en tête d'un tiers, où elle mesurait 412 à 450 ms : les deux moitiés restent.
-    timeout-minutes: 60
+    # 28/11/2026 (lots 70 à 74) : la moitié 1 compte 435 parcours et prend 48 min sur main
+    # (6c8f2b5c) ; avec trois reprises, celle de la PR #218 a été coupée à 60 min au 420e parcours
+    # sur 430, sans rendre ses traces. La limite passe à 90 min, le temps de repartager la suite
+    # sans déplacer la mesure du serveur (reste à faire, à part).
+    timeout-minutes: 90
     # Lot 40c (NFR-17 à NFR-19, NFR-01, NFR-02 ; ADR 0078) : la suite sous Chromium (ordinateur et
     # 375 px, axe-core en WCAG 2.2 AA, mesures du temps de réponse, clavier, zoom à 200 %), et les
     # parcours des scénarios rejoués sous Firefox et WebKit, à 360 et à 1 920 px, et SC-10 à 150 %.
