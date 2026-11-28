@@ -159,7 +159,8 @@ describe("SEC-10 à SEC-13, DAT-08 — abus de « Modifier les informations » (
       saveEventDetails({ organizationId: base.organizationId, eventId: base.eventId, actor: base.member, values: details(base, { style: "Bohème", notes: { text: "écrasé", confidential: false } }) }),
     ).rejects.toMatchObject({ field: "notes" });
     expect((await getEvent(base.organizationId, base.eventId))?.style).toBeNull();
-    const { notes: _omitted, ...withoutNotes } = details(base, { style: "Bohème" });
+    const withoutNotes: EventDetailsInput = { ...details(base, { style: "Bohème" }) };
+    delete withoutNotes.notes;
     await saveEventDetails({ organizationId: base.organizationId, eventId: base.eventId, actor: base.member, values: withoutNotes });
     expect((await getEvent(base.organizationId, base.eventId))?.style).toBe("Bohème");
     expect(await readEventConfidentialNotes(base.organizationId, base.eventId, base.owner)).toBe("Tension dans la famille");

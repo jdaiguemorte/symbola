@@ -33,7 +33,7 @@ export type DetailsField = keyof typeof DETAILS_FIELDS;
 export type DetailsRaw = Partial<Record<DetailsField, string>>;
 
 // Le code d'une erreur de saisie ; l'écran le traduit sous le champ (lot 70b).
-export type DetailsErrorCode = "date" | "count" | "amount" | "tooLong" | "timeZone" | "time" | "day" | "busyRule" | "required" | "unknown" | "forbidden" | "conflict";
+export type DetailsErrorCode = "date" | "eventDate" | "count" | "amount" | "tooLong" | "timeZone" | "time" | "day" | "busyRule" | "required" | "unknown" | "forbidden" | "conflict";
 export type DetailsErrors = Partial<Record<DetailsField, DetailsErrorCode>>;
 
 export type BusyRuleInput = EventDetailsBusyRule;

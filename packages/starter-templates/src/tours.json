@@ -90,8 +90,8 @@
         "target": "event-overview",
         "title": { "fr": "La synthèse", "en": "Summary" },
         "body": {
-          "fr": "La prochaine action et qui doit agir, la santé de l'évènement, puis les quatorze prochains jours. Les informations se modifient en bas.",
-          "en": "The next action and who must act, the event's health, then the next fourteen days. Details are edited at the bottom."
+          "fr": "Une seule suite, selon où en est le mariage : le devis à envoyer, la liste des tâches à créer, ou ses points d'ici quatorze jours, les mêmes que sur « Aujourd'hui ». Dessous, où en est le mariage ; à droite, ses informations et « Modifier les informations ».",
+          "en": "A single next step, depending on where the wedding stands: the quote to send, the task list to create, or its items for the next fourteen days, the same as on \"Today\". Below, where the wedding stands; on the right, its details and \"Edit details\"."
         }
       },
       {
