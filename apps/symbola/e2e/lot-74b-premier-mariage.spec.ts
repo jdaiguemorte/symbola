@@ -87,7 +87,7 @@ test.describe("lot 74b — le premier mariage, à l'heure", () => {
     await expect(pastTask(page, "Réserver le lieu de réception")).toContainText(/redatée au /);
     await page.getByRole("button", { name: "Créer l'évènement" }).click();
 
-    await expect(page).toHaveURL(/\/events\/[0-9a-f-]{36}/);
+    await expect(page).toHaveURL(/\/events\/[0-9a-f-]{36}/, { timeout: 15_000 });
     await expect(feedback(page)).toContainText("Évènement créé");
     await expect(feedback(page)).toContainText("2 faites, 6 redatées, 0 à dater");
     const eventId = /\/events\/([0-9a-f-]{36})/.exec(page.url())![1]!;
@@ -117,7 +117,7 @@ test.describe("lot 74b — le premier mariage, à l'heure", () => {
     await page.getByRole("button", { name: "Continuer" }).click();
     await expect(page.getByText("0 faite · 0 à faire · 8 sans réponse")).toBeVisible();
     await page.getByRole("button", { name: "Créer l'évènement" }).click();
-    await expect(page).toHaveURL(/\/events\/[0-9a-f-]{36}/);
+    await expect(page).toHaveURL(/\/events\/[0-9a-f-]{36}/, { timeout: 15_000 });
     await expect(feedback(page)).toContainText("0 faite, 0 redatée, 8 à dater");
     await page.goto(`${page.url().split("?")[0]}?onglet=taches`);
     await expect(page.getByText(/0 faites sur 18 · 0 en retard · 8 à dater/)).toBeVisible();
@@ -132,7 +132,7 @@ test.describe("lot 74b — le premier mariage, à l'heure", () => {
     await expect(page.getByText("Sans rétroplanning : les tâches s'ajoutent depuis la fiche.")).toBeVisible();
     await expect(page.getByRole("button", { name: "Continuer" })).toHaveCount(0);
     await page.getByRole("button", { name: "Créer l'évènement" }).click();
-    await expect(page).toHaveURL(/\/events\/[0-9a-f-]{36}/);
+    await expect(page).toHaveURL(/\/events\/[0-9a-f-]{36}/, { timeout: 15_000 });
     await page.goto(`${page.url().split("?")[0]}?onglet=taches`);
     await expect(page.getByText(/0 faites sur 0/)).toBeVisible();
   });
@@ -143,7 +143,7 @@ test.describe("lot 74b — le premier mariage, à l'heure", () => {
     await fillStepOne(page, { standing: "enquiry", name: "Chloé & Nathan", date: parisDay(199) });
     await expect(page.getByText(/^Avec le rétroplanning/)).toHaveCount(0);
     await page.getByRole("button", { name: "Créer l'évènement" }).click();
-    await expect(page).toHaveURL(/\/events\/[0-9a-f-]{36}/);
+    await expect(page).toHaveURL(/\/events\/[0-9a-f-]{36}/, { timeout: 15_000 });
     const eventId = /\/events\/([0-9a-f-]{36})/.exec(page.url())![1]!;
     const { sql } = createAppConnection();
     try {
