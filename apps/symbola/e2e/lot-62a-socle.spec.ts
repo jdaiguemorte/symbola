@@ -216,16 +216,19 @@ test("NFR-19 — La liste des évènements tient dans la largeur de l'écran", a
   await expect(page.getByRole("heading", { level: 1, name: "Évènements" })).toBeVisible();
   await expect(page.getByRole("link", { name: /Anne-Charlotte/ })).toBeVisible();
   await expectNoHorizontalScroll(page);
-  // La liste et la charge des douze prochains mois restent dans l'écran : un tableau plus large que
-  // sa zone y défile, sans élargir la page (la charge sortait de sa carte, de 266 px en 375 px).
+  // La liste et la charge des mois restent dans l'écran : un tableau plus large que sa zone y défile, sans
+  // élargir la page (la charge sortait de sa carte, de 266 px en 375 px). Lot 72f (E8) : la charge est sous le
+  // calendrier.
   const width = page.viewportSize()!.width;
-  for (const name of ["Liste des évènements", "Charge par mois, en tableau"]) {
+  for (const [path, name] of [["/events", "Liste des évènements"], ["/events?affichage=calendrier", "Charge des mois à venir, en tableau"]] as const) {
+    await page.goto(path);
     const region = page.getByRole("region", { name });
     await expect(region).toBeVisible();
     const box = (await region.boundingBox())!;
     expect(box.x + box.width, name).toBeLessThanOrEqual(width);
+    await expectNoHorizontalScroll(page);
   }
-  const loadTable = (await page.getByRole("region", { name: "Charge par mois, en tableau" }).getByRole("table").boundingBox())!;
+  const loadTable = (await page.getByRole("region", { name: "Charge des mois à venir, en tableau" }).getByRole("table").boundingBox())!;
   expect(loadTable.x + loadTable.width).toBeLessThanOrEqual(width);
   await expectNoAxeViolation(page);
 });

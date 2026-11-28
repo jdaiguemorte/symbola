@@ -40,8 +40,8 @@
         "target": "events-list",
         "title": { "fr": "La liste", "en": "The list" },
         "body": {
-          "fr": "Vos prospects et vos évènements à venir ; ouvrez une ligne pour voir la fiche.",
-          "en": "Your prospects and upcoming events; open a row to see its page."
+          "fr": "Vos prospects et vos évènements, avec la date, le statut et les tâches faites ; un en-tête trie la liste, un nom ouvre la fiche.",
+          "en": "Your prospects and events, with the date, the status and the tasks done; a header sorts the list, a name opens the event."
         }
       },
       {
@@ -56,24 +56,24 @@
         "target": "events-filters",
         "title": { "fr": "Les filtres", "en": "Filters" },
         "body": {
-          "fr": "Nom, statut, source, année : la liste se filtre à la saisie.",
-          "en": "Name, status, source, year: the list filters as you type."
+          "fr": "Période, nom, statut, « Venu par », origine, année : la liste se filtre au choix et garde vos filtres d'une vue à l'autre.",
+          "en": "Period, name, status, “Came through”, origin, year: the list filters as you choose and keeps your filters from one view to another."
         }
       },
       {
         "target": "events-settings",
         "title": { "fr": "Les réglages", "en": "Settings" },
         "body": {
-          "fr": "« Réglages » mène aux lignes du budget, sources et motifs, types d'évènements et modèles de rétroplanning et de programme.",
-          "en": "“Settings” leads to budget lines, sources and reasons, event types, and planning and schedule templates."
+          "fr": "Le menu « ⋯ » mène à « Reprendre et importer » et aux réglages : lignes du budget, sources et motifs, types d'évènements, modèles de rétroplanning et de programme.",
+          "en": "The “⋯” menu leads to “Take over and import” and to the settings: budget lines, sources and reasons, event types, planning and schedule templates."
         }
       },
       {
         "target": "events-views",
-        "title": { "fr": "Liste ou calendrier", "en": "List or calendar" },
+        "title": { "fr": "Liste, colonnes ou calendrier", "en": "List, columns or calendar" },
         "body": {
-          "fr": "Passez de la liste au calendrier des mois à venir. Dessous, la charge des douze prochains mois ; deux évènements le même jour sont signalés dans les deux vues.",
-          "en": "Switch from the list to the calendar of the coming months. Below, the workload over the next twelve months; two events on the same day are flagged in both views."
+          "fr": "Passez de la liste aux demandes par étape ou au calendrier des mois à venir ; sous le calendrier, la charge des mois qui ont un évènement.",
+          "en": "Switch from the list to enquiries by stage or to the calendar of the coming months; under the calendar, the load of the months that have an event."
         }
       }
     ],
