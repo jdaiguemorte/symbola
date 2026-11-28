@@ -1,3 +1,4 @@
+import type { OrganizationTransaction } from "@symbola/db/with-organization";
 // Porte d'entrée publique du module vendors (lot 11, ADR 0031) — seul
 // fichier que les autres modules peuvent importer (ADR 0011). Pensé comme
 // le futur contrat HTTP /v1/vendors si le carnet devient une app autonome.
@@ -140,7 +141,7 @@ export class VendorTagTierConflictError extends Error {
     super("un seul palier par groupe");
   }
 }
-export { findModifiedImportedVendorsElements, importedVendorsToPlace, importVendorRows, listVendorImportCandidates, type VendorTypeChoiceInput, type VendorTypeTarget } from "./import";
+export { findModifiedImportedVendorsElements, importedVendorsToPlace, importNamedVendors, importVendorRows, listVendorImportCandidates, type VendorTypeChoiceInput, type VendorTypeTarget } from "./import";
 export { placeVendors, type PlacementResult } from "./placement";
 // Lot 37b (DOC-12, ADR 0071) : la part du module au relevé de stockage.
 export { measureVendorsStorage } from "./storage-usage";
@@ -1056,13 +1057,15 @@ export async function removeVendorFile(organizationId: string, fileId: string): 
 
 // Lot 14 (IMP-07) — annulation d'un import : une fiche citée depuis dans
 // un événement est gardée (kept_in_use).
-export async function undoImportedVendorsElements(organizationId: string, items: ImportUndoItem[]): Promise<ImportUndoOutcome[]> {
+// Lot 71d (I10) : `outer`, la transaction de « Retirer toute la reprise… » ; les fiches citées dans un
+// évènement sont lues avant elle (un prestataire retiré dans la même transaction compte encore).
+export async function undoImportedVendorsElements(organizationId: string, items: ImportUndoItem[], outer?: OrganizationTransaction): Promise<ImportUndoOutcome[]> {
   const created = items.filter((item) => item.kind === "vendor" && item.action === "created").map((item) => item.elementId);
   const linked = new Set<string>();
   for (const vendorId of created) {
     if ((await listVendorConsultations(organizationId, vendorId)).length > 0) linked.add(vendorId);
   }
-  return undoImportRows(organizationId, items, linked);
+  return undoImportRows(organizationId, items, linked, outer);
 }
 
 // AIDE-08 — recherche globale.

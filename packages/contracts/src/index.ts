@@ -365,6 +365,16 @@ export {
   type TakeoverContract,
 } from "./import/questions";
 export {
+  budgetImportFigures,
+  importFigures,
+  type BudgetImportFigures,
+  type ImportFigureBudgetLine,
+  type ImportFigurePayment,
+  type ImportFigures,
+  type ImportFiguresPlan,
+  type RowsImportFigures,
+} from "./import/counts";
+export {
   isStepSettled,
   nextTakeoverStep,
   TAKEOVER_STEP_IMPORT_KINDS,

@@ -7,6 +7,7 @@ import { appDatabase } from "@symbola/db/client";
 import { getImportDraft, type ImportDraft, type ImportEntityType } from "@/modules/hub/service";
 import { countImportRowFilterColumns, getImportMatchesView, type MatchesView } from "./matching";
 import { getImportQuestions, hasQuestions, type ImportQuestionsView } from "./questions";
+import { pendingBudgetDoublons } from "./budget-doublons";
 
 // Lot 71c (HUB-14 ; maquette 07) : « Questions », entre les colonnes et les doublons, seulement s'il y a
 // une réponse à donner.
@@ -64,6 +65,9 @@ type StepInput = {
   matches: Pick<MatchesView, "rows" | "vendorTypes"> | null;
   // Lot 71c : les questions posées et les réponses qui manquent (absent : aucune question).
   questions?: { asked: number; missing: number } | null;
+  // Lot 71d (HUB-14, R17) : choix de « Doublons » d'un budget qui restent (poste sans ligne, doublon
+  // possible du carnet) ; les postes répartis sont déjà des propositions en attente.
+  doublonsPending?: number;
 };
 
 // Calcul pur des étapes (testé sans base).
@@ -134,10 +138,16 @@ export function importWizardSteps(input: StepInput): ImportWizardStep[] {
   // Lot 67a (HUB-14 ; recette du 24/11, R04) : une proposition sans décision bloque la confirmation.
   // « Continuer » ne la décide pas : l'étape n'est pas terminée, et la ligne n'est pas « nouvelle ».
   const undecidedMatches = undecidedMatchCount(input.matches?.rows ?? []);
+  const doublonsPending = input.doublonsPending ?? 0;
   steps.push({
     key: "matches",
-    done: previousDone && input.matches !== null && undecidedMatches === 0 && (input.reviewed.matches === true || proposed === 0),
-    summary: input.matches !== null ? { key: "matches", values: { updates, creations: rows.length - updates - ignored - undecidedMatches, proposed, undecided: undecidedMatches } } : null,
+    done: previousDone && input.matches !== null && undecidedMatches === 0 && doublonsPending === 0 && (input.reviewed.matches === true || proposed === 0),
+    summary:
+      input.matches !== null
+        ? input.entityType === "budget_lines"
+          ? { key: "doublons", values: { pending: doublonsPending } }
+          : { key: "matches", values: { updates, creations: rows.length - updates - ignored - undecidedMatches, proposed, undecided: undecidedMatches } }
+        : null,
   });
   steps.push({ key: "confirm", done: false, summary: null });
   return steps;
@@ -169,6 +179,7 @@ export async function getImportWizard(organizationId: string, importId: string, 
     matches,
     questions: questions ? { asked: Object.entries(questions.asked).filter(([key, value]) => value && key !== "prospectSource").length, missing: questions.missing.length } : null,
     ...(draft.entityType === "contacts" && matches ? { rowFilterColumns: await countImportRowFilterColumns(organizationId, importId) } : {}),
+    ...(draft.entityType === "budget_lines" && matches ? { doublonsPending: (await pendingBudgetDoublons(organizationId, importId)).length } : {}),
   });
   return { importId: draft.id, fileName: draft.fileName, entityType: draft.entityType, steps, next: nextImportStep(steps), draft, matches, questions };
 }

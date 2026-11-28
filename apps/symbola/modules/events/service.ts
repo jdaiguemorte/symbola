@@ -3623,6 +3623,8 @@ export {
   importTaskRows,
   importVendorSlotsForBudget,
   readImportedEventsElements,
+  type BudgetVendorLink,
+  vendorLinkKey,
   undoImportedEventsElements,
   unchangedImportedEventFields,
 } from "./import";

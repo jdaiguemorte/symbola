@@ -108,8 +108,9 @@ test("IMP-05 — aperçu, confirmation, champ libre sur la fiche, journal et ann
   await page.goto("/import");
   await page.getByRole("link", { name: "mariages.csv" }).click();
   // Lot 63b (HUB-14, UX-07) : l'annulation est repliée sous le bilan.
-  await page.getByText("Annuler cet import", { exact: true }).click();
-  await page.getByRole("button", { name: "Annuler l'import" }).click();
+  // Lot 71d (C-66) : « Retirer cet import… », danger de niveau 2.
+  await page.getByRole("button", { name: "Retirer cet import…" }).click();
+  await page.getByRole("dialog").getByRole("button", { name: "Retirer l'import" }).click();
   await expect(page.getByText("2 éléments annulés ; aucun gardé car modifié ; aucun gardé car utilisé.")).toBeVisible();
   await page.getByText("Détails du journal (fichier, auteur, dates)").click();
   await expect(page.getByText("Annulé le")).toBeVisible();

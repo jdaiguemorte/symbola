@@ -12,6 +12,8 @@ import type { EventCandidate } from "@/lib/import/candidates";
 import { ImportHeader } from "../../import-header";
 import { importStepContext, wantsAbandon } from "../../step-context";
 import { decideMatchesAction, ignoreContactRowsAction, manualMatchAction, reviewMatchesAction } from "./actions";
+import { BudgetDoublons } from "./budget-doublons";
+import { getBudgetDoublonsView } from "@/lib/import/budget-doublons";
 
 const FILTERS = ["a-verifier", "nouveaux", "mises-a-jour"] as const;
 type Filter = (typeof FILTERS)[number];
@@ -48,12 +50,17 @@ export default async function ImportMatchesPage({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const { importId } = await params;
-  const { wizard } = await importStepContext(importId);
+  const { organizationId, wizard } = await importStepContext(importId);
   const view = wizard.matches;
   if (!view) redirect(importStepHref(importId, wizard.next));
   // Lot 71c : les doublons viennent après les questions (le mariage visé change les rapprochements).
   if (wizard.steps.some((step) => step.key === "questions" && !step.done)) redirect(importStepHref(importId, "questions"));
   const query = await searchParams;
+  // Lot 71d (HUB-14 ; maquette 08) : un budget a son écran « Doublons » (postes, prestataires du carnet).
+  if (view.entityType === "budget_lines") {
+    const doublons = await getBudgetDoublonsView(organizationId, importId);
+    if (doublons) return <BudgetDoublons view={doublons} wizard={wizard} abandon={wantsAbandon(query)} remaining={query.reste === "1"} />;
+  }
 
   const t = await getTranslations("Import");
   const tHelp = await getTranslations("Help");

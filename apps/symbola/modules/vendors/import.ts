@@ -18,7 +18,9 @@ import { vendorTypeLabels } from "./type-split";
 type Tx = Parameters<Parameters<typeof withOrganization>[2]>[0];
 type Values = Record<string, unknown>;
 
-async function inTransaction<T>(organizationId: string, fn: (tx: Tx) => Promise<T>): Promise<T> {
+// Lot 71d (HUB-14, I10) : `outer`, la transaction d'organisation de « Retirer toute la reprise… ».
+async function inTransaction<T>(organizationId: string, fn: (tx: Tx) => Promise<T>, outer?: Tx): Promise<T> {
+  if (outer) return fn(outer);
   const db = appDatabase();
   return await withOrganization(db, organizationId, fn);
 }
@@ -36,6 +38,29 @@ export async function listVendorImportCandidates(organizationId: string): Promis
       .from(vendors)
       .where(and(eq(vendors.isDemo, false), isNull(vendors.archivedAt))),
   );
+}
+
+// Lot 71d (HUB-14, PRE-01 ; maquette 08) — « Ce n'est pas la même : créer une fiche » : une fiche du
+// carnet par prestataire nommé dans un budget, sous le nom du fichier, avec son métier quand l'orchestrateur
+// en a trouvé un du carnet (sinon « à classer »). Journalisée comme une fiche importée : le retrait de
+// l'import la retire, sauf si elle a été retouchée ou retenue ailleurs depuis.
+export async function importNamedVendors(organizationId: string, list: readonly { name: string; typeId: string | null }[]): Promise<{ items: ImportedItem[]; idByName: Map<string, string> }> {
+  return inTransaction(organizationId, async (tx) => {
+    const items: ImportedItem[] = [];
+    const idByName = new Map<string, string>();
+    const typeIds = new Set((await tx.select({ id: vendorTypes.id }).from(vendorTypes)).map((type) => type.id));
+    for (const entry of list) {
+      const name = entry.name.trim();
+      if (!name || idByName.has(name)) continue;
+      const [created] = await tx.insert(vendors).values({ organizationId, name }).returning({ id: vendors.id });
+      if (!created) throw new Error("création de la fiche échouée");
+      // Un métier qui n'est pas de l'organisation n'est pas posé (la fiche reste « à classer »).
+      if (entry.typeId && typeIds.has(entry.typeId)) await writeTypeLinks(tx, organizationId, created.id, [entry.typeId]);
+      idByName.set(name, created.id);
+      items.push({ rowIndex: null, module: "vendors", kind: "vendor", elementId: created.id, action: "created", previous: null, written: (await vendorState(tx, created.id)) ?? {} });
+    }
+    return { items, idByName };
+  });
 }
 
 // Valeurs d'une ligne remises en état (entités HTML, code postal, téléphones,
@@ -345,7 +370,7 @@ async function inUse(tx: Tx, kind: string, id: string, linkedVendorIds: Set<stri
 
 // `linkedVendorIds` : fiches citées depuis dans un événement (module events,
 // lu par service.ts avant l'appel).
-export async function undoImportedVendorsElements(organizationId: string, items: ImportUndoItem[], linkedVendorIds: Set<string>): Promise<ImportUndoOutcome[]> {
+export async function undoImportedVendorsElements(organizationId: string, items: ImportUndoItem[], linkedVendorIds: Set<string>, outer?: Tx): Promise<ImportUndoOutcome[]> {
   return inTransaction(organizationId, async (tx) => {
     const outcomes: ImportUndoOutcome[] = [];
     const existingTypeIds = await typeIdsOf(tx);
@@ -377,5 +402,5 @@ export async function undoImportedVendorsElements(organizationId: string, items:
       outcomes.push("undone");
     }
     return outcomes;
-  });
+  }, outer);
 }

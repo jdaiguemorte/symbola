@@ -47,6 +47,11 @@ export const SERVER_ONLY_NAMESPACES = [
   "Organizations",
   "Manifest",
   "Loading",
+  // Lot 71d : les nombres, « Doublons », le bilan et le retrait d'un import, rendus côté serveur.
+  "ImportFigures",
+  "ImportDoublons",
+  "ImportBilan",
+  "ImportWithdraw",
 ] as const;
 
 const SERVER_ONLY = new Set<string>(SERVER_ONLY_NAMESPACES);

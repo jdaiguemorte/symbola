@@ -804,7 +804,7 @@
     },
     "importMatches": {
       "title": "Matching existing records",
-      "body": "When a row looks like a vendor already in your book, the file row and the existing record are shown side by side (name, trade, city, email, phone, number of events), with the differences spelled out. Choose “It's the same”, “These are two vendors” or “Decide later”. If only the first name is shared, the suggestion is “To check” and they stay two vendors unless you say otherwise. Filter “To check”, “New”, “Updates”; “Accept all” confirms the safe suggestions. While a suggested match is waiting for your decision, “Continue” stays on this screen: decide row by row, or all at once with “Accept the suggested matches” or “Create the rows as new”. In a budget, a row without a budget line takes the one from the row above, and the screen says so."
+      "body": "When a row looks like a vendor already in your book, the file row and the existing record are shown side by side (name, trade, city, email, phone, number of events), with the differences spelled out. Choose “It's the same”, “These are two vendors” or “Decide later”. If only the first name is shared, the suggestion is “To check” and they stay two vendors unless you say otherwise. Filter “To check”, “New”, “Updates”; “Accept all” confirms the safe suggestions. While a suggested match is waiting for your decision, “Continue” stays on this screen: decide row by row, or all at once with “Accept the suggested matches” or “Create the rows as new”. In a budget, a row without a budget line takes the one from the row above, and the screen says so. For a budget, the screen has two parts. Items: each item of the file is filed under an item of the wedding (same name, close name, or new item), and you can change it; a file item split between two items by the detail of each line is “To check” until “That's right”. Each line stays a line. An item “to find” that receives nothing is kept or removed from this wedding. Vendors: those in your vendor book are found as is; a possible duplicate is compared column by column, and you say “It's the same record” or “create a record”. “Continue” names the choices left and leads to the first one."
     },
     "importGaps": {
       "title": "Gaps report",
@@ -812,11 +812,11 @@
     },
     "importConfirm": {
       "title": "Confirming an import",
-      "body": "Before importing, the assistant sums up the effects: records created and updated, types and tags created, columns kept as notes on the record, rows rejected, with a preview of the corrected values. The button says what will be imported."
+      "body": "Before importing, the assistant sums up the effects: records created and updated, types and tags created, columns kept as notes on the record, rows rejected, with a preview of the corrected values. The button says what will be imported. For a budget, “Check” gives the numbers the summary will repeat (lines and items, planned, actual according to your file, paid, to pay, vendors retained), what the import will not do (no overdue, no reminder, no task), and the budget as it will be, item by item. An empty actual is “not given”, never €0."
     },
     "importUndo": {
-      "title": "Import log and undo",
-      "body": "At the end, the summary comes first: created, updated, ignored, columns kept as a note, each one clickable. “Check the N vendors” opens the list filtered on this import. During the undo period, “Undo this import” (folded) names the records edited by hand since, and you choose: undo the import except those records, or undo everything."
+      "title": "Import summary and removal",
+      "body": "At the end, the summary repeats the numbers announced at “Check”, what was not imported and why, and what you chose. “Check the N vendors” opens the list filtered on this import. Until the deadline (90 days), “Remove this import…” says what goes and what stays: vendor book records from another import, items back “to find”, and what was changed by hand since, which stays unless you tick “Also remove”. The takeover line goes back to “to do”. The sheet of a wedding that has other imports is removed with the whole takeover, at once; if one of them is past its deadline, this is no longer offered."
     },
     "privacySearch": {
       "title": "Personal data",
@@ -3746,7 +3746,8 @@
       "matches": "{creations, plural, other {# new}}, {updates, plural, =0 {no update} one {# update} other {# updates}}",
       "matchesUndecided": "{count, plural, one {# match to decide} other {# matches to decide}}",
       "rows": "{excluded, plural, =0 {all rows kept} one {# row set aside} other {# rows set aside}}",
-      "questions": "{missing, plural, =0 {{asked, plural, one {# answer given} other {# answers given}}} other {# to settle}}"
+      "questions": "{missing, plural, =0 {{asked, plural, one {# answer given} other {# answers given}}} other {# to settle}}",
+      "doublons": "{pending, plural, =0 {all filed} one {# choice to make} other {# choices to make}}"
     },
     "stepCurrent": "in progress",
     "wizardTitle": "Importing “{fileName}”",
@@ -14119,5 +14120,187 @@
       "replies": "{answered} replies of {total}",
       "repliesShort": "{answered}/{total}"
     }
+  },
+  "ImportDoublons": {
+    "reason": {
+      "same": "Same name",
+      "sameLines": "Same name · the {count} lines keep their detail",
+      "close": "Close name",
+      "split": "To check",
+      "new": "New item",
+      "manual": "Chosen by you"
+    },
+    "withoutSlot": "No item",
+    "groupMeta": "{count, plural, one {# line} other {# lines}} · {planned} planned",
+    "splitLine": "“{detail}” → {slot}",
+    "withoutDetail": "no detail",
+    "placeLabel": "Item that receives the “{slot}” lines",
+    "newSlotOption": "New item “{slot}”",
+    "placeSubmit": "File",
+    "toVerify": "To check",
+    "splitConfirmed": "Kept",
+    "splitWhy": "One item in the file, two in your space: filed by the detail of each line.",
+    "splitConfirm": "That's right",
+    "newSlotWhy": "No close item in this wedding.",
+    "notGiven": "not given",
+    "plannedOnEvent": "{planned} planned",
+    "noEvent": "no wedding",
+    "retainedOn": "Retained on “{slot}”",
+    "likeness": {
+      "words": "{words} in both names",
+      "type": "the same trade",
+      "city": "the same city",
+      "intro": "What they share: {reasons}.",
+      "none": "very close names",
+      "noPhone": "The phone cannot be compared: your budget has none."
+    },
+    "and": " and ",
+    "comma": ", ",
+    "doubtTitle": "Is “{name}” a record in your vendor book?",
+    "doubtMeta": "Possible duplicate · line {line} of the file",
+    "doubtMetaNoLine": "Possible duplicate",
+    "compareLabel": "“{name}” and the vendor book record, side by side",
+    "colFile": "In your file",
+    "colCarnet": "In your vendor book",
+    "colIfSame": "If it is the same",
+    "field": {
+      "name": "Name",
+      "type": "Trade",
+      "city": "City",
+      "event": "On this wedding"
+    },
+    "doubtChoice": "“{name}”: same record, or another one?",
+    "same": "It's the same record",
+    "create": "It's not the same: create a record",
+    "sameChosen": "Kept: the “{name}” record of your vendor book.",
+    "createChosen": "Kept: a “{name}” record will be created in your vendor book.",
+    "remaining": "{count, plural, one {# choice left:} other {# choices left:}}",
+    "slotsTitle": "Items: {file, plural, one {# item in the file} other {# items in the file}}, {event, plural, one {# item in this wedding} other {# items in this wedding}}",
+    "slotsIntro": "Each line of the file stays a line.",
+    "slotsCaption": "Each item of the file, the wedding item that receives its lines, and why",
+    "colInFile": "In your file",
+    "colPlaced": "Filed under the item",
+    "colWhy": "Why",
+    "unusedTitle": "Nothing in your file",
+    "unusedStarter": "starter item, to find",
+    "unusedOwn": "item of this wedding, to find",
+    "unusedChoice": "“{slot}”: keep it or remove it",
+    "unused": {
+      "keep": "Keep it “to find”",
+      "remove": "Remove it from this wedding"
+    },
+    "vendorsTitle": "Vendors: {total, plural, one {# name} other {# names}}, {found, plural, =0 {none found as is in your vendor book} one {# found as is in your vendor book} other {# found as is in your vendor book}}",
+    "vendorsAbsent": "{count, plural, one {# name is not in your vendor book: it is retained under its name.} other {# names are not in your vendor book: they are retained under their names.}}",
+    "left": "{count, plural, one {# choice to make} other {# choices to make}}"
+  },
+  "ImportFigures": {
+    "rows": "{count, plural, =0 {no lines} one {# line} other {# lines}}",
+    "lines": "{lines, plural, one {# line} other {# lines}} in {slots, plural, one {# item} other {# items}}{newSlots, plural, =0 {} one {, # of them new} other {, # of them new}}",
+    "planned": "planned",
+    "real": "actual according to your file{missing, plural, =0 {} one { (# line not given)} other { (# lines not given)}}",
+    "paid": "paid{count, plural, =0 {} one {: # deposit} other {: # deposits}}",
+    "toPay": "to pay{count, plural, =0 {} one {: # balance} other {: # balances}}",
+    "toPayOn": ", on {date}",
+    "toPayRange": ", from {from} to {to}",
+    "vendors": "{count, plural, =0 {no vendor retained} one {# vendor retained} other {# vendors retained}}{outside, plural, =0 {{count, plural, =0 {} one { (in your vendor book)} other { (all in your vendor book)}}} other { (# not in your vendor book)}}",
+    "notDoneBefore": "{overdue, plural, =0 {no overdue payment} one {# overdue payment, as in your file} other {# overdue payments, as in your file}}, no reminder, no task created",
+    "notDoneAfter": "{overdue, plural, =0 {no overdue payment} one {# overdue payment, as in your file} other {# overdue payments, as in your file}}, no reminder, no task created",
+    "notGiven": "not given",
+    "none": "none",
+    "newSlot": "new item",
+    "withoutDetail": "No detail",
+    "toFind": "to find",
+    "colLine": "Item · line",
+    "colVendor": "Vendor",
+    "colPlanned": "Planned",
+    "colReal": "Actual",
+    "colPaid": "Paid",
+    "colToPay": "Left to pay",
+    "colNext": "Next payment",
+    "total": "Total",
+    "verifyTitle": "What will be written",
+    "notImported": "{count, plural, one {Not imported: # line (see the gaps).} other {Not imported: # lines (see the gaps).}}",
+    "notImportedNone": "Not imported: nothing.",
+    "verifyCaption": "The budget as it will be, item by item",
+    "showAll": "+ {slots, plural, one {# item} other {# items}}, {lines, plural, one {# line} other {# lines}}: show all",
+    "verifyCaptionMore": "The rest of the budget, item by item"
+  },
+  "ImportWithdraw": {
+    "takeoverTitle": "Remove the whole takeover",
+    "comma": ", ",
+    "takeoverExpired": "Removing the whole takeover is no longer possible: {files} is past its deadline (90 days). Change or delete each element from the wedding page.",
+    "takeoverIntro": "This sheet created the wedding, and other imports filled it: they are removed together, until {date}.",
+    "takeoverTrigger": "Remove the whole takeover…",
+    "takeoverDialogTitle": "Remove the whole takeover of “{event}”?",
+    "takeoverLeaving": "Removed: {files}, then the sheet “{sheet}” and the wedding “{event}”, with everything these imports wrote, including what was changed since.",
+    "takeoverAcknowledge": "I understand that the wedding and everything these imports wrote will be removed",
+    "takeoverConfirm": "Remove the whole takeover",
+    "takeoverKeep": "Keep the takeover",
+    "takeoverStaying": "Kept: the records of your vendor book (it serves all your weddings). If a removal fails on the way, nothing is removed.",
+    "expired": "This import can no longer be removed: its deadline was {date} (90 days). Change or delete its elements where they are.",
+    "leaving": {
+      "budgetLines": "{count, plural, one {# line} other {# lines}}",
+      "newSlots": "{count, plural, one {the item {slots}} other {the items {slots}}}",
+      "paidPayments": "{count, plural, one {the paid deposit} other {the # paid deposits}}",
+      "duePayments": "{count, plural, one {the balance} other {the # balances}}",
+      "vendors": "{count, plural, one {# retained vendor} other {# retained vendors}}",
+      "createdFiches": "{count, plural, one {the record created in your vendor book} other {the # records created in your vendor book}}",
+      "tasks": "{count, plural, one {# task} other {# tasks}}",
+      "events": "{count, plural, one {the wedding “{event}”} other {# events}}",
+      "others": "{count, plural, one {# other element} other {# other elements}}",
+      "nothing": "nothing"
+    },
+    "staying": {
+      "carnetFrom": "{count, plural, one {the vendor book record (it comes from the import {files})} other {the # vendor book records (they come from the import {files})}}",
+      "carnet": "{count, plural, one {the vendor book record (it was there before this import)} other {the # vendor book records (they were there before this import)}}",
+      "restoredSlots": "{count, plural, one {the item {slots}, back “to find”} other {the items {slots}, back “to find”}}",
+      "usedElsewhere": "{count, plural, one {# element used elsewhere} other {# elements used elsewhere}}",
+      "modified": "{count, plural, one {# element changed by hand since also stays.} other {# elements changed by hand since also stay.}}"
+    },
+    "bodyBudget": "The budget of “{event}” goes back to what it was before {date}.",
+    "bodySheet": "The wedding “{event}” this sheet created is removed with it.",
+    "bodyOther": "What this import wrote on {date} is removed; what existed before comes back as it was.",
+    "trigger": "Remove this import…",
+    "deadline": "An import can be removed until {date} (90 days).",
+    "title": "Remove the import “{file}”?",
+    "confirm": "Remove the import",
+    "keep": "Keep the import",
+    "leavingIntro": "Removed: {parts}.",
+    "stayingIntro": "Kept: {parts}.",
+    "forceModified": "{count, plural, one {Also remove the element changed since} other {Also remove the # elements changed since}}",
+    "redeposit": "You can drop the file again from the takeover page."
+  },
+  "ImportBilan": {
+    "title": "Budget taken over into “{event}”",
+    "takeoverFailed": {
+      "expired": "Nothing was removed: one of the imports is past its deadline.",
+      "in_use": "Nothing was removed: this wedding has since received a quote or lines entered by hand.",
+      "failed": "Nothing was removed: the removal failed on the way. Try again."
+    },
+    "deposits": {
+      "yes": "{count, plural, =0 {Deposits paid} one {# deposit paid on the file's date} other {# deposits paid on the file's dates}}.",
+      "no": "Deposits not paid: they remain to pay.",
+      "some": "Deposits paid line by line, as you ticked them."
+    },
+    "contracts": {
+      "all": "Contracts signed for all vendors.",
+      "none": "Contracts not signed.",
+      "per_line": "Contracts signed line by line."
+    },
+    "chosenSplit": "“{slot}” filed by the detail of each line.",
+    "chosenSame": "“{name}”: the “{vendor}” record of your vendor book.",
+    "chosenCreated": "“{name}”: a record created in your vendor book.",
+    "chosenRemoved": "Item “{slot}” removed from this wedding.",
+    "summaryTitle": "Import summary",
+    "importedBy": "{file} · imported on {date} by {author}",
+    "someone": "someone in the team",
+    "seeBudget": "See the budget",
+    "notTakenTitle": "What was not imported",
+    "notTaken": "{count, plural, one {# line of the file was not imported: it was empty or in error. Fix it in your file, then drop it again.} other {# lines of the file were not imported: they were empty or in error. Fix them in your file, then drop it again.}}",
+    "notTakenNone": "Nothing of your file: {count, plural, one {the line is in the budget.} other {the # lines are in the budget.}}",
+    "chosenTitle": "What you chose",
+    "nextTitle": "What next",
+    "nextTakeover": "The “Budget” line of the takeover of “{event}” is ticked.",
+    "backToTakeover": "Back to the takeover"
   }
 }
