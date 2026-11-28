@@ -57,8 +57,9 @@ test("Lot 18 — menu, « Plus d'options », pastille des tutoriels et estimatio
   // L18-HUB-24, revu au lot 20 (décision 2) : plus de « Plus d'options » ; la
   // barre des Évènements ne garde que « Nouvel évènement » (lot 70e).
   await page.goto("/events");
-  // Lot 70e (D8, C-03) : une seule entrée, « Nouvel évènement ».
-  await expect(page.getByRole("link", { name: "Nouvel évènement", exact: true })).toBeVisible();
+  // Lot 70e (D8, C-03) : une seule entrée, « Nouvel évènement ». Lot 72f (C-81) : sur téléphone, elle est le
+  // « + » de la barre du haut.
+  if ((page.viewportSize()?.width ?? 1280) >= 640) await expect(page.getByRole("link", { name: "Nouvel évènement", exact: true })).toBeVisible();
   await expect(page.getByText("Plus d'options")).toHaveCount(0);
 
   // L18-HUB-23 : un tutoriel en cours ; la pastille « Reprendre » n'apparaît que sur Tutoriels.

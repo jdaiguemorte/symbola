@@ -97,16 +97,20 @@ test("FAC-02 / HUB-28 / GC-02 — Modèle de proposition, radar et automatisatio
   const threshold = rule.getByLabel("Seuil (jours)");
   await expect(rule.getByRole("checkbox", { name: "Règle active" })).toBeChecked();
   expect((await threshold.boundingBox())!.width).toBeLessThan(140);
+  // Lot 74h (D7) : le seuil s'enregistre seul en quittant le champ, « ✓ Enregistré » à côté.
   await threshold.fill("45");
-  await rule.getByRole("button", { name: "Enregistrer" }).click();
-  await expect(rule.getByText("Règle enregistrée.")).toBeVisible();
+  await threshold.press("Tab");
+  await expect(rule.getByText("✓ Enregistré")).toBeVisible();
   await expectNoAxeViolation(page);
   await expectNoHorizontalScroll(page);
 
   // Automatisations : couper puis réactiver reste possible, le délai est un champ court.
   await page.goto("/parametres/automatisations");
-  await page.getByRole("button", { name: "Couper : Échéance à J-7, puis rappel au payeur" }).click();
-  await expect(page.getByRole("button", { name: "Activer : Échéance à J-7, puis rappel au payeur" })).toBeVisible();
+  const running = page.getByRole("switch", { name: "Échéance à J-7, puis rappel au payeur : en marche" });
+  await running.uncheck();
+  await expect(running).not.toBeChecked();
+  await running.check();
+  await expect(running).toBeChecked();
   expect((await page.getByLabel("Jours avant l'échéance").boundingBox())!.width).toBeLessThan(140);
   await expectNoAxeViolation(page);
   await expectNoHorizontalScroll(page);

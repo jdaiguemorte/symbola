@@ -921,6 +921,15 @@ fields:
       existe.
     anonymization: >-
       Supprimé avec l'incident.
+  - schema: hub
+    table: automations
+    field: paused_by
+    category: identifiant
+    retention: >-
+      Lot 74h (HUB-28, G10) : membre de l'équipe qui a coupé l'automatisme (identifiant). Effacé à la
+      remise en marche ; sinon tant que l'organisation existe.
+    anonymization: >-
+      Effacé à la remise en marche ; un membre retiré n'est plus nommé (« Coupé le … », sans nom).
   - schema: events
     table: day_photos
     field: taken_by

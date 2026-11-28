@@ -1,0 +1,159 @@
+/* Lot 74h (D7, G8, DS-S2 ; page 30 des maquettes du lot 68) — le patron d'un écran de réglage : l'en-tête
+   commun, « ✓ Enregistré » à côté d'un réglage, la barre d'enregistrement d'un formulaire lié, la ligne de
+   réglage (titre, phrase, commande) et le menu « ⋯ » d'une ligne. Jetons de DESIGN.md seulement. Réemployé
+   tel quel par les vagues 74i et 74j. */
+@layer components {
+  .settings-header {
+    @apply flex flex-wrap items-start justify-between gap-x-6 gap-y-2;
+  }
+  .settings-header-text {
+    @apply flex min-w-0 flex-col gap-1;
+  }
+  .settings-header h1 {
+    @apply m-0;
+  }
+  .settings-header-hint {
+    @apply m-0 max-w-3xl;
+  }
+  .settings-header-scope {
+    @apply m-0 text-label text-ink-muted;
+  }
+  .settings-header-notice {
+    @apply basis-full;
+  }
+  .settings-header-actions {
+    @apply flex flex-wrap items-center gap-2;
+  }
+
+  /* « ✓ Enregistré » : en encre, sans couleur d'action ni fond (le style des messages de retour ne
+     s'applique pas) ; la place est gardée pour que rien ne bouge. */
+  .saved-indicator,
+  .saved-indicator:empty {
+    @apply m-0 inline-flex min-h-6 items-center border-0 bg-transparent p-0 text-label text-ink;
+  }
+  .saved-indicator[data-status="saving"] {
+    @apply text-ink-muted;
+  }
+
+  /* Une ligne de réglage : le texte à gauche, la commande à droite ; sur téléphone, la commande dessous. */
+  .setting-line {
+    @apply flex flex-wrap items-start justify-between gap-x-6 gap-y-2 border-b border-line py-3;
+  }
+  .setting-line:last-child {
+    @apply border-b-0;
+  }
+  .setting-line-text {
+    @apply flex min-w-0 flex-1 basis-80 flex-col gap-1;
+  }
+  .setting-line-text h2,
+  .setting-line-text h3 {
+    @apply m-0 text-body-strong;
+  }
+  .setting-line-text p {
+    @apply m-0;
+  }
+  .setting-line-control {
+    @apply flex flex-wrap items-center gap-x-3 gap-y-1;
+  }
+  .setting-line-control label {
+    @apply flex flex-row items-center gap-2;
+  }
+  .setting-state {
+    @apply inline-flex items-center gap-2 text-label font-semibold text-ink;
+  }
+  /* « En marche » et « Coupé » se lisent en mots et en forme (point plein, point vide), sans vert (C-83). */
+  .setting-state::before {
+    content: "";
+    @apply inline-block size-2.5 rounded-full border-2 border-ink;
+  }
+  .setting-state[data-on="true"]::before {
+    @apply bg-ink;
+  }
+  .setting-days {
+    width: 72px;
+  }
+
+  /* La barre d'enregistrement : collée en bas, bord haut de 2 px en encre, sans ombre (DS-S2). */
+  .settings-save-bar {
+    @apply sticky bottom-0 z-20 flex flex-wrap items-center justify-between gap-x-4 gap-y-2 bg-surface py-3;
+    border-top: 2px solid var(--color-ink);
+  }
+  .settings-save-bar-state {
+    @apply flex min-w-0 flex-col;
+  }
+  .settings-save-bar-state p {
+    @apply m-0;
+  }
+  .settings-save-bar-state [role="status"] {
+    @apply border-0 bg-transparent p-0 text-body text-ink;
+  }
+  .settings-save-bar-actions {
+    @apply flex flex-wrap items-center gap-2;
+  }
+  .settings-save-bar-confirm {
+    @apply flex w-full flex-col gap-2;
+  }
+  .settings-save-bar-confirm p {
+    @apply m-0;
+  }
+  .settings-save-bar-confirm-title {
+    @apply font-semibold;
+  }
+  /* Un champ modifié : un filet d'encre à gauche. */
+  form [data-changed] {
+    box-shadow: inset 3px 0 0 var(--color-ink);
+  }
+  @media (width < 768px) {
+    /* Au-dessus de la barre d'onglets du téléphone (fixe en bas) : rien de caché dessous. */
+    .settings-save-bar {
+      bottom: var(--app-tabbar-height, 0px);
+    }
+    .settings-save-bar-actions,
+    .settings-save-bar-actions button {
+      @apply w-full justify-center;
+    }
+  }
+
+  /* Le menu « ⋯ » d'une ligne éditable (« Monter », « Descendre », « Supprimer… »). */
+  details.line-menu {
+    @apply relative;
+  }
+  details.line-menu > summary {
+    @apply inline-flex min-h-11 min-w-11 cursor-pointer list-none items-center justify-center rounded-md;
+  }
+  details.line-menu > summary::-webkit-details-marker {
+    display: none;
+  }
+  .line-menu-panel {
+    @apply absolute right-0 z-30 flex min-w-56 flex-col rounded-md border border-line bg-surface p-1;
+  }
+  .line-menu-panel button {
+    @apply min-h-11 justify-start text-left;
+  }
+  .line-menu-hint {
+    @apply block text-label text-ink-muted;
+  }
+}
+
+@layer components {
+  /* L'interrupteur d'un automatisme : une case (role="switch") dessinée en interrupteur, 44 × 26 px, dans
+     une cible de 44 px ; coché, la couleur d'action et le bouton à droite. */
+  label.switch {
+    @apply relative inline-flex min-h-11 cursor-pointer items-center;
+  }
+  label.switch input[role="switch"] {
+    @apply relative m-0 h-[26px] w-11 shrink-0 cursor-pointer appearance-none rounded-full border-0 bg-line-strong;
+  }
+  label.switch input[role="switch"]::after {
+    @apply absolute top-[3px] left-[3px] h-5 w-5 rounded-full bg-surface content-[''];
+  }
+  label.switch input[role="switch"]:checked {
+    @apply bg-primary;
+  }
+  label.switch input[role="switch"]:checked::after {
+    @apply left-[21px];
+  }
+  label.switch input[role="switch"]:focus-visible {
+    @apply outline-2 outline-offset-2 outline-primary;
+  }
+}

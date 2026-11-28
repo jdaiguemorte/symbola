@@ -4,7 +4,8 @@ import { appDatabase } from "@symbola/db/client";
 import { formatAmount, formatDateTime, formatStorageSize, type Locale } from "@symbola/i18n";
 import { ScreenHelp } from "@/app/screen-help";
 import { ErrorNotice } from "@/app/ui/notices";
-import { PageHeader } from "@/app/ui/page-header";
+import { SettingsHeader } from "@/app/ui/settings-header";
+import { settingsScopeLine } from "@/lib/settings/settings-header-texts";
 import { requirePlanner } from "@/lib/guards";
 import {
   entitledModules,
@@ -67,9 +68,22 @@ export default async function SubscriptionPage({ searchParams }: { searchParams:
   const organizationId = auth.user.organizationId;
   const now = new Date();
 
+  // Lot 74h (D7, G8, G11 ; page 30) : l'en-tête commun ; « Tous les modules » s'ouvre d'ici (il a quitté le
+  // menu latéral au lot 74g). Les choix de forfait restent des actions, avec leurs boutons, inchangés.
+  const tPattern = await getTranslations("SettingsPattern");
+  const scope = await settingsScopeLine({ scope: "agency", editors: "owner", saving: "none", isOwner: auth.user.role === "owner" });
   const header = (
     <>
-      <PageHeader title={tMenu("rubrics.subscription.label")} subtitle={t("subtitle")} />
+      <SettingsHeader
+        title={tMenu("rubrics.subscription.label")}
+        hint={tPattern("headers.subscription")}
+        scope={scope}
+        actions={
+          <Link href="/apps" className="button-link button-secondary">
+            {tMenu("allModules")}
+          </Link>
+        }
+      />
       <ScreenHelp title={tHelp("subscription.title")} body={tHelp("subscription.body")} />
     </>
   );

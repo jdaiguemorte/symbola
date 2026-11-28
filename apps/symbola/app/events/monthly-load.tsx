@@ -1,12 +1,15 @@
 // Lot 32b (EVT-07 ; décision D11) — la charge des douze prochains mois : évènements confirmés et
 // options (prospect, devis envoyé) par mois, en tableau. La barre est un repère visuel ; les
 // chiffres font foi (styles en ligne interdits par la CSP : un élément <progress>).
+// Lot 72f (E8 ; page 17 des maquettes du lot 68) : sous le calendrier de la vue « Calendrier », réduite aux mois
+// qui ont un évènement (plus de lignes de zéros) ; rien quand aucun mois n'en a.
 import { getTranslations } from "next-intl/server";
 import { formatMonth, type Locale } from "@symbola/i18n";
 import type { MonthLoad } from "@/lib/portfolio/portfolio";
 
 export async function MonthlyLoad({ load, locale }: { load: MonthLoad[]; locale: Locale }) {
-  const t = await getTranslations("Events");
+  const t = await getTranslations("EventsList");
+  if (load.length === 0) return null;
   const max = Math.max(1, ...load.map((entry) => entry.confirmed + entry.options));
   return (
     <section className="card" aria-labelledby="monthly-load-title">
