@@ -62,15 +62,17 @@ test("ONB-01-02 — chaque étape sauvegardée survit à une interruption", asyn
   await page.getByLabel("SIREN").fill("123456789");
   await page.getByLabel("Forme juridique").selectOption("sasu");
   await page.getByLabel("Métier").selectOption("wedding_planner");
-  await page.getByRole("button", { name: "Enregistrer" }).first().click();
-  await expect(page.getByText("Fiche entreprise enregistrée.")).toBeVisible();
+  // Lot 74h : la fiche s'enregistre par sa barre, qui dit l'heure.
+  await page.getByRole("button", { name: "Enregistrer la fiche" }).click();
+  await expect(page.getByText(/^Tout est enregistré · à /)).toBeVisible();
 
   // Reprend plus tard : le SIREN déjà saisi est toujours là.
   await page.goto("/parametres/entreprise");
   await expect(page.getByLabel("SIREN")).toHaveValue("123456789");
 
+  await page.getByRole("button", { name: "Changer de régime…" }).click();
   await page.getByLabel("Date d'effet").fill("2027-01-01");
-  await page.getByRole("button", { name: "Changer de régime" }).click();
+  await page.getByRole("button", { name: "Changer de régime", exact: true }).click();
   await expect(page.getByText("Régime de TVA mis à jour.")).toBeVisible();
 });
 

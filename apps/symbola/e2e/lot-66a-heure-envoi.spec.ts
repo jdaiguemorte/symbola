@@ -35,9 +35,9 @@ test("HUB-28 — Lot 66a : l'heure d'envoi par défaut et celle d'un automatisme
   await expect(defaults.getByLabel("Envoi à")).toHaveValue("09:00");
   await expectNoAxeViolation(page);
 
+  // Lot 74h (D7) : la liste s'enregistre seule au changement, « ✓ Enregistré » à côté.
   await defaults.getByLabel("Envoi à").selectOption("08:30");
-  await defaults.getByRole("button", { name: "Enregistrer l'heure" }).click();
-  await expect(defaults.getByRole("status")).toHaveText("Heure enregistrée.");
+  await expect(defaults.getByRole("status")).toHaveText("✓ Enregistré");
   await expect.poll(() => getDefaultSendTime(setup.organizationId)).toBe("08:30");
 
   // L'automatisme sans heure propre affiche l'heure par défaut ; il prend la sienne.
@@ -46,12 +46,10 @@ test("HUB-28 — Lot 66a : l'heure d'envoi par défaut et celle d'un automatisme
   await expect(reminder).toHaveValue("");
   await expect(reminder.locator("option:checked")).toHaveText("08:30 (par défaut)");
   await reminder.selectOption("10:30");
-  await page.getByRole("button", { name: "Enregistrer l'heure de « Relances d'impayés »" }).click();
   await expect.poll(async () => (await getAutomationGate(setup.organizationId, "invoice_reminder")).sendTime).toBe("10:30");
   // Revenir à l'heure par défaut.
   await page.reload();
   await page.getByLabel("Heure d'envoi de « Relances d'impayés »").selectOption("");
-  await page.getByRole("button", { name: "Enregistrer l'heure de « Relances d'impayés »" }).click();
   await expect.poll(async () => (await getAutomationGate(setup.organizationId, "invoice_reminder")).sendTime).toBeNull();
   // Un automatisme sans heure fixe (le radar du matin) n'en propose pas.
   await expect(page.getByLabel(/Heure d'envoi de « Radar des risques/)).toHaveCount(0);

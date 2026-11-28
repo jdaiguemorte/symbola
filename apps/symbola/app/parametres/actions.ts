@@ -6,6 +6,7 @@ import { appDatabase } from "@symbola/db/client";
 import { parseAmountToCents } from "@symbola/i18n";
 import {
   InvalidSellerAddressError,
+  InvalidAnnualEventVolumeError,
   saveVatOnDebits,
   VatOnDebitsNotApplicableError,
   changeVatRegime,
@@ -57,6 +58,8 @@ export async function saveCompanySheetAction(_prevState: CompanySheetFormState, 
       legalForm: text("legalForm") as LegalForm | null,
       metier: text("metier") as Metier | null,
       metierPrecision: text("metierPrecision"),
+      // Lot 74h (G15) : « Mariages par an » ; absent du formulaire, la valeur reste.
+      ...(formData.has("annualEventVolume") ? { annualEventVolume: text("annualEventVolume") } : {}),
       address: {
         address: String(formData.get("address") ?? ""),
         postalCode: String(formData.get("postalCode") ?? ""),
@@ -75,6 +78,7 @@ export async function saveCompanySheetAction(_prevState: CompanySheetFormState, 
     });
   } catch (error) {
     if (error instanceof InvalidSellerAddressError) return { error: t(`invalidAddress_${error.field}`), values };
+    if (error instanceof InvalidAnnualEventVolumeError) return { error: (await getTranslations("SettingsPattern"))("saved.failed"), values };
     if (error instanceof InvalidDocumentDetailsError) return { error: t(DETAIL_ERROR_KEYS[error.field]), values };
     throw error;
   }

@@ -67,6 +67,9 @@ export const SERVER_ONLY_NAMESPACES = [
   // Lot 73d : la fenêtre de création et la fiche d'un prestataire reçoivent leurs textes de l'écran.
   "VendorCreate",
   "VendorSheet",
+  // Lot 74h : le patron d'un écran de réglage (en-tête, « ✓ Enregistré », barre d'enregistrement) ; ses
+  // composants client reçoivent leurs mots en propriétés.
+  "SettingsPattern",
 ] as const;
 
 const SERVER_ONLY = new Set<string>(SERVER_ONLY_NAMESPACES);

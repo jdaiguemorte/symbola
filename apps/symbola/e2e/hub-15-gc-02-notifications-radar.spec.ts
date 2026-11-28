@@ -89,21 +89,26 @@ test("SC-03 / HUB-15 / UX-16 / GC-02 / CHR-05 / CHR-10 / HUB-24 / HUB-28 — not
   // HUB-15 : une sorte se coupe sur un canal.
   await page.goto("/parametres/notifications");
   await expect(page.getByRole("heading", { level: 1, name: "Vos notifications" })).toBeVisible();
+  // Lot 74h (D7) : la case s'enregistre seule, « ✓ Enregistré » sur sa ligne.
   await page.getByRole("checkbox", { name: "Devis signé — E-mail" }).uncheck();
-  await page.getByRole("button", { name: "Enregistrer" }).first().click();
-  await expect(page.getByText("Réglages enregistrés.")).toBeVisible();
+  await expect(page.getByRole("row", { name: /Devis signé/ }).getByRole("status")).toHaveText("✓ Enregistré");
   await page.goto("/parametres/notifications");
   await expect(page.getByRole("checkbox", { name: "Devis signé — E-mail" })).not.toBeChecked();
   await expect(page.getByRole("checkbox", { name: "Devis signé — Push" })).toBeChecked();
-  await expect(page.getByRole("heading", { name: "Notifications push sur cet appareil" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Ce téléphone" })).toBeVisible();
   await expectNoAxeViolation(page);
 
-  // HUB-28 : couper un automatisme ; l'écran dit que rien n'est rattrapé.
+  // HUB-28 : couper un automatisme ; l'écran dit que rien n'est rattrapé. Lot 74h (D7, G10) : l'interrupteur
+  // s'enregistre seul, l'état se lit en mots.
   await page.goto("/parametres/automatisations");
-  await expect(page.getByText(/rien de ce qui aurait dû partir entre-temps n'est rattrapé/)).toBeVisible();
+  await expect(page.getByText(/à la remise en marche, rien n'est rattrapé/)).toBeVisible();
   await expect(page.getByRole("heading", { name: "Purge des données personnelles" })).toBeVisible();
-  await page.getByRole("button", { name: "Couper : Échéance à J-7, puis rappel au payeur" }).click();
-  await expect(page.getByRole("button", { name: "Activer : Échéance à J-7, puis rappel au payeur" })).toBeVisible();
+  const reminder = page.getByRole("listitem").filter({ has: page.getByRole("heading", { name: "Échéance à J-7, puis rappel au payeur" }) });
+  await reminder.getByRole("switch", { name: "Échéance à J-7, puis rappel au payeur : en marche" }).uncheck();
+  await expect(reminder.getByRole("status").first()).toHaveText("✓ Enregistré");
+  await page.reload();
+  await expect(reminder.getByText("Coupé", { exact: true })).toBeVisible();
+  await expect(reminder.getByRole("switch", { name: "Échéance à J-7, puis rappel au payeur : en marche" })).not.toBeChecked();
   await expectNoAxeViolation(page);
 
   // GC-02 : les règles du radar et leurs seuils, celles des pièces et des IBAN du carnet comprises (lot 48a).
