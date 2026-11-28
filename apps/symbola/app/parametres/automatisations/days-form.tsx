@@ -10,11 +10,11 @@ import { saveAutomationDaysAction } from "./actions";
 export function AutomationDaysForm({ automationKey, title, days, disabled, saved }: { automationKey: string; title: string; days: number; disabled: boolean; saved: SavedLabels }) {
   const t = useTranslations("Automations");
   return (
-    <AutoSettingForm action={saveAutomationDaysAction} labels={saved} ariaLabel={`${title} — ${t("days")}`} className="setting-line-control">
+    <AutoSettingForm action={saveAutomationDaysAction} labels={saved} className="setting-line-control">
       <input type="hidden" name="key" value={automationKey} />
       <label>
         {t("days")}
-        <input type="number" name="days" className="field-days" min={1} max={60} defaultValue={days} required disabled={disabled} />
+        <input type="number" name="days" className="field-short setting-days" min={1} max={60} defaultValue={days} required disabled={disabled} aria-label={`${t("days")} — ${title}`} />
       </label>
       <SettingStatus name="days" />
     </AutoSettingForm>

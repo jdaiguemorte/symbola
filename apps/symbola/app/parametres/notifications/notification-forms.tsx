@@ -13,9 +13,9 @@ import { savePreferencesAction, saveScheduleAction } from "./actions";
 
 const CHANNELS: NotificationChannel[] = ["app", "email", "push"];
 
-export function PreferencesForm({ rows, saved, pushLabel }: { rows: { type: NotificationType; label: string; immediate: boolean; channels: Record<NotificationChannel, boolean> }[]; saved: SavedLabels; pushLabel: string }) {
+export function PreferencesForm({ rows, saved }: { rows: { type: NotificationType; label: string; immediate: boolean; channels: Record<NotificationChannel, boolean> }[]; saved: SavedLabels }) {
   const t = useTranslations("Notifications");
-  const channelLabel = (channel: NotificationChannel) => (channel === "push" ? pushLabel : t(`settings.channel.${channel}`));
+  const channelLabel = (channel: NotificationChannel) => t(`settings.channel.${channel}`);
   return (
     <AutoSettingForm action={savePreferencesAction} labels={saved} ariaLabel={t("settings.typesTitle")}>
       <div className="table-scroll">

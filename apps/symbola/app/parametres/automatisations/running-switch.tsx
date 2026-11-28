@@ -9,7 +9,7 @@ import { setAutomationRunningAction } from "./actions";
 
 export function AutomationRunningSwitch({ automationKey, label, enabled, saved }: { automationKey: string; label: string; enabled: boolean; saved: SavedLabels }) {
   return (
-    <AutoSettingForm action={setAutomationRunningAction} labels={saved} ariaLabel={label} className="setting-line-control">
+    <AutoSettingForm action={setAutomationRunningAction} labels={saved} className="setting-line-control">
       <input type="hidden" name="key" value={automationKey} />
       <label className="switch">
         <input type="checkbox" role="switch" name="enabled" value="1" defaultChecked={enabled} />

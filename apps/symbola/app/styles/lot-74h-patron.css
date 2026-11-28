@@ -25,9 +25,11 @@
     @apply flex flex-wrap items-center gap-2;
   }
 
-  /* « ✓ Enregistré » : en encre, sans couleur d'action ; la place est gardée pour que rien ne bouge. */
-  .saved-indicator {
-    @apply inline-flex min-h-6 items-center text-label text-ink;
+  /* « ✓ Enregistré » : en encre, sans couleur d'action ni fond (le style des messages de retour ne
+     s'applique pas) ; la place est gardée pour que rien ne bouge. */
+  .saved-indicator,
+  .saved-indicator:empty {
+    @apply m-0 inline-flex min-h-6 items-center border-0 bg-transparent p-0 text-label text-ink;
   }
   .saved-indicator[data-status="saving"] {
     @apply text-ink-muted;
@@ -45,7 +47,7 @@
   }
   .setting-line-text h2,
   .setting-line-text h3 {
-    @apply m-0 text-base;
+    @apply m-0 text-body-strong;
   }
   .setting-line-text p {
     @apply m-0;
@@ -54,10 +56,10 @@
     @apply flex flex-wrap items-center gap-x-3 gap-y-1;
   }
   .setting-line-control label {
-    @apply flex items-center gap-2;
+    @apply flex flex-row items-center gap-2;
   }
   .setting-state {
-    @apply inline-flex items-center gap-1.5 text-label font-semibold text-ink;
+    @apply inline-flex items-center gap-2 text-label font-semibold text-ink;
   }
   /* « En marche » et « Coupé » se lisent en mots et en forme (point plein, point vide), sans vert (C-83). */
   .setting-state::before {
@@ -67,7 +69,7 @@
   .setting-state[data-on="true"]::before {
     @apply bg-ink;
   }
-  .field-days {
+  .setting-days {
     width: 72px;
   }
 
@@ -81,6 +83,9 @@
   }
   .settings-save-bar-state p {
     @apply m-0;
+  }
+  .settings-save-bar-state [role="status"] {
+    @apply border-0 bg-transparent p-0 text-body text-ink;
   }
   .settings-save-bar-actions {
     @apply flex flex-wrap items-center gap-2;
@@ -127,5 +132,28 @@
   }
   .line-menu-hint {
     @apply block text-label text-ink-muted;
+  }
+}
+
+@layer components {
+  /* L'interrupteur d'un automatisme : une case (role="switch") dessinée en interrupteur, 44 × 26 px, dans
+     une cible de 44 px ; coché, la couleur d'action et le bouton à droite. */
+  label.switch {
+    @apply relative inline-flex min-h-11 cursor-pointer items-center;
+  }
+  label.switch input[role="switch"] {
+    @apply relative m-0 h-[26px] w-11 shrink-0 cursor-pointer appearance-none rounded-full border-0 bg-line-strong;
+  }
+  label.switch input[role="switch"]::after {
+    @apply absolute top-[3px] left-[3px] h-5 w-5 rounded-full bg-surface content-[''];
+  }
+  label.switch input[role="switch"]:checked {
+    @apply bg-primary;
+  }
+  label.switch input[role="switch"]:checked::after {
+    @apply left-[21px];
+  }
+  label.switch input[role="switch"]:focus-visible {
+    @apply outline-2 outline-offset-2 outline-primary;
   }
 }

@@ -54,24 +54,6 @@ export default async function CompanySheetPage() {
     <main className="stack">
       <SettingsHeader title={tMenu("rubrics.companySheet.label")} hint={tPattern("headers.companySheet")} scope={scope} notice={notice} />
       <ScreenHelp title={tHelp("settings.title")} body={tHelp("settings.body")} />
-      {/* La TVA en ligne à part : elle se date, et se change dans sa fenêtre. Lot 41 (JUR-02, D10) : option
-          pour la TVA sur les débits, datée (assujetti seulement). */}
-      <section className="card" aria-labelledby="tva">
-        <div className="setting-line">
-          <div className="setting-line-text">
-            <h2 id="tva">{t("vatCardTitle")}</h2>
-            <p>{tPattern("company.vatLine", { regime: `${t("currentRegime")} : ${regime}${vatOnDebits}` })}</p>
-          </div>
-          <div className="setting-line-control">
-            <EditDialog title={tPattern("company.vatDialog")} trigger={{ label: tPattern("company.vatChange") }}>
-              <VatRegimeForm currentRegime={profile.vatRegime} />
-              <h3 id="tva-debits">{t("vatOnDebitsTitle")}</h3>
-              <p className="field-hint">{t("vatOnDebitsHint")}</p>
-              {profile.vatRegime === "assujetti" ? <VatOnDebitsForm value={profile.vatOnDebits} from={profile.vatOnDebitsFrom} /> : <p>{t("vatOnDebitsFranchise")}</p>}
-            </EditDialog>
-          </div>
-        </div>
-      </section>
       <div id="profil-entreprise">
         <CompanySheetForm
           profile={profile}
@@ -87,6 +69,24 @@ export default async function CompanySheetPage() {
           }}
         />
       </div>
+      {/* La TVA en ligne à part : elle se date, et se change dans sa fenêtre. Lot 41 (JUR-02, D10) : option
+          pour la TVA sur les débits, datée (assujetti seulement). */}
+      <section className="card" aria-labelledby="tva">
+        <div className="setting-line">
+          <div className="setting-line-text">
+            <h2 id="tva">{t("vatCardTitle")}</h2>
+            <p id="tva-debits">{tPattern("company.vatLine", { regime: `${t("currentRegime")} : ${regime}${vatOnDebits}` })}</p>
+          </div>
+          <div className="setting-line-control">
+            <EditDialog title={tPattern("company.vatDialog")} trigger={{ label: tPattern("company.vatChange") }}>
+              <VatRegimeForm currentRegime={profile.vatRegime} />
+              <h3>{t("vatOnDebitsTitle")}</h3>
+              <p className="field-hint">{t("vatOnDebitsHint")}</p>
+              {profile.vatRegime === "assujetti" ? <VatOnDebitsForm value={profile.vatOnDebits} from={profile.vatOnDebitsFrom} /> : <p>{t("vatOnDebitsFranchise")}</p>}
+            </EditDialog>
+          </div>
+        </div>
+      </section>
     </main>
   );
 }

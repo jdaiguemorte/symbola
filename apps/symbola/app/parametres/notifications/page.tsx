@@ -39,7 +39,7 @@ export default async function NotificationSettingsPage() {
       <ScreenHelp title={tHelp("notificationSettings.title")} body={tHelp("notificationSettings.body")} />
       <section className="card" aria-labelledby="notification-types-title">
         <h2 id="notification-types-title">{t("settings.typesTitle")}</h2>
-        <PreferencesForm rows={rows} saved={saved} pushLabel={thisPhone} />
+        <PreferencesForm rows={rows} saved={saved} />
       </section>
       <section className="card">
         <ScheduleForm settings={settings} saved={saved} />

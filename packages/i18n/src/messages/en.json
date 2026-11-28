@@ -498,7 +498,7 @@
     },
     "settings": {
       "title": "Company details",
-      "body": "Your company's details (company number, address, legal form, business) and your VAT scheme: they appear on your quotes and invoices. The business sets the vocabulary and the starting templates. Fill in the postcode and town before your first invoice and, if you charge VAT, say whether you opted for VAT on debits. Identity, address and printed contact details are saved together, with “Save details”.",
+      "body": "Your company's details (company number, address, legal form, business) and your VAT scheme: they appear on your quotes and invoices. The business sets the vocabulary and the starting templates. Fill in the postcode and town before your first invoice and, if you charge VAT, say whether you opted for VAT on debits. Identity, address and printed contact details are saved together, with “Save details”, in the bar stuck to the bottom of the screen, which names what changed. “Weddings per year” is changed here too. The VAT scheme is changed with “Change VAT scheme…”, dated.",
       "faq": [
         {
           "q": "I am moving from the VAT exemption to charging VAT: what do I do?",
@@ -1414,11 +1414,11 @@
     },
     "automations": {
       "title": "Automations",
-      "body": "Each row is an automation: what it does, its switch, its send time and its log. The default send time applies to every automation without its own; the email goes out at that time (within five minutes), in the event's time zone, and never at night. Appointment reminders keep their delay (24 h, 2 h before). Turning one off stops its next sends; nothing is caught up when it is turned back on. The GDPR purge and the document check cannot be turned off."
+      "body": "Each row is an automation: what it does, its switch, its send time and its log. The default send time applies to every automation without its own; the email goes out at that time (within five minutes), in the event's time zone, and never at night. Appointment reminders keep their delay (24 h, 2 h before). Turning one off stops its next sends; nothing is caught up when it is turned back on. A paused automation says since when and by whom; only the account holder starts or pauses them. The GDPR purge and the document check cannot be turned off."
     },
     "riskRadar": {
       "title": "Risk radar",
-      "body": "The radar runs every morning. Each rule has a threshold in days; an alert becomes a “To watch” line in “Today”, which states the rule that triggered it and leads to the screen where you can act. Planning health is set here too."
+      "body": "The radar runs every morning. Each rule has a threshold in days; an alert becomes a “To watch” line in “Today”, which states the rule that triggered it and leads to the screen where you can act. Planning health is set here too. If the radar is paused, the screen says so at the top and the account holder can restart it."
     },
     "clientTerms": {
       "title": "Client terms",
@@ -1516,7 +1516,7 @@
     },
     "taskCategories": {
       "title": "Task categories",
-      "body": "Sort your tasks by category: Client, Vendors, Admin, Big day to start with. Rename them, change their colour and order, add some; a deleted category leaves its tasks without a category. Each change is saved when you leave the field; « Undo the last change » takes it back."
+      "body": "Sort your tasks by category: Client, Vendors, Admin, Big day to start with. Rename them, change their colour and order, add some; a deleted category leaves its tasks without a category. “Due soon” sets how many days ahead a task becomes “Soon” (1 to 30, seven to start with), for the whole agency. Each change saves on its own when you leave the field, and “✓ Saved” shows next to it; “Move up”, “Move down” and “Delete…” are in the row's “⋯” menu."
     },
     "emailBranding": {
       "title": "E-mail branding and signature",

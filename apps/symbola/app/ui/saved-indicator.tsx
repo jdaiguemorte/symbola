@@ -34,7 +34,7 @@ export function SavedIndicator({ status, labels, stamp, id }: { status: SavedSta
     <span id={id} role="status" className="saved-indicator" data-status={shown ? status : "idle"}>
       {shown && status === "saved" ? (
         <>
-          <span aria-hidden="true">✓ </span>
+          <span aria-hidden="true">✓{"\u00a0"}</span>
           {labels.saved}
         </>
       ) : shown && status === "saving" ? (

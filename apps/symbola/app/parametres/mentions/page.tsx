@@ -32,22 +32,22 @@ export default async function CompanyMentionsPage() {
     <main className="stack">
       <SettingsHeader title={tMenu("rubrics.companyMentions.label")} hint={tPattern("headers.companyMentions")} scope={scope} />
       <ScreenHelp title={tHelp("companyMentions.title")} body={tHelp("companyMentions.body")} />
-      {/* Lot 17 (DEV-07, DEV-08, décision A) : logo des documents, en ligne à part (il s'enregistre seul). */}
-      <section className="card company-logo" aria-labelledby="logo">
-        <h2 id="logo">{t("logoTitle")}</h2>
-        <p className="field-hint">{tPattern("company.logoLine")}</p>
-        <LogoForm version={logoVersion} />
-        {quotes ? (
-          <p className="field-hint">
-            {t("documentsSettingsHint")} <Link href="/devis/parametres/documents">{t("documentsSettingsLink")}</Link>
-          </p>
-        ) : null}
-      </section>
       {/* Lot 31a (JUR-09, D4) : assurance, médiateur et conditions générales, repris sur les devis. */}
       <section className="card" aria-labelledby="informations-professionnel">
         <h2 id="informations-professionnel">{t("professionalMentionsTitle")}</h2>
         <p className="field-hint">{t("professionalMentionsHint")}</p>
         <ProfessionalMentionsForm details={details} pattern={{ bar, fieldLabels }} />
+      </section>
+      {/* Lot 17 (DEV-07, DEV-08, décision A) : logo des documents, en ligne à part (il s'enregistre seul). */}
+      <section className="card company-logo" aria-labelledby="logo">
+        <h2 id="logo">{t("logoTitle")}</h2>
+        <p className="field-hint">{tPattern("company.logoLine")}</p>
+        <LogoForm version={logoVersion} secondary />
+        {quotes ? (
+          <p className="field-hint">
+            {t("documentsSettingsHint")} <Link href="/devis/parametres/documents">{t("documentsSettingsLink")}</Link>
+          </p>
+        ) : null}
       </section>
     </main>
   );

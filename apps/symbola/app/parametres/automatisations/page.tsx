@@ -49,7 +49,7 @@ export default async function AutomationsPage() {
   for (const name of new Set(Object.values(AUTOMATION_MODULES))) modules.set(name, await isModuleEnabled(db, organizationId, name));
   const runs = new Map(await Promise.all(gates.map(async (gate) => [gate.key, await listAutomationRuns(organizationId, gate.key)] as const)));
   const when = (iso: string) => format.dateTime(new Date(iso), { dateStyle: "medium", timeStyle: "short", timeZone: "Europe/Paris" });
-  const day = (date: Date) => format.dateTime(date, { day: "numeric", month: "short", timeZone: "Europe/Paris" });
+  const day = (date: Date) => format.dateTime(date, { day: "numeric", month: "long", timeZone: "Europe/Paris" });
   const [tPattern, saved, scope] = await Promise.all([getTranslations("SettingsPattern"), savedIndicatorLabels(), settingsScopeLine({ scope: "agency", editors: "owner", saving: "auto", isOwner })]);
   // « Coupé le 20 nov. par Camille. » : la date et la personne de la coupure (0246) ; sans elles, « Coupé. »
   const pausedWords = async (gate: (typeof gates)[number]) => {

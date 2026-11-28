@@ -21,7 +21,7 @@ export function RiskRuleForm({ rule, label, enabled, thresholdDays, disabled, sa
       <SettingStatus name="enabled" />
       <label>
         {t("settings.threshold")}
-        <input type="number" name="thresholdDays" className="field-days" min={0} max={365} defaultValue={thresholdDays} required disabled={disabled} />
+        <input type="number" name="thresholdDays" className="field-short setting-days" min={0} max={365} defaultValue={thresholdDays} required disabled={disabled} />
       </label>
       <SettingStatus name="thresholdDays" />
     </AutoSettingForm>
@@ -42,7 +42,7 @@ export function HealthThresholdsForm({ watchPoints, latePoints, milestoneWeight,
         <div key={name} className="setting-line-control">
           <label>
             {t(`health.${name}`)}
-            <input type="number" name={name} className="field-days" min={1} max={max} defaultValue={value} required disabled={disabled} />
+            <input type="number" name={name} className="field-short setting-days" min={1} max={max} defaultValue={value} required disabled={disabled} />
           </label>
           <SettingStatus name={name} />
         </div>

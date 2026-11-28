@@ -11,7 +11,7 @@ import { setLanguageAction } from "./actions";
 export function LanguageForm({ currentLanguage, saved }: { currentLanguage: "fr" | "en"; saved: SavedLabels }) {
   const t = useTranslations("Profile");
   return (
-    <AutoSettingForm action={setLanguageAction} labels={saved} ariaLabel={t("language")} className="setting-line-control">
+    <AutoSettingForm action={setLanguageAction} labels={saved} className="setting-line-control">
       <label>
         {t("language")}
         <select name="language" defaultValue={currentLanguage}>

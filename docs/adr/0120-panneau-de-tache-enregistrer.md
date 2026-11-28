@@ -47,3 +47,25 @@ d'un bouton « Enregistrer », c'est la saisie perdue en fermant sans y penser.
 - Les rubriques de la colonne de droite (pièces jointes, commentaires, place dans le rétroplanning)
   gardent leurs propres boutons, qui agissent tout de suite comme avant : elles ne font pas partie du
   brouillon du panneau.
+
+## Avenant (lot 74h, 28/11/2026) — la barre d'enregistrement des formulaires liés des Paramètres
+
+Décision D7 du volet 6 (spécification du lot 74, § 10 point 1, tranchée le 27/11 par la règle de la
+décision récente), même écart avec UX-09 que M1, protégé de même :
+
+1. **Un réglage isolé** (un nombre, une liste, un interrupteur) s'enregistre seul, au changement ou à la
+   sortie du champ, et « ✓ Enregistré » s'écrit à côté de lui, en encre, quelques secondes
+   (`app/ui/auto-setting-form.tsx`, `app/ui/saved-indicator.tsx`). Une valeur refusée s'écrit sous le
+   champ (forme du lot 70b) ; un refus du serveur rend la valeur d'avant.
+2. **Un formulaire à champs liés** (la fiche de l'entreprise, les mentions, plus tard l'adresse d'envoi et
+   les coordonnées bancaires) s'enregistre d'un bouton, dans une barre collée au bas de la fenêtre
+   (au-dessus de la barre du bas sur téléphone), qui dit l'état en mots et nomme les champs modifiés
+   (`app/ui/settings-save-bar.tsx`, modèle `lib/settings/settings-pattern-model.ts`).
+3. Le bouton **n'est jamais grisé** : sans changement, il répond « Rien à enregistrer ».
+4. **Quitter sans perdre** : un lien vers un autre écran pose « Quitter sans enregistrer ? » dans la
+   barre (« Rester sur la page », « Quitter sans enregistrer », « Enregistrer et quitter »), jamais dans
+   une seconde fenêtre ; fermer l'onglet passe par la garde du navigateur, et `DraftKeeper` garde la
+   saisie (ADR 0074) — ce que le panneau de tâche n'a pas encore.
+
+Les vagues 74i et 74j réemploient ces composants tels quels ; un écran pas encore basculé garde son
+enregistrement d'aujourd'hui.

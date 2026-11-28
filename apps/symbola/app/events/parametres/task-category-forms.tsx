@@ -156,7 +156,7 @@ export function TaskSoonDaysSetting({ days, labels, saved }: { days: number; lab
         <div className="setting-line-control">
           <label>
             <span className="sr-only">{labels.label}</span>
-            <input className="field-days" type="number" name="soonDays" inputMode="numeric" min={1} max={30} step={1} required defaultValue={days} aria-describedby="soon-days-hint" />
+            <input className="field-short setting-days" type="number" name="soonDays" inputMode="numeric" min={1} max={30} step={1} required defaultValue={days} aria-describedby="soon-days-hint" />
             <span aria-hidden="true">{labels.unit}</span>
           </label>
           <SettingStatus name="soonDays" />

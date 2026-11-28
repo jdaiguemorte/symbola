@@ -15,7 +15,7 @@ const QUARTERS = Array.from({ length: 96 }, (_, index) => `${String(Math.floor(i
 export function DefaultSendTimeForm({ time, disabled, saved }: { time: string; disabled: boolean; saved: SavedLabels }) {
   const t = useTranslations("Automations");
   return (
-    <AutoSettingForm action={saveDefaultSendTimeAction} labels={saved} ariaLabel={t("defaultTimeLabel")} className="setting-line-control">
+    <AutoSettingForm action={saveDefaultSendTimeAction} labels={saved} className="setting-line-control">
       <label>
         {t("defaultTimeLabel")}
         <select name="time" defaultValue={time} disabled={disabled}>
@@ -34,7 +34,7 @@ export function DefaultSendTimeForm({ time, disabled, saved }: { time: string; d
 export function AutomationSendTimeForm({ automationKey, title, time, defaultTime, disabled, saved }: { automationKey: string; title: string; time: string | null; defaultTime: string; disabled: boolean; saved: SavedLabels }) {
   const t = useTranslations("Automations");
   return (
-    <AutoSettingForm action={saveAutomationSendTimeAction} labels={saved} ariaLabel={t("sendAtLabel", { title })} className="setting-line-control">
+    <AutoSettingForm action={saveAutomationSendTimeAction} labels={saved} className="setting-line-control">
       <input type="hidden" name="key" value={automationKey} />
       <label>
         {t("sendAt")}

@@ -59,7 +59,9 @@ export function AutoSettingForm({
 }: {
   action: Action;
   labels: SavedLabels;
-  ariaLabel: string;
+  // Le nom du formulaire, quand l'écran en a besoin (sans nom, ce n'est pas une région) ; jamais le libellé
+  // d'un de ses champs, qui le doublerait.
+  ariaLabel?: string;
   invalid?: Record<string, string>;
   className?: string;
   children: ReactNode;

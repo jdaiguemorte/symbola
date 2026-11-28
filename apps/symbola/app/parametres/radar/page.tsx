@@ -39,7 +39,7 @@ export default async function RiskRadarSettingsPage() {
   const paused = eventsOpen && !gate.enabled;
   const notice = paused ? (
     <div className="notice" role="note">
-      <p>{gate.pausedAt ? tPattern("radar.pausedSince", { date: format.dateTime(gate.pausedAt, { day: "numeric", month: "short", timeZone: "Europe/Paris" }) }) : tPattern("radar.pausedNoDate")}</p>
+      <p>{gate.pausedAt ? tPattern("radar.pausedSince", { date: format.dateTime(gate.pausedAt, { day: "numeric", month: "long", timeZone: "Europe/Paris" }) }) : tPattern("radar.pausedNoDate")}</p>
       {isOwner ? (
         <form action={resumeRiskRadarAction}>
           <button type="submit" className="button-secondary">

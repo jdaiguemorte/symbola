@@ -498,7 +498,7 @@
     },
     "settings": {
       "title": "Fiche de l'entreprise",
-      "body": "La fiche de votre entreprise (SIREN, adresse, forme juridique, métier) et votre régime de TVA : ils figurent sur vos devis et factures. Le métier règle le vocabulaire et les modèles de départ. Complétez le code postal et la ville avant votre première facture, et, si vous êtes assujettie, dites si vous avez opté pour la TVA sur les débits. Identité, adresse et coordonnées imprimées s'enregistrent ensemble, par « Enregistrer la fiche ».",
+      "body": "La fiche de votre entreprise (SIREN, adresse, forme juridique, métier) et votre régime de TVA : ils figurent sur vos devis et factures. Le métier règle le vocabulaire et les modèles de départ. Complétez le code postal et la ville avant votre première facture, et, si vous êtes assujettie, dites si vous avez opté pour la TVA sur les débits. Identité, adresse et coordonnées imprimées s'enregistrent ensemble, par « Enregistrer la fiche », dans la barre collée en bas de l'écran, qui nomme ce qui a changé. « Mariages par an » s'y change aussi. Le régime de TVA se change par « Changer de régime… », daté.",
       "faq": [
         {
           "q": "Je passe de la franchise à la TVA : que faire ?",
@@ -1414,11 +1414,11 @@
     },
     "automations": {
       "title": "Automatisations",
-      "body": "Chaque ligne est un automatisme : ce qu'il fait, son interrupteur, son heure d'envoi et son journal. L'heure d'envoi par défaut vaut pour chaque automatisme qui n'a pas la sienne ; l'envoi part à cette heure (à cinq minutes près), dans le fuseau de l'évènement, et jamais la nuit. Les rappels de rendez-vous gardent leur délai (24 h, 2 h avant). Couper arrête les prochains envois ; rien n'est rattrapé à la remise en route. La purge RGPD et le contrôle des pièces ne se coupent pas."
+      "body": "Chaque ligne est un automatisme : ce qu'il fait, son interrupteur, son heure d'envoi et son journal. L'heure d'envoi par défaut vaut pour chaque automatisme qui n'a pas la sienne ; l'envoi part à cette heure (à cinq minutes près), dans le fuseau de l'évènement, et jamais la nuit. Les rappels de rendez-vous gardent leur délai (24 h, 2 h avant). Couper arrête les prochains envois ; rien n'est rattrapé à la remise en route. Un automatisme coupé dit depuis quand et par qui ; seule la titulaire les met en marche ou les coupe. La purge RGPD et le contrôle des pièces ne se coupent pas."
     },
     "riskRadar": {
       "title": "Radar des risques",
-      "body": "Le radar passe chaque matin. Chaque règle a un seuil en jours ; une alerte devient une ligne « À regarder » d'« Aujourd'hui », qui dit la règle qui l'a déclenchée et mène à l'écran où agir. La santé du planning se règle ici aussi."
+      "body": "Le radar passe chaque matin. Chaque règle a un seuil en jours ; une alerte devient une ligne « À regarder » d'« Aujourd'hui », qui dit la règle qui l'a déclenchée et mène à l'écran où agir. La santé du planning se règle ici aussi. Si le radar est coupé, l'écran le dit en tête et la titulaire peut le remettre en marche."
     },
     "clientTerms": {
       "title": "Termes des clients",
@@ -1516,7 +1516,7 @@
     },
     "taskCategories": {
       "title": "Catégories des tâches",
-      "body": "Rangez vos tâches par catégorie : Client, Prestataires, Administratif, Jour J au départ. Renommez-les, changez leur couleur, leur ordre, ajoutez-en ; une catégorie supprimée laisse ses tâches sans catégorie. Chaque modification s'enregistre quand vous quittez le champ ; « Annuler la dernière modification » la reprend."
+      "body": "Rangez vos tâches par catégorie : Client, Prestataires, Administratif, Jour J au départ. Renommez-les, changez leur couleur, leur ordre, ajoutez-en ; une catégorie supprimée laisse ses tâches sans catégorie. « Échéance proche » dit à combien de jours une tâche devient « Bientôt » (de 1 à 30, sept au départ), pour toute l'agence. Chaque modification s'enregistre seule quand vous quittez le champ, et « ✓ Enregistré » s'affiche à côté ; « Monter », « Descendre » et « Supprimer… » sont dans le menu « ⋯ » de la ligne."
     },
     "emailBranding": {
       "title": "Marque et signature des e-mails",
