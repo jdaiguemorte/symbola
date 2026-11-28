@@ -2,6 +2,18 @@
 // ordinateur et en 375 px (mobile). Nécessite le socle de dev (Postgres,
 // Garage, ClamAV) démarré — docker-compose.dev.yml.
 import { defineConfig, devices } from "@playwright/test";
+import { fileGrep, SOCLE_GREP } from "./e2e/socle";
+
+// Lot 76 (ADR 0124) : la CI en deux vitesses choisit les parcours par trois variables.
+// - E2E_SOCLE=1 : le socle (e2e/socle.ts) ;
+// - E2E_FICHIERS : en plus, des fichiers de parcours en entier (noms séparés par des espaces) ;
+// - E2E_MESURES=1 : les seuls tests de mesure du temps de réponse ; E2E_SANS_MESURES=1 : tout sauf
+//   eux. Un test de mesure se reconnaît à « NFR-01 » ou « NFR-02 » dans son titre ou celui de sa
+//   description (e2e/mesure.ts) ; la CI les joue dans leur propre job, à place fixe et serveur chaud,
+//   sur chaque PR comme sur main.
+const MEASURE_TESTS = /NFR-0[12]\b/;
+const extraFiles = (process.env.E2E_FICHIERS ?? "").split(/\s+/).filter(Boolean);
+const selection = [...(process.env.E2E_SOCLE === "1" ? SOCLE_GREP : []), ...fileGrep(extraFiles), ...(process.env.E2E_MESURES === "1" ? [MEASURE_TESTS] : [])];
 
 // Lot 40c (NFR-18, NFR-19 ; décisions D17, D18 ; ADR 0078) : les parcours des scénarios du cahier des
 // charges tournent aussi sous Firefox et WebKit (moteur de Safari), à 360 et à 1 920 px ; SC-10 est
@@ -13,13 +25,15 @@ const SC10_SPECS = /(sc-01-sc-10-demarrage|hub-14-sc-10-contacts)\.spec\.ts$/;
 export default defineConfig({
   testDir: "./e2e",
   fullyParallel: true,
+  ...(selection.length > 0 ? { grep: selection } : {}),
+  ...(process.env.E2E_SANS_MESURES === "1" ? { grepInvert: MEASURE_TESTS } : {}),
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   // En CI, un parcours à la fois : sous charge (fournisseur d'identité sur le
   // même runner, délai de 2 s des vérifications de la page Santé), les
   // parcours en parallèle se gênent sur un runner de 4 cœurs. Depuis le
-  // lot 33, chaque connexion passe par le lien, Mailpit et Logto : 28 min
-  // environ en série (timeout-minutes du job e2e : 45).
+  // lot 33, chaque connexion passe par le lien, Mailpit et Logto. Lot 76 : la
+  // suite complète (74 min en série) se joue en quatre parts sur main.
   ...(process.env.CI ? { workers: 1 } : {}),
   reporter: "list",
   use: {
@@ -58,7 +72,9 @@ export default defineConfig({
   webServer: {
     command: process.env.E2E_SERVER_COMMAND ?? "pnpm dev",
     url: "http://localhost:3000/login",
-    reuseExistingServer: !process.env.CI,
+    // Lot 76 : le job des mesures démarre le serveur lui-même et le garde entre le réchauffement et
+    // les mesures (E2E_SERVEUR_PARTAGE=1).
+    reuseExistingServer: !process.env.CI || process.env.E2E_SERVEUR_PARTAGE === "1",
     timeout: 60_000,
   },
 });

@@ -148,6 +148,8 @@ export default async function TasksPage({ searchParams }: { searchParams: Promis
   const line = countLine(view, counts);
   const countParts = [t(line.key, line.values)];
   if (line.late) countParts.push(t("countLateSuffix", { count: line.late }));
+  // Lot 74b (B7) : les tâches « à dater », comptées à part.
+  if (list.undated) countParts.push(t("countUndatedSuffix", { count: list.undated }));
   if (line.filtered) countParts.push(t("countFiltered"));
   if (view.group === "who" && lines.length > 0) countParts.push(t("countPeople", { count: groups.length }));
   if (view.state === "done" && lines.length > 0) countParts.push(t("countRecentFirst"));

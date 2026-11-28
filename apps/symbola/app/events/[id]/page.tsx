@@ -259,7 +259,8 @@ export default async function EventDetailPage({
   const tab: Tab = TABS.includes(asked as Tab) && (asked !== "devis" || quotesAvailable) && (asked !== "invites" || guests !== null) ? (asked as Tab) : "apercu";
   const tabHref = (key: Tab, extra: Record<string, string> = {}) =>
     `/events/${event.id}?${new URLSearchParams({ onglet: key, ...extra }).toString()}`;
-  const overdueCount = tasks.filter((task) => !task.done && task.dueDate < today).length;
+  const overdueCount = tasks.filter((task) => !task.done && task.dueDateKnown !== false && task.dueDate < today).length;
+  const undatedCount = tasks.filter((task) => !task.done && task.dueDateKnown === false).length;
   // Lot 12 (L12-EVT-14 / L12-EVT-15) : icônes des prestataires au programme, lieux saisis une fois.
   // Lot 34b (EVT-03) : les lieux nourrissent aussi la fiche d'identité de la synthèse.
   const [places, keyMoments] = tab === "programme" || tab === "apercu" ? await Promise.all([listEventPlaces(organizationId, id), listKeyMoments(organizationId, id)]) : [[], []];
@@ -1223,6 +1224,8 @@ export default async function EventDetailPage({
             </div>
             <p className="meta">
               {tLine("tabSummary", { done: tasks.filter((task) => task.done).length, total: tasks.length, late: overdueCount })}
+              {/* Lot 74b (B7) : les tâches « à dater », comptées à part, jamais en retard. */}
+              {undatedCount > 0 ? ` · ${tLine("tabUndated", { count: undatedCount })}` : ""}
               {event.eventDate ? ` · ${tLine("tabCounted", { date: formatCalendarDate(event.eventDate, locale) })}` : ""} · <Link href="/events/modeles">{tLine("tabTemplates")}</Link>
             </p>
             {/* Lot 34a (D4) : pendant un report, les échéances suivent à la confirmation du report. */}

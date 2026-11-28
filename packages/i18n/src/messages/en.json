@@ -570,7 +570,7 @@
     },
     "eventsNew": {
       "title": "Create an event",
-      "body": "One entry, \"New event\": first say where it stands — an ongoing enquiry (it stays an Option) or signed, in preparation (it becomes Confirmed and gets the task list of its type if its date is set) — then give it a name. The date, the client and the type are optional or suggested; the venue, the source and a second client are completed from its page. If you already track the event in another tool or a spreadsheet, \"Import your files\" leads to the import page without creating anything. If the date falls on the same day as another confirmed or optional event, Symbola flags it before saving, without blocking you.",
+      "body": "One entry, \"New event\": first say where it stands — an ongoing enquiry (it stays an Option) or signed, in preparation (it becomes Confirmed and, if its date is set, the window announces the planning timeline of its type and counts the tasks that fall before today; \"Change\" picks another one, or none) — then give it a name. If some due dates have already passed, \"Continue\" opens a second step: for each, \"Already done\" (done, end date not given) or \"To do\" (a new date, spread within 2, 4 or 8 weeks, on a weekday, in timeline order); \"Everything is already done\" and \"Everything is still to do\" answer for all. A task left unanswered is created \"to be dated\": neither done nor overdue, counted apart, it becomes an ordinary task as soon as you give it a date. No task is born overdue. Tasks assigned to the couple read \"With the couple\" until you open their space, then \"Waiting on the couple\". The date, the client and the type are optional or suggested; the venue, the source and a second client are completed from its page. If you already track the event in another tool or a spreadsheet, \"Import your files\" leads to the import page without creating anything. If the date falls on the same day as another confirmed or optional event, Symbola flags it before saving, without blocking you.",
       "faq": [
         {
           "q": "What is the difference between an enquiry and a signed event?",
@@ -5889,7 +5889,7 @@
       "firstStep": {
         "create": {
           "title": "{metier, select, wedding_planner {Start with your first wedding} other {Start with your first event}}",
-          "body": "{metier, select, wedding_planner {The couple, the date, where it stands: three entries. Its planning timeline and budget come with it, dated from the big day.} other {The client, the date, where it stands: three entries. Its planning timeline and budget come with it, dated from the event day.}}",
+          "body": "{metier, select, wedding_planner {The couple, the date, where it stands: three entries. Its planning timeline and budget come with it, dated from the big day; nothing is made overdue.} other {The client, the date, where it stands: three entries. Its planning timeline and budget come with it, dated from the event day; nothing is made overdue.}}",
           "action": "{metier, select, wedding_planner {Create your first wedding} other {Create your first event}}"
         },
         "takeover": {
@@ -5898,7 +5898,7 @@
         },
         "enter": {
           "title": "{metier, select, wedding_planner {Start with a wedding under way} other {Start with an event under way}}",
-          "body": "Enter one, choosing « Signed, in preparation »: its planning timeline and budget come with it.",
+          "body": "Enter one, choosing « Signed, in preparation »: its planning timeline and budget come with it; you say what is already done, nothing is made overdue.",
           "action": "{metier, select, wedding_planner {Enter a wedding under way} other {Enter an event under way}}"
         }
       },
@@ -7906,6 +7906,8 @@
     "actor": {
       "you": "You",
       "client": "Waiting on the client",
+      "clientWith": "With the couple",
+      "clientWaiting": "Waiting on the couple",
       "vendor": "Waiting on {name}"
     },
     "due": {
@@ -7923,7 +7925,8 @@
       "actLabel": "Act: {title}"
     },
     "words": {
-      "clientTask": "Task assigned to the client",
+      "clientTask": "With the couple",
+      "clientTaskWaiting": "Waiting on the couple",
       "amount": "{label} · {amount}",
       "decision": "Choice awaited: {title}",
       "paymentDeclaration": "Declared payment to confirm: {label} · {amount}",
@@ -13651,6 +13654,7 @@
     "eventCreated": "Event created",
     "eventCreatedTasksBudget": "With {count, plural, one {# task} other {# tasks}} and its budget",
     "eventCreatedTasks": "With {count, plural, one {# task} other {# tasks}}",
+    "eventCreatedPastDue": "{done} done, {todo} moved, {undated} to be dated",
     "seeTasks": "See its tasks"
   },
   "TaskLine": {
@@ -13658,6 +13662,7 @@
     "dueToday": "Today",
     "dueTomorrow": "Tomorrow",
     "dueSoon": "In {days, plural, one {# day} other {# days}}",
+    "dueUndated": "To be dated",
     "noEvent": "No event",
     "you": "You",
     "nobody": "Nobody yet",
@@ -13791,6 +13796,7 @@
     "standaloneAgencyOnly": "A task without an event goes to you or a colleague.",
     "tabTitle": "Tasks",
     "tabSummary": "{done} done out of {total} · {late} late",
+    "tabUndated": "{count} to be dated",
     "tabCounted": "dates counted from {date}",
     "tabTemplates": "Planning templates",
     "filtersLabel": "Filter tasks",
@@ -13860,6 +13866,7 @@
     "countDone": "{count, plural, =0 {No tasks done} one {# task done} other {# tasks done}} out of {total}",
     "countAll": "{count, plural, =0 {No tasks} one {# task} other {# tasks}} out of {total}",
     "countLateSuffix": "{count} late",
+    "countUndatedSuffix": "{count} to be dated",
     "countFiltered": "filtered",
     "countPeople": "{count, plural, one {# person} other {# people}}",
     "countRecentFirst": "most recent first",
@@ -14655,5 +14662,45 @@
     "colMoment": "Moment",
     "colDay": "Day",
     "tableLabel": "Moments without an end time"
+  },
+  "PastDue": {
+    "step": "Step {step} of 2",
+    "announce": "With the “{name}” planning timeline · {count, plural, one {# task} other {# tasks}}{past, plural, =0 {} one {, # of which falls before today} other {, # of which fall before today}}",
+    "announceNone": "No planning timeline: add tasks from the event page.",
+    "announceNext": "At the next step you will say which are done; none will be made overdue.",
+    "change": "Change",
+    "changeLegend": "Event planning timeline",
+    "templateOption": "{name} ({count, plural, one {# task} other {# tasks}})",
+    "noTemplate": "No planning timeline",
+    "seeTasks": "See the tasks",
+    "offset": "{days, plural, =0 {the big day} other {D{days}}}",
+    "continue": "Continue",
+    "back": "Back",
+    "invalid": "These answers do not match the tasks of the chosen planning timeline: nothing was created. Reopen the window and answer again.",
+    "stepLabel": "Step 2 of 2 · {heading}",
+    "title": "{count, plural, one {# task fell before today} other {# tasks fell before today}}",
+    "intro": "Say what is already done. A task to do gets a new date; a task with no answer is created “to be dated”. None is made overdue.",
+    "allDone": "Everything is already done",
+    "allTodo": "Everything is still to do",
+    "counts": "{done} done · {todo} to do · {unanswered} unanswered",
+    "planned": "planned for {date}",
+    "withClients": "with the couple",
+    "you": "you",
+    "resultDone": "done, end date not given",
+    "resultRedated": "moved to {date}",
+    "resultUndated": "to be dated",
+    "answerDone": "Already done",
+    "answerTodo": "To do",
+    "spreadLegend": "Spread {count, plural, =0 {the tasks to do} one {the task to do} other {the # tasks to do}}",
+    "spread": {
+      "2w": "Within 2 weeks",
+      "4w": "Within 4 weeks",
+      "8w": "Within 8 weeks",
+      "undated": "Leave to be dated"
+    },
+    "spreadRange": "from {from} to {to}",
+    "spreadUndatedHint": "They are created “to be dated”: you will date them yourself.",
+    "spreadRule": "In timeline order, on a weekday that is not a public holiday, never after the date the template gives the next task.",
+    "unansweredRule": "A task with no answer will be created “to be dated”: neither done nor overdue."
   }
 }

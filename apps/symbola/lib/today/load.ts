@@ -25,6 +25,7 @@ import {
   listReadyFollowUps,
   listStandaloneTasks,
   taskDueState,
+  eventsWithClientLink,
   closingDue,
   listEventClosings,
 } from "@/modules/events/service";
@@ -47,7 +48,10 @@ export type TodayModules = { events: boolean; quotes: boolean; budget: boolean; 
 export type TodaySource = keyof TodayModules;
 
 export type TodayWords = {
+  // Lot 74b (page 23) : une tâche des mariés, avant l'ouverture de leur espace (« Avec les mariés ») ; après
+  // (« Attend les mariés »), clientTaskWaiting (absent : le même mot).
   clientTask: string;
+  clientTaskWaiting?: string;
   amount: (label: string, amount: string) => string;
   decision: (title: string) => string;
   paymentDeclaration: (label: string, amount: string) => string;
@@ -123,18 +127,22 @@ type Context = {
 
 async function eventItems({ organizationId, words, locale, today, now, events, names, delays }: Context): Promise<TodayItem[]> {
   const items: TodayItem[] = [];
-  for (const task of await listOrganizationTasks({ organizationId, today, horizonDays: TODAY_HORIZON_DAYS })) {
+  // Lot 74b (B7) : une tâche « à dater » n'a pas d'échéance, elle n'est pas un point du jour.
+  const tasks = (await listOrganizationTasks({ organizationId, today, horizonDays: TODAY_HORIZON_DAYS })).filter((task) => task.dueState?.kind !== "undated");
+  const portals = await eventsWithClientLink(organizationId, tasks.filter((task) => task.responsible === "clients").map((task) => task.eventId));
+  for (const task of tasks) {
     const mine = task.responsible === "planner";
+    const portalOpen = portals.has(task.eventId);
     items.push({
       key: `task:${task.id}`,
       kind: mine ? "task" : "client_task",
       eventId: task.eventId,
       eventNames: task.event.names,
       title: task.label,
-      detail: mine ? undefined : words.clientTask,
+      detail: mine ? undefined : portalOpen ? (words.clientTaskWaiting ?? words.clientTask) : words.clientTask,
       dueOn: task.dueDate,
       since: null,
-      actor: mine ? { kind: "you" } : { kind: "client" },
+      actor: mine ? { kind: "you" } : { kind: "client", portalOpen },
       href: `/events/${task.eventId}?onglet=taches&tache=${task.id}`,
       action: mine ? { kind: "check_task", eventId: task.eventId, taskId: task.id } : { kind: "open" },
       // Lot 70c (D3, M3) : la ligne type ; une tâche confiée aux mariés garde « Fait ».

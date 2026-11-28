@@ -203,6 +203,11 @@ export type CreateProspectInput = {
   // préparation » (Confirmé), d'origine « reprise », à une date de signature que la planner n'a pas
   // dite ; aucun modèle de rétroplanning ne s'applique (ses tâches viendront de sa liste).
   takeover?: boolean;
+  // Lot 74b (B7, L74-D2) : les réponses de l'étape « Les échéances déjà passées » de « Nouvel évènement »,
+  // une par tâche du modèle (son identifiant) et la répartition des tâches à faire ; une tâche passée sans
+  // réponse est créée « à dater ». `now` : l'horloge (simulée dans les tests).
+  pastDue?: { tasks: Readonly<Record<string, "done" | "todo">>; spread: "2w" | "4w" | "8w" | "undated" };
+  now?: Date;
 };
 
 export type CreateProspectResult = {
@@ -507,6 +512,9 @@ export type EventTask = {
   // Lot 70a (UX-06, CHR-05 ; Q47-4) : état d'échéance, calculé là où le jour est connu (listes) ;
   // null pour une tâche faite.
   dueState?: TaskDueState | null;
+  // Lot 74b (B7, L74-D3) : faux pour une tâche « à dater » (dueDate est alors la date de l'évènement, une
+  // date technique) ; absent : une vraie échéance.
+  dueDateKnown?: boolean;
 };
 
 // Lot 70a (D1, A9) : qui a coché — un membre (et lequel), les clients par leur lien, un prestataire
@@ -610,6 +618,8 @@ export type TaskList = {
   filtered: number;
   // Parmi elles, celles en retard.
   late: number;
+  // Lot 74b (B7) : parmi elles, celles « à dater » (comptées à part, jamais en retard).
+  undated?: number;
   // Seuil de « Bientôt » de l'organisation (M10).
   soonDays: number;
   // Lot 70d (CHR-03 crit. 3, PAR-10) : toutes les tâches à faire que la personne voit, sans filtre (« 4 tâches

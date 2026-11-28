@@ -583,6 +583,10 @@ export const eventTasks = eventsSchema.table("event_tasks", {
   // tâche reprise déjà faite) : « Faite · date de fin non renseignée ». done_at reste rempli pour les tris
   // et la contrainte event_tasks_done_by_check.
   doneDateKnown: boolean("done_date_known").notNull().default(true),
+  // Lot 74b (B7, L74-D3 ; migration 0245) : faux pour une tâche « à dater » (une échéance déjà passée d'un
+  // mariage créé, laissée sans réponse) : due_date est alors une date technique (la date de l'évènement),
+  // jamais une échéance ; la tâche n'est jamais en retard. Redatée à la main, elle redevient ordinaire.
+  dueDateKnown: boolean("due_date_known").notNull().default(true),
   doneByUserId: uuid("done_by_user_id"),
   // Lot 70a (A7, migration 0213) : note interne à l'agence, jamais montrée aux mariés ni aux prestataires.
   note: text("note"),
@@ -2179,7 +2183,8 @@ export const taskChangeSnapshots = eventsSchema.table(
 // personne. Aucun libellé.
 export type TaskChangeSnapshotPayload = {
   kind: "date" | "assignee";
-  tasks: { id: string; dueDate: string; fixedAt: string | null; responsible: "planner" | "clients" | "vendor"; vendorCandidateId: string | null; assigneeUserId: string | null }[];
+  // Lot 74b (B7) : dueDateKnown, absent dans les valeurs gardées avant le lot (vrai).
+  tasks: { id: string; dueDate: string; fixedAt: string | null; dueDateKnown?: boolean; responsible: "planner" | "clients" | "vendor"; vendorCandidateId: string | null; assigneeUserId: string | null }[];
 };
 
 // Lot 73a (PRE-02, UX-07 ; spécification du lot 73, § 4.2) — « Annuler » un ajout à un mariage : le poste

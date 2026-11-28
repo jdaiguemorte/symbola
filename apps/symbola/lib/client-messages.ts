@@ -55,6 +55,9 @@ export const SERVER_ONLY_NAMESPACES = [
   // Lot 71e : l'écran et le bilan des PDF de prestataires retenus et de programme, rendus côté serveur.
   "ImportPdf",
   "ProgramGaps",
+  // Lot 74b : les échéances déjà passées de « Nouvel évènement » ; la seule page /events/new les passe à sa
+  // fenêtre (createTranslator), elles ne partent pas avec les autres pages.
+  "PastDue",
   // Lot 74g : les 38 rubriques et « Vos données », lus côté serveur ; l'accueil des Paramètres reçoit ses
   // textes en propriétés, sa recherche les siens (« SettingsSearch »).
   "SettingsMenu",

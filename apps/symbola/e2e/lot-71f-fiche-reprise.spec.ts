@@ -17,6 +17,7 @@ import { addEventVendorSlot, addProgramItem, addVendorCandidate, createProspect,
 import { markTakeoverStepImported, settleTakeoverStep } from "../modules/hub/service";
 import { enterTakeoverEvent, type TakeoverActor } from "../lib/takeover/flow";
 import { readyOrganization, signIn } from "./helpers";
+import { reportMeasure } from "./mesure";
 
 const expect = baseExpect.configure({ timeout: 20_000 });
 
@@ -244,6 +245,7 @@ test.describe("EVT-02 — La fiche d'un mariage repris (lot 71f)", () => {
       series.push(Math.round(times[Math.ceil(times.length * 0.95) - 1]!));
     }
     const median = [...series].sort((a, b) => a - b)[1]!;
+    reportMeasure(testInfo, { mesure: "Lot 71f — NFR-02, liste de 200 évènements, marque et filtre « Origine » (médiane des 95e centiles de 3 séries)", valeur: median, seuil: 300, detail: `séries : ${series.join(", ")} ms` });
     expect(median, `95e centiles : ${series.join(", ")} ms`).toBeLessThan(300);
   });
 });
