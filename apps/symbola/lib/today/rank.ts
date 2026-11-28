@@ -14,7 +14,9 @@ export { HOME_FIRST_COUNT, TODAY_HORIZON_DAYS };
 export const FIRST_COUNT = 3;
 
 // UX-06 et D4 : qui doit agir. Lot 72a (UX-13) : la fiche du prestataire, pour son contact.
-export type TodayActor = { kind: "you" } | { kind: "client" } | { kind: "vendor"; name: string; vendorId?: string | null | undefined };
+// Lot 74b (CHR-02 ; page 23) : `portalOpen` pour une tâche des mariés : « Avec les mariés » tant que leur
+// espace n'est pas ouvert, « Attend les mariés » ensuite ; absent ailleurs (« Attend le client »).
+export type TodayActor = { kind: "you" } | { kind: "client"; portalOpen?: boolean } | { kind: "vendor"; name: string; vendorId?: string | null | undefined };
 
 export type TodayItemKind =
   | "task"

@@ -67,6 +67,8 @@ function filtersOf(filters: TaskListFilters, viewer: TaskListViewer, today: stri
       break;
   }
   if (filters.period) {
+    // Lot 74b (B7) : une tâche « à dater » n'a pas d'échéance : aucune période (ni « En retard ») ne la prend.
+    conditions.push(eq(eventTasks.dueDateKnown, true));
     const range = periodRange(filters.period, today);
     if (range.from) conditions.push(gte(eventTasks.dueDate, range.from));
     if (range.to) conditions.push(lte(eventTasks.dueDate, range.to));
@@ -132,9 +134,10 @@ export async function findAgencyOverview(input: { organizationId: string; viewer
       tx
         .select({
           who: whoKey,
-          late: sql<number>`count(*) filter (where ${eventTasks.dueDate} < ${today}::date)::int`,
-          today: sql<number>`count(*) filter (where ${eventTasks.dueDate} = ${today}::date)::int`,
-          horizon: sql<number>`count(*) filter (where ${eventTasks.dueDate} <= ${horizonEnd}::date)::int`,
+          // Lot 74b (B7) : une tâche « à dater » n'est ni en retard, ni due dans l'horizon.
+          late: sql<number>`count(*) filter (where ${eventTasks.dueDateKnown} and ${eventTasks.dueDate} < ${today}::date)::int`,
+          today: sql<number>`count(*) filter (where ${eventTasks.dueDateKnown} and ${eventTasks.dueDate} = ${today}::date)::int`,
+          horizon: sql<number>`count(*) filter (where ${eventTasks.dueDateKnown} and ${eventTasks.dueDate} <= ${horizonEnd}::date)::int`,
         })
         .from(eventTasks)
         .leftJoin(events, eq(events.id, eventTasks.eventId))
@@ -145,7 +148,7 @@ export async function findAgencyOverview(input: { organizationId: string; viewer
           eventId: sql<string>`${eventTasks.eventId}`,
           done: sql<number>`count(*) filter (where ${eventTasks.doneAt} is not null)::int`,
           total: sql<number>`count(*)::int`,
-          late: sql<number>`count(*) filter (where ${eventTasks.doneAt} is null and ${eventTasks.dueDate} < ${today}::date)::int`,
+          late: sql<number>`count(*) filter (where ${eventTasks.doneAt} is null and ${eventTasks.dueDateKnown} and ${eventTasks.dueDate} < ${today}::date)::int`,
         })
         .from(eventTasks)
         .innerJoin(events, eq(events.id, eventTasks.eventId))
@@ -156,7 +159,7 @@ export async function findAgencyOverview(input: { organizationId: string; viewer
         .selectDistinctOn([eventTasks.eventId], { eventId: sql<string>`${eventTasks.eventId}`, label: eventTasks.label, dueDate: eventTasks.dueDate })
         .from(eventTasks)
         .innerJoin(events, eq(events.id, eventTasks.eventId))
-        .where(and(visible, isNull(eventTasks.doneAt), sql`${eventTasks.dueDate} < ${today}::date`))
+        .where(and(visible, isNull(eventTasks.doneAt), eq(eventTasks.dueDateKnown, true), sql`${eventTasks.dueDate} < ${today}::date`))
         .orderBy(eventTasks.eventId, asc(eventTasks.dueDate), asc(eventTasks.position), asc(eventTasks.createdAt)),
       tx
         .select({ userId: eventTeamMembers.userId, events: sql<number>`count(distinct ${eventTeamMembers.eventId})::int` })

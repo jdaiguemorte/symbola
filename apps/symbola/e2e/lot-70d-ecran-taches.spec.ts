@@ -13,6 +13,7 @@ import { parisToday } from "@symbola/i18n";
 import { addEventTask, addStandaloneTask, changeEventStatus, createProspect, createProspectSource, listTasks, updateEventTask } from "../modules/events/service";
 import { createTakeover } from "../modules/hub/service";
 import { feedback, readyOrganization, signIn } from "./helpers";
+import { reportMeasure } from "./mesure";
 
 function addDays(date: string, days: number): string {
   const value = new Date(`${date}T00:00:00Z`);
@@ -513,7 +514,7 @@ test.describe("Lot 70d — l'écran « Tâches »", () => {
       series.push(Math.round(sorted[Math.ceil(0.95 * sorted.length) - 1]!));
     }
     const median = [...series].sort((a, b) => a - b)[1]!;
-    console.log(`Lot 70d — NFR-02, « Tâches » avec 500 tâches : 95e centiles ${series.join(", ")} ms, médiane ${median} ms (seuil 300 ms).`);
+    reportMeasure(testInfo, { mesure: "Lot 70d — NFR-02, « Tâches » avec 500 tâches (médiane des 95e centiles de 3 séries)", valeur: median, seuil: 300, detail: `séries : ${series.join(", ")} ms` });
     expect(median).toBeLessThan(300);
   });
 });

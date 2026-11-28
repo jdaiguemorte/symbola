@@ -570,7 +570,7 @@
     },
     "eventsNew": {
       "title": "Créer un évènement",
-      "body": "Une seule entrée, « Nouvel évènement » : dites d'abord où il en est — une demande en cours (il reste une Option) ou signé, en préparation (il est Confirmé et reçoit la liste de tâches de son type si sa date est fixée) —, puis donnez-lui un nom. La date, le client et le type sont facultatifs ou proposés ; le lieu, la source et un second client se complètent depuis la fiche. Si vous suivez déjà l'évènement dans un autre logiciel ou un tableur, « Reprendre ses fichiers » mène à la page de reprise, sans rien créer. Si la date tombe le même jour qu'un autre évènement confirmé ou en option, Symbola le signale avant l'enregistrement, sans l'empêcher.",
+      "body": "Une seule entrée, « Nouvel évènement » : dites d'abord où il en est — une demande en cours (il reste une Option) ou signé, en préparation (il est Confirmé et, si sa date est fixée, la fenêtre annonce le rétroplanning de son type et compte les tâches qui tombent avant aujourd'hui ; « Changer » en choisit un autre, ou aucun) —, puis donnez-lui un nom. S'il y a des échéances déjà passées, « Continuer » ouvre une seconde étape : pour chacune, « Déjà fait » (faite, date de fin non renseignée) ou « À faire » (une nouvelle date, répartie d'ici 2, 4 ou 8 semaines, un jour de semaine, dans l'ordre du rétroplanning) ; « Tout est déjà fait » et « Tout reste à faire » répondent pour toutes. Une tâche laissée sans réponse est créée « à dater » : ni faite ni en retard, comptée à part, elle redevient ordinaire dès que vous lui donnez une date. Aucune tâche ne naît en retard. Les tâches confiées aux mariés se lisent « Avec les mariés » jusqu'à ce que vous leur ouvriez leur espace, puis « Attend les mariés ». La date, le client et le type sont facultatifs ou proposés ; le lieu, la source et un second client se complètent depuis la fiche. Si vous suivez déjà l'évènement dans un autre logiciel ou un tableur, « Reprendre ses fichiers » mène à la page de reprise, sans rien créer. Si la date tombe le même jour qu'un autre évènement confirmé ou en option, Symbola le signale avant l'enregistrement, sans l'empêcher.",
       "faq": [
         {
           "q": "Quelle différence entre une demande et un évènement signé ?",
@@ -5940,7 +5940,7 @@
       "firstStep": {
         "create": {
           "title": "{metier, select, wedding_planner {Commencez par votre premier mariage} other {Commencez par votre premier évènement}}",
-          "body": "{metier, select, wedding_planner {Ses mariés, sa date, où il en est : trois saisies. Son rétroplanning et son budget arrivent avec, datés depuis le jour J.} other {Son client, sa date, où il en est : trois saisies. Son rétroplanning et son budget arrivent avec, datés depuis le jour J.}}",
+          "body": "{metier, select, wedding_planner {Ses mariés, sa date, où il en est : trois saisies. Son rétroplanning et son budget arrivent avec, datés depuis le jour J ; rien n'est mis en retard.} other {Son client, sa date, où il en est : trois saisies. Son rétroplanning et son budget arrivent avec, datés depuis le jour J ; rien n'est mis en retard.}}",
           "action": "{metier, select, wedding_planner {Créer votre premier mariage} other {Créer votre premier évènement}}"
         },
         "takeover": {
@@ -5949,7 +5949,7 @@
         },
         "enter": {
           "title": "{metier, select, wedding_planner {Commencez par un mariage en cours} other {Commencez par un évènement en cours}}",
-          "body": "Saisissez-en un en choisissant « Signé, en préparation » : son rétroplanning et son budget arrivent avec.",
+          "body": "Saisissez-en un en choisissant « Signé, en préparation » : son rétroplanning et son budget arrivent avec ; vous direz ce qui est déjà fait, rien n'est mis en retard.",
           "action": "{metier, select, wedding_planner {Entrer un mariage en cours} other {Entrer un évènement en cours}}"
         }
       },
@@ -7957,6 +7957,8 @@
     "actor": {
       "you": "Vous",
       "client": "Attend le client",
+      "clientWith": "Avec les mariés",
+      "clientWaiting": "Attend les mariés",
       "vendor": "Attend {name}"
     },
     "due": {
@@ -7974,7 +7976,8 @@
       "actLabel": "Agir : {title}"
     },
     "words": {
-      "clientTask": "Tâche confiée au client",
+      "clientTask": "Avec les mariés",
+      "clientTaskWaiting": "Attend les mariés",
       "amount": "{label} · {amount}",
       "decision": "Choix attendu : {title}",
       "paymentDeclaration": "Règlement déclaré à confirmer : {label} · {amount}",
@@ -13702,6 +13705,7 @@
     "eventCreated": "Évènement créé",
     "eventCreatedTasksBudget": "Avec {count, plural, one {# tâche} other {# tâches}} et son budget",
     "eventCreatedTasks": "Avec {count, plural, one {# tâche} other {# tâches}}",
+    "eventCreatedPastDue": "{done, plural, one {# faite} other {# faites}}, {todo} redatée{todo, plural, one {} other {s}}, {undated} à dater",
     "seeTasks": "Voir ses tâches"
   },
   "TaskLine": {
@@ -13709,6 +13713,7 @@
     "dueToday": "Aujourd'hui",
     "dueTomorrow": "Demain",
     "dueSoon": "Dans {days, plural, one {# jour} other {# jours}}",
+    "dueUndated": "À dater",
     "noEvent": "Hors évènement",
     "you": "Vous",
     "nobody": "Personne pour l'instant",
@@ -13842,6 +13847,7 @@
     "standaloneAgencyOnly": "Une tâche sans évènement se confie à vous ou à un collègue.",
     "tabTitle": "Tâches",
     "tabSummary": "{done} faites sur {total} · {late} en retard",
+    "tabUndated": "{count} à dater",
     "tabCounted": "dates comptées depuis le {date}",
     "tabTemplates": "Modèles de rétroplanning",
     "filtersLabel": "Filtrer les tâches",
@@ -13911,6 +13917,7 @@
     "countDone": "{count, plural, =0 {Aucune tâche faite} one {# tâche faite} other {# tâches faites}} sur {total}",
     "countAll": "{count, plural, =0 {Aucune tâche} one {# tâche} other {# tâches}} sur {total}",
     "countLateSuffix": "{count} en retard",
+    "countUndatedSuffix": "{count} à dater",
     "countFiltered": "filtrées",
     "countPeople": "{count, plural, one {# personne} other {# personnes}}",
     "countRecentFirst": "les plus récentes en tête",
@@ -14511,5 +14518,45 @@
     "nextTitle": "Et maintenant",
     "nextTakeover": "La ligne « Budget » de la reprise de « {event} » est cochée.",
     "backToTakeover": "Retour à la reprise"
+  },
+  "PastDue": {
+    "step": "Étape {step} sur 2",
+    "announce": "Avec le rétroplanning « {name} » · {count, plural, one {# tâche} other {# tâches}}{past, plural, =0 {} one {, dont # tombe avant aujourd'hui} other {, dont # tombent avant aujourd'hui}}",
+    "announceNone": "Sans rétroplanning : les tâches s'ajoutent depuis la fiche.",
+    "announceNext": "Vous direz à l'étape suivante lesquelles sont faites ; aucune ne sera mise en retard.",
+    "change": "Changer",
+    "changeLegend": "Rétroplanning de l'évènement",
+    "templateOption": "{name} ({count, plural, one {# tâche} other {# tâches}})",
+    "noTemplate": "Aucun rétroplanning",
+    "seeTasks": "Voir les tâches",
+    "offset": "{days, plural, =0 {le jour J} other {J{days}}}",
+    "continue": "Continuer",
+    "back": "Retour",
+    "invalid": "Ces réponses ne portent pas sur les tâches du rétroplanning choisi : rien n'a été créé. Rouvrez la fenêtre et répondez de nouveau.",
+    "stepLabel": "Étape 2 sur 2 · {heading}",
+    "title": "{count, plural, one {# tâche tombait avant aujourd'hui} other {# tâches tombaient avant aujourd'hui}}",
+    "intro": "Dites ce qui est déjà fait. Une tâche à faire reçoit une nouvelle date ; une tâche sans réponse est créée « à dater ». Aucune n'est mise en retard.",
+    "allDone": "Tout est déjà fait",
+    "allTodo": "Tout reste à faire",
+    "counts": "{done, plural, one {# faite} other {# faites}} · {todo} à faire · {unanswered} sans réponse",
+    "planned": "prévue le {date}",
+    "withClients": "avec les mariés",
+    "you": "vous",
+    "resultDone": "faite, date de fin non renseignée",
+    "resultRedated": "redatée au {date}",
+    "resultUndated": "à dater",
+    "answerDone": "Déjà fait",
+    "answerTodo": "À faire",
+    "spreadLegend": "Répartir {count, plural, =0 {les tâches à faire} one {la tâche à faire} other {les # tâches à faire}}",
+    "spread": {
+      "2w": "D'ici 2 semaines",
+      "4w": "D'ici 4 semaines",
+      "8w": "D'ici 8 semaines",
+      "undated": "Laisser à dater"
+    },
+    "spreadRange": "du {from} au {to}",
+    "spreadUndatedHint": "Elles sont créées « à dater » : vous les daterez vous-même.",
+    "spreadRule": "Dans l'ordre du rétroplanning, un jour de semaine hors jours fériés, jamais après la date que le modèle donne à la tâche suivante.",
+    "unansweredRule": "Une tâche sans réponse sera créée « à dater » : ni faite, ni en retard."
   }
 }
