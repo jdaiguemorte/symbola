@@ -10,7 +10,7 @@
 // 3. le lendemain du jour J, tant que l'évènement n'est pas clôturé : « Clôturer l'évènement… » ;
 // 4. une demande en cours : le devis à envoyer ; envoyé, sa relance ; signé, le passage en signé (jamais
 //    « faire signer » ce qui l'est) ; sans le module Devis, les points de la demande ;
-// 5. signé sans tâches : « Créer la liste des tâches » ;
+// 5. signé sans tâches : « Créer la liste des tâches », les étapes en attente en lignes dessous ;
 // 6. sinon, les points de l'évènement (les mêmes que l'accueil), et les étapes en attente en lignes.
 import type { EventStatus } from "@/modules/events/service";
 
@@ -47,7 +47,7 @@ export type Suite =
   | { kind: "follow_quote"; quoteId: string; number: string | null; sentOn: string | null }
   | { kind: "quote_signed"; quoteId: string; number: string | null }
   | { kind: "enquiry" }
-  | { kind: "create_tasks"; withTemplate: boolean; needsDate: boolean }
+  | { kind: "create_tasks"; withTemplate: boolean; needsDate: boolean; steps: PendingStep[] }
   | { kind: "lines"; steps: PendingStep[] };
 
 // Le programme se prépare dans les 3 mois qui précèdent l'événement.
@@ -78,7 +78,7 @@ export function eventSuite(input: SuiteInput): Suite {
     if (quote?.status === "sent") return { kind: "follow_quote", quoteId: quote.id, number: quote.number, sentOn: quote.sentOn };
     return { kind: "send_quote", draftId: quote?.status === "draft" ? quote.id : null };
   }
-  if (input.taskCount === 0 && !input.isDemo) return { kind: "create_tasks", withTemplate: input.templateCount > 0, needsDate: input.eventDate === null };
+  if (input.taskCount === 0 && !input.isDemo) return { kind: "create_tasks", withTemplate: input.templateCount > 0, needsDate: input.eventDate === null, steps: pendingSteps(input) };
   return { kind: "lines", steps: pendingSteps(input) };
 }
 

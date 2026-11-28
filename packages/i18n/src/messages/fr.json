@@ -14497,7 +14497,7 @@
       "budgetValue": "{committed} engagés sur {envelope}",
       "budgetNoEnvelope": "{committed} engagés · pas d'enveloppe fixée",
       "vendors": "Prestataires",
-      "vendorsValue": "{complete} {complete, plural, one {poste complet} other {postes complets}} sur {total}",
+      "vendorsValue": "{complete, plural, =0 {Aucun poste complet} one {# poste complet} other {# postes complets}} sur {total}",
       "contractsAwaited": "{count, plural, one {# contrat attendu} other {# contrats attendus}}",
       "vendorsNone": "Aucun poste requis",
       "decisions": "Décisions des mariés",

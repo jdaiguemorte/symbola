@@ -33,8 +33,11 @@ describe("EVT-02 — Une seule suite par mariage (lot 72e, critère 1 ; C-24, C-
     expect(eventSuite({ ...base, status: "option", quotesAvailable: false, quote: null })).toEqual({ kind: "enquiry" });
   });
   it("signé sans tâches : créer la liste (rétroplanning s'il y a un modèle ; la date d'abord si elle manque)", () => {
-    expect(eventSuite({ ...base, taskCount: 0 })).toEqual({ kind: "create_tasks", withTemplate: true, needsDate: false });
-    expect(eventSuite({ ...base, taskCount: 0, templateCount: 0, eventDate: null })).toEqual({ kind: "create_tasks", withTemplate: false, needsDate: true });
+    expect(eventSuite({ ...base, taskCount: 0 })).toEqual({ kind: "create_tasks", withTemplate: true, needsDate: false, steps: [] });
+    expect(eventSuite({ ...base, taskCount: 0, templateCount: 0, eventDate: null })).toEqual({ kind: "create_tasks", withTemplate: false, needsDate: true, steps: [] });
+  });
+  it("signé sans tâches, une étape en attente reste une ligne sous la liste à créer (PRD-BUD-02 : la simulation à confirmer)", () => {
+    expect(eventSuite({ ...base, taskCount: 0, budgetSimulationPending: true, clientLinkCount: 0 })).toEqual({ kind: "create_tasks", withTemplate: true, needsDate: false, steps: ["confirm_budget", "invite_clients"] });
   });
   it("en préparation : les points de l'évènement, sans étape quand rien n'attend", () => {
     expect(eventSuite(base)).toEqual({ kind: "lines", steps: [] });

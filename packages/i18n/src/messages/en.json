@@ -14497,7 +14497,7 @@
       "budgetValue": "{committed} committed of {envelope}",
       "budgetNoEnvelope": "{committed} committed · no envelope set",
       "vendors": "Vendors",
-      "vendorsValue": "{complete} {complete, plural, one {complete item} other {complete items}} of {total}",
+      "vendorsValue": "{complete, plural, =0 {No complete item} one {# complete item} other {# complete items}} of {total}",
       "contractsAwaited": "{count, plural, one {# contract awaited} other {# contracts awaited}}",
       "vendorsNone": "No required item",
       "decisions": "Couple's decisions",

@@ -145,6 +145,34 @@ export async function EventSuite(props: {
     return section(<div className="event-suite-step-main">{body}</div>, t("nextAction"), props.stateWords);
   }
 
+  const stepLine = (step: PendingStep) => (
+    <li key={step} className="today-item event-suite-step" data-step={step}>
+      <div className="today-item-body">
+        <span className="today-item-title">{t(`step.${step}.title`)}</span>
+        <p className="today-item-meta">
+          {step === "prepare_program" && event.eventDate ? t("step.prepare_program.body", { days: daysBetween(props.today, event.eventDate) }) : t(`step.${step}.body`)}
+        </p>
+        <p className="today-item-tags">
+          <span className="badge">{t("stepLabel")}</span>
+        </p>
+      </div>
+      <div className="today-action">
+        {step === "confirm_budget" ? (
+          <form action={confirmEventBudgetAction}>
+            <input type="hidden" name="eventId" value={event.id} />
+            <button type="submit" className="button-secondary">
+              {t("step.confirm_budget.action")}
+            </button>
+          </form>
+        ) : (
+          <Link href={step === "prepare_program" ? hrefs.program : hrefs.links} className="button-link">
+            {t(`step.${step}.action`)}
+          </Link>
+        )}
+      </div>
+    </li>
+  );
+
   if (suite.kind === "create_tasks") {
     const body = (
       <div className="event-suite-step-main">
@@ -181,7 +209,20 @@ export async function EventSuite(props: {
         )}
       </div>
     );
-    return section(body, t("nextAction"), props.stateWords);
+    // Les étapes en attente (la simulation à confirmer, le lien des mariés) restent des lignes, en boutons
+    // secondaires : la liste des tâches garde la seule action principale.
+    return section(
+      suite.steps.length > 0 ? (
+        <>
+          {body}
+          <ul className="today-items event-suite-lines">{suite.steps.map(stepLine)}</ul>
+        </>
+      ) : (
+        body
+      ),
+      t("nextAction"),
+      props.stateWords,
+    );
   }
 
   // Les points de l'évènement : la fonction de l'accueil, restreinte à lui (J13), avec les mêmes modules et
@@ -231,34 +272,6 @@ export async function EventSuite(props: {
   // Rien d'ici 14 jours : la prochaine échéance au-delà, s'il y en a une.
   const horizon = plusDays(props.today, TODAY_HORIZON_DAYS);
   const nextDue = props.tasks.filter((task) => !task.done && task.dueDate > horizon).sort((a, b) => a.dueDate.localeCompare(b.dueDate))[0];
-  const stepLine = (step: PendingStep) => (
-    <li key={step} className="today-item event-suite-step" data-step={step}>
-      <div className="today-item-body">
-        <span className="today-item-title">{t(`step.${step}.title`)}</span>
-        <p className="today-item-meta">
-          {step === "prepare_program" && event.eventDate ? t("step.prepare_program.body", { days: daysBetween(props.today, event.eventDate) }) : t(`step.${step}.body`)}
-        </p>
-        <p className="today-item-tags">
-          <span className="badge">{t("stepLabel")}</span>
-        </p>
-      </div>
-      <div className="today-action">
-        {step === "confirm_budget" ? (
-          <form action={confirmEventBudgetAction}>
-            <input type="hidden" name="eventId" value={event.id} />
-            <button type="submit" className="button-secondary">
-              {t("step.confirm_budget.action")}
-            </button>
-          </form>
-        ) : (
-          <Link href={step === "prepare_program" ? hrefs.program : hrefs.links} className="button-link">
-            {t(`step.${step}.action`)}
-          </Link>
-        )}
-      </div>
-    </li>
-  );
-
   const count = (
     <p className="event-suite-count">
       {t("points", { points: ranked.points, late: ranked.late })}

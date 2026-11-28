@@ -13,7 +13,7 @@ import { changeEventStatus, createProspect, createProspectSource, setEventType }
 import { ensureEventTypes } from "../lib/events/event-types";
 import { createAppointmentType, saveAvailabilityRules, saveBookingPage } from "../modules/appointments/service";
 import { setModuleEnabled } from "../modules/hub/service";
-import { readyOrganization, signIn } from "./helpers";
+import { openEventInfo, readyOrganization, saveEventInfo, signIn } from "./helpers";
 
 async function expectNoAxeViolation(page: Page) {
   const result = await new AxeBuilder({ page }).analyze();
@@ -74,32 +74,37 @@ test("HUB-29, RDV-01, RDV-02 — plages occupées par type et par évènement ; 
   await expect(optionsSwitch).toHaveAttribute("aria-checked", "false");
 
   // M3, M4 : le mariage de Kévin et Kévina, de la veille 14 h au lendemain 12 h.
+  // Lot 72e : la plage se lit sur la ligne « Agenda » d'« Informations » et se règle dans la rubrique
+  // « Date et lieux » de « Modifier les informations ».
   await page.goto(`/events/${weddingId}`);
-  const card = page.getByRole("region", { name: "Plage occupée" });
-  await expect(card).toContainText("Règle du type Mariage");
-  await expect(card).toContainText("samedi 12 juin 2027, de 8 h à 23 h");
+  const agenda = page.locator('.overview-info-row[data-key="busy"] dd');
+  await expect(agenda).toContainText("samedi 12 juin 2027, de 8 h à 23 h");
   await expectNoAxeViolation(page);
-  await card.getByRole("button", { name: "Modifier pour cet évènement" }).click();
-  const own = page.getByRole("dialog", { name: /Plage occupée — Kévin/ });
-  await own.getByRole("group", { name: "Début" }).getByLabel("Jour").selectOption("-1");
-  await own.getByRole("group", { name: "Début" }).getByLabel("Heure").fill("14:00");
-  await own.getByRole("group", { name: "Fin" }).getByLabel("Jour").selectOption("1");
-  await own.getByRole("group", { name: "Fin" }).getByLabel("Heure").fill("12:00");
-  await expect(own).toContainText("soit 46 h.");
-  await own.getByRole("button", { name: "Enregistrer pour cet évènement" }).click();
-  await expect(card).toContainText("Réglage propre à cet évènement");
-  await expect(card).toContainText("Du vendredi 11 juin 2027, 14 h, au dimanche 13 juin 2027, 12 h");
+  let info = await openEventInfo(page, "Date et lieux");
+  await expect(info.getByRole("radio", { name: "Selon le type de l'évènement" })).toBeChecked();
+  await info.getByRole("radio", { name: "Régler pour cet évènement" }).check();
+  await info.getByRole("group", { name: "Début" }).getByLabel("Jour").selectOption("-1");
+  await info.getByRole("group", { name: "Début" }).getByLabel("Heure").fill("14:00");
+  await info.getByRole("group", { name: "Fin" }).getByLabel("Jour").selectOption("1");
+  await info.getByRole("group", { name: "Fin" }).getByLabel("Heure").fill("12:00");
+  await expect(info).toContainText("soit 46 h.");
+  await saveEventInfo(page);
+  await expect(agenda).toContainText("Du vendredi 11 juin 2027, 14 h, au dimanche 13 juin 2027, 12 h");
   const file = await page.request.get(`/events/${weddingId}/agenda`);
   expect(file.status()).toBe(200);
   const ics = await file.text();
   expect(ics).toContain("DTSTART:20270611T120000Z");
   expect(ics).toContain("TRANSP:OPAQUE");
-  await card.getByRole("button", { name: "Ajouter à mon agenda" }).click();
+  await agenda.getByRole("button", { name: "Ajouter à mon agenda" }).click();
   await expect(page.getByRole("dialog", { name: "Ajouter à mon agenda" })).toContainText("ne suit pas les changements");
   await expectNoAxeViolation(page);
   await page.keyboard.press("Escape");
-  await card.getByRole("button", { name: "Revenir à la règle du type" }).click();
-  await expect(card).toContainText("Règle du type Mariage");
+  // Revenir à la règle du type.
+  info = await openEventInfo(page, "Date et lieux");
+  await expect(info.getByRole("radio", { name: "Régler pour cet évènement" })).toBeChecked();
+  await info.getByRole("radio", { name: "Selon le type de l'évènement" }).check();
+  await saveEventInfo(page);
+  await expect(agenda).toContainText("samedi 12 juin 2027, de 8 h à 23 h");
 
   // M7 (D7, D8) : une description et une question obligatoire à choix.
   await page.goto(`/rendez-vous/reglages/types/${typeId}`);
