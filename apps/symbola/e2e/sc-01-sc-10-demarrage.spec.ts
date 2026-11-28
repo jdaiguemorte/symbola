@@ -7,6 +7,7 @@ import { randomUUID } from "node:crypto";
 import AxeBuilder from "./axe";
 import { expect, test, type Page } from "@playwright/test";
 import { crossIdentityProvider, latestMagicLink, signIn } from "./helpers";
+import { submitNewEvent } from "./new-event";
 
 const TEN_MINUTES_MS = 10 * 60 * 1000;
 
@@ -66,7 +67,7 @@ test("SC-01 / PAR-01 / UX-04 — le premier quart d'heure sur téléphone : de l
   await page.getByRole("radio", { name: /^Signé, en préparation/ }).check();
   await page.getByLabel(/^Nom de l'évènement/).fill("Léa & Maxime");
   await page.getByLabel(/^Date/).fill("2027-06-12");
-  await page.getByRole("button", { name: "Créer l'évènement" }).click();
+  await submitNewEvent(page);
   await expect(page).toHaveURL(/\/events\/[0-9a-f-]{36}$/);
   const eventUrl = page.url();
 

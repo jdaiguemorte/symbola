@@ -53,7 +53,8 @@ const WEDDING = [
   { label: "Plan de table", offsetDays: -14, responsible: "clients" as const },
 ];
 
-async function wedding(organizationId: string, eventDate: string | null, options: { eventTypeId?: string; taskTemplateId?: string } = {}) {
+// Lot 74b (B7) : `now`, l'horloge de la création ; une échéance du modèle déjà passée à cette date naît « à dater ».
+async function wedding(organizationId: string, eventDate: string | null, options: { eventTypeId?: string; taskTemplateId?: string; now?: Date } = {}) {
   const source = await createProspectSource(organizationId, "Salon");
   return (
     await createProspect({
@@ -148,7 +149,8 @@ describe("EVT-05 / CHR-01 / DAT-07 — Reporter un évènement (D4, D5, horloge 
   async function confirmedWedding() {
     const organizationId = randomUUID();
     const template = await createTaskTemplate(organizationId, "Mariage — 12 mois", WEDDING);
-    const eventId = await wedding(organizationId, "2027-06-12", { taskTemplateId: template.id });
+    // Créé un an et demi avant le jour J : aucune échéance du modèle n'est déjà passée (lot 74b).
+    const eventId = await wedding(organizationId, "2027-06-12", { taskTemplateId: template.id, now: new Date("2026-01-05T09:00:00Z") });
     await changeEventStatus({ organizationId, eventId, changedByUserId: plannerId, toStatus: "confirmed" });
     const tasks = await listEventTasks(organizationId, eventId);
     const byLabel = (label: string) => tasks.find((task) => task.label === label)!;

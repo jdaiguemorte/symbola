@@ -12,6 +12,7 @@ import { createProspect, createProspectSource } from "../modules/events/service"
 import { saveOnboardingStep } from "../modules/hub/service";
 import { clickMenuLink, openEventTab, readyOrganization, signIn } from "./helpers";
 import { openQuoteForm, openQuoteRubric } from "./devis-rubriques";
+import { submitNewEvent } from "./new-event";
 
 async function expectNoAxeViolation(page: Page) {
   const result = await new AxeBuilder({ page }).analyze();
@@ -77,7 +78,7 @@ test("CRM-03 / UX-02 — Léa revient : sa fiche, son second évènement sans re
   // Lot 70e : « Nouvel évènement », une seule forme ; le client choisi reste le premier client.
   await page.getByRole("radio", { name: /^Une demande en cours/ }).check();
   await page.getByLabel(/^Nom de l'évènement/).fill("Léa");
-  await page.getByRole("button", { name: "Créer l'évènement" }).click();
+  await submitNewEvent(page);
   await expect(page.getByRole("heading", { name: "Léa" })).toBeVisible();
 
   // À l'envoi en signature : nom, e-mail et adresse de sa fiche ; l'adresse corrigée y est gardée.
