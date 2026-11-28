@@ -7753,10 +7753,10 @@
   }
 
   /* Deux réglages fondus dans une rubrique : deux blocs, chacun son titre, séparés d'un filet. */
-  .settings-block {
+  .settings-fused-block {
     @apply scroll-mt-4;
   }
-  .settings-block + .settings-block {
+  .settings-fused-block + .settings-fused-block {
     @apply mt-8 border-t border-line pt-6;
   }
 

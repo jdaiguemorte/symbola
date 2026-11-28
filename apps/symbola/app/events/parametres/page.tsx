@@ -57,7 +57,7 @@ export default async function EventsSettingsPage({ searchParams }: { searchParam
       ) : (
         <ScreenHelp title={tHelp("eventsSettings.title")} body={tHelp("eventsSettings.body")} />
       )}
-      <section aria-labelledby="postes-title" className="settings-block">
+      <div className="settings-fused-block">
       <div className="section-head">
         <h2 id="postes-title">{t("defaultVendorSlotsTitle")}</h2>
         <Link href={`${BASE}?ligne=nouvelle`} scroll={false} className="button-link button-link-primary">
@@ -79,12 +79,12 @@ export default async function EventsSettingsPage({ searchParams }: { searchParam
       )}
       {/* Toujours au même endroit : son message de succès survit à l'apparition du tableau. */}
       <LoadStarterVendorSlotsForm />
-      </section>
+      </div>
       {budget ? (
-        <section id={BUDGET_ALLOCATION_ANCHOR} aria-labelledby="repartition-title" className="settings-block">
+        <div id={BUDGET_ALLOCATION_ANCHOR} className="settings-fused-block">
           <h2 id="repartition-title">{tBudget("settingsTitle")}</h2>
           <AllocationBlock organizationId={organizationId} heading="h3" />
-        </section>
+        </div>
       ) : null}
 
       {editing ? (

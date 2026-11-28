@@ -21,6 +21,7 @@ import {
   FileText,
   GraduationCap,
   Database,
+  LayoutGrid,
   LifeBuoy,
   ListChecks,
   Settings,
@@ -607,6 +608,12 @@ export async function AppShell({ children }: { children: ReactNode }) {
               <AppNavLink href={YOUR_DATA_PATH} icon={<Database {...iconProps} />} label={tSettings("yourData")}>
                 {privacyBadge}
               </AppNavLink>
+            </li>
+          ) : null}
+          {/* Lot 74g (G11) : « Tous les modules », pour la titulaire, comme dans le menu du compte. */}
+          {isOwner ? (
+            <li>
+              <AppNavLink href="/apps" icon={<LayoutGrid {...iconProps} />} label={tSettings("allModules")} />
             </li>
           ) : null}
         </ul>

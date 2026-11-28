@@ -35,7 +35,7 @@ export default async function EventTypesSettingsPage() {
     <main>
       <h1>{tMenu("rubrics.eventTypes.label")}</h1>
       <ScreenHelp title={tHelp("eventTypes.title")} body={`${tHelp("eventTypes.body")} ${tHelp("clientTerms.body")}`} />
-      <section aria-labelledby="types-title" className="settings-block">
+      <div className="settings-fused-block">
         <h2 id="types-title">{t("title")}</h2>
         <p>{t("intro")}</p>
         {/* Lot 62b (UX-13, D1) : tableau éditable, enregistré à la sortie du champ. */}
@@ -46,10 +46,10 @@ export default async function EventTypesSettingsPage() {
           <h3 id="add-event-type-title">{t("add")}</h3>
           <AddEventTypeForm />
         </section>
-      </section>
-      <section id="termes" aria-labelledby="termes-title" className="settings-block">
+      </div>
+      <div id="termes" className="settings-fused-block">
         <ClientTermsBlock organizationId={organizationId} />
-      </section>
+      </div>
     </main>
   );
 }

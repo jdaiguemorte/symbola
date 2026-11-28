@@ -47,7 +47,7 @@ export default async function PipelineStagesSettingsPage({ searchParams }: { sea
     <main>
       <h1>{title}</h1>
       <ScreenHelp title={tHelp("eventsPipelineStages.title")} body={`${tHelp("eventsPipelineStages.body")} ${tHelp("eventsContactForm.body")}`} />
-      <section aria-labelledby="stages-title" className="settings-block">
+      <div className="settings-fused-block">
       <h2 id="stages-title">{t("title")}</h2>
       <p>{t("intro", { min: PIPELINE_MIN_STAGES, max: PIPELINE_MAX_STAGES })}</p>
       <p>
@@ -69,14 +69,14 @@ export default async function PipelineStagesSettingsPage({ searchParams }: { sea
               {t("newStageName")}
               <input type="text" name="label" required maxLength={60} />
             </label>
-            <button type="submit">{t("add")}</button>
+            <button type="submit" className="button-secondary">{t("add")}</button>
           </form>
         </section>
       ) : null}
-      </section>
-      <section id="contact" aria-labelledby="contact-title" className="settings-block">
+      </div>
+      <div id="contact" className="settings-fused-block">
         <ContactFormBlock organizationId={organizationId} />
-      </section>
+      </div>
     </main>
   );
 }

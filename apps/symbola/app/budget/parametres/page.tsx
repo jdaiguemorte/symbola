@@ -35,9 +35,9 @@ export default async function BudgetSettingsPage({ searchParams }: { searchParam
     <main>
       <h1>{title}</h1>
       <PageTour {...await loadPageTour(auth.user.id, "budget", visite)} helpTitle={title} helpBody={tHelp("budgetSettings.body")} />
-      <section id={BUDGET_ALLOCATION_ANCHOR} aria-label={t("settingsTitle")} className="settings-block">
+      <div id={BUDGET_ALLOCATION_ANCHOR} className="settings-fused-block">
         <AllocationBlock organizationId={organizationId} heading="h2" />
-      </section>
+      </div>
     </main>
   );
 }

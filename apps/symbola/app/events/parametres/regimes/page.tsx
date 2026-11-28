@@ -36,7 +36,7 @@ export default async function DietaryOptionsPage() {
     <main className="stack">
       <h1>{tMenu("rubrics.guestOptions.label")}</h1>
       <ScreenHelp title={tHelp("dietaryOptions.title")} body={`${tHelp("dietaryOptions.body")} ${tHelp("mealTypes.body")}`} />
-      <section aria-labelledby="regimes-title" className="settings-block stack">
+      <div className="settings-fused-block stack">
       <h2 id="regimes-title">{t("title")}</h2>
       <p>{t("intro")}</p>
       {groups.map((group) => (
@@ -65,10 +65,10 @@ export default async function DietaryOptionsPage() {
         <h3 id="options-add">{t("addTitle")}</h3>
         <AddDietaryOptionForm />
       </section>
-      </section>
-      <section id="repas" aria-labelledby="repas-title" className="settings-block">
+      </div>
+      <div id="repas" className="settings-fused-block">
         <MealTypesBlock organizationId={organizationId} />
-      </section>
+      </div>
     </main>
   );
 }

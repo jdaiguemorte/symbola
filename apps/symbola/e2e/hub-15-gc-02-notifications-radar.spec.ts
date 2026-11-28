@@ -63,7 +63,7 @@ test("SC-03 / HUB-15 / UX-16 / GC-02 / CHR-05 / CHR-10 / HUB-24 / HUB-28 — not
   // HUB-15, UX-16 : la cloche compte la notification non lue et mène au centre ; la notification ouvre
   // l'écran où agir et passe en lue.
   await page.getByRole("link", { name: "Notifications, 1 non lue" }).click();
-  await expect(page.getByRole("heading", { level: 1, name: "Vos notifications" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "Notifications" })).toBeVisible();
   const list = page.getByRole("list", { name: "Notifications" });
   await expect(list).toContainText("Décision du client");
   await expect(list).toContainText("Le client a répondu : « Choix du traiteur ».");

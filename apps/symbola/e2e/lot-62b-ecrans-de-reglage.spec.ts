@@ -352,7 +352,7 @@ test("UX-13 / UX-09 / UX-07 — Listes éditables : enregistrement à la sortie 
   await term.fill("les fiancés");
   await term.blur();
   await expect(status.filter({ hasText: SAVED }).first()).toBeVisible();
-  await page.goto("/events/parametres/types#termes");
+  await page.reload();
   await expect(term).toHaveValue("les fiancés");
   // « Annuler la dernière modification » rend la valeur d'avant.
   await term.fill("les amoureux");
