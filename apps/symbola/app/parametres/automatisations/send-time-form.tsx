@@ -3,17 +3,19 @@
 // Lot 66a (HUB-28 ; D1 ; M17) — l'heure d'envoi : celle de l'organisation (« Heure d'envoi par
 // défaut ») ou celle d'un automatisme (« Envoi à », « l'heure par défaut » s'il n'en a pas), au quart
 // d'heure, dans le fuseau de l'évènement.
-import { useActionState } from "react";
+// Lot 74h (D7, G8) : réglages isolés, enregistrés au changement de la liste, « ✓ Enregistré » à côté ;
+// plus de bouton « Enregistrer l'heure ».
 import { useTranslations } from "next-intl";
-import { saveAutomationSendTimeAction, saveDefaultSendTimeAction, type AutomationFormState } from "./actions";
+import { AutoSettingForm, SettingStatus } from "@/app/ui/auto-setting-form";
+import type { SavedLabels } from "@/app/ui/saved-indicator";
+import { saveAutomationSendTimeAction, saveDefaultSendTimeAction } from "./actions";
 
 const QUARTERS = Array.from({ length: 96 }, (_, index) => `${String(Math.floor(index / 4)).padStart(2, "0")}:${String((index % 4) * 15).padStart(2, "0")}`);
 
-export function DefaultSendTimeForm({ time, disabled }: { time: string; disabled: boolean }) {
+export function DefaultSendTimeForm({ time, disabled, saved }: { time: string; disabled: boolean; saved: SavedLabels }) {
   const t = useTranslations("Automations");
-  const [state, formAction, pending] = useActionState<AutomationFormState, FormData>(saveDefaultSendTimeAction, {});
   return (
-    <form action={formAction} className="form-inline">
+    <AutoSettingForm action={saveDefaultSendTimeAction} labels={saved} className="setting-line-control">
       <label>
         {t("defaultTimeLabel")}
         <select name="time" defaultValue={time} disabled={disabled}>
@@ -24,20 +26,15 @@ export function DefaultSendTimeForm({ time, disabled }: { time: string; disabled
           ))}
         </select>
       </label>
-      <button type="submit" disabled={pending || disabled} className="button-secondary">
-        {t("saveTime")}
-      </button>
-      {state.error ? <p role="alert">{state.error}</p> : null}
-      {state.success ? <p role="status">{t("timeSaved")}</p> : null}
-    </form>
+      <SettingStatus name="time" />
+    </AutoSettingForm>
   );
 }
 
-export function AutomationSendTimeForm({ automationKey, title, time, defaultTime, disabled }: { automationKey: string; title: string; time: string | null; defaultTime: string; disabled: boolean }) {
+export function AutomationSendTimeForm({ automationKey, title, time, defaultTime, disabled, saved }: { automationKey: string; title: string; time: string | null; defaultTime: string; disabled: boolean; saved: SavedLabels }) {
   const t = useTranslations("Automations");
-  const [state, formAction, pending] = useActionState<AutomationFormState, FormData>(saveAutomationSendTimeAction, {});
   return (
-    <form action={formAction} className="form-inline">
+    <AutoSettingForm action={saveAutomationSendTimeAction} labels={saved} className="setting-line-control">
       <input type="hidden" name="key" value={automationKey} />
       <label>
         {t("sendAt")}
@@ -50,11 +47,7 @@ export function AutomationSendTimeForm({ automationKey, title, time, defaultTime
           ))}
         </select>
       </label>
-      <button type="submit" disabled={pending || disabled} className="button-secondary" aria-label={t("saveTimeLabel", { title })}>
-        {t("saveTime")}
-      </button>
-      {state.error ? <p role="alert">{state.error}</p> : null}
-      {state.success ? <p role="status">{t("timeSaved")}</p> : null}
-    </form>
+      <SettingStatus name="time" />
+    </AutoSettingForm>
   );
 }

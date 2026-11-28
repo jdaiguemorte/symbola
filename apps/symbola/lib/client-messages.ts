@@ -67,6 +67,9 @@ export const SERVER_ONLY_NAMESPACES = [
   // Lot 73d : la fenêtre de création et la fiche d'un prestataire reçoivent leurs textes de l'écran.
   "VendorCreate",
   "VendorSheet",
+  // Lot 74h : le patron d'un écran de réglage (en-tête, « ✓ Enregistré », barre d'enregistrement) ; ses
+  // composants client reçoivent leurs mots en propriétés.
+  "SettingsPattern",
   // Lot 74d : la ligne « Découvrir cet écran », rendue côté serveur et passée en propriétés aux seuls
   // écrans qui la proposent.
   "TourLine",

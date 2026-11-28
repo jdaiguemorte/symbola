@@ -170,7 +170,7 @@ test("UX-13 — Menu des Paramètres : l'accueil, « Chercher un réglage », le
   }
 });
 
-test("UX-12 — Fiche de l'entreprise (lot 74g) : trois cartes, un seul « Enregistrer la fiche », la TVA en ligne", async ({ page }) => {
+test("UX-12 — Fiche de l'entreprise (lots 74g, 74h) : trois blocs, un seul « Enregistrer la fiche » dans sa barre, la TVA en ligne", async ({ page }) => {
   test.setTimeout(180_000);
   const setup = await atelier();
   await signIn(page, setup.email, /\/$/);
@@ -179,7 +179,8 @@ test("UX-12 — Fiche de l'entreprise (lot 74g) : trois cartes, un seul « Enreg
   await page.waitForLoadState("networkidle");
 
   const sheet = page.getByRole("form", { name: "Fiche entreprise" });
-  for (const card of ["Identité", "Adresse", "Coordonnées imprimées"]) await expect(sheet.getByRole("region", { name: card, exact: true })).toBeVisible();
+  // Lot 74h (C-75) : l'adresse et les coordonnées dans un même bloc ; l'activité en troisième.
+  for (const card of ["Identité", "Adresse", "Activité"]) await expect(sheet.getByRole("region", { name: card, exact: true })).toBeVisible();
   await expect(page.getByRole("region", { name: "TVA", exact: true })).toBeVisible();
 
   // Une coordonnée refusée n'enregistre rien de la fiche, et le dit ; la saisie reste à l'écran.
@@ -190,8 +191,8 @@ test("UX-12 — Fiche de l'entreprise (lot 74g) : trois cartes, un seul « Enreg
   await expect(sheet.getByRole("alert")).toHaveText("Le SIRET doit compter 14 chiffres.");
   await expect(sheet.getByLabel("SIREN")).toHaveValue("987654321");
   await expect(sheet.getByLabel("SIRET (14 chiffres)")).toHaveValue("1234");
-  await page.goto("/");
-  await page.goto("/parametres/entreprise");
+  // Lot 74h : « Annuler les modifications » rend les valeurs enregistrées, sans question.
+  await sheet.getByRole("button", { name: "Annuler les modifications" }).click();
   await expect(sheet.getByLabel("SIREN")).toHaveValue(storedSiren);
 
   // Identité, adresse et coordonnées partent ensemble.
@@ -203,7 +204,7 @@ test("UX-12 — Fiche de l'entreprise (lot 74g) : trois cartes, un seul « Enreg
   await sheet.getByLabel("Ville").fill("Lille");
   await sheet.getByLabel("E-mail de contact").fill("bonjour@atelier.example");
   await sheet.getByRole("button", { name: "Enregistrer la fiche" }).click();
-  await expect(sheet.getByRole("status")).toHaveText("Fiche entreprise enregistrée.");
+  await expect(sheet.getByText(/^Tout est enregistré · à /)).toBeVisible();
   await page.goto("/parametres/entreprise");
   await expect(sheet.getByLabel("SIRET (14 chiffres)")).toHaveValue("12345678900012");
   await expect(sheet.getByLabel("Ville")).toHaveValue("Lille");
@@ -214,12 +215,14 @@ test("UX-12 — Fiche de l'entreprise (lot 74g) : trois cartes, un seul « Enreg
   expect(postalCode!.width).toBeLessThan(160);
   if (!isPhone(page)) expect(Math.abs(postalCode!.y - city!.y)).toBeLessThan(4);
 
-  // La TVA, dans sa carte, en formulaire en ligne : le régime change sans quitter l'écran.
+  // La TVA, en ligne à part (lot 74h) : le régime change dans sa fenêtre, sans quitter l'écran.
+  await page.getByRole("button", { name: "Changer de régime…" }).click();
   const vat = page.getByRole("form", { name: "Régime de TVA" });
   await vat.getByLabel("Nouveau régime").selectOption("assujetti");
   await vat.getByLabel("Date d'effet").fill("2027-01-01");
   await vat.getByRole("button", { name: "Changer de régime" }).click();
   await expect(page.getByRole("region", { name: "TVA", exact: true })).toContainText("Régime actuel : Assujetti");
+  if (!(await page.getByRole("form", { name: "Option pour la TVA sur les débits" }).isVisible())) await page.getByRole("button", { name: "Changer de régime…" }).click();
   const debits = page.getByRole("form", { name: "Option pour la TVA sur les débits" });
   await debits.getByLabel("Non").check();
   await debits.getByRole("button", { name: "Enregistrer l'option" }).click();

@@ -14,11 +14,31 @@ export async function toggleAutomationAction(formData: FormData): Promise<void> 
   const auth = await requireOwner();
   if (!auth) return;
   try {
-    await setAutomationEnabled(auth.user.organizationId, String(formData.get("key") ?? ""), formData.get("enabled") === "true");
+    await setAutomationEnabled(auth.user.organizationId, String(formData.get("key") ?? ""), formData.get("enabled") === "true", new Date(), auth.user.id);
   } catch (error) {
     if (!(error instanceof AutomationInputError)) throw error;
   }
   revalidatePath("/parametres/automatisations");
+  revalidatePath("/parametres/radar");
+}
+
+// Lot 74h (D7, G10) : l'interrupteur d'un automatisme, réglage isolé qui s'enregistre seul. Couper garde la
+// date et la personne (0246) ; remettre en marche les efface. La titulaire seule (requireOwner) ; un membre
+// n'a pas l'interrupteur, et une requête forgée est refusée ici.
+export async function setAutomationRunningAction(_prev: AutomationFormState, formData: FormData): Promise<AutomationFormState> {
+  const auth = await requireOwner();
+  const t = await getTranslations("Automations");
+  if (!auth) return { error: t("ownerOnly") };
+  try {
+    await setAutomationEnabled(auth.user.organizationId, String(formData.get("key") ?? ""), formData.get("enabled") === "1", new Date(), auth.user.id);
+  } catch (error) {
+    if (error instanceof AutomationInputError) return { error: t("invalid") };
+    throw error;
+  }
+  revalidatePath("/parametres/automatisations");
+  revalidatePath("/parametres/radar");
+  revalidatePath("/");
+  return { success: true };
 }
 
 export async function saveAutomationDaysAction(_prev: AutomationFormState, formData: FormData): Promise<AutomationFormState> {

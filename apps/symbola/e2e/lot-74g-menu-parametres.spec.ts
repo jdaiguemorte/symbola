@@ -105,7 +105,6 @@ test.describe("74g (G1, G2) — L'accueil des Paramètres", () => {
 // d'une ligne, lots 74h à 74j) : leur texte d'introduction ou une carte d'information le précède. Écart
 // noté dans la PR ; la liste ne peut que diminuer.
 const FIRST_SCREEN_PENDING: Record<string, { sizes: string[]; lot: string }> = {
-  "/parametres/equipe": { sizes: ["911x512"], lot: "74h" },
   "/events/parametres/etapes": { sizes: ["911x512"], lot: "74i" },
   "/parametres/adresse-envoi": { sizes: ["911x512", "375", "360"], lot: "74j" },
 };
@@ -242,7 +241,8 @@ test.describe("74g (critère 2) — Les anciennes adresses", () => {
       ["/events/parametres/contact", /\/events\/parametres\/etapes#contact$/, "Formulaire de contact"],
       ["/events/parametres/repas", /\/events\/parametres\/regimes#repas$/, "Types de repas"],
       ["/budget/parametres", /\/events\/parametres#repartition$/, "Modèles de budget"],
-      ["/parametres#tva-debits", /\/parametres\/entreprise#tva-debits$/, "TVA sur les débits"],
+      // Lot 74h : la TVA est une ligne à part, sa fenêtre porte l'option sur les débits.
+      ["/parametres#tva-debits", /\/parametres\/entreprise#tva-debits$/, "TVA"],
       ["/parametres#informations-professionnel", /\/parametres\/mentions#informations-professionnel$/, "Informations du professionnel"],
     ] as const) {
       await page.goto(from);

@@ -498,7 +498,7 @@
     },
     "settings": {
       "title": "Company details",
-      "body": "Your company's details (company number, address, legal form, business) and your VAT scheme: they appear on your quotes and invoices. The business sets the vocabulary and the starting templates. Fill in the postcode and town before your first invoice and, if you charge VAT, say whether you opted for VAT on debits. Identity, address and printed contact details are saved together, with “Save details”.",
+      "body": "Your company's details (company number, address, legal form, business) and your VAT scheme: they appear on your quotes and invoices. The business sets the vocabulary and the starting templates. Fill in the postcode and town before your first invoice and, if you charge VAT, say whether you opted for VAT on debits. Identity, address and printed contact details are saved together, with “Save details”, in the bar stuck to the bottom of the screen, which names what changed. “Weddings per year” is changed here too. The VAT scheme is changed with “Change VAT scheme…”, dated.",
       "faq": [
         {
           "q": "I am moving from the VAT exemption to charging VAT: what do I do?",
@@ -1414,11 +1414,11 @@
     },
     "automations": {
       "title": "Automations",
-      "body": "Each row is an automation: what it does, its switch, its send time and its log. The default send time applies to every automation without its own; the email goes out at that time (within five minutes), in the event's time zone, and never at night. Appointment reminders keep their delay (24 h, 2 h before). Turning one off stops its next sends; nothing is caught up when it is turned back on. The GDPR purge and the document check cannot be turned off."
+      "body": "Each row is an automation: what it does, its switch, its send time and its log. The default send time applies to every automation without its own; the email goes out at that time (within five minutes), in the event's time zone, and never at night. Appointment reminders keep their delay (24 h, 2 h before). Turning one off stops its next sends; nothing is caught up when it is turned back on. A paused automation says since when and by whom; only the account holder starts or pauses them. The GDPR purge and the document check cannot be turned off."
     },
     "riskRadar": {
       "title": "Risk radar",
-      "body": "The radar runs every morning. Each rule has a threshold in days; an alert becomes a “To watch” line in “Today”, which states the rule that triggered it and leads to the screen where you can act. Planning health is set here too."
+      "body": "The radar runs every morning. Each rule has a threshold in days; an alert becomes a “To watch” line in “Today”, which states the rule that triggered it and leads to the screen where you can act. Planning health is set here too. If the radar is paused, the screen says so at the top and the account holder can restart it."
     },
     "clientTerms": {
       "title": "Client terms",
@@ -1516,7 +1516,7 @@
     },
     "taskCategories": {
       "title": "Task categories",
-      "body": "Sort your tasks by category: Client, Vendors, Admin, Big day to start with. Rename them, change their colour and order, add some; a deleted category leaves its tasks without a category. Each change is saved when you leave the field; « Undo the last change » takes it back."
+      "body": "Sort your tasks by category: Client, Vendors, Admin, Big day to start with. Rename them, change their colour and order, add some; a deleted category leaves its tasks without a category. “Due soon” sets how many days ahead a task becomes “Soon” (1 to 30, seven to start with), for the whole agency. Each change saves on its own when you leave the field, and “✓ Saved” shows next to it; “Move up”, “Move down” and “Delete…” are in the row's “⋯” menu."
     },
     "emailBranding": {
       "title": "E-mail branding and signature",
@@ -14822,5 +14822,101 @@
     "spreadUndatedHint": "They are created “to be dated”: you will date them yourself.",
     "spreadRule": "In timeline order, on a weekday that is not a public holiday, never after the date the template gives the next task.",
     "unansweredRule": "A task with no answer will be created “to be dated”: neither done nor overdue."
+  },
+  "SettingsPattern": {
+    "scope": {
+      "agency": "For the whole agency",
+      "personal": "Just for you"
+    },
+    "editors": {
+      "owner": "Only the account holder changes it",
+      "ownerSelf": "Only you, the account holder, change it",
+      "team": "The whole team changes it"
+    },
+    "saving": {
+      "auto": "each change saves on its own",
+      "bar": "“{button}” at the bottom, always visible",
+      "mixed": "each setting saves on its own"
+    },
+    "saved": {
+      "saved": "Saved",
+      "saving": "Saving…",
+      "failed": "Not saved: check your connection, then try again."
+    },
+    "bar": {
+      "region": "Saving this page",
+      "nothing": "Nothing to save",
+      "nothingToSave": "Nothing to save: no changes.",
+      "changedOne": "1 change to save: {fields}",
+      "changedOther": "{count} changes to save: {fields}",
+      "saved": "Everything is saved · at {time}",
+      "saving": "Saving…",
+      "reset": "Undo changes",
+      "leaveTitle": "Leave without saving?",
+      "leaveBody": "These changes are not saved: {fields}.",
+      "stay": "Stay on the page",
+      "leave": "Leave without saving",
+      "saveAndLeave": "Save and leave",
+      "required": "* required"
+    },
+    "headers": {
+      "companySheet": "What your quotes, your invoices and your clients see of you.",
+      "companyMentions": "The mandatory notices and the logo printed on your quotes and invoices.",
+      "team": "Who has access to your workspace, and with which role.",
+      "subscription": "Your plan and the modules open for your agency.",
+      "profile": "Your name as the team sees it, your language, your signature and your sign-in.",
+      "notifications": "What is sent to you, how and when. Each team member has their own.",
+      "taskCategories": "What sorts your tasks and tells what is coming up, in “Today”, “Tasks” and the timeline.",
+      "automations": "What Symbola does on its own for you. Pausing an automation stops its next sends; when it restarts, nothing is caught up.",
+      "riskRadar": "What the radar looks for each morning in upcoming events, and from when.",
+      "dayReminder": "The day before or that morning, a reminder to you, and to whoever you tick."
+    },
+    "company": {
+      "missing": "To complete before your first quote: {fields}.",
+      "activityTitle": "Business",
+      "activityHint": "Your answers to the setup assistant; they shape what Symbola suggests.",
+      "annualVolume": "Weddings per year",
+      "annualVolumeUnset": "Not filled in",
+      "vatLine": "{regime}. A change of scheme is dated and applies to your next quotes.",
+      "vatChange": "Change VAT scheme…",
+      "vatDialog": "Change VAT scheme",
+      "logoLine": "The logo saves on its own, as soon as it is uploaded."
+    },
+    "tasks": {
+      "soonTitle": "Due soon",
+      "soonHint": "A task due within this number of days, or less, reads “Soon”.",
+      "soonLabel": "Days before “Soon”",
+      "soonUnit": "days",
+      "soonInvalid": "Between 1 and 30 days.",
+      "categoriesTitle": "Categories",
+      "categoriesHint": "The name is always written next to the colour; a task can stay without a category.",
+      "rowMenu": "More actions for “{label}”",
+      "removeHint": "Its tasks stay, without a category"
+    },
+    "automations": {
+      "on": "Running",
+      "off": "Paused",
+      "toggle": "{title}: running",
+      "pausedBy": "Paused on {date} by {name}.",
+      "pausedOn": "Paused on {date}.",
+      "paused": "Paused.",
+      "radarConsequence": "While it is paused, no alert reaches “Deal with first”.",
+      "rulesLink": "Rules and thresholds",
+      "unavailable": "Unavailable: the module is not open."
+    },
+    "radar": {
+      "pausedSince": "To check: the radar has been paused since {date}. Its rules are kept, but nothing is looked for.",
+      "pausedNoDate": "To check: the radar is paused. Its rules are kept, but nothing is looked for.",
+      "resume": "Restart the radar",
+      "ruleEnabled": "{label}: active",
+      "thresholdInvalid": "Between 0 and 365 days.",
+      "healthInvalid": "A value within the limits shown."
+    },
+    "team": {
+      "invite": "Invite someone"
+    },
+    "notifications": {
+      "thisPhone": "This phone"
+    }
   }
 }

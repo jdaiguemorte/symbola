@@ -11,7 +11,9 @@ import { removeLogoAction } from "./actions";
 
 // version : partie opaque de la clé du logo, pour rafraîchir l'image après un
 // remplacement ; null s'il n'y a pas de logo.
-export function LogoForm({ version }: { version: string | null }) {
+// secondary (lot 74h) : « Envoyer le logo » en bouton secondaire, quand l'écran a déjà son bouton plein
+// (la barre d'enregistrement des mentions).
+export function LogoForm({ version, secondary = false }: { version: string | null; secondary?: boolean }) {
   const t = useTranslations("Documents");
   const [state, action, pending] = useUploadAction<UploadState>("/logo");
   const fieldId = useId();
@@ -27,7 +29,7 @@ export function LogoForm({ version }: { version: string | null }) {
       <form action={action} className="logo-upload">
         <label htmlFor={fieldId}>{t("logoField")}</label>
         <input id={fieldId} type="file" name="logo" accept="image/png,image/jpeg" required />
-        <button type="submit" disabled={pending}>
+        <button type="submit" className={secondary ? "button-secondary" : undefined} disabled={pending}>
           {t("logoSubmit")}
         </button>
         {state.error ? <p role="alert">{state.error}</p> : null}

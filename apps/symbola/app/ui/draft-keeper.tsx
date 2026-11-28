@@ -70,7 +70,7 @@ export function readForm(form: HTMLFormElement): Content {
 }
 
 // Écrit les valeurs comme une saisie : les champs tenus par React voient l'évènement.
-function writeForm(form: HTMLFormElement, content: Content): void {
+export function writeForm(form: HTMLFormElement, content: Content): void {
   for (const field of fieldsOf(form)) {
     const key = keyOf(field);
     if (!(key in content)) continue;
