@@ -65,7 +65,7 @@ test("PRD-BUD-03 — joindre le devis d'un prestataire à une ligne et l'ouvrir 
   await page.waitForLoadState("networkidle");
   await changeEventStatus(page, "Confirmé");
   await page.getByRole("button", { name: "En faire le budget estimé" }).click();
-  await expect(page.getByRole("heading", { name: "Faire de la simulation le budget estimé" })).toHaveCount(0);
+  await expect(page.locator('[data-step="confirm_budget"]')).toHaveCount(0);
 
   // PRD-BUD-03 : un format non supporté est refusé avec un message clair.
   await page.goto(`${eventUrl.replace("/events/", "/budget/")}/detail`);

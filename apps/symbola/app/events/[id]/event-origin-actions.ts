@@ -9,7 +9,7 @@ import type { EventClientInput } from "@symbola/contracts";
 import { unexpectedActionError } from "@/lib/action-errors";
 import { getPlannerAuthContext } from "@/lib/auth-context";
 import { ContactNotFoundError } from "@/modules/hub/service";
-import { addEventClient, EventClientsFullError, EventNotFoundError, InvalidProspectSourceError, setEventProspectSource } from "@/modules/events/service";
+import { addEventClient, EventClientsFullError, EventNotFoundError } from "@/modules/events/service";
 import { isEventsModuleEnabled, isValidId } from "../module-access";
 
 export type EventOriginFormState = { error?: string; success?: boolean };
@@ -22,25 +22,6 @@ async function authorize(t: Awaited<ReturnType<typeof getTranslations>>) {
   if (auth.status !== "authenticated" || !auth.user.organizationId) return { error: t("unauthenticated") } as const;
   if (!(await isEventsModuleEnabled(auth.user.organizationId))) return { error: t("moduleUnavailable") } as const;
   return { organizationId: auth.user.organizationId } as const;
-}
-
-export async function setEventSourceAction(_prev: EventOriginFormState, formData: FormData): Promise<EventOriginFormState> {
-  const t = await getTranslations("Events");
-  const access = await authorize(t);
-  if ("error" in access) return { error: access.error };
-  const eventId = field(formData, "eventId");
-  if (!isValidId(eventId)) return { error: t("eventNotFound") };
-  const sourceId = field(formData, "prospectSourceId");
-  try {
-    await setEventProspectSource(access.organizationId, eventId, sourceId === "" ? null : sourceId);
-  } catch (error) {
-    if (error instanceof EventNotFoundError) return { error: t("eventNotFound") };
-    if (error instanceof InvalidProspectSourceError) return { error: t("missingSource") };
-    return { error: await unexpectedActionError(error) };
-  }
-  revalidatePath(`/events/${eventId}`);
-  revalidatePath("/events");
-  return { success: true };
 }
 
 export async function addEventClientAction(_prev: EventOriginFormState, formData: FormData): Promise<EventOriginFormState> {

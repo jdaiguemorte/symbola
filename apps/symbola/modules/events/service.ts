@@ -645,6 +645,8 @@ export async function listEvents(input: ListEventsInput): Promise<EventSummary[]
     search: input.search,
     prospectSourceId: input.prospectSourceId,
     origin: input.origin,
+    // Lot 72e (J13) : la clé de lecture ne change pas pour les listes sans évènement.
+    ...(input.eventId ? { eventId: input.eventId } : {}),
   });
   // Lot 58 (PAR-09, étape 5) : un évènement archivé sort des listes courantes, reste consultable.
   const archived = input.archived ?? "include";
@@ -1746,9 +1748,10 @@ export async function listOrganizationTasks(input: ListOrganizationTasksInput): 
     limit.setUTCDate(limit.getUTCDate() + input.horizonDays);
     until = limit.toISOString().slice(0, 10);
   }
-  const rows = await findOrganizationTasks(input.organizationId, { until, includeDone: input.includeDone ?? false });
+  const scoped = input.eventId && UUID_PATTERN.test(input.eventId) ? input.eventId : undefined;
+  const rows = await findOrganizationTasks(input.organizationId, { until, includeDone: input.includeDone ?? false, ...(scoped ? { eventId: scoped } : {}) });
   if (rows.length === 0) return [];
-  const eventsById = new Map((await listEvents({ organizationId: input.organizationId })).map((event) => [event.id, event]));
+  const eventsById = new Map((await listEvents({ organizationId: input.organizationId, ...(scoped ? { eventId: scoped } : {}) })).map((event) => [event.id, event]));
   const soonDays = await getTaskSoonDays(input.organizationId);
   return rows.flatMap((row) => {
     const event = row.eventId ? eventsById.get(row.eventId) : undefined;
@@ -4667,6 +4670,8 @@ export async function finishQuestionnaireOfLink(scope: LinkQuestionnaireScope, q
 
 // Lot 48a (DAT-08 ; D5, ADR 0093) : notes d'évènement confidentielles.
 export { readEventConfidentialNotes, saveEventNotes, EventNotesForbiddenError, type EventNotesViewer } from "./confidential-notes";
+// Lot 72e (EVT-03, EVT-05 ; C-26, D7, M1) : « Modifier les informations », toutes les rubriques en une écriture.
+export { saveEventDetails, EventDetailsConflictError, EventDetailsRefusedError } from "./event-details";
 
 // Lot 48a (PRE-05, PRE-10 ; D3) : fiche du carnet d'un lien de prestataire (pièces demandées, IBAN).
 export async function linkVendorRecordId(organizationId: string, linkId: string): Promise<string | null> {

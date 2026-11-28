@@ -13,7 +13,7 @@ import { expect, test, type Page } from "@playwright/test";
 import { createEventLink, createProspect, createProspectSource, getEvent } from "../modules/events/service";
 import { saveOnboardingStep } from "../modules/hub/service";
 import { addQuoteLine, addScheduleItem, addStarterContractTemplates, createQuote, sendQuote, updateContractClause } from "../modules/quotes/service";
-import { expectEventStep, readyOrganization, signIn as signInByLink } from "./helpers";
+import { expectEventStep, readyOrganization, signIn as signInByLink, openEventInfo, saveEventInfo } from "./helpers";
 
 const PASSWORD = "mot-de-passe-terrain-e2e";
 
@@ -136,13 +136,11 @@ test("FAC-04 / DOC-03 / FAC-05 / SC-02 étapes 4 à 7 — contrat généré (pro
   await expect(clause.getByRole("status")).toHaveText("✓ Clause enregistrée.");
   await expectNoAxeViolation(page);
   await page.goto(`/events/${setup.eventId}`);
-  // Lot 32a (D5) : les formulaires de la synthèse sont repliés.
-  await page.getByRole("link", { name: "Modifier les informations" }).click();
-  const venue = page.getByRole("form", { name: "Lieu de l'évènement" });
-  await venue.getByLabel("Lieu", { exact: true }).fill("Domaine des Tilleuls");
+  // Lot 72e (C-26) : le lieu, dans la fenêtre « Modifier les informations ».
+  const venue = await openEventInfo(page, "Date et lieux");
+  await venue.getByLabel("Lieu de réception").fill("Domaine des Tilleuls");
   await venue.getByLabel("Ville").fill("Senlis");
-  await venue.getByRole("button", { name: "Enregistrer le lieu" }).click();
-  await expect(venue.getByRole("status")).toHaveText("✓ Lieu enregistré.");
+  await saveEventInfo(page);
 
   await page.goto(`/devis/${setup.quoteId}?rubrique=contrat`);
   await expect(section).not.toContainText("À régler avant de générer");

@@ -1,0 +1,154 @@
+/* Lot 72e (EVT-02, EVT-03, UX-01, UX-09 ; C-24, C-26, C-28 ; page 16 des maquettes du lot 68) — la Synthèse
+   d'un évènement : une seule suite en tête, puis deux colonnes (« Où en est le mariage », « Temps forts »,
+   « Rendez-vous » à gauche ; le bilan, « Informations » et le fil à droite), une seule colonne dans le même
+   ordre sur téléphone ; la fenêtre « Modifier les informations » à cinq rubriques, son « Enregistrer »
+   toujours visible en bas. Jetons de DESIGN.md seulement (ADR 0057), aucun style en ligne (CSP). */
+@layer components {
+  /* La suite : un titre, l'état en mots, une action principale ou des lignes. */
+  .event-suite {
+    @apply grid gap-3;
+  }
+  .event-suite-head {
+    @apply flex flex-wrap items-baseline gap-x-3 gap-y-1;
+  }
+  .event-suite-head > h2 {
+    @apply m-0;
+  }
+  .event-suite-state {
+    @apply rounded-full border border-line px-3 py-1 text-label text-ink-muted;
+  }
+  .event-suite-step-main {
+    @apply grid max-w-3xl justify-items-start gap-3;
+  }
+  .event-suite-step-main > p {
+    @apply m-0;
+  }
+  .event-suite-actions {
+    @apply flex flex-row flex-wrap items-end gap-3;
+  }
+  .event-suite-actions form {
+    @apply m-0 flex flex-row flex-wrap items-end gap-3;
+  }
+  .event-suite-count {
+    @apply m-0 text-body font-semibold;
+  }
+  .event-suite-lines {
+    @apply m-0;
+  }
+  .event-suite-more,
+  .event-suite-quiet {
+    @apply m-0 text-body text-ink-muted;
+  }
+  .event-suite-step .today-item-title {
+    @apply font-semibold text-ink no-underline;
+  }
+
+  /* Deux colonnes sous la suite (la gauche plus large), une seule sur téléphone. */
+  .overview-columns {
+    @apply grid items-start gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)];
+  }
+  .overview-column {
+    @apply grid min-w-0 content-start gap-4;
+  }
+  .overview-column > .card {
+    @apply m-0;
+  }
+  .overview-block > h2,
+  .overview-block > .section-head > h2 {
+    @apply m-0;
+  }
+
+  /* « Où en est le mariage » et « Informations » : un libellé, sa valeur en mots, sur une ligne. */
+  /* La grille des listes de l'app (deux colonnes, rangées en `display: contents`) cède ici à une rangée par
+     ligne : chaque ligne porte sa propre grille libellé · valeur. */
+  .overview-facts,
+  .overview-info {
+    @apply m-0 grid grid-cols-1 gap-0 sm:grid-cols-1;
+  }
+  .overview-facts > div,
+  .overview-info > .overview-info-row {
+    @apply grid gap-x-4 gap-y-1 border-b border-line py-2 last:border-b-0 sm:grid-cols-[10rem_minmax(0,1fr)];
+  }
+  .overview-facts dt,
+  .overview-info dt {
+    @apply m-0 font-medium text-ink-muted;
+  }
+  .overview-facts dd,
+  .overview-info dd {
+    @apply m-0 min-w-0;
+  }
+  .overview-facts dt a {
+    @apply text-ink-muted;
+  }
+  .overview-moments > li {
+    @apply py-1;
+  }
+  .overview-manage > summary {
+    @apply min-h-11 cursor-pointer content-center font-medium text-primary;
+  }
+  .overview-activity {
+    @apply m-0 grid gap-2 pl-6;
+  }
+
+  /* La fenêtre « Modifier les informations » : ses rubriques, et le pied qui reste visible. */
+  .info-window .window-rubrics-body {
+    @apply min-w-0;
+  }
+  .info-window .window-rubrics-body label {
+    @apply grid max-w-xl gap-1;
+  }
+  .info-window .window-rubrics-body label.choice-item {
+    @apply flex items-center gap-2;
+  }
+  .info-window-label {
+    @apply font-medium;
+  }
+  .info-window-locked {
+    @apply grid max-w-xl justify-items-start gap-2;
+  }
+  .info-window-locked > p,
+  .info-window-inline {
+    @apply m-0;
+  }
+  .info-window-busy {
+    @apply m-0 grid max-w-xl gap-2 border-0 p-0;
+  }
+  .info-window-busy > legend {
+    @apply mb-1 px-0 font-sans text-body font-medium;
+  }
+  .info-window-actions {
+    @apply sticky bottom-0 z-10 -mx-6 -mb-6 bg-surface px-6 pb-6;
+  }
+  .info-window-actions-end {
+    @apply ml-auto flex flex-wrap items-center gap-3;
+  }
+  .info-window-actions[data-confirming="true"] {
+    @apply block;
+  }
+  .info-window-title-short {
+    @apply hidden;
+  }
+  @media (width < 640px) {
+    .info-window-title-long {
+      @apply hidden;
+    }
+    .info-window-title-short {
+      @apply inline;
+    }
+    .info-window .window-rubrics-nav ol {
+      @apply flex gap-1 overflow-x-auto;
+    }
+    .info-window .window-rubrics-nav .window-rubric {
+      @apply w-auto whitespace-nowrap;
+    }
+    .info-window-actions {
+      @apply -mx-4 -mb-4 px-4 pb-4;
+    }
+    .info-window-next {
+      @apply hidden;
+    }
+    .info-window-close {
+      @apply hidden;
+    }
+  }
+}

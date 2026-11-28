@@ -6,7 +6,7 @@ import AxeBuilder from "./axe";
 import { createAppConnection } from "@symbola/db/client";
 import { createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
-import { changeEventStatus, clickMenuLink, eventCommand, feedback, openEventTab, openSettingsRubric, readyOrganization, signIn as signInByLink } from "./helpers";
+import { changeEventStatus, clickMenuLink, eventCommand, eventInfoWindow, feedback, openEventInfo, openEventTab, openSettingsRubric, readyOrganization, saveEventInfo, signIn as signInByLink } from "./helpers";
 import { createEventByForm } from "./new-event";
 
 async function loginAndSetupMfa(page: Page, email: string, _password: string) {
@@ -67,19 +67,20 @@ test("PRD-EVT-07 — la planner paramètre ses sources et motifs de perte, puis 
   await expectNoAxeViolation(page);
 
   // Lot 70e (A14) : « Nouvel évènement » ne demande plus la source ; elle se complète depuis la fiche
-  // (onglet des mariés). Lot 72d : elle quitte l'en-tête, et se lit dans « Source et clients » (PRD-EVT-07).
+  // Lot 72d : elle quitte l'en-tête. Lot 72e (J14) : « Venu par », rubrique « Type et origine » de « Modifier
+  // les informations » (PRD-EVT-07).
   await createEventByForm(page, { name: "Camille", clientFirstName: "Camille" });
   await expect(page.getByRole("heading", { name: "Camille" })).toBeVisible();
-  await expect(page.locator("#event-header")).not.toContainText("Source du prospect");
+  await expect(page.locator("#event-header")).not.toContainText("Venu par");
   await page.waitForLoadState("networkidle");
-  await openEventTab(page, "Mariés");
-  await page.getByLabel("Source du prospect").selectOption({ label: "Instagram" });
-  await page.getByRole("button", { name: "Enregistrer la source" }).click();
-  await expect(page.getByText("Source enregistrée.")).toBeVisible();
-  // La liste garde la source enregistrée, et la fiche la relit.
-  await expect(page.getByLabel("Source du prospect").locator("option:checked")).toHaveText("Instagram");
+  const info = await openEventInfo(page, "Type et origine");
+  await info.getByLabel("Venu par").selectOption({ label: "Instagram" });
+  await saveEventInfo(page);
+  // La fiche la relit, dans « Informations » et dans la fenêtre.
+  await expect(page.locator('.overview-info [data-key="source"]')).toContainText("Instagram");
   await page.reload();
-  await expect(page.getByLabel("Source du prospect").locator("option:checked")).toHaveText("Instagram");
+  await openEventInfo(page, "Type et origine");
+  await expect(eventInfoWindow(page).getByLabel("Venu par").locator("option:checked")).toHaveText("Instagram");
   await expectNoAxeViolation(page);
 });
 
@@ -107,9 +108,10 @@ test("PRD-EVT-01/02 / EVT-05 — un prospect apparaît dans la liste en Option, 
   await page.getByRole("button", { name: "Ajouter ce client" }).click();
   // Deux clients : le formulaire d'ajout disparaît.
   await expect(page.getByLabel("Prénom du second marié")).toHaveCount(0);
-  await page.getByLabel("Source du prospect").selectOption({ label: "Salon" });
-  await page.getByRole("button", { name: "Enregistrer la source" }).click();
-  await expect(page.getByText("Source enregistrée.")).toBeVisible();
+  await openEventTab(page, "Synthèse");
+  const info = await openEventInfo(page, "Type et origine");
+  await info.getByLabel("Venu par").selectOption({ label: "Salon" });
+  await saveEventInfo(page);
 
   // PRD-EVT-01 : le prospect sans date est listé « Date à définir », avec son statut (Option, lot 34a).
   await page.goto("/events");

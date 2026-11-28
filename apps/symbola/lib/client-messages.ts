@@ -47,6 +47,9 @@ export const SERVER_ONLY_NAMESPACES = [
   "Organizations",
   "Manifest",
   "Loading",
+  // Lot 72e : la Synthèse d'un évènement (suite, « Où en est le mariage », « Informations ») est rendue par le
+  // serveur ; seule la fenêtre « Modifier les informations » (EventInfoWindow) lit ses textes au navigateur.
+  "EventOverview",
   // Lot 71d : les nombres, « Doublons », le bilan et le retrait d'un import, rendus côté serveur.
   "ImportFigures",
   "ImportDoublons",
