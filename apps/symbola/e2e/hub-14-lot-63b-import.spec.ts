@@ -122,8 +122,8 @@ test("HUB-14 — import de prestataires : chargement visible, colonnes avec aper
   // Fin d'import : le bilan d'abord, puis « Vérifier les N prestataires » ; l'annulation est repliée.
   await expect(page.getByRole("heading", { name: "Import terminé" })).toBeVisible({ timeout: 30_000 });
   await expect(page.getByRole("link", { name: "créés" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Tout annuler" })).toBeHidden();
-  await expect(page.getByText("Annuler cet import", { exact: true })).toBeVisible();
+  // Lot 71d (C-66) : « Retirer cet import… » visible, avec sa date limite.
+  await expect(page.getByRole("button", { name: "Retirer cet import…" })).toBeVisible();
   await expectNoAxeViolation(page);
   await page.getByRole("link", { name: "Vérifier les 3 prestataires" }).click();
 
