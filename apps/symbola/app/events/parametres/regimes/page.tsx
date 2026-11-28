@@ -54,7 +54,7 @@ export default async function DietaryOptionsPage() {
                   <form action={toggleDietaryOptionAction}>
                     <input type="hidden" name="optionId" value={option.id} />
                     <input type="hidden" name="hidden" value={option.hidden ? "false" : "true"} />
-                    <button type="submit">{option.hidden ? t("show", { label: option.label }) : t("hide", { label: option.label })}</button>
+                    <button type="submit" className="target-44">{option.hidden ? t("show", { label: option.label }) : t("hide", { label: option.label })}</button>
                   </form>
                 </li>
               ))}

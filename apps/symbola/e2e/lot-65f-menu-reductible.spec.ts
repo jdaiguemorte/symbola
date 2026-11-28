@@ -135,11 +135,17 @@ test.describe("Lot 65f — Menu latéral réductible", () => {
 
     // Menu plus haut que la fenêtre, et défilé : la bulle reste en face de son lien. Lot 70e : à partir de
     // 640 px de haut le menu se resserre pour tenir en entier (911 × 512) ; on descend donc à 360 px.
+    // Lot 74g (G11) : « Paramètres » et « Aide » restent en bas ; c'est la liste des modules qui défile.
     await page.setViewportSize({ width: 1280, height: 360 });
+    const list = sidebar.locator(".app-nav-main > .app-nav:not(.app-nav-footer)");
+    const last = list.getByRole("link").last();
+    await last.hover();
+    await expect.poll(async () => (await tipBox(last))!.width).toBeGreaterThan(30);
+    expect(await list.evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
+    await expectBeside((await tipBox(last))!, last);
     const help = menu.getByRole("link", { name: "Aide", exact: true });
     await help.hover();
     await expect.poll(async () => (await tipBox(help))!.width).toBeGreaterThan(30);
-    expect(await sidebar.evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
     await expectBeside((await tipBox(help))!, help);
     await page.setViewportSize({ width: 1280, height: 720 });
 

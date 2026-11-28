@@ -83,13 +83,20 @@ test("L21-HUB-28 — le menu des réglages défile seul, sans faire défiler l'�
   // défile pas avec l'écran, plus long que la fenêtre.
   const nav = page.getByRole("navigation", { name: "Rubriques des paramètres" });
   await expect(nav).toBeVisible();
-  await expect(nav.getByRole("link").last()).toBeInViewport();
+  const inWindow = async () => {
+    const box = (await nav.boundingBox())!;
+    expect(box.y).toBeGreaterThanOrEqual(0);
+    expect(box.y + box.height).toBeLessThanOrEqual(640);
+  };
+  await inWindow();
+  // L'écran défile ; le menu reste tenu dans la fenêtre. Plus haut que la fenêtre, il défile seul.
+  await page.mouse.move(800, 400);
   await page.mouse.wheel(0, 2000);
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(0);
-  const box = (await nav.boundingBox())!;
-  expect(box.y).toBeGreaterThanOrEqual(0);
-  expect(box.y + box.height).toBeLessThanOrEqual(640);
+  await inWindow();
+  await nav.getByRole("link").last().scrollIntoViewIfNeeded();
   await expect(nav.getByRole("link").last()).toBeInViewport();
+  await inWindow();
 });
 
 async function newPlanner(page: Page, prepare?: (organizationId: string) => Promise<void>) {

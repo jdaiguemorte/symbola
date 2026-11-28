@@ -82,11 +82,15 @@ test.describe("74g (G1, G2) — L'accueil des Paramètres", () => {
     });
   }
 
-  test("un groupe d'un module non souscrit disparaît ; « titulaire » marque ce que l'équipe lit sans le changer", async ({ page }) => {
+  test("un groupe d'un module non souscrit disparaît ; « titulaire » marque ce que l'équipe lit sans le changer", async ({ page, browser }) => {
     const { owner, member } = await organization({ quotes: false, appointments: false }, ["owner", "member"]);
     await enter(page, owner!, SIZES[0]);
     await page.goto("/parametres");
     await expect(page.locator(".settings-home-group h2")).toHaveText(["Votre entreprise", "Vous", "Évènements", "Tâches, programme et jour J", "Budget et prestataires", "Messages et automatismes"]);
+    // Le membre dans une fenêtre à lui : aucune session de la titulaire ne peut s'y mêler.
+    const baseURL = test.info().project.use.baseURL;
+    const memberContext = await browser.newContext(baseURL ? { baseURL } : {});
+    page = await memberContext.newPage();
     await enter(page, member!, SIZES[0]);
     await page.goto("/parametres");
     const owned = page.locator(".settings-home-link", { has: page.locator(".settings-owner-tag") }).locator(".settings-home-label");
