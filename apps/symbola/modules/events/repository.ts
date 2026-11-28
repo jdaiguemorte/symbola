@@ -82,6 +82,8 @@ export async function findEvents(
     prospectSourceId?: string | undefined;
     // Lot 71f (P-06) : le filtre « Origine » de la liste.
     origin?: "created" | "takeover" | undefined;
+    // Lot 72e (J13) : un seul évènement.
+    eventId?: string | undefined;
   },
 ): Promise<{ event: EventRecord; clients: EventClientRow[] }[]> {
   const db = appDatabase();
@@ -107,6 +109,7 @@ export async function findEvents(
     }
 
     const conditions = [];
+    if (filters.eventId) conditions.push(eq(events.id, filters.eventId));
     if (filters.statusIn && filters.statusIn.length > 0) {
       conditions.push(inArray(events.status, filters.statusIn));
     }
@@ -975,7 +978,7 @@ export async function findEventTasks(organizationId: string, eventId: string): P
 // réalisés ; échéance au plus tard `until` (date sans heure) si fournie.
 export async function findOrganizationTasks(
   organizationId: string,
-  options: { until: string | null; includeDone: boolean },
+  options: { until: string | null; includeDone: boolean; eventId?: string | undefined },
 ): Promise<EventTaskRow[]> {
   const db = appDatabase();
   return await withOrganization(db, organizationId, (tx) =>
@@ -986,6 +989,7 @@ export async function findOrganizationTasks(
       .where(
         and(
           notInArray(events.status, ["cancelled", "closed"]),
+          options.eventId ? eq(eventTasks.eventId, options.eventId) : undefined,
           options.until ? lte(eventTasks.dueDate, options.until) : undefined,
           options.includeDone ? undefined : isNull(eventTasks.doneAt),
         ),

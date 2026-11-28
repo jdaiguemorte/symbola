@@ -177,6 +177,8 @@ export type ListEventsInput = {
   withTaskProgress?: boolean | undefined;
   // Lot 71f (P-06) : le filtre « Origine » de la liste, lu en SQL sur `events.origin`.
   origin?: EventOrigin | undefined;
+  // Lot 72e (J13) : un seul évènement (la suite de sa fiche), sans relire toute l'organisation.
+  eventId?: string | undefined;
 };
 
 // Lot 72a (EVT-05 ; E2, J2) : « Le contrat est signé… » ; la date de signature, au plus aujourd'hui (dans
@@ -559,6 +561,8 @@ export type ListOrganizationTasksInput = {
   // Échéance au plus tard dans N jours (retards compris) ; null = sans limite.
   horizonDays: number | null;
   includeDone?: boolean;
+  // Lot 72e (J13) : les tâches d'un seul évènement (la suite de sa fiche).
+  eventId?: string | undefined;
 };
 
 // —— Lot 70a (CHR-02, CHR-03, CHR-10 ; § 3.3) : une seule liste des tâches de l'organisation ——————————
