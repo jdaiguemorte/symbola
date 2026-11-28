@@ -131,6 +131,11 @@ function VendorsScreen({ view, t }: { view: VendorsImportView; t: T }) {
         <p id="pdf-contracts-hint" className="meta">
           {t("vendors.noReminder")}
         </p>
+        <p className="row-actions">
+          <button type="submit" name="intent" value="answer" className="button-secondary">
+            {t("vendors.saveAnswer")}
+          </button>
+        </p>
       </fieldset>
 
       <section className="card" aria-labelledby="pdf-rows-title">
@@ -167,10 +172,7 @@ function VendorsScreen({ view, t }: { view: VendorsImportView; t: T }) {
                       </select>
                     </label>
                   ) : (
-                    <>
-                      <input type="hidden" name={`vendor-${row.line}`} value={row.vendor?.id ?? "new"} />
-                      {row.vendor ? t("vendors.found") : t("vendors.newFiche")}
-                    </>
+row.vendor ? t("vendors.found") : t("vendors.newFiche")
                   )}
                 </td>
                 <td>
@@ -187,10 +189,7 @@ function VendorsScreen({ view, t }: { view: VendorsImportView; t: T }) {
                       </select>
                     </label>
                   ) : (
-                    <>
-                      <input type="hidden" name={`slot-${row.line}`} value={row.slot.kind === "existing" ? row.slot.id : "new"} />
-                      {slotText(row)}
-                    </>
+slotText(row)
                   )}
                   {row.verify ? (
                     <p className="pdf-verify">

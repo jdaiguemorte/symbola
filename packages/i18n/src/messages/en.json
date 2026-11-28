@@ -2253,7 +2253,7 @@
     "programKeyMomentDefault": "Event day",
     "programMomentInvalid": "This key moment does not belong to the event.",
     "keyMomentHasItems": "{count, plural, one {This key moment holds # schedule sequence: move or delete it to remove the key moment.} other {This key moment holds # schedule sequences: move or delete them to remove the key moment.}}",
-    "programImportTitle": "Import a schedule (spreadsheet or PDF)",
+    "programImportTitle": "Import a schedule (spreadsheet)",
     "programImportHint": "A spreadsheet (recognised columns: day or key moment, date, start, end, sequence, place, person in charge, note). Nothing is saved before you agree; missing key moments are created. A planning software's “programme” PDF is imported with “Import a schedule (PDF)”.",
     "programImportFileLabel": "CSV or XLSX file",
     "programImportFile": "Choose a CSV, XLSX or PDF file.",
@@ -14336,7 +14336,8 @@
         "newSlots": "{count, plural, =0 {No new item} one {# new item} other {# new items}}"
       },
       "notTaken": "Not imported: no amounts, your file gives none.",
-      "import": "{count, plural, =0 {Nothing to import} one {Import the vendor} other {Import the # vendors}}"
+      "import": "{count, plural, =0 {Nothing to import} one {Import the vendor} other {Import the # vendors}}",
+      "saveAnswer": "Save the answer"
     },
     "program": {
       "marker": "{start} · marker",
@@ -14439,6 +14440,11 @@
     "dialogTitle": "The schedule isn't complete",
     "dialogBody": "{count, plural, one {# end time is not provided.} other {# end times are not provided.}} The couple and the vendors would see these moments without an end, marked \"end time to come\".",
     "completeFirst": "Complete first",
-    "publishAnyway": "Share anyway"
+    "publishAnyway": "Share anyway",
+    "pointWord": "point in time",
+    "markerWord": "marker",
+    "colMoment": "Moment",
+    "colDay": "Day",
+    "tableLabel": "Moments without an end time"
   }
 }

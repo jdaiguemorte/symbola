@@ -312,8 +312,10 @@ export default async function EventDetailPage({
   const shiftPlan = shiftedItem && query.depuis && /^([01]\d|2[0-3]):[0-5]\d$/.test(query.depuis) ? proposeProgramShift(program.items, shiftedItem.id, query.depuis, shiftedItem.startTime) : null;
   const shiftProposal: ShiftProposalView | null = shiftPlan ? { ...shiftPlan, duration: durationText(Math.abs(shiftPlan.minutes), spanWords) } : null;
   // Lot 71e (CHR-06, R12, R13) : les fins manquantes d'un programme repris, « à compléter ».
+  const awaitEnds = tab === "programme" && !event.isDemo && (await programAwaitsEnds(organizationId, id));
+  const tGapsAll = awaitEnds ? await getTranslations("ProgramGaps") : null;
   const programGapRows: ProgramGapRow[] =
-    tab === "programme" && !event.isDemo && (await programAwaitsEnds(organizationId, id))
+    awaitEnds
       ? missingEndItems(program.items).map((item) => {
           const moment = (program.moments ?? []).find((entry) => entry.id === item.keyMomentId);
           return { id: item.id, label: item.label, startTime: item.startTime, day: moment ? { name: moment.name, date: moment.date } : null };
@@ -1453,7 +1455,14 @@ export default async function EventDetailPage({
             ))}
           </datalist>
           {/* Lot 62c (UX-13, UX-05 ; D1) : une ligne par séquence, « Modifier » ouvre la ligne en place, un seul « Enregistrer le programme ». */}
-          <ProgramEditor eventId={event.id} title={t("programTitle")} groups={programGroups} vendorSlots={vendorSlots} moments={momentChoices} />
+          <ProgramEditor
+            eventId={event.id}
+            title={t("programTitle")}
+            groups={programGroups}
+            vendorSlots={vendorSlots}
+            moments={momentChoices}
+            awaitEnds={tGapsAll ? { endMissing: tGapsAll("endMissing"), point: tGapsAll("pointWord"), marker: tGapsAll("markerWord") } : null}
+          />
           <section aria-labelledby="places-title" className="places">
             <h3 id="places-title">{t("placesTitle")}</h3>
             <p className="muted">{t("placesHint")}</p>

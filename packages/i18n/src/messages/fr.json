@@ -2253,7 +2253,7 @@
     "programKeyMomentDefault": "Jour de l'évènement",
     "programMomentInvalid": "Ce temps fort n'est pas un temps fort de l'évènement.",
     "keyMomentHasItems": "{count, plural, one {Ce temps fort porte # séquence du programme : déplacez-la ou supprimez-la pour le retirer.} other {Ce temps fort porte # séquences du programme : déplacez-les ou supprimez-les pour le retirer.}}",
-    "programImportTitle": "Importer un chrono (tableur ou PDF)",
+    "programImportTitle": "Importer un chrono (tableur)",
     "programImportHint": "Un tableur (colonnes reconnues : jour ou temps fort, date, début, fin, séquence, lieu, responsable, note). Rien n'est écrit avant votre accord ; les temps forts manquants sont créés. Le PDF « programme » d'un logiciel de planning se reprend par « Reprendre un programme (PDF) ».",
     "programImportFileLabel": "Fichier CSV ou XLSX",
     "programImportFile": "Choisissez un fichier CSV, XLSX ou PDF.",
@@ -14336,7 +14336,8 @@
         "newSlots": "{count, plural, =0 {Aucun nouveau poste} one {# nouveau poste} other {# nouveaux postes}}"
       },
       "notTaken": "Non repris : aucun montant, votre fichier n'en donne pas.",
-      "import": "{count, plural, =0 {Rien à importer} one {Importer le prestataire} other {Importer les # prestataires}}"
+      "import": "{count, plural, =0 {Rien à importer} one {Importer le prestataire} other {Importer les # prestataires}}",
+      "saveAnswer": "Enregistrer la réponse"
     },
     "program": {
       "marker": "{start} · repère",
@@ -14439,6 +14440,11 @@
     "dialogTitle": "Le programme n'est pas complet",
     "dialogBody": "{count, plural, one {# heure de fin est non renseignée.} other {# heures de fin sont non renseignées.}} Les mariés et les prestataires verraient ces moments sans fin, marqués « heure de fin à venir ».",
     "completeFirst": "Compléter d'abord",
-    "publishAnyway": "Diffuser quand même"
+    "publishAnyway": "Diffuser quand même",
+    "pointWord": "ponctuel",
+    "markerWord": "repère",
+    "colMoment": "Moment",
+    "colDay": "Journée",
+    "tableLabel": "Les moments sans heure de fin"
   }
 }

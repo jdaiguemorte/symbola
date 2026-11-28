@@ -84,6 +84,13 @@ export async function saveVendorsAction(formData: FormData): Promise<void> {
       answers: { ...answers, contracts: answer === "per_line" ? { answer, signedRows: perLineSent ? signed : (answers.contracts?.signedRows ?? []) } : { answer } },
     });
   }
+  // « Enregistrer la réponse » ne touche qu'aux contrats : les lignes « À vérifier » le restent.
+  if (formData.get("intent") === "answer") {
+    revalidatePath(here(ctx.importId));
+    redirect(here(ctx.importId));
+  }
+  // Une ligne « À vérifier » que la planner a vue (son menu envoyé) n'est plus à vérifier.
+  for (const row of rows.values()) row.reviewed = row.vendor !== undefined || row.slot !== undefined;
   await savePdfImportDecisions(db, { organizationId: ctx.organizationId, importId: ctx.importId, decisions: { vendorRows: [...rows.values()], ...(formData.get("intent") ? { reviewed: true } : {}) } });
   if (formData.get("intent") === "import") {
     const result = await confirmVendorsImport({ organizationId: ctx.organizationId, userId: ctx.userId, importId: ctx.importId });

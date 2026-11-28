@@ -62,10 +62,13 @@ test("HUB-14, PRE-02 — prestataires retenus : arrêt « autre couple », contr
 
   // Critères 2 et 3 : la question des contrats, puis l'aperçu, sans menu à ouvrir.
   await page.getByRole("radio", { name: "Tous" }).check();
-  await page.getByRole("button", { name: "Enregistrer et continuer" }).click();
+  await page.getByRole("button", { name: "Enregistrer la réponse" }).click();
   await expect(page.getByRole("heading", { name: "12 prestataires retenus" })).toBeVisible();
   await expect(page.getByText("Ligne non reprise : « Belle Journée », votre agence.")).toBeVisible();
+  // Seules les lignes incertaines sont « À vérifier », avec leur raison ; leur menu est le seul de l'aperçu.
   await expect(page.locator(".pdf-row-verify").first()).toContainText("À vérifier");
+  await expect(page.locator(".pdf-row-verify").first()).toContainText("Aucun poste proche");
+  await expect(page.locator("tr:not(.pdf-row-verify) select")).toHaveCount(0);
   await expect(page.getByText("12 contrats signés · 0 non signés")).toBeVisible();
   await expectNoAxeViolation(page);
   await expectNoSideScroll(page);
@@ -104,6 +107,10 @@ test("CHR-08 — programme repris d'un PDF : aucune fin inventée, « À complé
 
   // Critère 6 : l'onglet compte les fins manquantes ; « Ponctuel » fait baisser le compte.
   await page.goto(`/events/${eventId}?onglet=programme`);
+  // Aucune fin n'est déduite de la séquence suivante dans l'éditeur non plus.
+  const keys = page.locator(".program-line").filter({ hasText: "Récupérer les clés" });
+  await expect(keys).not.toContainText("12:15");
+  await expect(keys).toContainText("fin non renseignée");
   const gaps = page.locator("#a-completer");
   const title = await gaps.getByRole("heading").innerText();
   const before = Number(/(\d+)/.exec(title)![1]);

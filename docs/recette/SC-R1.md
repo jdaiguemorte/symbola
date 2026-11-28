@@ -157,3 +157,33 @@ Mesures :
 - Ce qui reste hors du paquet : la frise de statut dit encore « Confirmé » daté du jour de la reprise
   (son dessin relève du lot 72d) ; « Mes évènements » de l'accueil (lot 72b) dit « À jour » d'un mariage
   repris tant que le 72b n'y lit pas l'origine.
+
+## Lot 71e — les prestataires retenus et le programme
+
+- Date : 28/11/2026, en local, par Claude Code. Base du socle de dev (migrations de `main`, aucune
+  migration nouvelle), ClamAV du socle, app compilée sur le port 3071, session ouverte en base (le
+  fournisseur d'identité local ne connaît que le port 3000). Rejoué **à l'écran**, à 1 440 et à 375 px,
+  par `apps/symbola/e2e/lot-71e-retenus-programme.spec.ts` (4 parcours verts, axe-core sur chaque écran,
+  aucun défilement de côté à 375 px), et regardé en captures. Fichiers fictifs du corpus
+  (`logiciel-tiers/prestataires-evenement.pdf`, `programme-jour-j.pdf`) déposés sur « Léa & Hugo »
+  (le fichier nomme « Clémence & Bastien »).
+
+| Étape du parcours | Ce qui est vérifié | Résultat |
+| --- | --- | --- |
+| Le dépôt | « Reprendre les prestataires retenus (PDF) » de l'onglet budget, ou la ligne 4 de la reprise, ouvre « Reprendre et importer » réglé sur ce mariage ; le PDF passe par `/import/envoi` (antivirus, type lu, pages bornées) | Tenu |
+| Un autre couple | « Ce fichier est-il bien celui de Léa et Hugo ? », tableau Dans le fichier / Sur la fiche, « Choisir un autre fichier » en bouton plein, « C'est bien ce mariage, continuer » ; rien n'est lu avant la réponse | Tenu |
+| Les contrats | « Leurs contrats sont-ils signés ? Tous, Aucun, Ligne par ligne » ; « Aucune relance n'est créée » ; « Ligne par ligne » ajoute la colonne « Contrat » | Tenu |
+| L'aperçu | Toute la largeur ; une ligne par prestataire, fiche du carnet et poste du budget en entier ; seuls trois métiers sans poste proche sont « À vérifier », avec leur raison et le seul menu de l'aperçu ; « Ligne non reprise : « Belle Journée », votre agence. » | Tenu |
+| Le bilan des prestataires | « 12 prestataires retenus sur « Léa & Hugo » », trouvés + créées = 12, signés + non signés = 12, nouveaux postes ; « Non repris : aucun montant » ; la réponse « C'est bien ce mariage » redite ; « Retirer cet import… » défait les douze (test d'intégration) | Tenu |
+| Le programme : « Vérifier » | 3 journées « Veille », « Jour J », « Lendemain » avec la date complète ; « 19 h – 2 h le lendemain » ; « Fin non renseignée » ; « une fin à minuit, laissée vide » ; « 21 h 18 · repère » ; « Non repris : l'annuaire (8 intervenants) » | Tenu |
+| L'onglet du programme | « À compléter : 7 heures de fin non renseignées », « Heure de fin » et « Ponctuel » sur chaque moment ; le compte baisse ; aucune fin déduite dans l'éditeur (« fin non renseignée », « ponctuel », « repère ») | Tenu |
+| La diffusion | « Diffuser » sur un programme incomplet ouvre « Le programme n'est pas complet », la liste par journée, « Compléter d'abord », « Diffuser quand même » ; les destinataires lisent « heure de fin à venir » | Tenu |
+| L'annuaire | Bilan : « Dans le carnet · ajouter le 06… », « déjà à jour », « Absent du carnet » ; l'agence et les mariés écartés ; « Ajouter les N téléphones » sans double (test d'intégration) | Tenu |
+
+Mesures :
+
+- **Les nombres de « Vérifier » sont ceux du bilan** : un même calcul (`importFigures`), gardé au journal
+  à l'écriture ; les tests d'intégration comparent les deux.
+- **NFR-02** : `/events` à 200 évènements, en alternance contre `main` (deux serveurs compilés, aucun
+  des deux ne tenant le travail de fond) : 897 300 octets contre 901 026 ; médianes 231 et 201 ms contre
+  234 et 186 ms (deux séries de 40).

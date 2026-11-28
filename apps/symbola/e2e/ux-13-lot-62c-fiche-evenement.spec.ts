@@ -119,7 +119,7 @@ test("UX-13, UX-05 — programme : une ligne par séquence, une seule ligne ouve
   // La diffusion, le PDF, l'agenda et l'import d'un chrono restent en tête de la carte, avant la liste.
   const tops = async (locator: ReturnType<Page["locator"]>) => (await locator.first().boundingBox())!.y;
   const listTop = await tops(table);
-  for (const head of [page.getByRole("heading", { name: "Diffusion aux clients et aux prestataires" }), page.getByRole("link", { name: "Télécharger le PDF « mariés »" }), page.getByRole("heading", { name: "Mon calendrier" }), page.getByText("Importer un chrono (tableur ou PDF)")]) {
+  for (const head of [page.getByRole("heading", { name: "Diffusion aux clients et aux prestataires" }), page.getByRole("link", { name: "Télécharger le PDF « mariés »" }), page.getByRole("heading", { name: "Mon calendrier" }), page.getByText("Importer un chrono (tableur)")]) {
     expect(await tops(head)).toBeLessThan(listTop);
   }
 

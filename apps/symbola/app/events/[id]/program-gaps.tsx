@@ -21,30 +21,41 @@ export async function ProgramGaps({ eventId, rows, published }: { eventId: strin
       <p>
         {t("body")} {published ? null : t("notShared")} <a href={`#fin-${rows[0]!.id}`}>{t("goFirst")}</a>
       </p>
-      <ul className="program-gaps-list">
-        {rows.map((row) => (
-          <li key={row.id} id={`fin-${row.id}`}>
-            <span>
-              <strong>{clockLabel(row.startTime, lang)}</strong> · {row.label}
-              {row.day ? <span className="meta"> · {`${row.day.name}, ${formatCalendarDate(row.day.date, locale)}`}</span> : null} · <span className="meta">{t("endMissing")}</span>
-            </span>
-            <form action={completeProgramItemAction} className="form-inline">
-              <input type="hidden" name="eventId" value={eventId} />
-              <input type="hidden" name="itemId" value={row.id} />
-              <label>
-                {t("endLabel")}
-                <input type="time" name="endTime" aria-label={t("endFor", { label: row.label })} />
-              </label>
-              <button type="submit" name="intent" value="end" className="button-secondary">
-                {t("saveEnd")}
-              </button>
-              <button type="submit" name="intent" value="point" className="button-secondary" aria-label={t("pointFor", { label: row.label })}>
-                {t("point")}
-              </button>
-            </form>
-          </li>
-        ))}
-      </ul>
+      <div className="list-table-wrap" role="region" tabIndex={0} aria-label={t("tableLabel")}>
+        <table className="data-table">
+          <thead>
+            <tr>
+              <th scope="col">{t("colMoment")}</th>
+              <th scope="col">{t("colDay")}</th>
+              <th scope="col">{t("endLabel")}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((row) => (
+              <tr key={row.id} id={`fin-${row.id}`}>
+                <th scope="row">
+                  {clockLabel(row.startTime, lang)} · {row.label}
+                  <span className="meta"> · {t("endMissing")}</span>
+                </th>
+                <td>{row.day ? `${row.day.name}, ${formatCalendarDate(row.day.date, locale)}` : ""}</td>
+                <td>
+                  <form action={completeProgramItemAction} className="form-inline">
+                    <input type="hidden" name="eventId" value={eventId} />
+                    <input type="hidden" name="itemId" value={row.id} />
+                    <input type="time" name="endTime" aria-label={t("endFor", { label: row.label })} />
+                    <button type="submit" name="intent" value="end" className="button-secondary">
+                      {t("saveEnd")}
+                    </button>
+                    <button type="submit" name="intent" value="point" className="button-secondary" aria-label={t("pointFor", { label: row.label })}>
+                      {t("point")}
+                    </button>
+                  </form>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </section>
   );
 }

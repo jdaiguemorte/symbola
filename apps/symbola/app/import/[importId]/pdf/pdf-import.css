@@ -1,6 +1,15 @@
 /* Lot 71e (HUB-14 ; maquettes 10 et 11) — l'écran d'un PDF de prestataires retenus ou de programme.
    Chargée par cet écran seulement (rien de plus dans la mise en page commune, NFR-02). Jetons de
    DESIGN.md (ADR 0057) ; « À vérifier » reprend le fond d'attention du lot 62. */
+/* L'aperçu prend toute la largeur (maquette 10) : aucun choix tronqué. */
+/* Le formulaire porte plusieurs cartes : il n'en est pas une lui-même, et n'est pas borné à 48 rem. */
+.app-main > main.pdf-import > form {
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+}
 .pdf-import table {
   width: 100%;
   border-collapse: collapse;
