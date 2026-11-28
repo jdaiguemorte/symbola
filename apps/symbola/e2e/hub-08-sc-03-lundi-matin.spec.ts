@@ -154,7 +154,8 @@ test("SC-03 / HUB-08 / UX-01 / UX-06 / EVT-02 — lundi matin : les urgences, an
   // rebours, prochaine action et qui agit, santé de l'évènement.
   await page.getByRole("link", { name: "Contrat de Studio Lumière (Photographe) à faire signer" }).first().click();
   await expect(page).toHaveURL(new RegExp(`/events/${setup.leaId}$`));
-  await expect(page.getByText("68 jours avant le jour J")).toBeVisible();
+  // Lot 72d : le compte à rebours est dans la ligne de faits de l'en-tête (« dans 68 jours »).
+  await expect(page.locator("#event-header").getByText("dans 68 jours")).toBeVisible();
   const next = page.getByRole("region", { name: "Prochaine action" });
   await expect(next.getByRole("listitem").first()).toContainText("Faire signer le contrat du photographe");
   await expect(next.getByRole("listitem").first()).toContainText("En retard de 3 jours");

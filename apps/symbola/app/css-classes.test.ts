@@ -49,7 +49,6 @@ const MARKERS: readonly string[] = [
   "next-step-later",
   "questionnaire-sent",
   "task-comments",
-  "timeline-auto",
   // Réglages des évènements, modèles.
   "questionnaire-editor",
   "template-label",

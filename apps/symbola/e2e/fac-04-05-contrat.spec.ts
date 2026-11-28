@@ -13,7 +13,7 @@ import { expect, test, type Page } from "@playwright/test";
 import { createEventLink, createProspect, createProspectSource, getEvent } from "../modules/events/service";
 import { saveOnboardingStep } from "../modules/hub/service";
 import { addQuoteLine, addScheduleItem, addStarterContractTemplates, createQuote, sendQuote, updateContractClause } from "../modules/quotes/service";
-import { readyOrganization, signIn as signInByLink } from "./helpers";
+import { expectEventStep, readyOrganization, signIn as signInByLink } from "./helpers";
 
 const PASSWORD = "mot-de-passe-terrain-e2e";
 
@@ -214,7 +214,7 @@ test("FAC-04 / DOC-03 / FAC-05 / SC-02 étapes 4 à 7 — contrat généré (pro
 
   // Lot 34a (EVT-05, D6) : la signature a confirmé l'option.
   await page.goto(`/events/${setup.eventId}`);
-  await expect(page.getByRole("list", { name: "Statut de l'évènement" }).getByRole("listitem").filter({ hasText: "Confirmé" })).toHaveAttribute("aria-current", "step");
+  await expectEventStep(page, "Signé, en préparation");
 });
 
 test("HUB-21 / JUR-20 — Modèles de contrat : bandeau « à adapter », version et date de revue, variables documentées", async ({ page }) => {

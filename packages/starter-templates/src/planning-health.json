@@ -5,5 +5,7 @@
   "latePoints": 4,
   "milestoneWeight": 3,
   "_soonDays": "Lot 70a (UX-06, CHR-05 ; M10) — une tâche à faire dont l'échéance tombe dans soonDays jours au plus (au-delà de demain) est dite « Bientôt » ; réglable par organisation (events.planning_health_settings.soon_days).",
-  "soonDays": 7
+  "soonDays": 7,
+  "_dayOfLeadDays": "Lot 72d (EVT-02 ; J9) — à partir de dayOfLeadDays jours avant le jour J (et jusqu'au lendemain), « Ouvrir le Jour J » devient l'action de l'en-tête de la fiche ; réglable par organisation (events.planning_health_settings.day_of_lead_days).",
+  "dayOfLeadDays": 7
 }

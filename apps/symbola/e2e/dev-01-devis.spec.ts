@@ -73,7 +73,7 @@ test("DEV-01 — composer un devis depuis un évènement, l'envoyer, le téléch
   await expect(page.getByText("Source ajoutée.")).toBeVisible();
   await createEventByForm(page, { name: "Inès", clientFirstName: "Inès" });
   await expect(page.getByRole("heading", { name: "Inès" })).toBeVisible();
-  await openEventTab(page, "Mes devis et factures");
+  await openEventTab(page, "Devis et factures");
   await expect(page.getByText("Aucun devis pour cet évènement.")).toBeVisible();
   await page.getByRole("button", { name: "Créer un devis" }).click();
   await expect(page).toHaveURL(/\/devis\/[0-9a-f-]{36}$/);
@@ -120,6 +120,6 @@ test("DEV-01 — composer un devis depuis un évènement, l'envoyer, le téléch
 
   // La fiche de l'évènement liste le devis.
   await page.getByRole("link", { name: "Inès" }).click();
-  await openEventTab(page, "Mes devis et factures");
+  await openEventTab(page, "Devis et factures");
   await expect(page.getByRole("link", { name: /^D-\d{4}-0001$/ })).toBeVisible();
 });

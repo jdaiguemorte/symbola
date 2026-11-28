@@ -127,12 +127,6 @@
       @apply min-h-11;
     }
   }
-  .event-sheet .timeline-actions .timeline-lost {
-    @apply !min-h-11 !px-2;
-  }
-  .event-sheet .timeline-step .timeline-button {
-    @apply !min-h-11 min-w-11;
-  }
   /* En tête de la carte : le modèle à appliquer et l'import d'un chrono, côte à côte. */
   .program-sources {
     @apply flex flex-wrap items-start gap-x-8 gap-y-3;

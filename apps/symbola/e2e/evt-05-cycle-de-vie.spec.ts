@@ -13,7 +13,7 @@ import { expect, test, type Page } from "@playwright/test";
 import { addLossReasons, createEventType, createProspect, createProspectSource, createTaskTemplate, listEventTasks } from "../modules/events/service";
 import { saveOnboardingStep } from "../modules/hub/service";
 import { actOnFakeSignature, addQuoteLine, addScheduleItem, createQuote, issueDepositInvoice, sendQuote, sendQuoteForSignature } from "../modules/quotes/service";
-import { changeEventStatus, feedback, readyOrganization, signIn } from "./helpers";
+import { changeEventStatus, eventCommand, expectEventStep, feedback, readyOrganization, signIn } from "./helpers";
 import { minimalPdf } from "../lib/test-fixtures/pdf";
 
 const PASSWORD = "mot-de-passe-cycle-e2e";
@@ -88,8 +88,7 @@ test("EVT-01 / EVT-05 / CHR-01 — l'option naît avec son rétroplanning ; repo
 
   // EVT-01 (D8) : l'option a déjà son rétroplanning.
   await page.goto(`/events/${eventId}?onglet=taches`);
-  const steps = page.getByRole("list", { name: "Statut de l'évènement" });
-  await expect(steps.getByRole("listitem").filter({ hasText: "Option" })).toHaveAttribute("aria-current", "step");
+  await expectEventStep(page, "Une demande en cours");
   await expect(page.getByText("Dégustation chez le traiteur").first()).toBeVisible();
   // Attend l'hydratation : un envoi avant elle partirait sans retour d'erreur.
   await page.waitForLoadState("networkidle");
@@ -97,22 +96,27 @@ test("EVT-01 / EVT-05 / CHR-01 — l'option naît avec son rétroplanning ; repo
 
   // D4 : la nouvelle date ; le report attend sa confirmation.
   // Lot 70b (M6) : niveau 2 du danger, une fenêtre qui nomme l'évènement ; on renonce par « Garder la date ».
-  await page.getByRole("button", { name: "Reporter l'évènement…" }).click();
+  // Lot 72d : « Reporter l'évènement… » est au menu « ⋯ » de l'en-tête.
+  await eventCommand(page, "Reporter l'évènement…");
   const postpone = page.getByRole("dialog", { name: "Reporter l'évènement « Léa & Hugo » ?" });
   await expect(postpone.getByRole("button", { name: "Garder la date" })).toBeVisible();
   await postpone.getByLabel("Nouvelle date").fill(newDate);
   await postpone.getByRole("button", { name: "Reporter l'évènement", exact: true }).click();
 
-  const card = page.getByRole("region", { name: "Confirmer le report" });
+  // Lot 72d (E1) : la ligne d'état remplace la frise ; « Fixer la nouvelle date… » ouvre la confirmation.
+  const line = page.locator("#event-header .event-status-line");
+  await expect(line).toContainText(`Reporté · le ${formatCalendarDate(eventDate, "fr")} n'est plus la date`);
+  await expectNoAxeViolation(page);
+  await line.getByRole("button", { name: "Fixer la nouvelle date…" }).click();
+  const card = page.getByRole("dialog", { name: "Fixer la nouvelle date de « Léa & Hugo » ?" });
   await expect(card).toContainText("Cette tâche tomberait dans le passé :");
   await expect(card).toContainText(`Réserver le lieu — ${formatCalendarDate(addDays(newDate, -365), "fr")}`);
-  await expect(page.locator(".badge", { hasText: `Reporté — prévu le ${formatCalendarDate(eventDate, "fr")}` })).toBeVisible();
   await expectNoAxeViolation(page);
 
   // Confirmé : les échéances relatives suivent, l'évènement retrouve son statut.
   await card.getByRole("button", { name: "Confirmer le report" }).click();
-  await expect(steps.getByRole("listitem").filter({ hasText: "Confirmé" })).toHaveAttribute("aria-current", "step");
-  await expect(card).toHaveCount(0);
+  await expectEventStep(page, "Signé, en préparation");
+  await expect(line).toHaveCount(0);
   await expect
     .poll(async () => (await listEventTasks(organizationId, eventId)).map((task) => `${task.label} ${task.dueDate}`).sort())
     .toEqual([`Dégustation chez le traiteur ${addDays(newDate, -90)}`, `Plan de table ${addDays(newDate, -14)}`, `Réserver le lieu ${addDays(newDate, -365)}`]);
@@ -125,12 +129,12 @@ test("EVT-05 / FAC-13 — annuler nomme l'évènement et exige un motif ; un avo
 
   // La signature a confirmé l'option.
   await page.goto(`/events/${eventId}`);
-  const steps = page.getByRole("list", { name: "Statut de l'évènement" });
-  await expect(steps.getByRole("listitem").filter({ hasText: "Confirmé" })).toHaveAttribute("aria-current", "step");
+  await expectEventStep(page, "Signé, en préparation");
   await page.waitForLoadState("networkidle");
 
   // Lot 70b (M6) : niveau 2 du danger ; « Garder l'évènement » pour renoncer, aucun « Annuler » seul.
-  await page.getByRole("button", { name: "Annuler l'évènement…" }).click();
+  // Lot 72d : au menu « ⋯ », en dernier.
+  await eventCommand(page, "Annuler l'évènement…");
   const form = page.getByRole("dialog", { name: "Annuler l'évènement « Léa & Hugo » ?" });
   await expect(form).toContainText("un avoir vous est proposé pour chacune");
   await expect(form.getByRole("button", { name: "Garder l'évènement" })).toBeVisible();
@@ -140,16 +144,18 @@ test("EVT-05 / FAC-13 — annuler nomme l'évènement et exige un motif ; un avo
   await expectNoAxeViolation(page);
   await form.getByRole("button", { name: "Annuler l'évènement", exact: true }).click();
 
-  // FAC-13 : la facture émise reste ; un avoir est proposé, la planner décide.
-  const invoices = page.getByRole("region", { name: "Factures déjà émises" });
+  // FAC-13 : la facture émise reste ; un avoir est proposé, la planner décide (lot 72d : « À vérifier : »).
+  const invoices = page.locator("#event-header .event-invoices-check");
+  await expect(invoices).toContainText("À vérifier : 1 facture émise.");
   await expect(invoices).toContainText(invoiceNumber!);
   await expect(invoices.getByRole("link", { name: "Émettre un avoir" })).toHaveAttribute("href", `/devis/${quoteId}`);
-  // La frise dit l'annulation et sa date.
-  await expect(page.locator("p.badge", { hasText: /^Annulé · / })).toBeVisible();
+  // La ligne d'état dit l'annulation, sa date et son motif.
+  await expect(page.locator("#event-header .event-status-line")).toContainText(/Annulé le .* · motif : Séparation/);
   await expectNoAxeViolation(page);
 
-  await page.getByRole("button", { name: "Rétablir l'évènement" }).click();
+  await page.getByRole("button", { name: "Rétablir l'évènement…" }).click();
+  await page.getByRole("dialog", { name: "Rétablir « Léa & Hugo » ?" }).getByRole("button", { name: "Rétablir l'évènement", exact: true }).click();
   await expect(feedback(page).filter({ hasText: "Évènement rétabli : Léa & Hugo" })).toBeVisible();
-  await expect(steps.getByRole("listitem").filter({ hasText: "Option" })).toHaveAttribute("aria-current", "step");
+  await expectEventStep(page, "Une demande en cours");
   await expect(invoices).toHaveCount(0);
 });

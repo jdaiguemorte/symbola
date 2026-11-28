@@ -2133,6 +2133,9 @@ export const planningHealthSettings = eventsSchema.table(
     // Lot 70a (UX-06, CHR-05 ; M10, migration 0214) : seuil de « Bientôt » d'une tâche, en jours ; nul : la
     // valeur de départ (planning-health.json). L'écran de réglage attend le volet « Paramètres ».
     soonDays: integer("soon_days"),
+    // Lot 72d (EVT-02 ; J9, migration 0226) : combien de jours avant le jour J « Ouvrir le Jour J » devient
+    // l'action de l'en-tête de la fiche (1 à 30) ; nul : 7 (valeur de départ, planning-health.json).
+    dayOfLeadDays: integer("day_of_lead_days"),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
     createdBy: uuid("created_by"),
@@ -2144,6 +2147,7 @@ export const planningHealthSettings = eventsSchema.table(
     check("planning_health_settings_points_check", sql`${table.watchPoints} between 1 and 100 and ${table.latePoints} between 1 and 100 and ${table.watchPoints} <= ${table.latePoints}`),
     check("planning_health_settings_weight_check", sql`${table.milestoneWeight} between 1 and 10`),
     check("planning_health_settings_soon_days_check", sql`${table.soonDays} is null or ${table.soonDays} between 1 and 30`),
+    check("planning_health_settings_day_of_lead_days_check", sql`${table.dayOfLeadDays} is null or ${table.dayOfLeadDays} between 1 and 30`),
   ],
 );
 

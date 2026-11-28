@@ -26,7 +26,6 @@
   "app/devis/parametres/payment-method-forms.tsx",
   "app/devis/parametres/quote-settings-form.tsx",
   "app/devis/relances/reminder-settings-form.tsx",
-  "app/events/[id]/change-status-form.tsx",
   "app/events/[id]/cloture/closing-forms.tsx",
   "app/events/[id]/consultation/consultation-forms.tsx",
   "app/events/[id]/day-contact-forms.tsx",

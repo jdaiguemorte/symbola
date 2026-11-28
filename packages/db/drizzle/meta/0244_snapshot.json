@@ -1,5 +1,5 @@
 {
-  "id": "85bbc71b-2433-4766-8ae2-c0fbfea28b79",
+  "id": "12751768-c66c-4662-a8b4-cd4f0c182617",
   "prevId": "297fbb0c-034a-49e3-9892-e887bcceb7b2",
   "version": "7",
   "dialect": "postgresql",
@@ -12185,6 +12185,12 @@
           "primaryKey": false,
           "notNull": false
         },
+        "day_of_lead_days": {
+          "name": "day_of_lead_days",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp with time zone",
@@ -12245,6 +12251,10 @@
         "planning_health_settings_soon_days_check": {
           "name": "planning_health_settings_soon_days_check",
           "value": "\"events\".\"planning_health_settings\".\"soon_days\" is null or \"events\".\"planning_health_settings\".\"soon_days\" between 1 and 30"
+        },
+        "planning_health_settings_day_of_lead_days_check": {
+          "name": "planning_health_settings_day_of_lead_days_check",
+          "value": "\"events\".\"planning_health_settings\".\"day_of_lead_days\" is null or \"events\".\"planning_health_settings\".\"day_of_lead_days\" between 1 and 30"
         }
       },
       "isRLSEnabled": false

@@ -60,7 +60,7 @@ test("DEV-03 — échéancier, encaissements à venir, retard et paiement", asyn
   await createEventByForm(page, { name: "Lou", clientFirstName: "Lou" });
   await expect(page.getByRole("heading", { name: "Lou" })).toBeVisible();
   await page.waitForLoadState("networkidle");
-  await openEventTab(page, "Mes devis et factures");
+  await openEventTab(page, "Devis et factures");
   await page.getByRole("button", { name: "Créer un devis" }).click();
   await expect(page).toHaveURL(/\/devis\/[0-9a-f-]{36}$/);
   const quoteUrl = page.url();

@@ -19,6 +19,7 @@
 @import "./styles/lot-63b-import.css";
 @import "./styles/lot-71b-reprise.css";
 @import "./styles/lot-74a-assistant.css";
+@import "./styles/lot-72d-entete.css";
 @import "./styles/lot-71c-questions.css";
 @import "./styles/lot-73b-carnet.css";
 @import "./styles/lot-73c-rattacher.css";
@@ -1700,71 +1701,9 @@
 
 /* Lot 13 (L13-EVT-19) — frise du statut, prochaine étape, chiffres clés. */
 @layer components {
-  .status-timeline-wrap {
-    @apply my-4 flex flex-col gap-3;
-  }
-  /* Lot 34a (EVT-05) : cinq étapes, Option à Clôturé ; Reporté et Annulé s'affichent à part. */
-  .status-timeline {
-    @apply m-0 grid list-none grid-cols-5 p-0;
-  }
-  .timeline-actions {
-    @apply flex flex-wrap gap-3 self-end;
-  }
   /* Lot 34b (EVT-03, CHR-02) : notes de la fiche et commentaires de tâche gardent leurs retours à la ligne. */
   .task-comment-body {
     @apply m-0 whitespace-pre-line;
-  }
-  .timeline-step {
-    @apply relative flex flex-col items-center gap-1 px-1 text-center;
-  }
-  .timeline-step::before {
-    content: "";
-    @apply absolute top-[17px] right-1/2 left-[-50%] h-[3px] bg-line;
-  }
-  .timeline-step:first-child::before {
-    @apply hidden;
-  }
-  .timeline-step.passed::before,
-  .timeline-step.current::before {
-    @apply bg-primary;
-  }
-  .timeline-button {
-    @apply flex !min-h-0 flex-col items-center gap-1 border-0 !bg-transparent !p-0 !text-ink disabled:cursor-default disabled:opacity-100;
-  }
-  .timeline-dot {
-    @apply relative z-10 inline-flex h-9 w-9 items-center justify-center rounded-full border-2 border-line-strong bg-surface text-label font-semibold text-ink-muted;
-  }
-  .timeline-dot::before {
-    content: attr(data-mark);
-  }
-  .timeline-step.passed .timeline-dot {
-    @apply border-primary bg-primary text-on-primary;
-  }
-  .timeline-step.current .timeline-dot {
-    @apply border-[3px] border-primary text-primary-strong opacity-100;
-    box-shadow: 0 0 0 5px var(--color-primary-soft);
-  }
-  .timeline-label {
-    @apply text-label font-semibold text-ink;
-  }
-  .timeline-step:not(.passed):not(.current) .timeline-label {
-    @apply text-ink-muted;
-  }
-  .timeline-date {
-    @apply text-label text-ink-muted;
-  }
-  .timeline-lost {
-    @apply self-end !min-h-0 border-0 !bg-transparent !p-0 text-label !text-critical underline;
-  }
-  /* Reporter n'efface rien : couleur principale ; Annuler garde la couleur critique. */
-  .timeline-postpone {
-    @apply !text-primary-strong;
-  }
-  .timeline-confirm {
-    @apply flex flex-wrap items-center gap-3 rounded-md border border-line bg-ground p-3;
-  }
-  .timeline-confirm p {
-    @apply m-0 flex-1 font-medium;
   }
   .next-step {
     @apply my-4 flex flex-wrap items-start justify-between gap-3 rounded-lg !border-0 !bg-primary-soft p-4;
