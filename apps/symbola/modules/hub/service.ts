@@ -270,6 +270,7 @@ export {
   purgeExpiredImportLeftovers,
   saveImportAnswers,
   getImportAnswers,
+  setImportTargetEvent,
   ImportAnswersInvalidError,
   recordAppliedImport,
   recordImportUndo,

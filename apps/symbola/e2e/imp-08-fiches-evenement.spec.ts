@@ -13,7 +13,7 @@ import { prospectSources } from "@symbola/db/schema/events";
 import { withOrganization } from "@symbola/db/with-organization";
 import { createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
-import { openEventTab, openSettingsTab, readyOrganization, signIn as signInByLink } from "./helpers";
+import { answerSheetQuestions, openEventTab, openSettingsTab, readyOrganization, signIn as signInByLink } from "./helpers";
 
 async function loginAndSetupMfa(page: Page, email: string, _password: string) {
   // Lot 33 : lien magique et fournisseur d'identité (e2e/helpers.ts).
@@ -32,7 +32,8 @@ const corpus = (name: string) => path.resolve(process.cwd(), "../../packages/tes
 // l'avancement. Lot 16 (IMP-11) : à la fin, l'assistant passe de lui-même à
 // l'étape suivante (ici « Vérifier et confirmer » : aucun doublon à vérifier).
 async function waitForSheetsRead(page: Page) {
-  await expect.poll(() => page.url().endsWith("/confirmation"), { timeout: 30_000 }).toBe(true);
+  // Lot 71c (C-64) : puis l'étape « Questions » (« Où en est-il ? »).
+  await expect.poll(() => page.url().endsWith("/questions"), { timeout: 30_000 }).toBe(true);
 }
 
 test("IMP-08 — reprendre ses évènements depuis les fiches PDF de l'outil actuel", async ({ page }) => {
@@ -61,8 +62,11 @@ test("IMP-08 — reprendre ses évènements depuis les fiches PDF de l'outil act
   await expectNoAxeViolation(page);
   await page.getByRole("button", { name: "Lire le fichier" }).click();
 
-  // Colonnes déjà reconnues ; lecture des fiches suivie, puis « Vérifier et confirmer ».
+  // Colonnes déjà reconnues ; lecture des fiches suivie, puis « Questions » et « Vérifier et confirmer ».
   await waitForSheetsRead(page);
+  await expectNoAxeViolation(page);
+  // Lot 71c (C-64) : la source est facultative, demandée avec « Où en est-il ? ».
+  await answerSheetQuestions(page, { source: "Outil actuel" });
   await expect(page.getByText("Fiche « pas-une-fiche.pdf » : ce n'est pas un PDF")).toBeVisible();
   // Bilan : 2 créations, aucune mise à jour, 1 fiche rejetée. Lot 71a (C-56) : plus aucune colonne
   // gardée en champ libre (la note va dans « Notes », le total et le réglé au total « à répartir »).
@@ -85,7 +89,6 @@ test("IMP-08 — reprendre ses évènements depuis les fiches PDF de l'outil act
   await expect(page.getByLabel(/Ligne 2 : Chloé PETIT & Antoine ROUX/)).toHaveValue("option");
   await expectNoAxeViolation(page);
 
-  await page.getByLabel("Source pour les évènements sans source").selectOption({ label: "Outil actuel" });
   await page.getByRole("button", { name: "Importer 2 évènements" }).click();
   // Lot 63b (HUB-14, UX-07) : le bilan d'abord ; le détail du journal est replié.
   await page.getByText("Détails du journal (fichier, auteur, dates)").click();

@@ -73,3 +73,22 @@ describe("HUB-14 — Rapprochements vérifiables (lot 63b)", () => {
     expect(nextImportStep(steps)).toBe("confirm");
   });
 });
+
+// Lot 71c (HUB-14 ; maquette 07) : « Questions », entre les colonnes et les doublons, seulement s'il y a
+// une réponse à donner ; tant qu'il en manque une, l'assistant s'y arrête.
+describe("HUB-14 — L'étape « Questions » (lot 71c)", () => {
+  const budget = { entityType: "budget_lines" as const, rowCount: 14, readingDone: true, reviewed: {}, mapping: [field(0)] };
+  it("sans question, l'étape n'existe pas", () => {
+    expect(importWizardSteps({ ...budget, matches: { rows: [row(0, null)] } as never, questions: null }).map((step) => step.key)).toEqual(["file", "columns", "matches", "confirm"]);
+    expect(importWizardSteps({ ...budget, matches: { rows: [row(0, null)] } as never, questions: { asked: 0, missing: 0 } }).map((step) => step.key)).toEqual(["file", "columns", "matches", "confirm"]);
+  });
+  it("avec des réponses à donner, l'assistant s'arrête à « Questions », avant les doublons ; répondues, il passe", () => {
+    let steps = importWizardSteps({ ...budget, matches: { rows: [row(0, null)] } as never, questions: { asked: 2, missing: 2 } });
+    expect(steps.map((step) => step.key)).toEqual(["file", "columns", "questions", "matches", "confirm"]);
+    expect(nextImportStep(steps)).toBe("questions");
+    expect(steps.find((step) => step.key === "matches")?.done).toBe(false);
+    steps = importWizardSteps({ ...budget, matches: { rows: [row(0, null)] } as never, questions: { asked: 2, missing: 0 } });
+    expect(steps.find((step) => step.key === "questions")).toMatchObject({ done: true, summary: { key: "questions", values: { asked: 2, missing: 0 } } });
+    expect(nextImportStep(steps)).toBe("confirm");
+  });
+});

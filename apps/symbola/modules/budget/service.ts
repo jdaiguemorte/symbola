@@ -1321,9 +1321,12 @@ export async function removeEventBudgetData(organizationId: string, eventIds: st
 export { closeUnallocatedTotals, getUnallocatedTotals, importUnallocatedTotals, setUnallocatedTotals, type UnallocatedTotals } from "./unallocated";
 
 // IMP-05 — fonctions d'import (lot 5, ADR 0022).
+// Lot 71c (HUB-14) : l'échéancier qu'écrira l'import, pour annoncer à l'étape « Questions » ce que
+// donnera chaque réponse.
 export {
   findModifiedImportedBudgetElements,
   importBudgetLineRows,
+  importedPaymentSchedule,
   undoImportedBudgetElements,
 } from "./import";
 

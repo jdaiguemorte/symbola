@@ -13,9 +13,10 @@ import { getUnallocatedTotals } from "@/modules/budget/service";
 import { createProspect, createProspectSource, getEvent, getEventProgram, listEventPlaces, listEvents } from "@/modules/events/service";
 import { getImportColumns, getPlatformSettings, setPlatformSettings, startEventSheetsImport } from "@/modules/hub/service";
 import { runImportJobsUntilIdle } from "@/lib/import-jobs";
-import { confirmImport, getImportPreview, undoImport } from "./apply";
+import { getImportPreview, undoImport } from "./apply";
 import { getImportGapsView } from "./gaps";
 import { decideMatches, getImportMatchesView, setEventSheetStatuses } from "./matching";
+import { confirmWithAnswers } from "@/lib/test-fixtures/import-answers";
 
 const { sql, db } = createAppConnection();
 
@@ -90,7 +91,7 @@ describe("IMP-08 — Importer ses événements depuis les fiches PDF", () => {
   it("à la confirmation : mariés et coordonnées, date, lieux (le premier en lieu de réception) et programme avec leurs heures, budget souhaité ; lot 71a : noms à la casse de l'app, note dans « Notes », total et réglé à répartir, rien en champs importés", async () => {
     const planner = await createPlanner();
     const importId = await startSheets(planner, [sheet("fiche-evenement-complete.pdf")]);
-    const result = await confirmImport({ ...planner, importId, defaultProspectSourceId: planner.sourceId });
+    const result = await confirmWithAnswers({ ...planner, importId, defaultProspectSourceId: planner.sourceId });
     expect(result).toEqual({ status: "applied", result: { created: 1, updated: 0, unchanged: 0, rejected: 0 } });
 
     const [summary] = await listEvents({ organizationId: planner.organizationId });
@@ -125,9 +126,11 @@ describe("IMP-08 — Importer ses événements depuis les fiches PDF", () => {
     preview = await getImportPreview(planner.organizationId, importId);
     expect(preview!.creations.map((row) => row.values.status)).toEqual(["closed", "confirmed", "option"]);
 
-    await confirmImport({ ...planner, importId, defaultProspectSourceId: planner.sourceId });
+    // Lot 71c (C-64) : « Où en est-il ? » donne le statut des fiches (« Signé » : Confirmé), sauf celle
+    // dont la planner a choisi le statut dans l'aperçu, qui l'emporte.
+    await confirmWithAnswers({ ...planner, importId, defaultProspectSourceId: planner.sourceId, answers: { eventStage: "signed" } });
     const statuses = (await listEvents({ organizationId: planner.organizationId })).map((event) => `${event.eventDate} ${event.status}`).sort();
-    expect(statuses).toEqual(["2027-06-12 closed", "2027-09-03 confirmed", "2028-12-09 option"]);
+    expect(statuses).toEqual(["2027-06-12 confirmed", "2027-09-03 confirmed", "2028-12-09 option"]);
   });
 
   it("rapprochements : un événement déjà présent (mêmes mariés, même date) est proposé en mise à jour ; deux fiches du même lot pour le même événement sont signalées", async () => {
@@ -146,7 +149,7 @@ describe("IMP-08 — Importer ses événements depuis les fiches PDF", () => {
     expect(matches!.rows[1]!.sameAsLine).toBeUndefined();
 
     await decideMatches(planner.organizationId, importId, [{ rowIndex: 0, decision: "accept" }, { rowIndex: 2, decision: "accept" }]);
-    await confirmImport({ ...planner, importId, defaultProspectSourceId: planner.sourceId });
+    await confirmWithAnswers({ ...planner, importId, defaultProspectSourceId: planner.sourceId });
     const event = (await getEvent(planner.organizationId, existing))!;
     expect(event.clients[0]).toMatchObject({ firstName: "Léa", email: "lea.martin@example.org" });
     expect(event.wantedBudgetCents).toBe(2_500_000);
@@ -167,7 +170,7 @@ describe("IMP-08 — Importer ses événements depuis les fiches PDF", () => {
     // Les rapprochements sont calculés à l'ouverture de l'étape.
     expect((await getImportMatchesView(planner.organizationId, importId))!.rows[0]!.match?.candidateId).toBe(existing);
     await decideMatches(planner.organizationId, importId, [{ rowIndex: 0, decision: "accept" }]);
-    expect(await confirmImport({ ...planner, importId, defaultProspectSourceId: planner.sourceId })).toEqual({ status: "applied", result: expect.anything() });
+    expect(await confirmWithAnswers({ ...planner, importId, defaultProspectSourceId: planner.sourceId })).toEqual({ status: "applied", result: expect.anything() });
     expect(await listEvents({ organizationId: planner.organizationId })).toHaveLength(3);
 
     const undo = await undoImport({ ...planner, importId });
@@ -198,7 +201,7 @@ describe("IMP-08 — Importer ses événements depuis les fiches PDF", () => {
     expect(matches!.rows[0]!.match).toBeNull();
     expect(await getImportMatchesView(b.organizationId, importId)).toBeNull();
     expect(await setEventSheetStatuses(b.organizationId, importId, [{ rowIndex: 0, status: "option" }])).toBe(false);
-    await confirmImport({ ...a, importId, defaultProspectSourceId: a.sourceId });
+    await confirmWithAnswers({ ...a, importId, defaultProspectSourceId: a.sourceId });
     expect(await listEvents({ organizationId: b.organizationId })).toHaveLength(1);
   });
 });

@@ -37,8 +37,9 @@ import {
   type ImportEntityType,
 } from "@/modules/hub/service";
 import { createCatalogItem, listCatalogItems } from "@/modules/quotes/service";
-import { confirmImport, getImportPreview, getUndoPreview, undoImport } from "./apply";
+import { getImportPreview, getUndoPreview, undoImport } from "./apply";
 import { decideMatches, getImportMatchesView } from "./matching";
+import { confirmWithAnswers } from "@/lib/test-fixtures/import-answers";
 
 const { sql, db } = createAppConnection();
 
@@ -122,7 +123,7 @@ describe("IMP-05 — Aperçu et annulation", () => {
     // Un rapprochement proposé et pas encore décidé bloque la confirmation.
     const blocked = await getImportPreview(planner.organizationId, importId);
     expect(blocked?.blockers).toEqual(["matches_undecided"]);
-    expect(await confirmImport({ ...planner, importId, defaultProspectSourceId: planner.sourceId })).toEqual({
+    expect(await confirmWithAnswers({ ...planner, importId, defaultProspectSourceId: planner.sourceId })).toEqual({
       status: "blocked",
       blockers: ["matches_undecided"],
     });
@@ -149,8 +150,8 @@ describe("IMP-05 — Aperçu et annulation", () => {
     );
     await acceptAllMatches(planner, importId);
 
-    expect(await confirmImport({ ...planner, importId, defaultProspectSourceId: randomUUID() })).toEqual({ status: "invalid_default_source" });
-    const confirmed = await confirmImport({ ...planner, importId, defaultProspectSourceId: other.id });
+    expect(await confirmWithAnswers({ ...planner, importId, defaultProspectSourceId: randomUUID() })).toEqual({ status: "invalid_default_source" });
+    const confirmed = await confirmWithAnswers({ ...planner, importId, defaultProspectSourceId: other.id });
     expect(confirmed).toEqual({ status: "applied", result: { created: 2, updated: 1, unchanged: 0, rejected: 0 } });
 
     // Mise à jour : seules les cellules remplies remplacent, le champ libre s'ajoute.
@@ -177,7 +178,7 @@ describe("IMP-05 — Aperçu et annulation", () => {
     expect(journal[0]?.appliedAt).toBeInstanceOf(Date);
     // Les lignes du fichier ne sont plus gardées ; l'import n'est plus en cours.
     expect(await getImportDraft(db, planner.organizationId, importId)).toBeNull();
-    expect(await confirmImport({ ...planner, importId, defaultProspectSourceId: other.id })).toEqual({ status: "not_found" });
+    expect(await confirmWithAnswers({ ...planner, importId, defaultProspectSourceId: other.id })).toEqual({ status: "not_found" });
   });
 
   it("La confirmation écrit tout ou rien : un échec n'écrit aucune ligne", async () => {
@@ -212,7 +213,7 @@ describe("IMP-05 — Aperçu et annulation", () => {
     await getImportMatchesView(planner.organizationId, importId);
     await withOrganization(db, planner.organizationId, (tx) => tx.update(events).set({ isDemo: true }).where(eq(events.id, second)));
 
-    expect(await confirmImport({ ...planner, importId })).toEqual({ status: "applied", result: { created: 1, updated: 0, unchanged: 0, rejected: 1 } });
+    expect(await confirmWithAnswers({ ...planner, importId })).toEqual({ status: "applied", result: { created: 1, updated: 0, unchanged: 0, rejected: 1 } });
     expect((await listEventTasks(planner.organizationId, first)).map((task) => task.label)).toEqual(["Réserver le traiteur"]);
   });
 
@@ -225,7 +226,7 @@ describe("IMP-05 — Aperçu et annulation", () => {
       "Prénom mariée;Nom mariée;Date du mariage;Lieu;Source\nÉlodie;Durand;12/06/2027;Château de Vaux;\nInès;Moreau;03/09/2027;;Mariages.net\n",
     );
     await acceptAllMatches(planner, importId);
-    await confirmImport({ ...planner, importId, defaultProspectSourceId: planner.sourceId });
+    await confirmWithAnswers({ ...planner, importId, defaultProspectSourceId: planner.sourceId });
     expect(await listEvents({ organizationId: planner.organizationId })).toHaveLength(2);
 
     const preview = await getUndoPreview(planner.organizationId, importId);
@@ -253,7 +254,7 @@ describe("IMP-05 — Aperçu et annulation", () => {
         "12/06/2027;Élodie;Durand;Envoyer les faire-part;01/03/2027\n",
     );
     await getImportMatchesView(planner.organizationId, importId);
-    await confirmImport({ ...planner, importId });
+    await confirmWithAnswers({ ...planner, importId });
     const tasks = await listEventTasks(planner.organizationId, eventId);
     const caterer = tasks.find((task) => task.label === "Réserver le traiteur")!;
     await updateEventTask({ organizationId: planner.organizationId, taskId: caterer.id, done: true });
@@ -292,7 +293,7 @@ describe("IMP-05 — Aperçu et annulation", () => {
     );
     await acceptAllMatches(planner, importId);
     // Lot 28b : la ligne du traiteur rattache « Saveurs & Co » au poste : elle compte comme une création.
-    expect(await confirmImport({ ...planner, importId })).toMatchObject({ status: "applied", result: { created: 2, updated: 0 } });
+    expect(await confirmWithAnswers({ ...planner, importId })).toMatchObject({ status: "applied", result: { created: 2, updated: 0 } });
 
     const lines = await listBudgetLines(planner.organizationId, eventId);
     expect(lines.lines.map((line) => [line.label, line.estimatedAmountCents, line.committedAmountCents])).toEqual(
@@ -301,10 +302,11 @@ describe("IMP-05 — Aperçu et annulation", () => {
         ["Fleuriste", 120000, null],
       ]),
     );
-    // Lot 28b : le prestataire importé est rattaché au poste (retenu : la ligne a un réel) et lié à la ligne.
-    // (« Pétales », sans montant réel, est seulement pressenti.)
+    // Lot 28b : le prestataire importé est rattaché au poste et lié à la ligne. Lot 71c (I1) : un budget
+    // qui nomme ses prestataires demande leurs contrats ; répondu, chaque nom est retenu sur sa ligne
+    // (« Pétales » aussi, sans montant réel), jamais relancé.
     expect((await listVendorCandidates(planner.organizationId, eventId)).map((candidate) => [candidate.vendorName, candidate.status]).sort()).toEqual([
-      ["Pétales", "shortlisted"],
+      ["Pétales", "retained"],
       ["Saveurs & Co", "retained"],
     ]);
     expect((await listVendorCandidates(planner.organizationId, eventId)).find((candidate) => candidate.vendorName === "Saveurs & Co")?.vendorSlotId).toBe(caterer.id);
@@ -329,7 +331,7 @@ describe("IMP-05 — Aperçu et annulation", () => {
       "Date du mariage;Prénom client 1;Nom client 1;Poste;Prestataire;Prévu;Réel\n" + "12/06/2027;Élodie;Durand;Traiteur;Saveurs & Co;8 500;8 720,40\n",
     );
     await acceptAllMatches(planner, importId);
-    await confirmImport({ ...planner, importId });
+    await confirmWithAnswers({ ...planner, importId });
     // La trace d'un import d'avant le lot porte les anciens noms (et pas le devisé, écrit depuis le lot 63b).
     const OLD: Record<string, string> = { estimatedAmountCents: "plannedAmountCents", committedAmountCents: "actualAmountCents" };
     const legacy = (values: Record<string, unknown> | null) =>
@@ -354,7 +356,7 @@ describe("IMP-05 — Aperçu et annulation", () => {
     const item = await createCatalogItem(planner.organizationId, { label: "Fleurs", unit: "bouquet", unitPriceCents: 8000, vatRateBasisPoints: 0 });
     const importId = await preparedImport(planner, "catalog_items", "Intitulé;Unité;Prix HT\nFleurs;bouquet;85\nAnimation DJ;soirée;950\n");
     await acceptAllMatches(planner, importId);
-    await confirmImport({ ...planner, importId });
+    await confirmWithAnswers({ ...planner, importId });
     const catalog = await listCatalogItems(planner.organizationId);
     expect(catalog.map((entry) => [entry.label, entry.unitPriceCents, entry.vatRateBasisPoints])).toEqual(
       expect.arrayContaining([
@@ -369,7 +371,7 @@ describe("IMP-05 — Aperçu et annulation", () => {
   it("passé le délai réglé par l'Admin, un import confirmé n'est plus annulable", async () => {
     const planner = await createPlanner();
     const importId = await preparedImport(planner, "prospect_sources", "Source\nMariages.net\n");
-    await confirmImport({ ...planner, importId });
+    await confirmWithAnswers({ ...planner, importId });
     const before = await getPlatformSettings(db);
     const admin = await createUser(db, { organizationId: null, email: `admin-${randomUUID()}@symbola.test`, password: "mot-de-passe", role: "admin" });
     await setPlatformSettings(db, { ...before, adminUserId: admin.id, importUndoRetentionDays: 1 });
@@ -388,8 +390,8 @@ describe("IMP-05 — Isolation", () => {
     const plannerB = await createPlanner();
     const importId = await preparedImport(plannerB, "prospect_sources", "Source\nMariages.net\n");
     expect(await getImportPreview(plannerA.organizationId, importId)).toBeNull();
-    expect(await confirmImport({ ...plannerA, importId })).toEqual({ status: "not_found" });
-    expect(await confirmImport({ ...plannerB, importId })).toMatchObject({ status: "applied" });
+    expect(await confirmWithAnswers({ ...plannerA, importId })).toEqual({ status: "not_found" });
+    expect(await confirmWithAnswers({ ...plannerB, importId })).toMatchObject({ status: "applied" });
     expect(await getUndoPreview(plannerA.organizationId, importId)).toBeNull();
     expect(await undoImport({ ...plannerA, importId })).toEqual({ status: "not_found" });
     expect((await listProspectSources(plannerB.organizationId)).map((source) => source.label)).toContain("Mariages.net");

@@ -8,6 +8,7 @@ const hub = vi.hoisted(() => {
   return {
     awakened,
     visited: [] as string[],
+    visitMs: 0,
     listOrganizations: vi.fn(async () => ["org-a", "org-b", "org-c"].map((id) => ({ id }))),
   };
 });
@@ -18,6 +19,8 @@ vi.mock("@/modules/hub/service", () => ({
   listOrganizations: hub.listOrganizations,
   listActiveImportJobs: async (_db: unknown, organizationId: string) => {
     hub.visited.push(organizationId);
+    // Une visite prend du temps (horloge simulée) : le tour complet dépasse le temps d'un passage.
+    if (hub.visitMs > 0) vi.setSystemTime(Date.now() + hub.visitMs);
     return [];
   },
   takeAwakenedImportOrganizations: () => {
@@ -38,6 +41,7 @@ describe("L16-ARC-01 — Traitement de fond des imports ciblé", () => {
     vi.setSystemTime(new Date("2026-11-08T10:00:00Z"));
     hub.awakened.clear();
     hub.visited = [];
+    hub.visitMs = 0;
     hub.listOrganizations.mockClear();
   });
   afterEach(() => {
@@ -80,5 +84,23 @@ describe("L16-ARC-01 — Traitement de fond des imports ciblé", () => {
     await runImportJobsOnce(1000, ["org-c"]);
     expect(hub.visited).toEqual(["org-c"]);
     expect(hub.listOrganizations).not.toHaveBeenCalled();
+  });
+
+  // Rejeu du lot 71c (CI, 375 px) : avec des centaines d'organisations, le tour complet durait plus
+  // de 30 s, et une fiche déposée pendant ce temps attendait la fin du tour.
+  it("le tour complet tient dans le temps d'un passage : il reprend au passage suivant, après les organisations signalées", async () => {
+    const { runImportJobsOnce } = await import("./import-jobs");
+    hub.visitMs = 1200;
+    await runImportJobsOnce(2000);
+    expect(hub.visited).toEqual(["org-a", "org-b", "org-c"].slice(0, hub.visited.length));
+    expect(hub.visited.length).toBeLessThan(3);
+    const seen = hub.visited.length;
+    hub.visited = [];
+    hub.awakened.add("org-z");
+    await runImportJobsOnce(2000);
+    // L'organisation signalée d'abord, puis la suite du tour, sans tout reprendre.
+    expect(hub.visited[0]).toBe("org-z");
+    expect(hub.visited.slice(1)).toEqual(["org-a", "org-b", "org-c"].slice(seen, seen + hub.visited.length - 1));
+    expect(hub.listOrganizations).toHaveBeenCalledTimes(1);
   });
 });

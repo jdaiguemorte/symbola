@@ -51,8 +51,8 @@ import {
 } from "@/modules/hub/service";
 import { runImportJobsUntilIdle } from "../import-jobs";
 import { purgeOrganizationTrash } from "../trash";
-import { confirmImport } from "./apply";
 import { decideMatches, getImportMatchesView } from "./matching";
+import { confirmWithAnswers } from "@/lib/test-fixtures/import-answers";
 
 const { sql, db } = createAppConnection();
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -113,7 +113,7 @@ async function importSheet(planner: Planner, answers: Record<string, unknown>, t
   await decideFreeColumns(db, { organizationId: planner.organizationId, importId: started.importId, decisions: [] });
   if (takeoverId) await attachImportToTakeoverStep(db, { ...planner, takeoverId, kind: "event", importId: started.importId });
   expect(await saveImportAnswers(db, { organizationId: planner.organizationId, importId: started.importId, answers })).toBe(true);
-  expect(await confirmImport({ ...planner, importId: started.importId, locale: "fr" })).toMatchObject({ status: "applied" });
+  expect(await confirmWithAnswers({ ...planner, importId: started.importId, locale: "fr" })).toMatchObject({ status: "applied" });
   const [item] = await withOrganization(db, planner.organizationId, (tx) => tx.select().from(importItems).where(and(eq(importItems.importId, started.importId), eq(importItems.kind, "event"))));
   return { importId: started.importId, eventId: item!.elementId };
 }
@@ -188,7 +188,7 @@ describe("HUB-14 — La reprise d'un mariage (lot 71a)", () => {
     view = await settleTakeoverStep(db, { ...planner, takeoverId: takeover.id, kind: "program", state: "todo" });
     expect(view.progress).toEqual({ settled: 2, total: 6 });
     // Le budget écrit, sa ligne est faite.
-    expect(await confirmImport({ ...planner, importId: budget, locale: "fr" })).toMatchObject({ status: "applied" });
+    expect(await confirmWithAnswers({ ...planner, importId: budget, locale: "fr" })).toMatchObject({ status: "applied" });
     expect((await getTakeover(db, planner.organizationId, takeover.id))?.progress).toEqual({ settled: 3, total: 6 });
 
     // R2 : au deuxième mariage, la ligne du carnet est déjà faite dès qu'un carnet a été repris.
@@ -197,7 +197,7 @@ describe("HUB-14 — La reprise d'un mariage (lot 71a)", () => {
     const columns = await getImportColumns(db, planner.organizationId, vendors.importId);
     await saveImportMapping(db, { organizationId: planner.organizationId, importId: vendors.importId, choices: columns!.columns.map((column) => ({ columnIndex: column.columnIndex, target: column.proposedFieldKey ?? "none", confirmed: true })) });
     await decideFreeColumns(db, { organizationId: planner.organizationId, importId: vendors.importId, decisions: [] });
-    expect(await confirmImport({ ...planner, importId: vendors.importId, locale: "fr" })).toMatchObject({ status: "applied" });
+    expect(await confirmWithAnswers({ ...planner, importId: vendors.importId, locale: "fr" })).toMatchObject({ status: "applied" });
     const second = await createTakeover(db, { ...planner });
     expect(second.steps.find((step) => step.kind === "vendor_book")).toMatchObject({ state: "done", importId: vendors.importId });
   });
@@ -208,7 +208,7 @@ describe("HUB-14 — La reprise d'un mariage (lot 71a)", () => {
       const wedding = await createWedding(planner);
       const importId = await prepare(planner, { entityType: "budget_lines", file: "budget.csv", bytes: corpus("budget.csv"), targetEventId: wedding });
       await saveImportAnswers(db, { organizationId: planner.organizationId, importId, answers: { depositsPaid: { answer } } });
-      expect(await confirmImport({ ...planner, importId, locale: "fr" })).toMatchObject({ status: "applied" });
+      expect(await confirmWithAnswers({ ...planner, importId, locale: "fr" })).toMatchObject({ status: "applied" });
       const payments = await budgetPayments(planner, wedding);
       const paid = payments.filter((payment) => payment.paidOn !== null).reduce((sum, payment) => sum + payment.amountCents, 0);
       const due = payments.filter((payment) => payment.paidOn === null).reduce((sum, payment) => sum + payment.amountCents, 0);
@@ -225,7 +225,7 @@ describe("HUB-14 — La reprise d'un mariage (lot 71a)", () => {
     const planner = await createPlanner();
     const wedding = await createWedding(planner);
     const importId = await prepare(planner, { entityType: "budget_lines", file: "budget.csv", bytes: corpus("budget.csv"), targetEventId: wedding });
-    expect(await confirmImport({ ...planner, importId, locale: "fr" })).toMatchObject({ status: "applied" });
+    expect(await confirmWithAnswers({ ...planner, importId, locale: "fr" })).toMatchObject({ status: "applied" });
     const { lines } = await listBudgetLines(planner.organizationId, wedding);
     expect(lines).toHaveLength(14);
     expect(lines.reduce((sum, line) => sum + (line.estimatedAmountCents ?? 0), 0)).toBe(3645000);
@@ -246,21 +246,23 @@ describe("HUB-14 — La reprise d'un mariage (lot 71a)", () => {
     await attachImportToTakeoverStep(db, { ...planner, takeoverId: takeover.id, kind: "budget", importId });
     // Ligne par ligne : la première signée, les autres non (I1).
     await saveImportAnswers(db, { organizationId: planner.organizationId, importId, answers: { contracts: { answer: "per_line", signedRows: [0] } } });
-    expect(await confirmImport({ ...planner, importId, locale: "fr" })).toMatchObject({ status: "applied" });
+    expect(await confirmWithAnswers({ ...planner, importId, locale: "fr" })).toMatchObject({ status: "applied" });
     const candidates = await withOrganization(db, planner.organizationId, (tx) => tx.select().from(eventVendorCandidates).where(eq(eventVendorCandidates.eventId, wedding)));
     expect(candidates.length).toBeGreaterThan(0);
     expect(candidates.every((candidate) => candidate.takeoverContract !== null)).toBe(true);
     expect(candidates.filter((candidate) => candidate.status === "contract_signed").map((candidate) => candidate.takeoverContract)).toEqual(["signed"]);
     expect(candidates.filter((candidate) => candidate.status === "retained").every((candidate) => candidate.takeoverContract === "unsigned")).toBe(true);
 
-    // Sans réponse, dans une reprise : contrat non renseigné, et jamais de relance non plus.
+    // « Aucun » dans une reprise : contrats non signés, et jamais de relance non plus. Lot 71c (I1) : la
+    // question est posée dès qu'un budget nomme ses prestataires ; « non renseigné » reste la règle des
+    // retenus sans question (contrat `takeoverContractFor`, testé seul).
     const other = await createWedding(planner, [{ firstName: "Léa", lastName: "Exemple" }]);
     const otherTakeover = await createTakeover(db, { ...planner, eventId: other });
     const unknownImport = await prepare(planner, { entityType: "budget_lines", file: "budget.csv", bytes: corpus("budget.csv"), targetEventId: other });
     await attachImportToTakeoverStep(db, { ...planner, takeoverId: otherTakeover.id, kind: "budget", importId: unknownImport });
-    expect(await confirmImport({ ...planner, importId: unknownImport, locale: "fr" })).toMatchObject({ status: "applied" });
+    expect(await confirmWithAnswers({ ...planner, importId: unknownImport, locale: "fr", answers: { contracts: { answer: "none" } } })).toMatchObject({ status: "applied" });
     const unknown = await withOrganization(db, planner.organizationId, (tx) => tx.select().from(eventVendorCandidates).where(eq(eventVendorCandidates.eventId, other)));
-    expect(unknown.every((candidate) => candidate.takeoverContract === "unknown" && candidate.status === "retained")).toBe(true);
+    expect(unknown.every((candidate) => candidate.takeoverContract === "unsigned" && candidate.status === "retained")).toBe(true);
 
     expect(await listUncontractedVendors(planner.organizationId, TODAY)).toEqual([]);
 
@@ -292,7 +294,7 @@ describe("HUB-14 — La reprise d'un mariage (lot 71a)", () => {
     const planner = await createPlanner();
     const wedding = await createWedding(planner);
     const importId = await prepare(planner, { entityType: "tasks", file: "a-faire.csv", bytes: corpus("a-faire.csv"), targetEventId: wedding, columns: { "Fait ?": "done", Quoi: "label", "Pour quand": "dueDate", Qui: null } });
-    expect(await confirmImport({ ...planner, importId, locale: "fr" })).toMatchObject({ status: "applied" });
+    expect(await confirmWithAnswers({ ...planner, importId, locale: "fr" })).toMatchObject({ status: "applied" });
     const tasks = await withOrganization(db, planner.organizationId, (tx) => tx.select().from(eventTasks).where(eq(eventTasks.eventId, wedding)));
     const done = tasks.filter((task) => task.doneAt !== null);
     expect(done.map((task) => task.label).sort()).toEqual(["Choisir la fleuriste", "Envoyer les faire-part", "Réserver le DJ", "Réserver le traiteur", "Signer le contrat du domaine"]);
@@ -305,7 +307,7 @@ describe("HUB-14 — La reprise d'un mariage (lot 71a)", () => {
       const planner = await createPlanner();
       const importId = await prepare(planner, { entityType: "events", file: "mariages.csv", bytes: new TextEncoder().encode("Prénom mariée;Nom mariée;Date du mariage;Lieu;Ville du lieu\nLéa;MARTIN;20/03/2027;Domaine Exemple;POITIERS\n") });
       await saveImportAnswers(db, { organizationId: planner.organizationId, importId, answers: { nameCase } });
-      expect(await confirmImport({ ...planner, importId, locale: "fr" })).toMatchObject({ status: "applied" });
+      expect(await confirmWithAnswers({ ...planner, importId, locale: "fr" })).toMatchObject({ status: "applied" });
       const [item] = await withOrganization(db, planner.organizationId, (tx) => tx.select().from(importItems).where(and(eq(importItems.importId, importId), eq(importItems.kind, "event"))));
       const event = await getEvent(planner.organizationId, item!.elementId);
       const name = `${event?.clients[0]?.firstName} ${event?.clients[0]?.lastName}`;
@@ -322,7 +324,7 @@ describe("HUB-14 — La reprise d'un mariage (lot 71a)", () => {
       const { importId: sheetImport, eventId } = await importSheet(planner, { eventStage: "signed" }, takeover.id);
       const budget = await prepare(planner, { entityType: "budget_lines", file: "budget.csv", bytes: corpus("budget.csv"), targetEventId: eventId });
       await attachImportToTakeoverStep(db, { ...planner, takeoverId: takeover.id, kind: "budget", importId: budget });
-      expect(await confirmImport({ ...planner, importId: budget, locale: "fr" })).toMatchObject({ status: "applied" });
+      expect(await confirmWithAnswers({ ...planner, importId: budget, locale: "fr" })).toMatchObject({ status: "applied" });
       await withOrganization(db, planner.organizationId, (tx) =>
         tx.update(imports).set({ leftovers: { directory: [{ role: "Témoin", company: null, contact: "Bastien Exemple", phone: "0639980202" }] } }).where(eq(imports.id, sheetImport)),
       );
@@ -367,7 +369,7 @@ describe("RGP-03, RGP-05 — L'annuaire non repris d'un programme (leftovers, I4
   async function importWithLeftovers(planner: Planner) {
     const wedding = await createWedding(planner);
     const importId = await prepare(planner, { entityType: "budget_lines", file: "budget.csv", bytes: corpus("budget.csv"), targetEventId: wedding });
-    expect(await confirmImport({ ...planner, importId, locale: "fr" })).toMatchObject({ status: "applied" });
+    expect(await confirmWithAnswers({ ...planner, importId, locale: "fr" })).toMatchObject({ status: "applied" });
     await withOrganization(db, planner.organizationId, (tx) =>
       tx.update(imports).set({ leftovers: { directory: [{ role: "Témoin", company: null, contact: "Bastien Exemple", phone: "0639980202" }] } }).where(eq(imports.id, importId)),
     );
