@@ -16,12 +16,13 @@ export default async function QuestionnaireTemplatesPage() {
   const organizationId = auth.user.organizationId;
   if (!(await isEventsModuleEnabled(organizationId))) notFound();
   const t = await getTranslations("QuestionnaireTemplates");
+  const tMenu = await getTranslations("SettingsMenu");
   const tHelp = await getTranslations("Help");
   const [templates, types] = await Promise.all([listQuestionnaireTemplates(organizationId), listEventTypes(organizationId)]);
   const typeLabel = (id: string | null) => (id ? (types.find((type) => type.id === id)?.label ?? t("allEvents")) : t("allEvents"));
   return (
     <main className="stack">
-      <PageHeader title={t("title")} />
+      <PageHeader title={tMenu("rubrics.questionnaires.label")} />
       <ScreenHelp title={tHelp("questionnaireTemplates.title")} body={tHelp("questionnaireTemplates.body")} />
       <p>{t("intro")}</p>
       <StarterQuestionnairesButton />

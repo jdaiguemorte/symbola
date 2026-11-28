@@ -121,7 +121,7 @@ export default async function SeatingPlanPage({ params, searchParams }: { params
 
       <CatererSection eventId={id} keyMomentId={current.id} owner={access.owner} vendorMeals={plan.vendorMeals} />
       <p>
-        <Link href="/events/parametres/repas">{t("mealTypesLink")}</Link>
+        <Link href="/events/parametres/regimes#repas">{t("mealTypesLink")}</Link>
       </p>
     </main>
   );

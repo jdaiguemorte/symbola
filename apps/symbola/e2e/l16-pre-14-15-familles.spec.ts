@@ -72,7 +72,7 @@ test("L16-PRE-14 / L16-PRE-15 — types rangés par famille, renommés, fusionn�
 
   // L16-PRE-15 — renommer un type : les fiches suivent.
   await page.goto("/prestataires/parametres");
-  await expect(page.getByRole("heading", { level: 1, name: "Familles et types de prestataires" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "Prestataires : métiers et familles" })).toBeVisible();
   await typesTable(page).getByRole("link", { name: "Maquillage", exact: true }).click();
   await panel(page, "Maquillage").getByLabel("Nom du type").fill("Coiffure et maquillage");
   await panel(page, "Maquillage").getByRole("button", { name: "Enregistrer le type" }).click();

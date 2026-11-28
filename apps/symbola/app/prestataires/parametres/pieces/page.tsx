@@ -11,11 +11,12 @@ import { AddKindForm, AlertDaysForm, KindUsageForm } from "./forms";
 export default async function VendorDocumentSettingsPage() {
   const { organizationId, enabled } = await vendorSettingsAccess();
   const t = await getTranslations("VendorDocumentSettings");
+  const tMenu = await getTranslations("SettingsMenu");
   const tHelp = await getTranslations("Help");
   if (!enabled) {
     return (
       <main>
-        <h1>{t("title")}</h1>
+        <h1>{tMenu("rubrics.vendorDocuments.label")}</h1>
         <p>{t("unavailable")}</p>
       </main>
     );
@@ -24,7 +25,7 @@ export default async function VendorDocumentSettingsPage() {
   const [days, kinds] = await Promise.all([getVendorDocumentAlertDays(organizationId), listVendorDocumentKinds(organizationId, locale)]);
   return (
     <main>
-      <h1>{t("title")}</h1>
+      <h1>{tMenu("rubrics.vendorDocuments.label")}</h1>
       <ScreenHelp title={tHelp("vendorDocuments.title")} body={tHelp("vendorDocuments.body")} />
       <section className="card" aria-labelledby="alert-days-title">
         <h2 id="alert-days-title">{t("alertTitle")}</h2>

@@ -27,12 +27,14 @@ export default async function QuoteSettingsPage() {
   const organizationId = auth.user.organizationId;
 
   const t = await getTranslations("Quotes");
+
+  const tMenu = await getTranslations("SettingsMenu");
   const tHelp = await getTranslations("Help");
 
   if (!(await isQuotesModuleEnabled(organizationId))) {
     return (
       <ScreenMain>
-        <h1>{t("settingsTitle")}</h1>
+        <h1>{tMenu("rubrics.quoteSettings.label")}</h1>
         <p>{t("moduleUnavailable")}</p>
       </ScreenMain>
     );
@@ -42,7 +44,7 @@ export default async function QuoteSettingsPage() {
   const locale = (await getLocale()) === "en" ? "en" : "fr";
   return (
     <ScreenMain>
-      <h1>{t("settingsTitle")}</h1>
+      <h1>{tMenu("rubrics.quoteSettings.label")}</h1>
       <ScreenHelp title={tHelp("quotesSettings.title")} body={tHelp("quotesSettings.body")} />
       {/* Lot 41 (FAC-10, JUR-03) : jusqu'au 1er septembre 2027, le Factur-X part par e-mail ; ensuite, vers une entreprise, par une plateforme agréée. */}
       <p role="note">

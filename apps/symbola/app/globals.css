@@ -1624,16 +1624,17 @@
 
 /* Lot 13 (L13-HUB-16) — Paramètres : menu latéral groupé, une page par rubrique. */
 @layer components {
+  /* Lot 74g (G7, G12) : le menu du groupe à partir de 1 100 px seulement ; en dessous, la rubrique seule. */
   .app-main:has(> .settings-nav) {
-    @apply grid items-start gap-x-8 gap-y-4 lg:grid-cols-[230px_minmax(0,1fr)];
+    @apply min-[1100px]:grid min-[1100px]:grid-cols-[230px_minmax(0,1fr)] min-[1100px]:items-start min-[1100px]:gap-x-8 min-[1100px]:gap-y-4;
   }
   .app-main:has(> .settings-nav) > :not(.settings-nav) {
-    @apply min-w-0 lg:col-start-2;
+    @apply min-w-0 min-[1100px]:col-start-2;
   }
   /* Lot 21 (L21-HUB-28) : plus haut que la fenêtre, le menu défile seul, sans
-     emporter l'écran (overscroll-contain). */
+     emporter l'écran (overscroll-contain). Lot 74g : sept rubriques et sept groupes y tiennent. */
   .settings-nav {
-    @apply flex flex-col gap-3 rounded-lg border border-line bg-surface p-3 lg:sticky lg:top-4 lg:row-span-6 lg:col-start-1 lg:row-start-1 lg:max-h-[calc(100dvh-2rem)] lg:overflow-y-auto lg:overscroll-contain;
+    @apply hidden flex-col gap-3 rounded-lg border border-line bg-surface p-3 min-[1100px]:sticky min-[1100px]:top-4 min-[1100px]:col-start-1 min-[1100px]:row-span-6 min-[1100px]:row-start-1 min-[1100px]:flex min-[1100px]:max-h-[calc(100dvh-2rem)] min-[1100px]:overflow-y-auto min-[1100px]:overscroll-contain;
   }
   /* Lot 21 (L21-HUB-29) : titre de groupe en gras, couleur d'encre, avec son
      icône ; rubriques en retrait le long d'un filet ; un séparateur entre les
@@ -3905,7 +3906,7 @@
      WCAG 2.5.8) au lieu de défiler. Sur les écrans plus hauts, rien ne change (44 px). */
   @media (min-width: 768px) and (max-height: 640px) {
     .app-sidebar {
-      @apply gap-2 py-3;
+      @apply gap-2 py-2;
     }
     .app-collapsible {
       @apply gap-2;
@@ -3913,11 +3914,15 @@
     .app-nav {
       @apply gap-0;
     }
+    /* Lot 74g (G11, C-82) : 44 px par ligne, sans espace ; « Paramètres » et « Aide » tenus en bas. */
     .app-nav a {
-      @apply min-h-8 py-0;
+      @apply min-h-11 py-0;
     }
     .app-sidebar-header {
       @apply min-h-9;
+    }
+    .app-sidebar .app-nav-footer {
+      @apply mt-1 pt-1;
     }
   }
   /* Lot 70e (D8, M12, M13) : « Nouvel évènement » — la question « Où en est-il ? » et la porte de reprise. */
@@ -7572,6 +7577,173 @@
     .home-line .task-line-actions {
       @apply justify-start;
     }
+  }
+}
+
+/* Lot 74g (G1, G2, G5, G7, G11, G12 ; pages 29 et 31 des maquettes du lot 68) — l'accueil des
+   Paramètres, le retour d'une rubrique, « Vos données », le menu latéral à pied tenu, les fenêtres. */
+@layer components {
+  /* Menu latéral : la liste des modules défile seule ; « Paramètres » et « Aide » restent en bas. */
+  @media (min-width: 768px) {
+    .app-sidebar:has(.app-nav-main) {
+      @apply overflow-hidden;
+    }
+    .app-collapsible:has(> .app-nav-main) {
+      @apply min-h-0;
+    }
+    .app-nav-main {
+      @apply flex min-h-0 flex-1 flex-col;
+    }
+    .app-nav-main > .app-nav:not(.app-nav-footer) {
+      @apply min-h-0 flex-auto overflow-y-auto overscroll-contain;
+    }
+    .app-nav-main > .app-nav-footer {
+      @apply mt-auto flex-none;
+    }
+  }
+
+  /* L'accueil : les groupes en cartes, ouverts ; une rubrique par ligne, sa phrase dessous. */
+  .settings-home-intro {
+    @apply text-ink-muted;
+  }
+  .settings-home-search {
+    @apply mb-4 max-w-md;
+  }
+  .settings-home-search input {
+    @apply min-h-11 w-full px-3;
+  }
+  .settings-home-none {
+    @apply m-0 mb-4 text-label text-ink-muted;
+  }
+  .settings-home {
+    @apply grid gap-4;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr));
+  }
+  .settings-home-group {
+    @apply flex scroll-mt-4 flex-col gap-1 rounded-lg border border-line bg-surface p-4;
+  }
+  .settings-home-group > h2 {
+    @apply m-0 text-body-strong;
+  }
+  .settings-home-group-hint {
+    @apply m-0 mb-2 text-label text-ink-muted;
+  }
+  .settings-home-group > ul {
+    @apply m-0 flex list-none flex-col p-0;
+  }
+  .settings-home-group > ul > li + li {
+    @apply border-t border-line;
+  }
+  .settings-home-link {
+    @apply grid min-h-11 grid-cols-[minmax(0,1fr)_auto] items-center gap-x-2 rounded-md px-2 py-2 text-ink no-underline hover:bg-ground hover:text-ink;
+  }
+  .settings-home-label {
+    @apply col-start-1 font-medium;
+  }
+  .settings-home-hint {
+    @apply col-start-1 text-label text-ink-muted;
+  }
+  .settings-home-chevron {
+    @apply col-start-2 row-span-2 row-start-1 size-4 text-ink-muted;
+  }
+  .settings-owner-tag {
+    @apply font-medium;
+  }
+  .settings-home-data {
+    @apply mt-6 flex flex-wrap items-center justify-between gap-4;
+  }
+  .settings-home-data h2 {
+    @apply m-0 flex items-center gap-2 text-body-strong;
+  }
+  .settings-home-data h2 .nav-count {
+    @apply ml-0;
+  }
+  .settings-home-data p {
+    @apply m-0 text-label text-ink-muted;
+  }
+
+  /* Le menu du groupe (1 100 px et plus) : « Tous les paramètres », le groupe ouvert, les autres groupes. */
+  .settings-nav .settings-nav-all {
+    @apply flex min-h-9 items-center gap-1 px-2 text-label font-medium text-primary no-underline;
+  }
+  .settings-nav .settings-nav-all svg {
+    @apply size-4;
+  }
+  .settings-nav .settings-nav-group ul {
+    @apply mt-0 gap-0;
+  }
+  .settings-nav .settings-nav-others .settings-nav-title {
+    @apply font-medium text-ink-muted;
+  }
+
+  /* « ‹ Paramètres · {groupe} » : sous 1 100 px, à la place du menu du groupe. */
+  .settings-back {
+    @apply m-0 mb-1;
+  }
+  /* 44 px au doigt ; 32 px à la souris (au-dessus des 24 px de WCAG 2.5.8), pour que le premier réglage
+     reste dans le premier écran à 911 × 512. */
+  .settings-back a {
+    @apply inline-flex min-h-11 items-center gap-1 text-label font-medium no-underline md:min-h-8;
+  }
+  .settings-back a svg {
+    @apply size-4;
+  }
+  @media (min-width: 1100px) {
+    .settings-back-narrow {
+      @apply hidden;
+    }
+  }
+
+  /* Deux réglages fondus dans une rubrique : deux blocs, chacun son titre, séparés d'un filet. */
+  .settings-fused-block {
+    @apply scroll-mt-4;
+  }
+  .settings-fused-block + .settings-fused-block {
+    @apply mt-8 border-t border-line pt-6;
+  }
+
+  /* « Vos données » : une ligne par écran, « Ouvrir » à droite ; « Fermer l'espace » seul, en bas. */
+  .your-data-lines {
+    @apply m-0 flex list-none flex-col p-0;
+  }
+  .your-data-line {
+    @apply flex flex-wrap items-center justify-between gap-3 px-4 py-3;
+  }
+  .your-data-line + .your-data-line {
+    @apply border-t border-line;
+  }
+  .your-data-line > div {
+    @apply flex min-w-0 flex-1 flex-col gap-1;
+  }
+  .your-data-line strong {
+    @apply flex items-center gap-2;
+  }
+  .your-data-line strong .nav-count {
+    @apply ml-0;
+  }
+  .your-data-secondary {
+    @apply flex flex-wrap gap-x-4 text-label;
+  }
+  .your-data-closure {
+    @apply mt-8 border-critical;
+  }
+  .button-link.button-link-danger {
+    @apply border-critical bg-surface font-semibold text-critical hover:bg-critical-soft hover:text-critical;
+  }
+
+  /* Le menu du compte : « Vos données » porte le repère des demandes en alerte. */
+  .account-menu-item strong .nav-count {
+    @apply ml-2;
+  }
+
+  /* Fenêtres : au plus la hauteur de l'écran moins 32 px ; le contenu défile, les boutons restent en bas. */
+  dialog:modal {
+    max-height: calc(100dvh - 32px);
+    @apply overflow-y-auto;
+  }
+  dialog:modal .confirm-dialog-actions,
+  dialog:modal .form-dialog-actions {
+    @apply sticky bottom-0 bg-surface pt-2;
   }
 }
 

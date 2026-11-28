@@ -12,7 +12,7 @@ export const SCREENS: ScreenEntry[] = [
   { path: "/taches", module: "events", label: "tasks", help: "allTasks" },
   { path: "/devis", module: "quotes", label: "navQuotesGroup", help: "allQuotes" },
   { path: "/devis/encaissements", module: "quotes", label: "quotePayments", help: "quotesPayments" },
-  { path: "/parametres", module: "hub", label: "settingsOrganization", help: "settings" },
+  { path: "/parametres/entreprise", module: "hub", label: "settingsOrganization", help: "settings" },
   { path: "/events/parametres", module: "events", label: "settingsEventsLists", help: "eventsSettings" },
   { path: "/events/modeles", module: "events", label: "settingsTaskTemplates", help: "eventsTemplates" },
   { path: "/events/modeles-programme", module: "events", label: "settingsProgramTemplates", help: "eventsProgramTemplates" },

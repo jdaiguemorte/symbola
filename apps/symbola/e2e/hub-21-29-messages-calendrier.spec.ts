@@ -54,8 +54,8 @@ test("HUB-21 — Modèles de messages : modèles de départ, une version à chaq
   test.setTimeout(180_000);
   const setup = await atelier();
   await signIn(page, setup.email, /\/$/);
-  await openSettingsTab(page, "Modèles de messages");
-  await expect(page.getByRole("heading", { name: "Modèles de messages", level: 1 })).toBeVisible();
+  await openSettingsTab(page, "Messages types : ce que vous envoyez");
+  await expect(page.getByRole("heading", { name: "Messages types : ce que vous envoyez", level: 1 })).toBeVisible();
   await expect(page.getByText("Aucun modèle de message pour l'instant.")).toBeVisible();
   await page.getByRole("button", { name: "Ajouter les modèles de départ" }).click();
   // Lot 45 (CRM-05) : la brochure s'ajoute aux deux modèles du lot 38b.
@@ -85,7 +85,7 @@ test("HUB-21 — Modèles de messages : modèles de départ, une version à chaq
   await expect(page.getByRole("heading", { name: "Copie de Proposer un rendez-vous", level: 1 })).toBeVisible();
   await page.getByRole("button", { name: "Supprimer le modèle" }).click();
   await expect(feedback(page).filter({ hasText: "Modèle mis à la corbeille." })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Modèles de messages", level: 1 })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Messages types : ce que vous envoyez", level: 1 })).toBeVisible();
   await expect(page.getByRole("link", { name: "Copie de Proposer un rendez-vous" })).toHaveCount(0);
   await expectNoHorizontalScroll(page);
 });
@@ -94,7 +94,7 @@ test("HUB-21 / MSG-02 — « Écrire au client » : le modèle rempli avec la fi
   test.setTimeout(180_000);
   const setup = await atelier();
   await signIn(page, setup.email, /\/$/);
-  await openSettingsTab(page, "Modèles de messages");
+  await openSettingsTab(page, "Messages types : ce que vous envoyez");
   await page.getByRole("button", { name: "Ajouter les modèles de départ" }).click();
   // Lot 45 (CRM-05) : la brochure s'ajoute aux deux modèles du lot 38b.
   await expect(page.getByRole("status")).toContainText("3 modèles ajoutés.");
@@ -128,7 +128,7 @@ test("HUB-21 / MSG-02 — « Écrire au client » : le modèle rempli avec la fi
   await expect(page.getByRole("button", { name: "Préparer l'e-mail", exact: true })).toBeVisible();
 
   // Un modèle qui emploie le lieu, absent de la fiche : le message ne s'ouvre pas.
-  await openSettingsTab(page, "Modèles de messages");
+  await openSettingsTab(page, "Messages types : ce que vous envoyez");
   const form = page.getByRole("form", { name: "Nouveau modèle" });
   await form.getByLabel("Nom du modèle").fill("Visite du lieu");
   await form.getByLabel("Objet").fill("Visite pour {{évènement}}");

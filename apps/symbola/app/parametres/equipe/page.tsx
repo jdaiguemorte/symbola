@@ -23,11 +23,12 @@ const TRANSFER_OUTCOMES = ["sent", "cancelled", "mfa_missing", "not_planner", "n
 export default async function TeamPage({ searchParams }: { searchParams: Promise<Query> }) {
   const auth = await requireOwner();
   const t = await getTranslations("Team");
+  const tMenu = await getTranslations("SettingsMenu");
   const tHelp = await getTranslations("Help");
   if (!auth) {
     return (
       <main>
-        <h1>{t("title")}</h1>
+        <h1>{tMenu("rubrics.team.label")}</h1>
         <p>{t("ownerOnly")}</p>
       </main>
     );
@@ -46,7 +47,7 @@ export default async function TeamPage({ searchParams }: { searchParams: Promise
 
   return (
     <main>
-      <PageHeader title={t("title")} subtitle={t("subtitle")} />
+      <PageHeader title={tMenu("rubrics.team.label")} subtitle={t("subtitle")} />
       <ScreenHelp title={tHelp("team.title")} body={tHelp("team.body")} />
       {query.retire === "1" ? <p role="status">{t("removed")}</p> : null}
       {transferOutcome ? <p role={transferOutcome === "sent" || transferOutcome === "cancelled" ? "status" : "alert"}>{t(`transferOutcome.${transferOutcome}`)}</p> : null}

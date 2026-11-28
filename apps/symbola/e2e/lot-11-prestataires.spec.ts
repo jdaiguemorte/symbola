@@ -141,10 +141,10 @@ test("L11-PRE-01 à L11-PRE-07 / L11-HUB-12 — créer ses fiches, filtrer autou
   await plannerLogin(page, planner.email, "mot-de-passe-presta");
 
   // Lot 13 (L13-HUB-16) : rubrique « Types de prestataires » des Paramètres.
+  // Lot 74g : « Prestataires : métiers et familles », depuis l'accueil des Paramètres ; son titre est son libellé.
   await clickMenuLink(page, "Paramètres");
-  const sections = page.getByRole("navigation", { name: "Rubriques des paramètres" });
-  await openSettingsRubric(page, "Types de prestataires");
-  await expect(sections.getByRole("link", { name: "Types de prestataires", exact: true })).toHaveAttribute("aria-current", "page");
+  await openSettingsRubric(page, "Prestataires : métiers et familles");
+  await expect(page.getByRole("heading", { level: 1, name: "Prestataires : métiers et familles" })).toBeVisible();
   await page.getByRole("button", { name: "Ajouter les types de départ" }).click();
   // Lot 16 (L16-PRE-15) : types en tableau, rangés par famille.
   await expect(page.getByRole("region", { name: "Tableau des types" }).getByRole("link", { name: "Hôtel / hébergement" })).toBeVisible();

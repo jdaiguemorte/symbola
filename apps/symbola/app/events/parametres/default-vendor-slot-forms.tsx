@@ -35,7 +35,8 @@ export function LoadStarterVendorSlotsForm() {
 
   return (
     <form action={formAction}>
-      <button type="submit" disabled={pending}>
+      {/* Lot 74g : sur « Budget : postes de départ et répartition », la cible garde 44 px au doigt. */}
+      <button type="submit" className="target-44" disabled={pending}>
         {t("loadStarterVendorSlots")}
       </button>
       {state.error ? <p role="alert">{state.error}</p> : null}

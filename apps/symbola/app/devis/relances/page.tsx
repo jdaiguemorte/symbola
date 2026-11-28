@@ -12,11 +12,12 @@ import { ReminderSettingsForm } from "./reminder-settings-form";
 export default async function ReminderSettingsPage() {
   const auth = await requirePlanner();
   const t = await getTranslations("ReminderSettings");
+  const tMenu = await getTranslations("SettingsMenu");
   const tHelp = await getTranslations("Help");
   if (!(await isQuotesModuleEnabled(auth.user.organizationId))) {
     return (
       <main>
-        <h1>{t("title")}</h1>
+        <h1>{tMenu("rubrics.paymentReminders.label")}</h1>
         <p>{t("moduleUnavailable")}</p>
       </main>
     );
@@ -24,7 +25,7 @@ export default async function ReminderSettingsPage() {
   const settings = await getReminderSettings(auth.user.organizationId);
   return (
     <main className="quote-screen">
-      <h1>{t("title")}</h1>
+      <h1>{tMenu("rubrics.paymentReminders.label")}</h1>
       <ScreenHelp title={tHelp("reminderSettings.title")} body={tHelp("reminderSettings.body")} />
       <p>{t("intro")}</p>
       {/* Lot 61 : deux rubriques parlent de relances ; chacune renvoie à l'autre. */}

@@ -9,7 +9,7 @@ import { createUser, setUserNames } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
 import { addEventTask, addEventVendorSlot, changeEventStatus, createProspect, createProspectSource, listEvents } from "../modules/events/service";
 import { saveOnboardingStep, setModuleEnabled } from "../modules/hub/service";
-import { expectEventStep, feedback, openMenu, openSearch, readyOrganization, signIn as signInByLink } from "./helpers";
+import { expectEventStep, feedback, openAccountMenu, openMenu, openSearch, readyOrganization, signIn as signInByLink } from "./helpers";
 
 // `within` : un menu ouvert se contrôle seul ; les petites cibles de la page qu'il recouvre en partie ne
 // sont pas les siennes (la page se contrôle menu fermé).
@@ -150,11 +150,13 @@ test.describe("lot 70e — la barre du haut", () => {
     expect(measure.bar).toBeLessThanOrEqual(0);
   });
 
-  test("« Tous les modules » remplace « Apps » dans le menu latéral", async ({ page }) => {
+  // Lot 74g (G11) : « Tous les modules » quitte le menu latéral pour le menu du compte.
+  test("« Tous les modules » remplace « Apps », dans le menu du compte", async ({ page }) => {
     const setup = await atelier();
     await signInByLink(page, setup.email);
-    await expect(page.locator(".app-sidebar").getByRole("link", { name: "Tous les modules", exact: true })).toBeVisible();
     await expect(page.locator(".app-sidebar").getByRole("link", { name: "Apps", exact: true })).toHaveCount(0);
+    await openAccountMenu(page);
+    await expect(page.getByRole("link", { name: /^Tous les modules/ }).filter({ visible: true })).toHaveCount(1);
   });
 });
 

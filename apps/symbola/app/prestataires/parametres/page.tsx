@@ -55,12 +55,13 @@ function TypeOptions({ types, families, except, unclassifiedLabel }: { types: Ve
 export default async function VendorTypesPage({ searchParams }: { searchParams: Promise<Query> }) {
   const { organizationId, enabled } = await vendorSettingsAccess();
   const t = await getTranslations("VendorBook");
+  const tMenu = await getTranslations("SettingsMenu");
   const tHelp = await getTranslations("Help");
   const tCommon = await getTranslations("Common");
   if (!enabled) {
     return (
       <ScreenMain>
-        <h1>{t("settingsTitle")}</h1>
+        <h1>{tMenu("rubrics.vendorTypes.label")}</h1>
         <p>{t("moduleUnavailable")}</p>
       </ScreenMain>
     );
@@ -85,7 +86,7 @@ export default async function VendorTypesPage({ searchParams }: { searchParams: 
 
   return (
     <ScreenMain>
-      <h1>{t("settingsTypesTitle")}</h1>
+      <h1>{tMenu("rubrics.vendorTypes.label")}</h1>
       <ScreenHelp title={tHelp("vendorTypes.title")} body={tHelp("vendorTypes.body")} />
       <p>{t("settingsTypesIntro")}</p>
       {done ? (

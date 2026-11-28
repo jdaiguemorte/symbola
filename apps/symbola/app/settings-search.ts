@@ -3,7 +3,7 @@
 // (« evenement » trouve « Types d'événements » et « Modèles d'évènement ») ; chaque mot tapé doit se
 // trouver dans le nom de la rubrique.
 
-type Item = { href: string; label: string };
+type Item = { href: string; label: string; paths?: string[] };
 type Group<I extends Item> = { label: string; items: I[] };
 
 export function plainText(value: string): string {
@@ -19,12 +19,14 @@ function under(pathname: string, path: string): boolean {
   return pathname === path || pathname.startsWith(`${path}/`);
 }
 
-// L'adresse la plus précise gagne (/events/parametres/sources avant /events/parametres).
-export function activeSettingsItem<I extends Item>(groups: Group<I>[], pathname: string): I | undefined {
+// L'adresse la plus précise gagne (/events/parametres/sources avant /events/parametres). Lot 74g : une
+// rubrique sert aussi ses sous-écrans rangés ailleurs (« Tous les modules », /apps, sous l'abonnement).
+export function activeSettingsItem<I extends Item>(groups: { items: I[] }[], pathname: string): I | undefined {
+  const depth = (item: I) => Math.max(...[item.href, ...(item.paths ?? [])].filter((path) => under(pathname, path)).map((path) => path.length));
   return groups
     .flatMap((group) => group.items)
-    .filter((item) => under(pathname, item.href))
-    .sort((a, b) => b.href.length - a.href.length)[0];
+    .filter((item) => [item.href, ...(item.paths ?? [])].some((path) => under(pathname, path)))
+    .sort((a, b) => depth(b) - depth(a))[0];
 }
 
 // Les groupes qui gardent au moins une rubrique, avec leurs seules rubriques trouvées ; une recherche
