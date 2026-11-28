@@ -4,7 +4,6 @@
 // contrats et les postes (prestataires) ou les interlocuteurs (programme), puis « Vérifier : ce qui va
 // être écrit », avec les nombres du bilan. Tout se lit sans ouvrir de menu ; un menu n'apparaît que sur
 // une ligne « À vérifier » (ou derrière « Modifier »). Textes rendus côté serveur (NFR-02).
-import "./pdf-import.css";
 import { notFound } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { formatCalendarDate, type Locale } from "@symbola/i18n";
@@ -14,6 +13,7 @@ import { getProgramImportView, getVendorsImportView, type ProgramImportView, typ
 import { clockLabel, programFileCouple } from "@/lib/import/pdf-import-rules";
 import type { ImportStepKey } from "@/lib/import/wizard";
 import { ImportHeader } from "../../import-header";
+import { RequiredLegend, RequiredMark } from "@/app/ui/required-mark";
 import { importStepContext } from "../../step-context";
 import { chooseOtherFileAction, confirmCoupleAction, saveProgramAction, saveVendorsAction } from "./actions";
 
@@ -25,6 +25,7 @@ export default async function PdfImportPage({ params, searchParams }: { params: 
   await requirePlanner();
   const t = await getTranslations("ImportPdf");
   const tHelp = await getTranslations("Help");
+  const tCommon = await getTranslations("Common");
   const locale = (await getLocale()) as Locale;
   const view = wizard.entityType === "event_vendors" ? await getVendorsImportView(organizationId, importId) : await getProgramImportView(organizationId, importId);
   if (!view) notFound();
@@ -39,7 +40,7 @@ export default async function PdfImportPage({ params, searchParams }: { params: 
       <p className="meta">{t(`intro.${view.kind}`, { file: view.draft.fileName, count: view.kind === "event_vendors" ? view.rows.length : view.preview.rows.length })}</p>
       <ScreenHelp title={tHelp(view.kind === "program" ? "programImport.title" : "importConfirm.title")} body={tHelp(view.kind === "program" ? "programImport.body" : "importConfirm.body")} />
       {blocked ? <p role="alert">{t(`blocked.${blocked}`)}</p> : null}
-      {view.coupleStop ? <CoupleStop view={view} t={t} locale={locale} /> : view.kind === "event_vendors" ? <VendorsScreen view={view} t={t} /> : <ProgramScreen view={view} t={t} locale={locale} />}
+      {view.coupleStop ? <CoupleStop view={view} t={t} locale={locale} /> : view.kind === "event_vendors" ? <VendorsScreen view={view} t={t} tCommon={tCommon} /> : <ProgramScreen view={view} t={t} locale={locale} />}
     </main>
   );
 }
@@ -54,7 +55,7 @@ function CoupleStop({ view, t, locale }: { view: VendorsImportView | ProgramImpo
   const date = (value: string | null) => (value ? formatCalendarDate(value, locale) : t("notProvided"));
   return (
     <section className="card stack pdf-couple" aria-labelledby="pdf-couple-title">
-      <p className="badge badge-attention">{t("toVerify")}</p>
+      <p className="badge badge-warning">{t("toVerify")}</p>
       <h2 id="pdf-couple-title">{t("couple.title", { names: firstNames })}</h2>
       <p>{sameDate ? t("couple.sameDate") : t("couple.otherCouple")}</p>
       <table className="pdf-couple-table">
@@ -108,7 +109,7 @@ function nameCase(value: string): string {
 
 // —— Les prestataires retenus (maquette 10) ——————————————————————————————————————————————————
 
-function VendorsScreen({ view, t }: { view: VendorsImportView; t: T }) {
+function VendorsScreen({ view, t, tCommon }: { view: VendorsImportView; t: T; tCommon: (key: "requiredLegend") => string }) {
   const answer = view.answers?.contracts?.answer ?? null;
   const perLine = answer === "per_line";
   const rows = view.rows.filter((row) => !row.planner);
@@ -119,7 +120,10 @@ function VendorsScreen({ view, t }: { view: VendorsImportView; t: T }) {
     <form action={saveVendorsAction} className="stack">
       <input type="hidden" name="importId" value={view.draft.id} />
       <fieldset className="card pdf-question" aria-describedby="pdf-contracts-hint">
-        <legend>{t("vendors.contractsQuestion")}</legend>
+        <legend>
+          {t("vendors.contractsQuestion")}
+          <RequiredMark />
+        </legend>
         <div className="row-wrap">
           {(["all", "none", "per_line"] as const).map((value) => (
             <label key={value}>
@@ -128,6 +132,7 @@ function VendorsScreen({ view, t }: { view: VendorsImportView; t: T }) {
             </label>
           ))}
         </div>
+        <RequiredLegend text={tCommon("requiredLegend")} />
         <p id="pdf-contracts-hint" className="meta">
           {t("vendors.noReminder")}
         </p>
@@ -193,7 +198,7 @@ slotText(row)
                   )}
                   {row.verify ? (
                     <p className="pdf-verify">
-                      <span className="badge badge-attention">{t("toVerify")}</span> {t(`vendors.verify.${row.verify}`, { type: row.type })}
+                      <span className="badge badge-warning">{t("toVerify")}</span> {t(`vendors.verify.${row.verify}`, { type: row.type })}
                     </p>
                   ) : null}
                   {row.alreadyRetained ? <p className="meta">{t("vendors.alreadyRetained")}</p> : null}

@@ -1,5 +1,5 @@
 /* Lot 71e (HUB-14 ; maquettes 10 et 11) — l'écran d'un PDF de prestataires retenus ou de programme.
-   Chargée par cet écran seulement (rien de plus dans la mise en page commune, NFR-02). Jetons de
+   Importée par globals.css, comme les feuilles des lots 71b à 71d (contrôle UX-13 des classes). Jetons de
    DESIGN.md (ADR 0057) ; « À vérifier » reprend le fond d'attention du lot 62. */
 /* L'aperçu prend toute la largeur (maquette 10) : aucun choix tronqué. */
 /* Le formulaire porte plusieurs cartes : il n'en est pas une lui-même, et n'est pas borné à 48 rem. */
@@ -101,4 +101,24 @@
     grid-template-columns: 1fr;
     gap: 0.125rem;
   }
+}
+
+/* Les heures et la note d'un moment, la journée, la question des contrats, le tableau du couple, et le
+   bloc « À compléter » de l'onglet du programme. */
+.pdf-import .pdf-day,
+.pdf-import .pdf-question,
+.pdf-import .pdf-couple {
+  margin-top: 0.75rem;
+}
+.pdf-import .pdf-couple-table th[scope="row"] {
+  font-weight: 600;
+}
+.pdf-import .pdf-midnight {
+  display: block;
+}
+.pdf-import .pdf-figures {
+  margin: 0;
+}
+.program-gaps .data-table {
+  margin-top: 0.5rem;
 }
