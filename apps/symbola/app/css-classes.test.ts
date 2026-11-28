@@ -46,7 +46,6 @@ const MARKERS: readonly string[] = [
   "add-candidate",
   "candidate-quote",
   "candidates",
-  "next-step-later",
   "questionnaire-sent",
   "task-comments",
   // Réglages des évènements, modèles.

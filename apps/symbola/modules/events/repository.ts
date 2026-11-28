@@ -83,6 +83,8 @@ export async function findEvents(
     prospectSourceId?: string | undefined;
     // Lot 71f (P-06) : le filtre « Origine » de la liste.
     origin?: "created" | "takeover" | undefined;
+    // Lot 72e (J13) : un seul évènement.
+    eventId?: string | undefined;
   },
 ): Promise<{ event: EventRecord; clients: EventClientRow[] }[]> {
   const db = appDatabase();
@@ -108,6 +110,7 @@ export async function findEvents(
     }
 
     const conditions = [];
+    if (filters.eventId) conditions.push(eq(events.id, filters.eventId));
     if (filters.statusIn && filters.statusIn.length > 0) {
       conditions.push(inArray(events.status, filters.statusIn));
     }
@@ -728,18 +731,24 @@ export async function updateEventDateRow(
   return await withOrganization(db, organizationId, async (tx) => {
     const [current] = await tx.select().from(events).where(eq(events.id, eventId));
     if (!current) return null;
-    const undoneTasks = await countUndoneTasks(tx, eventId);
-    // Sans tâche à décaler, les échéances suivent directement la nouvelle date.
-    const tasksScheduledFor = undoneTasks === 0 ? eventDate : current.tasksScheduledFor;
-    const [updated] = await tx
-      .update(events)
-      .set({ eventDate, tasksScheduledFor, updatedAt: new Date() })
-      .where(eq(events.id, eventId))
-      .returning();
-    if (!updated) throw new Error("mise à jour de la date échouée");
-    await followEventDate(tx, eventId, current.eventDate, eventDate);
-    return recalculationFor(updated, undoneTasks);
+    return writeEventDate(tx, current, eventDate);
   });
+}
+
+// La nouvelle date d'un évènement, dans la transaction de l'appelant (lot 72e : aussi depuis « Modifier les
+// informations », avec les autres rubriques).
+async function writeEventDate(tx: Tx, current: EventRow, eventDate: string | null): Promise<TaskRecalculation> {
+  const undoneTasks = await countUndoneTasks(tx, current.id);
+  // Sans tâche à décaler, les échéances suivent directement la nouvelle date.
+  const tasksScheduledFor = undoneTasks === 0 ? eventDate : current.tasksScheduledFor;
+  const [updated] = await tx
+    .update(events)
+    .set({ eventDate, tasksScheduledFor, updatedAt: new Date() })
+    .where(eq(events.id, current.id))
+    .returning();
+  if (!updated) throw new Error("mise à jour de la date échouée");
+  await followEventDate(tx, current.id, current.eventDate, eventDate);
+  return recalculationFor(updated, undoneTasks);
 }
 
 // Historique et événement interne d'un changement de statut (hors événement fictif).
@@ -993,7 +1002,7 @@ export async function findEventTasks(organizationId: string, eventId: string): P
 // réalisés ; échéance au plus tard `until` (date sans heure) si fournie.
 export async function findOrganizationTasks(
   organizationId: string,
-  options: { until: string | null; includeDone: boolean },
+  options: { until: string | null; includeDone: boolean; eventId?: string | undefined },
 ): Promise<EventTaskRow[]> {
   const db = appDatabase();
   return await withOrganization(db, organizationId, (tx) =>
@@ -1004,6 +1013,7 @@ export async function findOrganizationTasks(
       .where(
         and(
           notInArray(events.status, ["cancelled", "closed"]),
+          options.eventId ? eq(eventTasks.eventId, options.eventId) : undefined,
           options.until ? lte(eventTasks.dueDate, options.until) : undefined,
           options.includeDone ? undefined : isNull(eventTasks.doneAt),
         ),
@@ -2085,17 +2095,85 @@ export async function updateVenueRow(organizationId: string, eventId: string, ve
   return withOrganization(appDatabase(), organizationId, async (tx) => {
     const [event] = await tx.select({ id: events.id }).from(events).where(eq(events.id, eventId));
     if (!event) return false;
-    const [first] = await tx.select().from(eventPlaces).where(eq(eventPlaces.eventId, eventId)).orderBy(asc(eventPlaces.position), asc(eventPlaces.createdAt)).limit(1);
-    if (!first) {
-      await insertVenuePlace(tx, organizationId, eventId, venue.venueName, venue.venueCity);
-    } else if (venue.venueName || venue.venueCity) {
-      await tx
-        .update(eventPlaces)
-        .set({ label: venue.venueName ?? first.label, city: venue.venueCity, updatedAt: new Date() })
-        .where(eq(eventPlaces.id, first.id));
-    }
+    await writeVenue(tx, organizationId, eventId, venue);
     await tx.update(events).set({ updatedAt: new Date() }).where(eq(events.id, eventId));
     return true;
+  });
+}
+
+// Le lieu de réception est le premier lieu de l'évènement (lot 34b) ; dans la transaction de l'appelant.
+async function writeVenue(tx: Tx, organizationId: string, eventId: string, venue: { venueName: string | null; venueCity: string | null }): Promise<void> {
+  const [first] = await tx.select().from(eventPlaces).where(eq(eventPlaces.eventId, eventId)).orderBy(asc(eventPlaces.position), asc(eventPlaces.createdAt)).limit(1);
+  if (!first) {
+    await insertVenuePlace(tx, organizationId, eventId, venue.venueName, venue.venueCity);
+  } else if (venue.venueName || venue.venueCity) {
+    if (first.label === (venue.venueName ?? first.label) && first.city === venue.venueCity) return;
+    await tx
+      .update(eventPlaces)
+      .set({ label: venue.venueName ?? first.label, city: venue.venueCity, updatedAt: new Date() })
+      .where(eq(eventPlaces.id, first.id));
+  }
+}
+
+// Lot 72e (EVT-03, EVT-05 ; C-26, D7, M1) — « Modifier les informations » : toutes les rubriques en une
+// transaction, tout ou rien. Les contrôles passent avant toute écriture : la version lue à l'ouverture
+// (rien n'écrase une modification faite entre-temps), le type et la source de l'organisation (une clé
+// étrangère seule ne voit pas la RLS). La date ne s'écrit que si l'appelant la donne (une demande, un
+// report) ; les notes, que si la personne a le droit de les lire (le service les chiffre avant).
+export type EventDetailsRowPatch = {
+  eventDate?: string | null;
+  timeZone: string;
+  venueName: string | null;
+  venueCity: string | null;
+  busyRule: { startDayOffset: number; startTime: string; endDayOffset: number; endTime: string } | null;
+  guestsEstimated: number | null;
+  guestsConfirmed: number | null;
+  wantedBudgetCents: number | null;
+  style: string | null;
+  notes?: { notes: string | null; notesSealed: string | null; notesConfidentialBy: string | null };
+  eventTypeId: string;
+  prospectSourceId: string | null;
+};
+
+export type EventDetailsRowOutcome =
+  | { kind: "saved"; recalculation: TaskRecalculation | null }
+  | { kind: "not_found" }
+  | { kind: "conflict" }
+  | { kind: "refused"; field: "eventTypeId" | "prospectSourceId" };
+
+export async function updateEventDetailsRow(organizationId: string, eventId: string, patch: EventDetailsRowPatch, options: { userId: string; version?: string | undefined }): Promise<EventDetailsRowOutcome> {
+  return withOrganization(appDatabase(), organizationId, async (tx) => {
+    const [current] = await tx.select().from(events).where(eq(events.id, eventId)).for("update");
+    if (!current) return { kind: "not_found" };
+    if (options.version !== undefined && String(current.updatedAt.getTime()) !== options.version) return { kind: "conflict" };
+    const [type] = await tx.select({ id: eventTypes.id }).from(eventTypes).where(eq(eventTypes.id, patch.eventTypeId));
+    if (!type) return { kind: "refused", field: "eventTypeId" };
+    if (patch.prospectSourceId !== null) {
+      const [source] = await tx.select({ id: prospectSources.id }).from(prospectSources).where(and(eq(prospectSources.id, patch.prospectSourceId), eq(prospectSources.organizationId, organizationId)));
+      if (!source) return { kind: "refused", field: "prospectSourceId" };
+    }
+    await tx
+      .update(events)
+      .set({
+        timeZone: patch.timeZone,
+        busyStartDayOffset: patch.busyRule?.startDayOffset ?? null,
+        busyStartTime: patch.busyRule?.startTime ?? null,
+        busyEndDayOffset: patch.busyRule?.endDayOffset ?? null,
+        busyEndTime: patch.busyRule?.endTime ?? null,
+        guestsEstimated: patch.guestsEstimated,
+        guestsConfirmed: patch.guestsConfirmed,
+        wantedBudgetCents: patch.wantedBudgetCents,
+        style: patch.style,
+        ...(patch.notes ?? {}),
+        eventTypeId: patch.eventTypeId,
+        prospectSourceId: patch.prospectSourceId,
+        updatedAt: new Date(),
+        updatedBy: options.userId,
+      })
+      .where(eq(events.id, eventId));
+    await writeVenue(tx, organizationId, eventId, { venueName: patch.venueName, venueCity: patch.venueCity });
+    const recalculation = patch.eventDate !== undefined && patch.eventDate !== current.eventDate ? await writeEventDate(tx, current, patch.eventDate) : null;
+    return { kind: "saved", recalculation };
   });
 }
 

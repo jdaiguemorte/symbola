@@ -47,6 +47,9 @@ export const SERVER_ONLY_NAMESPACES = [
   "Organizations",
   "Manifest",
   "Loading",
+  // Lot 72e : la Synthèse d'un évènement (suite, « Où en est le mariage », « Informations ») est rendue par le
+  // serveur ; seule la fenêtre « Modifier les informations » (EventInfoWindow) lit ses textes au navigateur.
+  "EventOverview",
   // Lot 71d : les nombres, « Doublons », le bilan et le retrait d'un import, rendus côté serveur.
   "ImportFigures",
   "ImportDoublons",
@@ -61,6 +64,9 @@ export const SERVER_ONLY_NAMESPACES = [
   // Lot 74f : la page « Aide », sa recherche et ses réponses, rendues côté serveur ; le champ de recherche
   // reçoit ses libellés en propriétés. Les articles, les mots voisins et l'index ne quittent pas le serveur.
   "HelpHome",
+  // Lot 73d : la fenêtre de création et la fiche d'un prestataire reçoivent leurs textes de l'écran.
+  "VendorCreate",
+  "VendorSheet",
 ] as const;
 
 // Lot 74f (consigne du 28/11 sur le poids des pages) : dans « Tutorials », le panneau client ne lit que les

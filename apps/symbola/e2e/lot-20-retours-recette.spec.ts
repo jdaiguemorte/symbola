@@ -150,7 +150,7 @@ test("Décision 5 — étiquettes : paliers repérés puis rangés, choix unique
   // La fiche se recharge après l'enregistrement : on attend la réponse, puis on relit.
   await Promise.all([
     page.waitForResponse((response) => response.request().method() === "POST" && response.url().includes(`/prestataires/${venueId}?modifier=1`)),
-    page.getByRole("button", { name: "Enregistrer et fermer" }).click(),
+    page.getByRole("button", { name: "Enregistrer", exact: true }).click(),
   ]);
   await page.goto(`/prestataires/${venueId}?modifier=1&rubrique=trades`);
   await expect(page.getByRole("radio", { name: "150 à 200 personnes" })).toBeChecked();

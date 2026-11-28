@@ -1,14 +1,8 @@
 // Lot 63e (PRE-01, PRE-11 ; ADR 0105, maquettes M4 et M11) — règles pures de la fiche à plusieurs
-// métiers : ses rubriques, et les étiquettes proposées selon les métiers cochés (celles de la famille
-// de chaque métier s'ajoutent, puis celles « pour tous »). Sans métier, toutes les étiquettes.
+// métiers : les étiquettes proposées selon les métiers cochés (celles de la famille de chaque métier
+// s'ajoutent, puis celles « pour tous »). Sans métier, toutes les étiquettes. Lot 73d : les rubriques de
+// l'ancien formulaire ont disparu (une seule fenêtre, « Plus de détails »).
 import type { VendorFamily, VendorTag, VendorType } from "@/modules/vendors/service";
-
-export const VENDOR_FORM_RUBRICS = ["identity", "trades", "contact", "prices"] as const;
-export type VendorFormRubric = (typeof VENDOR_FORM_RUBRICS)[number];
-
-export function parseRubric(value: string | undefined): VendorFormRubric {
-  return (VENDOR_FORM_RUBRICS as readonly string[]).includes(value ?? "") ? (value as VendorFormRubric) : "identity";
-}
 
 export type TagSection = { key: string; kind: "family" | "common" | "any"; label: string; tags: VendorTag[] };
 

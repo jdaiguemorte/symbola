@@ -177,6 +177,8 @@ export type ListEventsInput = {
   withTaskProgress?: boolean | undefined;
   // Lot 71f (P-06) : le filtre « Origine » de la liste, lu en SQL sur `events.origin`.
   origin?: EventOrigin | undefined;
+  // Lot 72e (J13) : un seul évènement (la suite de sa fiche), sans relire toute l'organisation.
+  eventId?: string | undefined;
 };
 
 // Lot 72a (EVT-05 ; E2, J2) : « Le contrat est signé… » ; la date de signature, au plus aujourd'hui (dans
@@ -567,6 +569,8 @@ export type ListOrganizationTasksInput = {
   // Échéance au plus tard dans N jours (retards compris) ; null = sans limite.
   horizonDays: number | null;
   includeDone?: boolean;
+  // Lot 72e (J13) : les tâches d'un seul évènement (la suite de sa fiche).
+  eventId?: string | undefined;
 };
 
 // —— Lot 70a (CHR-02, CHR-03, CHR-10 ; § 3.3) : une seule liste des tâches de l'organisation ——————————
@@ -1383,3 +1387,34 @@ export type GuestEventContext = {
   vocabulary: EventTypeAudience;
   keyMoments: KeyMoment[];
 };
+
+// —— Lot 72e (EVT-03, EVT-05, UX-09 ; C-26, D7, M1) : « Modifier les informations » ————————————————————
+// Toutes les rubriques de la fenêtre en une seule écriture, tout ou rien. `eventDate` absent : la date ne
+// se change pas là (un évènement signé se reporte) ; `notes` absent : des notes confidentielles que la
+// personne ne lit pas, laissées telles quelles ; `busyRule` null : l'agenda suit la règle du type (lot 64).
+export type EventDetailsBusyRule = { startDayOffset: number; startTime: string; endDayOffset: number; endTime: string };
+
+export type EventDetailsInput = {
+  eventDate?: string | null;
+  timeZone: string;
+  venueName: string | null;
+  venueCity: string | null;
+  busyRule: EventDetailsBusyRule | null;
+  guestsEstimated: number | null;
+  guestsConfirmed: number | null;
+  wantedBudgetCents: number | null;
+  style: string | null;
+  notes?: { text: string | null; confidential: boolean };
+  eventTypeId: string;
+  prospectSourceId: string | null;
+};
+
+// Le champ refusé par le module, pour mener la planner à sa rubrique.
+export type EventDetailsRefusedField = "eventDate" | "endTime" | "notes" | "eventTypeId" | "prospectSourceId";
+
+// E5 (note 09 du lot 68) : la date se change dans « Modifier les informations » pour une demande, un report
+// en attente de sa nouvelle date ou un évènement encore sans date ; un évènement signé se reporte.
+export function eventDateEditableHere(event: { status: EventStatus; eventDate: string | null; archived: boolean }): boolean {
+  if (event.archived || event.status === "cancelled" || event.status === "closed") return false;
+  return event.status === "option" || event.status === "postponed" || event.eventDate === null;
+}

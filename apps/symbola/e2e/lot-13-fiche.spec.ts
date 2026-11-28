@@ -1,5 +1,5 @@
 // Lot 13 (L13-EVT-19) — fiche évènement : frise datée du statut, bandeau
-// « Prochaine étape », vue d'ensemble en chiffres. Ordinateur et 375 px,
+// « Prochaine étape » (lot 72e : la suite de la Synthèse), vue d'ensemble en chiffres. Ordinateur et 375 px,
 // axe-core.
 import { randomUUID } from "node:crypto";
 import AxeBuilder from "./axe";
@@ -47,12 +47,15 @@ test("L13-EVT-19 — frise datée du statut, prochaine étape et chiffres clés"
   await expect(steps.getByRole("listitem").filter({ hasText: "Une demande en cours" })).toContainText(`depuis le ${today}`);
   await expect(steps.getByRole("listitem").filter({ hasText: "Clôturé" })).toHaveText(/^4\s*Clôturé$/);
   if (phone) await page.keyboard.press("Escape");
-  await expect(page.getByRole("heading", { name: "Prochaine étape : envoyer le devis" })).toBeVisible();
+  // Lot 72e (C-24) : une seule suite, « Envoyer le devis », et son bouton.
+  const suite = page.locator("[data-suite]");
+  await expect(suite).toContainText("Envoyer le devis");
+  await expect(suite.getByRole("link", { name: "Préparer le devis" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /^Prochaine étape/ })).toHaveCount(0);
 
-  // Lot 32a (EVT-02, D5) : la synthèse dit la prochaine action et la santé de l'évènement.
-  await expect(page.getByRole("heading", { name: "Prochaine action" })).toBeVisible();
-  await expect(page.getByRole("region", { name: "Santé de l'évènement" })).toContainText("Pas encore de tâches : pas d'avis");
-  await expect(page.getByRole("region", { name: "Santé de l'évènement" })).toContainText("Aucune en attente");
+  // Lot 72e (C-28) : « Où en est le mariage » ne rend pas d'avis sur ce qui est vide.
+  await expect(page.getByRole("region", { name: "Où en est le mariage" })).toContainText("Pas encore de tâches : pas d'avis");
+  await expect(page.getByRole("region", { name: "Où en est le mariage" })).toContainText("Aucune en attente");
   await expectNoAxeViolation(page);
 
   // Lot 72d (E2) : « Le contrat est signé… » ouvre la question ; « Garder en demande » ne change rien.
@@ -65,11 +68,9 @@ test("L13-EVT-19 — frise datée du statut, prochaine étape et chiffres clés"
   await changeEventStatus(page, "Confirmé");
   if (!phone) await expect(steps.getByRole("listitem").filter({ hasText: "Signé, en préparation" })).toContainText(`depuis le ${today}`);
 
-  // Confirmé sans tâches : appliquer le rétroplanning ; « Plus tard » le masque, même rechargé.
-  await expect(page.getByRole("heading", { name: "Prochaine étape : appliquer le rétroplanning" })).toBeVisible();
-  await page.getByRole("button", { name: "Plus tard" }).click();
-  await expect(page.getByRole("heading", { name: /^Prochaine étape/ })).toHaveCount(0);
-  await page.reload();
+  // Confirmé sans tâches : la suite propose de créer la liste (lot 72e : plus de bandeau ni de « Plus tard »).
+  await expect(suite).toContainText("Créer la liste des tâches de Inès.");
+  await expect(suite.getByRole("button", { name: "Partir du rétroplanning" })).toBeVisible();
   await expect(page.getByRole("heading", { name: /^Prochaine étape/ })).toHaveCount(0);
   await expectNoAxeViolation(page);
 });
