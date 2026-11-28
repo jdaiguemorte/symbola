@@ -21,6 +21,16 @@ export type EventDisplayStep = (typeof EVENT_DISPLAY_STEPS)[number];
 // du lot 70a), hors tâches supprimées.
 export type EventTaskProgress = { done: number; total: number; late: number };
 
+// Lot 72c (PAR-10, HUB-03, EVT-06 ; C-14, A7) — la vue « L'agence » d'« Aujourd'hui » : les tâches à faire
+// par personne (`member:<id>`, `clients`, `vendors`, `nobody`, les mêmes clés que `todoByWho` de « Tâches »),
+// et l'avancement des évènements en cours, dans ce que la personne voit (lot 52, A20). « D'ici N jours »
+// compte, comme le compte d'« Aujourd'hui », les retards et le jour même. Hors évènements de démonstration,
+// archivés, annulés ou clôturés.
+export type AgencyWhoCounts = { who: string; late: number; today: number; horizon: number };
+export type AgencyEventCounts = EventTaskProgress & { eventId: string; oldestLate: { label: string; dueDate: string } | null };
+export type AgencyOverview = { byWho: AgencyWhoCounts[]; byEvent: AgencyEventCounts[]; followedBy: Record<string, number> };
+export type ListAgencyOverviewInput = { organizationId: string; viewer: TaskListViewer; today: string; horizonDays: number };
+
 export type EventClient = {
   id: string;
   // Lot 36a (CRM-03, ADR 0069) : le contact du hub qui porte le nom et les coordonnées ; nul quand
@@ -1126,6 +1136,7 @@ export interface EventsServiceContract {
   changeEventStatus(input: ChangeEventStatusInput): Promise<void>;
   markContractSigned(input: MarkContractSignedInput): Promise<void>;
   taskProgressByEvent(organizationId: string, eventIds: string[], today: string): Promise<Map<string, EventTaskProgress>>;
+  listAgencyOverview(input: ListAgencyOverviewInput): Promise<AgencyOverview>;
   listProspectSources(organizationId: string): Promise<ProspectSource[]>;
   // Lot 16 (ADR 0045) — types d'événement.
   listEventTypes(organizationId: string): Promise<EventType[]>;

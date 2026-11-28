@@ -10,7 +10,7 @@ export { DemoEventRestrictionError, EventNotFoundError, LinkAccessDeniedError } 
 // Lot 34a (EVT-05) : les règles du cycle de vie, pour les écrans et lib/.
 import { getPipeline as getPipelineOf } from "./pipeline";
 import { countRequestsToReview, findNewRequestRows } from "./prospects-repository";
-import type { ListTasksInput, Pipeline, TaskList, TaskListItem, TaskRecurrenceValue } from "@symbola/contracts";
+import type { AgencyOverview, ListAgencyOverviewInput, ListTasksInput, Pipeline, TaskList, TaskListItem, TaskRecurrenceValue } from "@symbola/contracts";
 export { canPostpone, canSetStatus, closingDue, displayStep, eventPhase, FINISHED_STATUSES, FIRM_STATUSES, IN_PROGRESS_STATUSES, isInProgress, MANUAL_STATUSES, TENTATIVE_STATUSES, TIMELINE_PHASES } from "./lifecycle";
 import type { EventStatus as LifecycleStatus } from "@symbola/contracts";
 import { listTeam } from "@symbola/auth";
@@ -195,7 +195,7 @@ import { addComment, listComments, removeComment, restoreComment } from "./task-
 import { addStarterCategories, countByCategory, createCategory, listCategories, moveCategory, removeCategory, TaskCategoryNotFoundError, updateCategory } from "./task-categories";
 import { changeTasks, changeTasksKeepingUndo, removeTasks, restoreTasksDeletedWith, undoTasksChange, type UndoableTaskChange } from "./task-bulk";
 import { actingMemberId, normalizeTaskNote } from "./task-assignment";
-import { countOpenTasksOf, findEventIdsWithoutTasks, findEventTaskRow, findTaskList } from "./task-list";
+import { countOpenTasksOf, findAgencyOverview, findEventIdsWithoutTasks, findEventTaskRow, findTaskList } from "./task-list";
 import { taskDueState } from "./due-state";
 import { listTrashedEventRows, restoreDocumentRow, restoreEventRow, restoreProgramTemplateRow, restoreTaskTemplateRow, trashEventRow } from "./trash";
 import { createStorageClient, deletePrivateObject, detectFileType, PrivateObjectNotFoundError, readPrivateObject, scanBuffer, uploadPrivateObject } from "@symbola/files";
@@ -1799,6 +1799,14 @@ export async function listTasks(input: ListTasksInput): Promise<TaskList> {
     };
   });
   return { tasks, total, filtered: tasks.length, late: tasks.filter((task) => task.dueState?.kind === "late").length, soonDays, todoTotal, todoByWho };
+}
+
+// Lot 72c (PAR-10, HUB-03, EVT-06 ; C-14, A7) — la vue « L'agence » d'« Aujourd'hui » : par personne et par
+// évènement, dans ce que la personne voit (lot 52, A20), en trois lectures groupées.
+export async function listAgencyOverview(input: ListAgencyOverviewInput): Promise<AgencyOverview> {
+  assertDate(input.today);
+  if (!Number.isInteger(input.horizonDays) || input.horizonDays < 0) throw new RangeError("horizon attendu");
+  return findAgencyOverview({ organizationId: input.organizationId, viewer: input.viewer, today: input.today, horizonEnd: addDays(input.today, input.horizonDays) });
 }
 
 // Lot 70d (UX-08, C-55) : parmi des évènements de l'organisation, ceux qui n'ont encore aucune tâche (un
@@ -3598,6 +3606,7 @@ export {
 } from "./import";
 
 const _contractCheck: EventsServiceContract = {
+  listAgencyOverview,
   listEventTypes,
   addStarterEventTypes,
   createEventType,
