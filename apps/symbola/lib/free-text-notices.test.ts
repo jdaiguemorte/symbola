@@ -16,7 +16,7 @@ const NOTICED: Record<string, { file: string; name: string }> = {
   "events.program_items.internal_note": { file: "app/events/[id]/program-editor.tsx", name: "internalNote" },
   "events.event_decisions.note": { file: "app/events/[id]/decision-forms.tsx", name: "note" },
   "budget.vendor_payments.refusal_reason": { file: "app/budget/[eventId]/declaration-refusal-form.tsx", name: "reason" },
-  "vendors.vendors.internal_note": { file: "app/prestataires/vendor-form.tsx", name: "internalNote" },
+  "vendors.vendors.internal_note": { file: "app/prestataires/vendor-create-dialog.tsx", name: "internalNote" },
   "events.event_vendor_candidate_notes.body": { file: "app/events/[id]/vendor-candidates.tsx", name: "body" },
   "events.event_vendor_slots.brief": { file: "app/events/[id]/vendor-candidates.tsx", name: "brief" },
   "events.event_task_comments.body": { file: "app/events/[id]/task-extra-forms.tsx", name: "body" },

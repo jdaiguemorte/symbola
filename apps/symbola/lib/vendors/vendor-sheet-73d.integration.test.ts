@@ -201,7 +201,7 @@ describe("DAT-08, PRE-10 — La note confidentielle et l'IBAN gardent leur prote
     const context = await agency();
     const vendor = (await createVendor(context.organizationId, { name: "Maison Haddad" })).vendor;
     await saveVendorNote(context.organizationId, vendor.id, { note: "Remise de 5 % négociée", confidential: true }, { userId: plannerId, role: "owner" });
-    await expect(readVendorConfidentialNote(context.organizationId, vendor.id, { userId: randomUUID(), role: "planner" })).rejects.toBeInstanceOf(ConfidentialNoteForbiddenError);
+    await expect(readVendorConfidentialNote(context.organizationId, vendor.id, { userId: randomUUID(), role: "member" })).rejects.toBeInstanceOf(ConfidentialNoteForbiddenError);
     expect(await readVendorConfidentialNote(context.organizationId, vendor.id, { userId: plannerId, role: "owner" })).toBe("Remise de 5 % négociée");
     await setVendorBankDetails(context.organizationId, vendor.id, { iban: "FR7630006000011234567890189", bic: null }, { kind: "user", userId: plannerId });
     const bank = await getVendorBankSummary(context.organizationId, vendor.id);

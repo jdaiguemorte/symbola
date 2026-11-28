@@ -1,11 +1,12 @@
 // Lot 48a (PRE-05 ; D3, ADR 0093) — réglages des pièces des prestataires : alerte N jours avant la fin
-// de validité (30 proposés), natures de pièces (données de départ, puis libres).
+// de validité (30 proposés), natures de pièces (données de départ, puis libres). Lot 73d (P3, P4) : le nom
+// court et « Demandée d'habitude » de chaque nature ; le reste de l'écran ne change pas (volet 6, lot 74).
 import { getLocale, getTranslations } from "next-intl/server";
 import { getVendorDocumentAlertDays, listVendorDocumentKinds } from "@/modules/vendors/service";
 import { vendorSettingsAccess } from "../guard";
 import { ScreenHelp } from "@/app/screen-help";
 import { archiveDocumentKindAction } from "./actions";
-import { AddKindForm, AlertDaysForm } from "./forms";
+import { AddKindForm, AlertDaysForm, KindUsageForm } from "./forms";
 
 export default async function VendorDocumentSettingsPage() {
   const { organizationId, enabled } = await vendorSettingsAccess();
@@ -36,6 +37,8 @@ export default async function VendorDocumentSettingsPage() {
           {kinds.map((kind) => (
             <li key={kind.id}>
               {kind.label} {kind.expires ? <span className="badge">{t("kindWithExpiry")}</span> : null}
+              {/* Lot 73d (P3, P4) : nom court et « Demandée d'habitude ». */}
+              <KindUsageForm kind={kind} />
               <form action={archiveDocumentKindAction} className="inline-form">
                 <input type="hidden" name="kindId" value={kind.id} />
                 <button type="submit">{t("kindRemove", { kind: kind.label })}</button>
