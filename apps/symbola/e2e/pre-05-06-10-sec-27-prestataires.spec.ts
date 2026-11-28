@@ -100,16 +100,16 @@ test("PRE-05 / PRE-10 / SEC-27 — le fleuriste dépose sa pièce et change son 
   // La planner : bandeau « à vérifier par un autre canal », pièce à vérifier qui expire avant l'évènement.
   await signIn(page, setup.email, /\/$/);
   await page.goto(`/prestataires/${setup.floristId}`);
-  const banner = page.getByRole("alert").filter({ hasText: "IBAN changé : à vérifier par un autre canal" });
+  const banner = page.getByRole("alert").filter({ hasText: "IBAN changé : à vérifier." });
   await expect(banner).toContainText("Le prestataire a changé son IBAN par son lien");
   await expect(banner).toContainText("06 12 34 56 78");
-  await expect(page.getByRole("region", { name: "Coordonnées bancaires" }).getByText("FR76 •••• •••• 0189").first()).toBeVisible();
+  await expect(page.getByRole("region", { name: "Paiement et fichiers" }).getByText("FR76 •••• •••• 0189").first()).toBeVisible();
   await expect(page.getByText("FR7630006000011234567890189")).toHaveCount(0);
   const documents = page.getByRole("region", { name: "Pièces" });
-  await expect(documents).toContainText("déposée par le prestataire, à vérifier");
+  await expect(documents).toContainText("à vérifier");
   await expectNoAxeViolation(page);
   await documents.getByRole("button", { name: `Marquer « ${setup.insuranceLabel} » comme vérifiée` }).click();
-  await expect(documents).not.toContainText("déposée par le prestataire, à vérifier");
+  await expect(documents).not.toContainText("à vérifier");
 
   // Critère : le bandeau reste jusqu'à la levée, nominative et horodatée.
   await page.reload();

@@ -40,9 +40,11 @@ test("L21-PRE-20 — les pastilles d'étiquettes prennent toute la largeur de la
   }
   await loginAndSetupMfa(page, email, password);
 
-  // Lot 63e : les étiquettes sont dans la rubrique « Métiers et étiquettes ».
-  for (const path of [`/prestataires/${vendorId}?modifier=1&rubrique=trades`, "/prestataires/nouveau?rubrique=trades"]) {
+  // Lot 73d : les étiquettes sont derrière « Plus de détails » (ouvert à la modification).
+  for (const path of [`/prestataires/${vendorId}?modifier=1`, "/prestataires/nouveau"]) {
     await page.goto(path);
+    const details = page.locator(".vendor-create-details");
+    if (!(await details.evaluate((element) => (element as HTMLDetailsElement).open))) await details.locator("summary").click();
     const chips = page.locator(".tag-chips .tag-chip");
     await expect(chips).toHaveCount(3);
     // Des pastilles courtes se suivent sur une ligne : même hauteur à l'écran

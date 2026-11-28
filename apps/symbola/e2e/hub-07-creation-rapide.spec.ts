@@ -10,7 +10,8 @@ import { createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
 import { addEventTask, addEventVendorSlot, changeEventStatus, createProspect, createProspectSource, getEvent, updateEventClientContact } from "../modules/events/service";
 import { saveOnboardingStep, setModuleEnabled } from "../modules/hub/service";
-import { eventCommand, readyOrganization, signIn as signInByLink } from "./helpers";
+import { eventCommand, readyOrganization, signIn as signInByLink, openEventInfo, eventInfoWindow } from "./helpers";
+import { submitNewEvent } from "./new-event";
 
 const PASSWORD = "mot-de-passe-de-mardi";
 
@@ -77,7 +78,7 @@ test("HUB-07 / UX-03 / CRM-04 — créer un prospect, une tâche, une dépense e
   await expect(page.getByRole("status").filter({ hasText: "vous avez déjà" })).toContainText("Léa & Maxime (confirmé), Inès & Sacha (option)");
   await expectNoAxeViolation(page);
   await page.getByRole("radio", { name: /^Une demande en cours/ }).check();
-  await page.getByRole("button", { name: "Créer l'évènement" }).click();
+  await submitNewEvent(page);
   await expect(page).toHaveURL(/\/events\/[0-9a-f-]{36}/);
   await expect(page.getByRole("heading", { level: 1, name: "Chloé" })).toBeVisible();
 
@@ -154,10 +155,12 @@ test("HUB-07 / UX-03 / CRM-04 — créer un prospect, une tâche, une dépense e
   await page.goto(`/events/${setup.lea}`);
 
   // CRM-04 sur la fiche : la date de l'évènement annonce les autres évènements de ce jour.
-  await page.getByRole("link", { name: "Modifier les informations" }).click();
-  await expect(page.getByRole("status").filter({ hasText: "vous avez déjà" })).toContainText("Inès & Sacha (option)");
-  await page.getByRole("link", { name: "Fermer le panneau" }).click();
-  await expect(page.getByRole("complementary", { name: "Modifier les informations" })).toHaveCount(0);
+  // Lot 72e : la date d'une demande se change dans la fenêtre « Modifier les informations ».
+  const info = await openEventInfo(page, "Date et lieux");
+  await expect(info.getByRole("status").filter({ hasText: "vous avez déjà" })).toContainText("Inès & Sacha (option)");
+  // Sans changement, Échap ferme la fenêtre (le même geste que « Fermer », masqué sur téléphone).
+  await page.keyboard.press("Escape");
+  await expect(eventInfoWindow(page)).toHaveCount(0);
 
   // ARC-06 : sans le module Devis, l'entrée « Devis » disparaît.
   const { sql, db } = createAppConnection();

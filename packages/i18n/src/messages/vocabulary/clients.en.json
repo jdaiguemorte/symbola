@@ -76,12 +76,6 @@
     "trialNoInvite": "During the trial, no link is sent: links are only created on a real event.",
     "trialStepQuote": "Compose a fictional quote, have the fictional client sign it on the trial signing page, then issue its invoices (DEMO series, watermarked).",
     "tabClients": "Clients",
-    "nextStep": {
-      "invite_clients": {
-        "title": "Next step: create the clients' links",
-        "action": "Create the links"
-      }
-    },
     "clientContactTitle": "Client's contact details",
     "programPdfFileCouple": "schedule-client",
     "taskColumnEvent": "Event"
@@ -136,5 +130,30 @@
   "EventHeader": {
     "writeToClients": "Write to the client",
     "messagesHint": "This event's threads"
+  },
+  "EventOverview": {
+    "suite": {
+      "createTasksBody": "The planning template lays out dated tasks from the event date. Due dates already past are shown to you first: nothing becomes late without you.",
+      "createTasksNeedsDate": "Set the event date first: the planning is calculated from it.",
+      "step": {
+        "invite_clients": {
+          "title": "Open the clients' space"
+        }
+      }
+    },
+    "progress": {
+      "title": "Where the event stands",
+      "decisions": "Clients' decisions"
+    },
+    "info": {
+      "clients": "Clients"
+    }
+  },
+  "EventInfoWindow": {
+    "rubric": {
+      "clients": "Clients"
+    },
+    "dateLocked": "The contract is signed: changing the date means postponing the event.",
+    "wantedBudgetHint": "What the clients said they want to spend; the budget envelope is set in the Budget tab."
   }
 }

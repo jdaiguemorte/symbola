@@ -15,6 +15,7 @@ import { vendorCatalogInput } from "../lib/vendors/catalog";
 import { createVendor, createVendorTag, getVendor, listVendorDocumentKinds, listVendorTypes, requestVendorDocument, seedStarterVendorCatalog } from "../modules/vendors/service";
 import { feedback, readyOrganization, signIn } from "./helpers";
 import { bookFilters, bookResults, closeBookFilters, isPhone } from "./vendor-book";
+import { reportMeasure } from "./mesure";
 
 async function expectNoAxeViolation(page: Page) {
   const result = await new AxeBuilder({ page }).analyze();
@@ -392,7 +393,7 @@ test.describe("UX-08, PAR-01 — Le carnet vide (lot 73b, critère 10)", () => {
     await expect(page.getByRole("region", { name: /^Carte/ })).toHaveCount(0);
     await expect(page.getByRole("navigation", { name: "Affichage" })).toHaveCount(0);
     const empty = page.getByRole("region", { name: "Votre carnet de prestataires" });
-    await expect(empty.getByRole("link", { name: "Nouveau prestataire" })).toHaveAttribute("href", "/prestataires/nouveau");
+    await expect(empty.getByRole("link", { name: "Nouveau prestataire" })).toHaveAttribute("href", "/prestataires?nouveau=1");
     await expect(empty.getByRole("link", { name: /^Reprendre votre carnet/ })).toHaveAttribute("href", "/reprise?ligne=vendor_book");
     await expect(empty).toContainText("Vous pourrez aussi en créer un depuis le budget d'un mariage");
     await expectNoAxeViolation(page);
@@ -440,7 +441,7 @@ test.describe("NFR-02 — Un carnet de 500 fiches (lot 73b)", () => {
       series.push(times[Math.ceil(0.95 * times.length) - 1]!);
     }
     series.sort((a, b) => a - b);
-    testInfo.annotations.push({ type: "NFR-02 carnet de 510 fiches", description: `${Math.round(series[1]!)} ms (séries : ${series.map(Math.round).join(", ")})` });
+    reportMeasure(testInfo, { mesure: "Lot 73b — NFR-02, carnet de 510 fiches (médiane des 95e centiles de 3 séries)", valeur: series[1]!, seuil: 300, detail: `séries : ${series.map(Math.round).join(", ")} ms` });
     expect(series[1]!).toBeLessThan(300);
   });
 });

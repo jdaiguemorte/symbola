@@ -67,18 +67,18 @@ test("PRD-BUD-02 — confirmer la simulation en budget estimé, puis suivre esti
   await page.getByRole("button", { name: "Simuler" }).click();
   await expect(page.getByText("250,00 €", { exact: false })).toBeVisible();
 
-  // Pas encore de bandeau avant confirmation (évènement toujours prospect).
+  // Pas encore d'étape avant confirmation (évènement toujours prospect).
   await page.goto(eventUrl);
   await page.waitForLoadState("networkidle");
-  await expect(page.getByRole("heading", { name: "Faire de la simulation le budget estimé" })).toHaveCount(0);
+  await expect(page.locator('[data-step="confirm_budget"]')).toHaveCount(0);
 
-  // Passage en Confirmé → le bandeau apparaît.
+  // Passage en Confirmé → l'étape apparaît, en ligne de la suite (lot 72e).
   await changeEventStatus(page, "Confirmé");
-  await expect(page.getByRole("heading", { name: "Faire de la simulation le budget estimé" })).toBeVisible();
+  await expect(page.locator('[data-step="confirm_budget"]')).toBeVisible();
   await expectNoAxeViolation(page);
 
   await page.getByRole("button", { name: "En faire le budget estimé" }).click();
-  await expect(page.getByRole("heading", { name: "Faire de la simulation le budget estimé" })).toHaveCount(0);
+  await expect(page.locator('[data-step="confirm_budget"]')).toHaveCount(0);
 
   // PRD-BUD-02, BUD-01 (lot 28a) : tableau des cinq montants et de l'écart.
   await page.goto(`${`${eventUrl}`.replace("/events/", "/budget/")}/detail`);

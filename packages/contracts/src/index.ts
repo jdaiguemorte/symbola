@@ -186,6 +186,9 @@ export type {
 export type { DayHelper, DayHelperInput, EventTeamMember, EventTeamRole } from "./events/service-contract";
 export type { AgencyEventCounts, AgencyOverview, AgencyWhoCounts, EventDisplayStep, EventTaskProgress, ListAgencyOverviewInput, MarkContractSignedInput } from "./events/service-contract";
 export { EVENT_DISPLAY_STEPS, EVENT_ORIGINS_LIST } from "./events/service-contract";
+// Lot 72e (EVT-03) : « Modifier les informations », en une écriture.
+export type { EventDetailsBusyRule, EventDetailsInput, EventDetailsRefusedField } from "./events/service-contract";
+export { eventDateEditableHere } from "./events/service-contract";
 export type { EventOrigin } from "./events/service-contract";
 export * from "./hub/today";
 export { DAY_DOCUMENT_SOURCES, DECISION_KINDS, ENGAGED_CANDIDATE_STATUSES, EVENT_TEAM_ROLES, LINK_AUDIENCES, LINK_BUDGET_SCOPES, LINK_RUBRICS, VENDOR_ADDITION_MODES, VENDOR_CANDIDATE_STATUSES } from "./events/service-contract";
@@ -576,3 +579,4 @@ export * from "./events/planning";
 export * from "./events/messages";
 export * from "./hub/email-deliveries";
 export * from "./hub/relation-mail";
+export * from "./events/past-due";

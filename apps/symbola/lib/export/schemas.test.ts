@@ -163,6 +163,8 @@ describe("DAT-13 — Chaque entité a un format d'export stable et documenté", 
       note: null,
       // Lot 71a (P-01) : une tâche reprise faite garde une date technique, marquée « non renseignée ».
       doneDateKnown: true,
+      // Lot 74b (B7) : une tâche « à dater » garde une date technique, marquée « pas une échéance ».
+      dueDateKnown: true,
     };
     expect(tasks.safeParse(task).success).toBe(true);
     expect(tasks.safeParse({ ...task, doneByKind: "someone" }).success).toBe(false);

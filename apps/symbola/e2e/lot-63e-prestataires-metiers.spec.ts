@@ -44,18 +44,12 @@ test("PRE-01 — la fiche se modifie en grande fenêtre ; elle coche deux métie
   test.setTimeout(90_000);
   await signIn(page, email, "/");
   await page.goto(`/prestataires/${vendorId}`);
-  await page.getByRole("link", { name: "Modifier la fiche" }).click();
-  const edit = page.getByRole("dialog", { name: "Studio Lumière : modifier" });
+  // Lot 73d : « Modifier » (menu « ⋯ » de la fiche) ouvre la fenêtre unique, complète.
+  await page.getByRole("button", { name: "Autres actions pour Studio Lumière" }).click();
+  await page.getByRole("menu", { name: "Autres actions pour Studio Lumière" }).getByRole("menuitem", { name: "Modifier" }).click();
+  const edit = page.getByRole("dialog", { name: "Modifier « Studio Lumière »" });
   await expect(edit).toBeVisible();
-  const rubrics = edit.getByRole("navigation", { name: "Rubriques de la fiche" });
-  await expect(rubrics.getByRole("button", { name: "Identité" })).toHaveAttribute("aria-current", "step");
-  await expect(edit.getByText("Rubrique 1 sur 4")).toBeVisible();
   await expectNoAxeViolation(page);
-
-  // « Suivant » enregistre la rubrique et passe à la suivante.
-  await edit.getByRole("button", { name: "Suivant : Métiers et étiquettes" }).click();
-  await expect(rubrics.getByRole("button", { name: "Métiers et étiquettes" })).toHaveAttribute("aria-current", "step");
-  await expect(edit.getByText("Fiche enregistrée.")).toBeVisible();
   await edit.getByRole("checkbox", { name: "Vidéaste" }).check();
   await edit.getByRole("radio", { name: /^Principal.*Vidéaste est le métier principal/ }).check();
   // Les étiquettes de la famille des métiers, puis celles pour tous.
@@ -63,12 +57,13 @@ test("PRE-01 — la fiche se modifie en grande fenêtre ; elle coche deux métie
   await expect(edit.getByRole("group", { name: "Étiquettes pour tous les métiers" }).getByRole("checkbox", { name: "Anglais" })).toBeVisible();
   await edit.getByRole("checkbox", { name: "Drone" }).check();
   await expectNoAxeViolation(page);
-  await edit.getByRole("button", { name: "Enregistrer et fermer" }).click();
+  await edit.getByRole("button", { name: "Enregistrer", exact: true }).click();
   await expect(edit).toHaveCount(0, { timeout: 15_000 });
   await expect(page).toHaveURL(new RegExp(`/prestataires/${vendorId}$`));
-  await expect(page.locator(".title-with-badge")).toContainText("Vidéaste (principal)");
-  await expect(page.locator(".title-with-badge")).toContainText("Photographe");
-  await expect(page.locator(".title-with-badge")).toContainText("Drone");
+  const characteristics = page.getByRole("region", { name: "Caractéristiques" });
+  await expect(characteristics).toContainText("Vidéaste (principal)");
+  await expect(characteristics).toContainText("Photographe");
+  await expect(page.locator(".vendor-sheet-head")).toContainText("Drone");
 
   // PRE-11 : trouvée par l'un comme par l'autre de ses métiers.
   for (const typeId of [photoId, videoId]) {
@@ -80,8 +75,8 @@ test("PRE-01 — la fiche se modifie en grande fenêtre ; elle coche deux métie
 
 test("ADR 0107 — Échap ferme la fenêtre ; sur téléphone, elle prend l'écran et dit « Retour »", async ({ page }) => {
   await signIn(page, email, "/");
-  await page.goto(`/prestataires/${vendorId}?modifier=1&rubrique=contact`);
-  const edit = page.getByRole("dialog", { name: "Studio Lumière : modifier" });
+  await page.goto(`/prestataires/${vendorId}?modifier=1`);
+  const edit = page.getByRole("dialog", { name: "Modifier « Studio Lumière »" });
   await expect(edit.getByLabel("Ville")).toHaveValue("Lyon");
   const narrow = page.viewportSize()!.width < 640;
   await expect(edit.getByRole("button", { name: "‹ Retour" })).toBeVisible({ visible: narrow });

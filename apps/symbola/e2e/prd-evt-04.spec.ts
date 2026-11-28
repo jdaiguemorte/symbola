@@ -7,7 +7,7 @@ import AxeBuilder from "./axe";
 import { createAppConnection } from "@symbola/db/client";
 import { createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
-import { changeEventStatus, feedback, openEventTab, openSettingsRubric, readyOrganization, signIn as signInByLink } from "./helpers";
+import { feedback, openEventInfo, openEventTab, openSettingsRubric, readyOrganization, saveEventInfo, signIn as signInByLink } from "./helpers";
 import { createEventByForm } from "./new-event";
 
 async function loginAndSetupMfa(page: Page, email: string, _password: string) {
@@ -74,9 +74,9 @@ test("PRD-EVT-04 — modèle de rétroplanning appliqué, recalcul des échéanc
   await expect(page.getByText("Source ajoutée.")).toBeVisible();
   await createEventByForm(page, { name: "Inès", clientFirstName: "Inès" });
   await expect(page).toHaveURL(/\/events\/[0-9a-f-]{36}$/);
-  // Lot 12 (L12-EVT-13) : le rétroplanning s'ouvre une fois l'évènement confirmé.
+  // Lot 34a : le rétroplanning est ouvert dès la demande. Lot 72e (E5) : l'évènement reste une demande, dont la
+  // date se change dans « Modifier les informations » (un évènement signé se reporte).
   await page.waitForLoadState("networkidle");
-  await changeEventStatus(page, "Confirmé");
   await openEventTab(page, "Tâches");
   await expect(page.getByText("Ajoutez une date à l'évènement pour appliquer un modèle de rétroplanning.")).toBeVisible();
   await expect(page.getByRole("button", { name: "Appliquer le modèle" })).toHaveCount(0);
@@ -86,12 +86,9 @@ test("PRD-EVT-04 — modèle de rétroplanning appliqué, recalcul des échéanc
   // Ces modèles n'ont pas de type : la planner applique « Mariage court » à la main.
   await openEventTab(page, "Synthèse");
   await page.waitForLoadState("networkidle");
-  await page.getByRole("link", { name: "Modifier les informations" }).click();
-  await page.getByLabel("Date de l'évènement", { exact: true }).fill("2027-06-12");
-  await page.getByRole("button", { name: "Changer la date" }).click();
-  await expect(page.getByText("Date mise à jour.")).toBeVisible();
-  await page.getByRole("link", { name: "Fermer le panneau" }).click();
-  await expect(page.getByRole("complementary", { name: "Modifier les informations" })).toHaveCount(0);
+  let info = await openEventInfo(page, "Date et lieux");
+  await info.getByLabel("Date de l'évènement", { exact: true }).fill("2027-06-12");
+  await saveEventInfo(page);
   await openEventTab(page, "Tâches");
   await expect(page.getByRole("heading", { name: /^juin 2026/ })).toHaveCount(0);
   await page.waitForLoadState("networkidle");
@@ -115,12 +112,9 @@ test("PRD-EVT-04 — modèle de rétroplanning appliqué, recalcul des échéanc
   await row("Réserver le lieu").getByRole("button", { name: /^Fait/ }).click();
   await expect(row("Réserver le lieu").getByRole("button", { name: /^Rouvrir/ })).toBeVisible();
   await openEventTab(page, "Synthèse");
-  await page.getByRole("link", { name: "Modifier les informations" }).click();
-  await page.getByLabel("Date de l'évènement", { exact: true }).fill("2027-06-19");
-  await page.getByRole("button", { name: "Changer la date" }).click();
-  await expect(page.getByText("Date mise à jour.")).toBeVisible();
-  await page.getByRole("link", { name: "Fermer le panneau" }).click();
-  await expect(page.getByRole("complementary", { name: "Modifier les informations" })).toHaveCount(0);
+  info = await openEventInfo(page, "Date et lieux");
+  await info.getByLabel("Date de l'évènement", { exact: true }).fill("2027-06-19");
+  await saveEventInfo(page);
   await openEventTab(page, "Tâches");
   await page.getByLabel("État").selectOption({ label: "Toutes" });
   await expect(page).toHaveURL(/etat=toutes/);

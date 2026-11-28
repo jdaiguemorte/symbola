@@ -13,6 +13,7 @@ import { addDefaultVendorSlots, addVendorCandidate, createEventType, createProsp
 import { addVendorPayment, listBudgetLines, updateBudgetLine } from "../modules/budget/service";
 import { createVendor, createVendorType } from "../modules/vendors/service";
 import { closeSlotWindow, openSlotWindow, readyOrganization, signIn } from "./helpers";
+import { submitNewEvent } from "./new-event";
 
 const TINY_PDF = Buffer.from("%PDF-1.4\n1 0 obj<<>>endobj\ntrailer<<>>\n%%EOF\n", "latin1");
 
@@ -93,7 +94,7 @@ test("EVT-01, EVT-07, CHR-01 — « Nouvel évènement » sur les trois vues ; u
   ], weddingTypeId);
   await page.reload();
   // Sans nom ni réponse : les deux erreurs, sous leurs champs ; le focus va à la première (lot 70b, UX-10).
-  await page.getByRole("button", { name: "Créer l'évènement" }).click();
+  await submitNewEvent(page);
   const eventName = page.getByLabel(/^Nom de l'évènement/);
   await expect(eventName).toHaveAttribute("aria-invalid", "true");
   await expect(eventName).toHaveAccessibleDescription(/Donnez un nom à l'évènement, par exemple « Léa & Maxime »\./);
@@ -102,7 +103,7 @@ test("EVT-01, EVT-07, CHR-01 — « Nouvel évènement » sur les trois vues ; u
   await page.getByRole("radio", { name: /^Signé, en préparation/ }).check();
   await eventName.fill("Mariage Bernard");
   await page.getByLabel(/^Date/).fill("2027-06-12");
-  await page.getByRole("button", { name: "Créer l'évènement" }).click();
+  await submitNewEvent(page);
   await expect(page).toHaveURL(/\/events\/[0-9a-f-]{36}/, { timeout: 20_000 });
   const eventId = /\/events\/([0-9a-f-]{36})/.exec(page.url())![1]!;
   expect((await listEventTasks(setup.organizationId, eventId)).map((task) => task.label).sort()).toEqual(["Plan de table", "Réserver le lieu"]);
@@ -115,7 +116,7 @@ test("EVT-01, EVT-07, CHR-01 — « Nouvel évènement » sur les trois vues ; u
   await page.getByRole("radio", { name: /^Une demande en cours/ }).check();
   await page.getByLabel(/^Nom de l'évènement/).fill("Shooting Léa");
   await page.getByLabel(/^Date/).fill("2027-07-03");
-  await page.getByRole("button", { name: "Créer l'évènement" }).click();
+  await submitNewEvent(page);
   await expect(page).toHaveURL(/\/events\/[0-9a-f-]{36}/, { timeout: 20_000 });
   const shootingId = /\/events\/([0-9a-f-]{36})/.exec(page.url())![1]!;
   expect(await listEventTasks(setup.organizationId, shootingId)).toEqual([]);

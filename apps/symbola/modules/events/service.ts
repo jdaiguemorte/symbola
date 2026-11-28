@@ -20,7 +20,7 @@ import { organizationLinksClosed } from "./closed-organization";
 import { randomUUID } from "node:crypto";
 import { parseEnv } from "@symbola/env";
 import { MailQuotaExceededError, reserveOrganizationMail } from "@symbola/mail";
-import { planningSoftwareProfile, starterClientTaskReminders, starterDemoEvent, starterExampleEvent, starterLinkExpiry, starterLinkProfiles, starterProgram, starterRetroplanning, starterTutorialEvent, starterVendorSlots, starterDayOfSettings, starterEventDocumentFolders, type StarterEventDocumentFolder, type StarterLinkProfile } from "@symbola/starter-templates";
+import { starterPublicHolidays, planningSoftwareProfile, starterClientTaskReminders, starterDemoEvent, starterExampleEvent, starterLinkExpiry, starterLinkProfiles, starterProgram, starterRetroplanning, starterTutorialEvent, starterVendorSlots, starterDayOfSettings, starterEventDocumentFolders, type StarterEventDocumentFolder, type StarterLinkProfile } from "@symbola/starter-templates";
 import {
   postponeEventRow,
   confirmPostponementRow,
@@ -144,9 +144,11 @@ import {
   findLinkSessionRow,
   findLinkVendorRow,
   findVendorTaskRows,
+  hasOpenVendorLinkRow,
   toggleVendorTaskRow,
   findPendingRenewalRows,
   findReminderCandidateRows,
+  findEventIdsWithClientLinkRows,
   insertTaskRemindersRow,
   insertLinkRow,
   insertLinkSessionRow,
@@ -176,7 +178,7 @@ import {
 import { reminderTaskLines, reminderThreshold, reminderThresholdStart, type ReminderTask } from "./task-reminders";
 import { clientTermForEvent as clientTermOf, getTaskSoonDays } from "./planning";
 import type { AutomationHooks, DayReminderSetting, PreparedEmailView, RelationDraft } from "@symbola/contracts";
-import { DAY_REMINDER_TARGETS, ENGAGED_CANDIDATE_STATUSES, dayReminderSettingSchema } from "@symbola/contracts";
+import { DAY_REMINDER_TARGETS, DEFAULT_PAST_DUE_SPREAD, ENGAGED_CANDIDATE_STATUSES, dayReminderSettingSchema, publicHolidaysBetween } from "@symbola/contracts";
 import { recordAudit } from "@symbola/db/audit";
 import { resolveClientContacts } from "./clients";
 import { assertOrganizationEmailReady, assertRecipientsConfirmed, ContactEmailTakenError, ContactInvalidError, ContactNotFoundError, EmailVariableMissingError, depositPreparedEmail, getMemberSignature, getOrganizationLanguage, getUserContact, notificationRecipients, notify, preparesRelationEmail, sendOrganizationEmail, sendSymbolaEmail, sendTimeReached, updateContact } from "@/modules/hub/service";
@@ -643,6 +645,8 @@ export async function listEvents(input: ListEventsInput): Promise<EventSummary[]
     search: input.search,
     prospectSourceId: input.prospectSourceId,
     origin: input.origin,
+    // Lot 72e (J13) : la clé de lecture ne change pas pour les listes sans évènement.
+    ...(input.eventId ? { eventId: input.eventId } : {}),
   });
   // Lot 58 (PAR-09, étape 5) : un évènement archivé sort des listes courantes, reste consultable.
   const archived = input.archived ?? "include";
@@ -719,9 +723,16 @@ export async function createProspect(input: CreateProspectInput): Promise<Create
   // Le modèle choisi à la création s'applique, daté depuis la date de l'évènement ; un modèle d'une
   // autre organisation n'est pas lu (RLS) et refuse la création.
   // Lot 71b (C-67) : un mariage repris ne reçoit aucun modèle d'office.
+  // Lot 74b (B7) : aucune tâche ne naît en retard. Chaque échéance déjà passée reçoit la réponse de la
+  // planner (faite, ou redatée sur la période choisie) ; sans réponse, elle est « à dater ».
   if (input.taskTemplateId && event.eventDate && !input.takeover) {
-    const applied = await applyTaskTemplateRows(input.organizationId, event.id, input.taskTemplateId);
+    const today = parisToday(input.now ?? new Date());
+    const applied = await applyTaskTemplateRows(input.organizationId, event.id, input.taskTemplateId, {
+      today,
+      answer: { answer: "per_task", tasks: input.pastDue?.tasks ?? {}, spread: input.pastDue?.spread ?? DEFAULT_PAST_DUE_SPREAD, holidays: pastDueHolidays(today) },
+    });
     if (applied.status === "template_not_found") throw new TaskTemplateNotFoundError();
+    if (applied.status === "past_due_invalid") throw new TemplatePastDueInvalidError();
   }
   return { id: event.id };
 }
@@ -1562,6 +1573,8 @@ function toEventTask(row: EventTaskRow): EventTask {
     doneAt: row.doneAt?.toISOString() ?? null,
     doneBy: row.doneByKind ? { kind: row.doneByKind, userId: row.doneByUserId } : null,
     note: row.note,
+    // Lot 74b (B7) : une tâche « à dater » le dit ; une vraie échéance n'ajoute rien.
+    ...(row.dueDateKnown === false ? { dueDateKnown: false } : {}),
   };
 }
 
@@ -1648,6 +1661,26 @@ export async function resolveTaskRecalculation(organizationId: string, eventId: 
   if (!(await resolveTaskRecalculationRow(organizationId, eventId, accept))) throw new EventNotFoundError();
 }
 
+// Lot 74b (B7) : une réponse aux échéances passées qui ne porte pas sur une tâche du modèle (une autre
+// organisation, un autre modèle) : rien n'est appliqué.
+export class TemplatePastDueInvalidError extends Error {
+  constructor() {
+    super("réponse aux échéances passées hors du modèle");
+    this.name = "TemplatePastDueInvalidError";
+  }
+}
+
+// Lot 74b (CHR-02 ; page 23) : les évènements dont l'espace des mariés est ouvert (un lien des clients actif) ;
+// avant, une tâche des mariés se lit « Avec les mariés », ensuite « Attend les mariés ».
+export async function eventsWithClientLink(organizationId: string, eventIds: readonly string[]): Promise<Set<string>> {
+  return new Set(await findEventIdsWithClientLinkRows(organizationId, [...new Set(eventIds)]));
+}
+
+// Lot 74b (B7) : les jours fériés (fichier de données) de demain à la fin de la plus longue répartition.
+export function pastDueHolidays(today: string): string[] {
+  return [...publicHolidaysBetween(today, addDays(today, 9 * 7), starterPublicHolidays())].sort();
+}
+
 // Lot 71c (CHR-01, CHR-02 ; I3) : « Partir d'un modèle » sur un mariage repris pose la question des
 // échéances passées ; sans réponse, rien n'est appliqué (TemplatePastDueUnansweredError).
 export class TemplatePastDueUnansweredError extends Error {
@@ -1673,6 +1706,8 @@ export async function applyTaskTemplate(
   switch (result.status) {
     case "past_due_unanswered":
       throw new TemplatePastDueUnansweredError();
+    case "past_due_invalid":
+      throw new TemplatePastDueInvalidError();
     case "applied":
       return result.tasks.map(toEventTask);
     case "event_not_found":
@@ -1713,9 +1748,10 @@ export async function listOrganizationTasks(input: ListOrganizationTasksInput): 
     limit.setUTCDate(limit.getUTCDate() + input.horizonDays);
     until = limit.toISOString().slice(0, 10);
   }
-  const rows = await findOrganizationTasks(input.organizationId, { until, includeDone: input.includeDone ?? false });
+  const scoped = input.eventId && UUID_PATTERN.test(input.eventId) ? input.eventId : undefined;
+  const rows = await findOrganizationTasks(input.organizationId, { until, includeDone: input.includeDone ?? false, ...(scoped ? { eventId: scoped } : {}) });
   if (rows.length === 0) return [];
-  const eventsById = new Map((await listEvents({ organizationId: input.organizationId })).map((event) => [event.id, event]));
+  const eventsById = new Map((await listEvents({ organizationId: input.organizationId, ...(scoped ? { eventId: scoped } : {}) })).map((event) => [event.id, event]));
   const soonDays = await getTaskSoonDays(input.organizationId);
   return rows.flatMap((row) => {
     const event = row.eventId ? eventsById.get(row.eventId) : undefined;
@@ -1820,7 +1856,7 @@ export async function listTasks(input: ListTasksInput): Promise<TaskList> {
       event: event ? { id: event.id, names: eventNames(event.clients, event.name), eventDate: event.eventDate, status: event.status, isDemo: event.isDemo } : null,
     };
   });
-  return { tasks, total, filtered: tasks.length, late: tasks.filter((task) => task.dueState?.kind === "late").length, soonDays, todoTotal, todoByWho };
+  return { tasks, total, filtered: tasks.length, late: tasks.filter((task) => task.dueState?.kind === "late").length, undated: tasks.filter((task) => task.dueState?.kind === "undated").length, soonDays, todoTotal, todoByWho };
 }
 
 // Lot 72c (PAR-10, HUB-03, EVT-06 ; C-14, A7) — la vue « L'agence » d'« Aujourd'hui » : par personne et par
@@ -3403,6 +3439,14 @@ export function listLinkProfiles(locale: "fr" | "en", vocabulary: EventTypeAudie
 }
 
 // Décision D5 : demandes de nouveau lien en attente, pour « Aujourd'hui ».
+// Lot 73d (PRE-05 ; spécification du lot 73, § 7) : une demande de pièce se dépose sur le lien du
+// prestataire ; sans lien ouvert sur aucun de ses mariages, la fenêtre le dit au lieu de laisser croire
+// qu'il est prévenu.
+export async function vendorHasOpenLink(organizationId: string, vendorId: string): Promise<boolean> {
+  if (!/^[0-9a-f-]{36}$/i.test(vendorId)) return false;
+  return hasOpenVendorLinkRow(organizationId, vendorId);
+}
+
 export async function listPendingLinkRenewals(organizationId: string): Promise<{ linkId: string; eventId: string; personName: string; requestedAt: string }[]> {
   return (await findPendingRenewalRows(organizationId)).map((row) => ({ ...row, requestedAt: row.requestedAt.toISOString() }));
 }
@@ -4626,6 +4670,8 @@ export async function finishQuestionnaireOfLink(scope: LinkQuestionnaireScope, q
 
 // Lot 48a (DAT-08 ; D5, ADR 0093) : notes d'évènement confidentielles.
 export { readEventConfidentialNotes, saveEventNotes, EventNotesForbiddenError, type EventNotesViewer } from "./confidential-notes";
+// Lot 72e (EVT-03, EVT-05 ; C-26, D7, M1) : « Modifier les informations », toutes les rubriques en une écriture.
+export { saveEventDetails, EventDetailsConflictError, EventDetailsRefusedError } from "./event-details";
 
 // Lot 48a (PRE-05, PRE-10 ; D3) : fiche du carnet d'un lien de prestataire (pièces demandées, IBAN).
 export async function linkVendorRecordId(organizationId: string, linkId: string): Promise<string | null> {

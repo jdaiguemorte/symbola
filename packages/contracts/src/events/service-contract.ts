@@ -177,6 +177,8 @@ export type ListEventsInput = {
   withTaskProgress?: boolean | undefined;
   // Lot 71f (P-06) : le filtre « Origine » de la liste, lu en SQL sur `events.origin`.
   origin?: EventOrigin | undefined;
+  // Lot 72e (J13) : un seul évènement (la suite de sa fiche), sans relire toute l'organisation.
+  eventId?: string | undefined;
 };
 
 // Lot 72a (EVT-05 ; E2, J2) : « Le contrat est signé… » ; la date de signature, au plus aujourd'hui (dans
@@ -203,6 +205,11 @@ export type CreateProspectInput = {
   // préparation » (Confirmé), d'origine « reprise », à une date de signature que la planner n'a pas
   // dite ; aucun modèle de rétroplanning ne s'applique (ses tâches viendront de sa liste).
   takeover?: boolean;
+  // Lot 74b (B7, L74-D2) : les réponses de l'étape « Les échéances déjà passées » de « Nouvel évènement »,
+  // une par tâche du modèle (son identifiant) et la répartition des tâches à faire ; une tâche passée sans
+  // réponse est créée « à dater ». `now` : l'horloge (simulée dans les tests).
+  pastDue?: { tasks: Readonly<Record<string, "done" | "todo">>; spread: "2w" | "4w" | "8w" | "undated" };
+  now?: Date;
 };
 
 export type CreateProspectResult = {
@@ -507,6 +514,9 @@ export type EventTask = {
   // Lot 70a (UX-06, CHR-05 ; Q47-4) : état d'échéance, calculé là où le jour est connu (listes) ;
   // null pour une tâche faite.
   dueState?: TaskDueState | null;
+  // Lot 74b (B7, L74-D3) : faux pour une tâche « à dater » (dueDate est alors la date de l'évènement, une
+  // date technique) ; absent : une vraie échéance.
+  dueDateKnown?: boolean;
 };
 
 // Lot 70a (D1, A9) : qui a coché — un membre (et lequel), les clients par leur lien, un prestataire
@@ -559,6 +569,8 @@ export type ListOrganizationTasksInput = {
   // Échéance au plus tard dans N jours (retards compris) ; null = sans limite.
   horizonDays: number | null;
   includeDone?: boolean;
+  // Lot 72e (J13) : les tâches d'un seul évènement (la suite de sa fiche).
+  eventId?: string | undefined;
 };
 
 // —— Lot 70a (CHR-02, CHR-03, CHR-10 ; § 3.3) : une seule liste des tâches de l'organisation ——————————
@@ -610,6 +622,8 @@ export type TaskList = {
   filtered: number;
   // Parmi elles, celles en retard.
   late: number;
+  // Lot 74b (B7) : parmi elles, celles « à dater » (comptées à part, jamais en retard).
+  undated?: number;
   // Seuil de « Bientôt » de l'organisation (M10).
   soonDays: number;
   // Lot 70d (CHR-03 crit. 3, PAR-10) : toutes les tâches à faire que la personne voit, sans filtre (« 4 tâches
@@ -1373,3 +1387,34 @@ export type GuestEventContext = {
   vocabulary: EventTypeAudience;
   keyMoments: KeyMoment[];
 };
+
+// —— Lot 72e (EVT-03, EVT-05, UX-09 ; C-26, D7, M1) : « Modifier les informations » ————————————————————
+// Toutes les rubriques de la fenêtre en une seule écriture, tout ou rien. `eventDate` absent : la date ne
+// se change pas là (un évènement signé se reporte) ; `notes` absent : des notes confidentielles que la
+// personne ne lit pas, laissées telles quelles ; `busyRule` null : l'agenda suit la règle du type (lot 64).
+export type EventDetailsBusyRule = { startDayOffset: number; startTime: string; endDayOffset: number; endTime: string };
+
+export type EventDetailsInput = {
+  eventDate?: string | null;
+  timeZone: string;
+  venueName: string | null;
+  venueCity: string | null;
+  busyRule: EventDetailsBusyRule | null;
+  guestsEstimated: number | null;
+  guestsConfirmed: number | null;
+  wantedBudgetCents: number | null;
+  style: string | null;
+  notes?: { text: string | null; confidential: boolean };
+  eventTypeId: string;
+  prospectSourceId: string | null;
+};
+
+// Le champ refusé par le module, pour mener la planner à sa rubrique.
+export type EventDetailsRefusedField = "eventDate" | "endTime" | "notes" | "eventTypeId" | "prospectSourceId";
+
+// E5 (note 09 du lot 68) : la date se change dans « Modifier les informations » pour une demande, un report
+// en attente de sa nouvelle date ou un évènement encore sans date ; un évènement signé se reporte.
+export function eventDateEditableHere(event: { status: EventStatus; eventDate: string | null; archived: boolean }): boolean {
+  if (event.archived || event.status === "cancelled" || event.status === "closed") return false;
+  return event.status === "option" || event.status === "postponed" || event.eventDate === null;
+}

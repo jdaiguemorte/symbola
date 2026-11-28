@@ -66,7 +66,7 @@ test("PRD-BUD-04 — le marié consulte le budget de son évènement en lecture 
   await page.waitForLoadState("networkidle");
   await changeEventStatus(page, "Confirmé");
   await page.getByRole("button", { name: "En faire le budget estimé" }).click();
-  await expect(page.getByRole("heading", { name: "Faire de la simulation le budget estimé" })).toHaveCount(0);
+  await expect(page.locator('[data-step="confirm_budget"]')).toHaveCount(0);
 
   // La planner saisit un engagé sur le lieu (6 000 € estimés, 7 000 € engagés).
   const eventId = eventUrl.split("/").pop()!;

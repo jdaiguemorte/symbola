@@ -1,14 +1,12 @@
 "use client";
 
-// Lot 14 (décisions I et K) — coordonnées de chaque client de l'événement,
-// budget souhaité.
+// Lot 14 (décisions I et K) — coordonnées de chaque client de l'événement (lot 72e : le budget souhaité, le
+// lieu, la fiche d'identité et les notes passent dans « Modifier les informations »).
 import Link from "next/link";
-import { FreeTextNotice } from "@/app/ui/free-text-notice";
 import { useActionState } from "react";
 import { useTranslations } from "next-intl";
-import type { EventClient, EventDetail } from "@/modules/events/service";
-import { autosaveEventIdentityAction, saveEventNotesAction, setWantedBudgetAction, updateClientContactAction, type ClientContactFormState, setVenueAction } from "./client-contact-actions";
-import { AutoSaveForm } from "@/app/ui/autosave-form";
+import type { EventClient } from "@/modules/events/service";
+import { updateClientContactAction, type ClientContactFormState } from "./client-contact-actions";
 
 export function ClientContactForm({ eventId, client }: { eventId: string; client: EventClient }) {
   const t = useTranslations("Events");
@@ -60,137 +58,6 @@ export function ClientContactForm({ eventId, client }: { eventId: string; client
           {state.success ? <p role="status">{t("clientContactSaved")}</p> : null}
         </div>
       </fieldset>
-    </form>
-  );
-}
-
-export function WantedBudgetForm({ eventId, wantedBudgetCents }: { eventId: string; wantedBudgetCents: number | null }) {
-  const t = useTranslations("Events");
-  const [state, action, pending] = useActionState<ClientContactFormState, FormData>(setWantedBudgetAction, {});
-  const initial = wantedBudgetCents === null ? "" : `${Math.trunc(wantedBudgetCents / 100)}${wantedBudgetCents % 100 ? `,${String(wantedBudgetCents % 100).padStart(2, "0")}` : ""}`;
-  return (
-    <form action={action}>
-      <input type="hidden" name="eventId" value={eventId} />
-      <label>
-        {t("wantedBudget")}
-        <input type="text" inputMode="decimal" name="wantedBudget" defaultValue={initial} />
-      </label>
-      <button type="submit" disabled={pending}>
-        {t("wantedBudgetSave")}
-      </button>
-      {state.error ? <p role="alert">{state.error}</p> : null}
-      {state.success ? <p role="status">{t("wantedBudgetSaved")}</p> : null}
-    </form>
-  );
-}
-
-// Lot 31b (FAC-04, DOC-02) — lieu de l'événement, pour la variable {evenement.lieu} du contrat
-// (les lieux complets viennent au lot 34).
-export function VenueForm({ eventId, venueName, venueCity }: { eventId: string; venueName: string | null; venueCity: string | null }) {
-  const t = useTranslations("Events");
-  const [state, action, pending] = useActionState<ClientContactFormState, FormData>(setVenueAction, {});
-  return (
-    <form action={action} aria-label={t("venueFormTitle")}>
-      <input type="hidden" name="eventId" value={eventId} />
-      <label>
-        {t("venueName")}
-        <input type="text" name="venueName" maxLength={200} defaultValue={venueName ?? ""} />
-      </label>
-      <label>
-        {t("venueCity")}
-        <input type="text" name="venueCity" maxLength={200} defaultValue={venueCity ?? ""} />
-      </label>
-      <button type="submit" disabled={pending}>
-        {t("venueSave")}
-      </button>
-      {state.error ? <p role="alert">{state.error}</p> : null}
-      {state.success ? <p role="status">{t("venueSaved")}</p> : null}
-    </form>
-  );
-}
-
-// Lot 34b (EVT-03, D11) — fiche d'identité : invités estimés et confirmés (le nombre confirmé se
-// saisit à la main jusqu'au module Invités), style, notes.
-// Lot 39b (UX-09 ; D7, D8) : la fiche s'enregistre toute seule ; une modification faite entre-temps
-// est fusionnée ou montrée en conflit (AutoSaveForm).
-export function EventIdentityForm({
-  eventId,
-  identity,
-  version,
-  confidentialNotes = false,
-}: {
-  eventId: string;
-  identity: Pick<EventDetail, "guestsEstimated" | "guestsConfirmed" | "style" | "notes">;
-  version: string;
-  confidentialNotes?: boolean;
-}) {
-  const t = useTranslations("Events");
-  return (
-    <AutoSaveForm
-      action={autosaveEventIdentityAction}
-      recordId={eventId}
-      version={version}
-      values={{ guestsEstimated: identity.guestsEstimated?.toString() ?? "", guestsConfirmed: identity.guestsConfirmed?.toString() ?? "", style: identity.style ?? "", notes: identity.notes ?? "" }}
-      fieldLabels={{ guestsEstimated: t("guestsEstimated"), guestsConfirmed: t("guestsConfirmed"), style: t("eventStyle"), notes: t("eventNotes") }}
-      ariaLabel={t("identityTitle")}
-      submitLabel={t("identitySave")}
-      savedLabel={t("identitySaved")}
-      className="stack"
-    >
-      <div className="row-wrap">
-        <label>
-          {t("guestsEstimated")}
-          <input type="number" name="guestsEstimated" min={0} max={100000} step={1} inputMode="numeric" defaultValue={identity.guestsEstimated ?? ""} />
-        </label>
-        <label>
-          {t("guestsConfirmed")}
-          <input type="number" name="guestsConfirmed" min={0} max={100000} step={1} inputMode="numeric" defaultValue={identity.guestsConfirmed ?? ""} />
-        </label>
-      </div>
-      <label>
-        {t("eventStyle")}
-        <input type="text" name="style" maxLength={2000} defaultValue={identity.style ?? ""} />
-      </label>
-      <FreeTextNotice />
-      {/* Lot 48a (DAT-08) : des notes confidentielles se changent dans leur propre formulaire. */}
-      {confidentialNotes ? (
-        <p className="muted">{t("eventNotesConfidentialElsewhere")}</p>
-      ) : (
-        <>
-          <label>
-            {t("eventNotes")}
-            <textarea name="notes" maxLength={10000} rows={4} defaultValue={identity.notes ?? ""} />
-          </label>
-          <FreeTextNotice />
-        </>
-      )}
-    </AutoSaveForm>
-  );
-}
-
-// Lot 48a (DAT-08 ; D5, ADR 0093) — notes de l'évènement et leur case « confidentielle » : chiffrées,
-// absentes des recherches et des exports, lues par leur auteur et la titulaire seuls.
-export function EventNotesForm({ eventId, notes, confidential }: { eventId: string; notes: string | null; confidential: boolean }) {
-  const t = useTranslations("Events");
-  const [state, action, pending] = useActionState<ClientContactFormState, FormData>(saveEventNotesAction, {});
-  return (
-    <form action={action} className="stack" aria-label={t("eventNotesConfidentialTitle")}>
-      <input type="hidden" name="eventId" value={eventId} />
-      <label>
-        {t("eventNotes")}
-        <textarea name="notes" maxLength={10000} rows={4} defaultValue={notes ?? ""} />
-      </label>
-      <FreeTextNotice />
-      <label className="checkbox">
-        <input type="checkbox" name="confidential" defaultChecked={confidential} />
-        {t("eventNotesConfidential")}
-      </label>
-      <p className="muted">{t("eventNotesConfidentialHint")}</p>
-      <button type="submit" disabled={pending}>
-        {t("eventNotesSave")}
-      </button>
-      {state.error ? <p role="alert">{state.error}</p> : null}
-      {state.success ? <p role="status">{t("eventNotesSaved")}</p> : null}
     </form>
   );
 }

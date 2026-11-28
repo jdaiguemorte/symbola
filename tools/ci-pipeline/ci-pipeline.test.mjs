@@ -9,7 +9,7 @@ const renovateConfig = JSON.parse(readFileSync(resolve(repoRoot, "renovate.json"
 
 describe("SOC-02 — Pipeline CI de sécurité", () => {
   it("se déclenche à chaque pull request et sur push main", () => {
-    expect(ciWorkflow).toMatch(/on:\s*\n\s*pull_request:/);
+    expect(ciWorkflow).toMatch(/on:\s*\n(\s*#.*\n)*\s*pull_request:/);
     expect(ciWorkflow).toMatch(/branches:\s*\[main\]/);
   });
 
@@ -123,13 +123,19 @@ describe("NFR-18, NFR-19 — Scénarios sous trois navigateurs, de 360 à 1 920 
 
   it("joue les deux volets en CI : Chromium d'un côté, Firefox, WebKit, 360, 1 920 px et 150 % de l'autre", () => {
     // 18/11/2026 : la suite sous Chromium, trop longue pour un job de 45 min, est partagée en deux
-    // moitiés ; à elles deux, elles jouent toute la suite.
-    expect(ciWorkflow).toMatch(/projets: --project=desktop --project=mobile-375 --shard=1\/2\n/);
-    expect(ciWorkflow).toMatch(/projets: --project=desktop --project=mobile-375 --shard=2\/2\n/);
-    expect(ciWorkflow).not.toMatch(/projets: --project=desktop --project=mobile-375\n/);
-    expect(ciWorkflow).toMatch(/navigateurs: chromium firefox webkit\n\s*projets: --project=firefox --project=webkit --project=mobile-360 --project=desktop-1920 --project=zoom-150\n/);
+    // moitiés ; lot 76 (ADR 0124) : en quatre parts, choisies par tools/ci-pipeline/plan-parcours.mjs
+    // (et testées par plan-parcours.test.mjs) ; à elles quatre, elles jouent toute la suite.
+    const plan = readFileSync(resolve(repoRoot, "tools/ci-pipeline/plan-parcours.mjs"), "utf8");
+    expect(plan).toMatch(/projets: `\$\{CHROMIUM\} --shard=\$\{index \+ 1\}\/\$\{PARTS\}`/);
+    expect(plan).toMatch(/navigateurs: "chromium firefox webkit",\n\s*projets: "--project=firefox --project=webkit --project=mobile-360 --project=desktop-1920 --project=zoom-150"/);
+    expect(ciWorkflow).toMatch(/run: node tools\/ci-pipeline\/plan-parcours\.mjs/);
+    expect(ciWorkflow).toMatch(/matrix: \$\{\{ fromJSON\(needs\.plan-e2e\.outputs\.matrix\) \}\}/);
     expect(ciWorkflow).toMatch(/playwright install --with-deps \$\{\{ matrix\.navigateurs \}\}/);
     expect(ciWorkflow).toMatch(/run: pnpm --filter @symbola\/app test:e2e \$\{\{ matrix\.projets \}\}/);
+    // Lot 76 : les mesures du temps de réponse hors des parts, dans leur job (serveur chaud).
+    expect(ciWorkflow).toMatch(/E2E_SANS_MESURES: "1"/);
+    expect(ciWorkflow).toMatch(/E2E_MESURES: "1"/);
+    expect(ciWorkflow).toMatch(/tableau-mesures\.mjs/);
     // Le banc d'essai déclare son adresse : sans elle, les cookies partent en « Secure » et WebKit
     // les refuse sur http://localhost (lib/cookie-security.ts).
     expect(ciWorkflow).toMatch(/\n      APP_PUBLIC_URL: http:\/\/localhost:3000\n/);

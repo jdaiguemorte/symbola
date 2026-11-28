@@ -529,6 +529,21 @@ export async function findLinkVendorRow(
   });
 }
 
+// Lot 73d (PRE-05 ; spécification du lot 73, § 7) : la fiche du carnet a-t-elle un lien de prestataire
+// encore ouvert (non retiré) sur un de ses mariages ? « Demander au prestataire » le dit avant l'envoi.
+export async function hasOpenVendorLinkRow(organizationId: string, vendorId: string): Promise<boolean> {
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, async (tx) => {
+    const [row] = await tx
+      .select({ id: eventLinks.id })
+      .from(eventLinks)
+      .innerJoin(eventVendorCandidates, eq(eventVendorCandidates.id, eventLinks.vendorCandidateId))
+      .where(and(eq(eventLinks.audience, "vendor"), eq(eventVendorCandidates.vendorId, vendorId), isNull(eventLinks.revokedAt)))
+      .limit(1);
+    return Boolean(row);
+  });
+}
+
 // Lot 27a (CHR-04, décision D7) — rappels des tâches du client.
 
 export type ReminderCandidate = {
@@ -542,6 +557,20 @@ export type ReminderCandidate = {
 
 // Liens de client non retirés, rappels cochés, rubrique Rétroplanning ouverte,
 // et leurs tâches « clients » non faites dont l'échéance tombe dans la fenêtre.
+// Lot 74b (CHR-02 ; page 23) : parmi des évènements, ceux dont l'espace des mariés est ouvert (un lien des
+// clients non révoqué).
+export async function findEventIdsWithClientLinkRows(organizationId: string, eventIds: readonly string[]): Promise<string[]> {
+  if (eventIds.length === 0) return [];
+  const db = appDatabase();
+  const rows = await withOrganization(db, organizationId, (tx) =>
+    tx
+      .selectDistinct({ eventId: eventLinks.eventId })
+      .from(eventLinks)
+      .where(and(inArray(eventLinks.eventId, [...eventIds]), eq(eventLinks.audience, "client"), isNull(eventLinks.revokedAt))),
+  );
+  return rows.map((row) => row.eventId);
+}
+
 export async function findReminderCandidateRows(organizationId: string, fromDate: string, toDate: string, startOfToday: Date): Promise<ReminderCandidate[]> {
   const db = appDatabase();
   return await withOrganization(db, organizationId, async (tx) => {
