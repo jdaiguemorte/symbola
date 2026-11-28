@@ -494,3 +494,83 @@ export async function countRealVendors(organizationId: string): Promise<number> 
     return row?.count ?? 0;
   });
 }
+
+// Lot 73b (PRE-01, UX-07, UX-15 ; spécification du lot 73, § 4.2 et § 5.2) — les actions en lot du carnet.
+// Chacune s'écrit en une transaction ; un identifiant absent de l'organisation (RLS) fait tout refuser :
+// l'appelant reçoit null et rien n'est écrit.
+async function allVendorsOf(tx: Tx, vendorIds: string[], options: { archived?: boolean } = {}): Promise<(typeof vendors.$inferSelect)[] | null> {
+  const wanted = [...new Set(vendorIds)];
+  const rows = await tx.select().from(vendors).where(inArray(vendors.id, wanted)).for("update");
+  if (rows.length !== wanted.length) return null;
+  if (options.archived === false && rows.some((row) => row.archivedAt !== null)) return null;
+  return rows;
+}
+
+// Les étiquettes d'avant de chaque fiche changée, pour « Annuler ».
+export function setVendorsTagRows(organizationId: string, vendorIds: string[], next: (current: string[]) => string[]): Promise<{ id: string; tagIds: string[] }[] | null> {
+  return inOrganization(organizationId, async (tx) => {
+    const rows = await allVendorsOf(tx, vendorIds, { archived: false });
+    if (!rows) return null;
+    const previous: { id: string; tagIds: string[] }[] = [];
+    for (const row of rows) {
+      const tagIds = next(row.tagIds);
+      if (tagIds.length === row.tagIds.length && tagIds.every((id, index) => id === row.tagIds[index])) continue;
+      await tx.update(vendors).set({ tagIds, updatedAt: new Date() }).where(eq(vendors.id, row.id));
+      previous.push({ id: row.id, tagIds: row.tagIds });
+    }
+    return previous;
+  });
+}
+
+// « Annuler » : chaque fiche retrouve ses étiquettes d'avant ; les identifiants sont revérifiés (RLS).
+export function restoreVendorsTagRows(organizationId: string, previous: { id: string; tagIds: string[] }[]): Promise<number | null> {
+  return inOrganization(organizationId, async (tx) => {
+    const rows = await allVendorsOf(
+      tx,
+      previous.map((entry) => entry.id),
+    );
+    if (!rows) return null;
+    for (const entry of previous) await tx.update(vendors).set({ tagIds: entry.tagIds, updatedAt: new Date() }).where(eq(vendors.id, entry.id));
+    return previous.length;
+  });
+}
+
+// Archivées ensemble ; rend celles qui ne l'étaient pas encore (« Annuler » ne rend qu'elles).
+export function archiveVendorRows(organizationId: string, vendorIds: string[]): Promise<string[] | null> {
+  return inOrganization(organizationId, async (tx) => {
+    const rows = await allVendorsOf(tx, vendorIds);
+    if (!rows) return null;
+    const open = rows.filter((row) => row.archivedAt === null).map((row) => row.id);
+    if (open.length > 0) await tx.update(vendors).set({ archivedAt: new Date(), updatedAt: new Date() }).where(inArray(vendors.id, open));
+    return open;
+  });
+}
+
+export function unarchiveVendorRows(organizationId: string, vendorIds: string[]): Promise<number | null> {
+  return inOrganization(organizationId, async (tx) => {
+    const rows = await allVendorsOf(tx, vendorIds);
+    if (!rows) return null;
+    const archived = rows.filter((row) => row.archivedAt !== null).map((row) => row.id);
+    if (archived.length > 0) await tx.update(vendors).set({ archivedAt: null, updatedAt: new Date() }).where(inArray(vendors.id, archived));
+    return archived.length;
+  });
+}
+
+// Les métiers de plusieurs fiches, d'un coup (écran « Classer ») : la liste de métiers voulue de chaque
+// fiche, le principal en premier. Fiches et métiers doivent tous être de l'organisation.
+export function writeVendorsTypeLinks(organizationId: string, plan: (current: Map<string, { typeIds: string[]; primaryTypeId: string | null }>) => { vendorId: string; typeIds: string[] }[] | null, vendorIds: string[], typeIds: string[]): Promise<string[] | null> {
+  return inOrganization(organizationId, async (tx) => {
+    const rows = await allVendorsOf(tx, vendorIds, { archived: false });
+    if (!rows) return null;
+    const wantedTypes = [...new Set(typeIds)];
+    const types = wantedTypes.length === 0 ? [] : await tx.select({ id: vendorTypes.id }).from(vendorTypes).where(inArray(vendorTypes.id, wantedTypes));
+    if (types.length !== wantedTypes.length) return null;
+    const writes = plan(await typeLinksOf(tx, vendorIds));
+    if (!writes) return null;
+    for (const write of writes) {
+      await writeTypeLinks(tx, organizationId, write.vendorId, write.typeIds);
+      await tx.update(vendors).set({ updatedAt: new Date() }).where(eq(vendors.id, write.vendorId));
+    }
+    return writes.map((write) => write.vendorId);
+  });
+}

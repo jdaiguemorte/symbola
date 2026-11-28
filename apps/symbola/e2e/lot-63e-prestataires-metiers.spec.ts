@@ -73,7 +73,7 @@ test("PRE-01 — la fiche se modifie en grande fenêtre ; elle coche deux métie
   // PRE-11 : trouvée par l'un comme par l'autre de ses métiers.
   for (const typeId of [photoId, videoId]) {
     await page.goto(`/prestataires?type=${typeId}`);
-    await expect(page.locator("[data-vendor-id] > a", { hasText: "Studio Lumière" })).toBeVisible();
+    await expect(page.locator("[data-vendor-id] .vendor-name-link", { hasText: "Studio Lumière" })).toBeVisible();
   }
   await expectNoAxeViolation(page);
 });
