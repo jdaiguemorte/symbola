@@ -804,7 +804,7 @@
     },
     "importMatches": {
       "title": "Rapprocher des éléments existants",
-      "body": "Quand une ligne ressemble à un prestataire déjà au carnet, la ligne du fichier et la fiche existante s'affichent côte à côte (nom, métier, ville, e-mail, téléphone, nombre d'évènements), les différences écrites en toutes lettres. Choisissez « C'est le même », « Ce sont deux prestataires » ou « Décider plus tard ». Si seul le prénom est commun, la proposition est « À vérifier » et ce sont deux prestataires tant que vous ne dites pas le contraire. Filtrez « À vérifier », « Nouveaux », « Mises à jour » ; « Tout accepter » valide les propositions sûres. Tant qu'un rapprochement proposé attend votre décision, « Continuer » reste sur cet écran : décidez ligne par ligne, ou en une fois par « Valider les rapprochements proposés » ou « Créer les lignes comme nouvelles ». Dans un budget, une ligne sans poste reprend celui de la ligne du dessus, et l'écran le signale."
+      "body": "Quand une ligne ressemble à un prestataire déjà au carnet, la ligne du fichier et la fiche existante s'affichent côte à côte (nom, métier, ville, e-mail, téléphone, nombre d'évènements), les différences écrites en toutes lettres. Choisissez « C'est le même », « Ce sont deux prestataires » ou « Décider plus tard ». Si seul le prénom est commun, la proposition est « À vérifier » et ce sont deux prestataires tant que vous ne dites pas le contraire. Filtrez « À vérifier », « Nouveaux », « Mises à jour » ; « Tout accepter » valide les propositions sûres. Tant qu'un rapprochement proposé attend votre décision, « Continuer » reste sur cet écran : décidez ligne par ligne, ou en une fois par « Valider les rapprochements proposés » ou « Créer les lignes comme nouvelles ». Dans un budget, une ligne sans poste reprend celui de la ligne du dessus, et l'écran le signale. Pour un budget, l'écran a deux parties. Les postes : chaque poste du fichier est rangé sous un poste du mariage (même nom, nom proche, ou nouveau poste), et vous pouvez le changer ; un poste du fichier réparti entre deux postes d'après le détail de chaque ligne est « À vérifier », jusqu'à « C'est juste ». Chaque ligne reste une ligne. Un poste « à trouver » qui ne reçoit rien se garde ou se retire de ce mariage. Les prestataires : ceux du carnet sont retrouvés tels quels ; un doublon possible est comparé colonne par colonne, et vous dites « C'est la même fiche » ou « créer une fiche ». « Continuer » nomme les choix qui restent et mène au premier."
     },
     "importGaps": {
       "title": "Rapport des écarts",
@@ -812,11 +812,11 @@
     },
     "importConfirm": {
       "title": "Confirmer un import",
-      "body": "Avant d'importer, l'assistant fait le bilan : fiches créées et mises à jour, types et étiquettes créés, colonnes gardées en note sur la fiche, lignes rejetées, avec un aperçu des valeurs corrigées. Le bouton dit ce qui sera importé."
+      "body": "Avant d'importer, l'assistant fait le bilan : fiches créées et mises à jour, types et étiquettes créés, colonnes gardées en note sur la fiche, lignes rejetées, avec un aperçu des valeurs corrigées. Le bouton dit ce qui sera importé. Pour un budget, « Vérifier » donne les nombres que le bilan redira (lignes et postes, prévu, réel selon votre fichier, réglé, à payer, prestataires retenus), ce que l'import ne fera pas (ni retard, ni relance, ni tâche), et le budget tel qu'il sera, poste par poste. Un réel vide est « non renseigné », jamais 0 €."
     },
     "importUndo": {
-      "title": "Journal et annulation d'un import",
-      "body": "À la fin, le bilan vient d'abord : créés, mis à jour, ignorés, colonnes gardées en note, chacun cliquable. « Vérifier les N prestataires » ouvre la liste filtrée sur cet import. Pendant le délai d'annulation, « Annuler cet import » (replié) nomme les fiches modifiées à la main depuis, et vous choisissez : annuler l'import sauf ces fiches, ou tout annuler."
+      "title": "Bilan et retrait d'un import",
+      "body": "À la fin, le bilan redit les nombres annoncés à « Vérifier », ce qui n'a pas été repris et pourquoi, et ce que vous avez choisi. « Vérifier les N prestataires » ouvre la liste filtrée sur cet import. Jusqu'à la date limite (90 jours), « Retirer cet import… » dit ce qui part et ce qui reste : les fiches du carnet venues d'un autre import, les postes remis « à trouver », et ce qui a été modifié à la main depuis, qui reste sauf si vous cochez « Retirer aussi ». La ligne de la reprise repasse « à faire ». La fiche d'un mariage qui a d'autres imports se retire avec toute la reprise, en une fois ; si l'un d'eux a passé sa date limite, ce n'est plus proposé."
     },
     "privacySearch": {
       "title": "Données personnelles",
@@ -3786,7 +3786,8 @@
       "matches": "{creations, plural, one {# nouveau} other {# nouveaux}}, {updates, plural, =0 {aucune mise à jour} one {# mise à jour} other {# mises à jour}}",
       "matchesUndecided": "{count, plural, one {# rapprochement à décider} other {# rapprochements à décider}}",
       "rows": "{excluded, plural, =0 {toutes les lignes gardées} one {# ligne écartée} other {# lignes écartées}}",
-      "questions": "{missing, plural, =0 {{asked, plural, one {# réponse donnée} other {# réponses données}}} one {# à régler} other {# à régler}}"
+      "questions": "{missing, plural, =0 {{asked, plural, one {# réponse donnée} other {# réponses données}}} one {# à régler} other {# à régler}}",
+      "doublons": "{pending, plural, =0 {tout est rangé} one {# choix à faire} other {# choix à faire}}"
     },
     "stepCurrent": "en cours",
     "wizardTitle": "Import de « {fileName} »",
@@ -14166,5 +14167,187 @@
       "replies": "{answered} réponses sur {total}",
       "repliesShort": "{answered}/{total}"
     }
+  },
+  "ImportDoublons": {
+    "reason": {
+      "same": "Même nom",
+      "sameLines": "Même nom · les {count} lignes gardent leur détail",
+      "close": "Nom proche",
+      "split": "À vérifier",
+      "new": "Nouveau poste",
+      "manual": "Choisi par vous"
+    },
+    "withoutSlot": "Sans poste",
+    "groupMeta": "{count, plural, one {# ligne} other {# lignes}} · {planned} prévus",
+    "splitLine": "« {detail} » → {slot}",
+    "withoutDetail": "sans détail",
+    "placeLabel": "Poste qui reçoit les lignes « {slot} »",
+    "newSlotOption": "Nouveau poste « {slot} »",
+    "placeSubmit": "Ranger",
+    "toVerify": "À vérifier",
+    "splitConfirmed": "Retenu",
+    "splitWhy": "Un poste du fichier, deux chez vous : rangé d'après le détail de chaque ligne.",
+    "splitConfirm": "C'est juste",
+    "newSlotWhy": "Aucun poste proche dans ce mariage.",
+    "notGiven": "non renseigné",
+    "plannedOnEvent": "{planned} prévus",
+    "noEvent": "aucun mariage",
+    "retainedOn": "Retenue sur « {slot} »",
+    "likeness": {
+      "words": "{words} dans les deux noms",
+      "type": "le même métier",
+      "city": "la même ville",
+      "intro": "Ce qui les rapproche : {reasons}.",
+      "none": "des noms très proches",
+      "noPhone": "Le téléphone ne peut pas être comparé : votre budget n'en a pas."
+    },
+    "and": " et ",
+    "comma": ", ",
+    "doubtTitle": "« {name} » est-elle une fiche de votre carnet ?",
+    "doubtMeta": "Doublon possible · ligne {line} du fichier",
+    "doubtMetaNoLine": "Doublon possible",
+    "compareLabel": "« {name} » et la fiche du carnet, côte à côte",
+    "colFile": "Dans votre fichier",
+    "colCarnet": "Dans votre carnet",
+    "colIfSame": "Si c'est la même",
+    "field": {
+      "name": "Nom",
+      "type": "Métier",
+      "city": "Ville",
+      "event": "Sur ce mariage"
+    },
+    "doubtChoice": "« {name} » : même fiche, ou une autre ?",
+    "same": "C'est la même fiche",
+    "create": "Ce n'est pas la même : créer une fiche",
+    "sameChosen": "Retenu : la fiche « {name} » du carnet.",
+    "createChosen": "Retenu : une fiche « {name} » sera créée dans le carnet.",
+    "remaining": "{count, plural, one {Encore # choix :} other {Encore # choix :}}",
+    "slotsTitle": "Postes : {file, plural, one {# poste du fichier} other {# postes du fichier}}, {event, plural, one {# poste dans ce mariage} other {# postes dans ce mariage}}",
+    "slotsIntro": "Chaque ligne du fichier reste une ligne.",
+    "slotsCaption": "Chaque poste du fichier, le poste du mariage qui reçoit ses lignes, et pourquoi",
+    "colInFile": "Dans votre fichier",
+    "colPlaced": "Rangé sous le poste",
+    "colWhy": "Pourquoi",
+    "unusedTitle": "Rien dans votre fichier",
+    "unusedStarter": "poste de départ, à trouver",
+    "unusedOwn": "poste de ce mariage, à trouver",
+    "unusedChoice": "« {slot} » : le garder ou le retirer",
+    "unused": {
+      "keep": "Le garder « à trouver »",
+      "remove": "Le retirer de ce mariage"
+    },
+    "vendorsTitle": "Prestataires : {total, plural, one {# nom} other {# noms}}, {found, plural, =0 {aucun trouvé tel quel dans votre carnet} one {# trouvé tel quel dans votre carnet} other {# trouvés tels quels dans votre carnet}}",
+    "vendorsAbsent": "{count, plural, one {# nom n'est pas dans votre carnet : il est retenu sous son nom.} other {# noms ne sont pas dans votre carnet : ils sont retenus sous leur nom.}}",
+    "left": "{count, plural, one {# choix à faire} other {# choix à faire}}"
+  },
+  "ImportFigures": {
+    "rows": "{count, plural, =0 {aucune ligne} one {# ligne} other {# lignes}}",
+    "lines": "{lines, plural, one {# ligne} other {# lignes}} dans {slots, plural, one {# poste} other {# postes}}{newSlots, plural, =0 {} one {, dont # nouveau} other {, dont # nouveaux}}",
+    "planned": "prévus",
+    "real": "de réel selon votre fichier{missing, plural, =0 {} one { (# ligne non renseignée)} other { (# lignes non renseignées)}}",
+    "paid": "réglés{count, plural, =0 {} one { : # acompte} other { : # acomptes}}",
+    "toPay": "à payer{count, plural, =0 {} one { : # solde} other { : # soldes}}",
+    "toPayOn": ", le {date}",
+    "toPayRange": ", du {from} au {to}",
+    "vendors": "{count, plural, =0 {aucun prestataire retenu} one {# prestataire retenu} other {# prestataires retenus}}{outside, plural, =0 {{count, plural, =0 {} one { (dans votre carnet)} other { (tous dans votre carnet)}}} one { (dont # pas dans votre carnet)} other { (dont # pas dans votre carnet)}}",
+    "notDoneBefore": "{overdue, plural, =0 {aucune échéance en retard} one {# échéance en retard, comme dans votre fichier} other {# échéances en retard, comme dans votre fichier}}, aucune relance, aucune tâche créée",
+    "notDoneAfter": "{overdue, plural, =0 {aucune échéance en retard} one {# échéance en retard, comme dans votre fichier} other {# échéances en retard, comme dans votre fichier}}, aucune relance, aucune tâche créée",
+    "notGiven": "non renseigné",
+    "none": "aucun",
+    "newSlot": "nouveau poste",
+    "withoutDetail": "Sans détail",
+    "toFind": "à trouver",
+    "colLine": "Poste · ligne",
+    "colVendor": "Prestataire",
+    "colPlanned": "Prévu",
+    "colReal": "Réel",
+    "colPaid": "Réglé",
+    "colToPay": "Reste à payer",
+    "colNext": "Prochaine échéance",
+    "total": "Total",
+    "verifyTitle": "Ce qui va être écrit",
+    "notImported": "{count, plural, one {Non repris : # ligne (voir les écarts).} other {Non repris : # lignes (voir les écarts).}}",
+    "notImportedNone": "Non repris : rien.",
+    "verifyCaption": "Le budget tel qu'il sera, poste par poste",
+    "showAll": "+ {slots, plural, one {# poste} other {# postes}}, {lines, plural, one {# ligne} other {# lignes}} : tout afficher",
+    "verifyCaptionMore": "La suite du budget, poste par poste"
+  },
+  "ImportWithdraw": {
+    "takeoverTitle": "Retirer toute la reprise",
+    "comma": ", ",
+    "takeoverExpired": "Retirer toute la reprise n'est plus possible : {files} a passé sa date limite (90 jours). Chaque élément se modifie ou se supprime depuis la fiche du mariage.",
+    "takeoverIntro": "Cette fiche a créé le mariage, et d'autres imports l'ont rempli : ils se retirent ensemble, jusqu'au {date}.",
+    "takeoverTrigger": "Retirer toute la reprise…",
+    "takeoverDialogTitle": "Retirer toute la reprise de « {event} » ?",
+    "takeoverLeaving": "Partent : {files}, puis la fiche « {sheet} » et le mariage « {event} », avec tout ce que ces imports ont écrit, y compris ce qui a été modifié depuis.",
+    "takeoverAcknowledge": "Je comprends que le mariage et tout ce que ces imports ont écrit seront retirés",
+    "takeoverConfirm": "Retirer toute la reprise",
+    "takeoverKeep": "Garder la reprise",
+    "takeoverStaying": "Restent : les fiches de votre carnet (le carnet sert à tous vos mariages). Si un retrait échoue en route, rien n'est retiré.",
+    "expired": "Cet import ne se retire plus : sa date limite était le {date} (90 jours). Modifiez ou supprimez ses éléments là où ils sont.",
+    "leaving": {
+      "budgetLines": "{count, plural, one {# ligne} other {# lignes}}",
+      "newSlots": "{count, plural, one {le poste {slots}} other {les postes {slots}}}",
+      "paidPayments": "{count, plural, one {l'acompte réglé} other {les # acomptes réglés}}",
+      "duePayments": "{count, plural, one {le solde} other {les # soldes}}",
+      "vendors": "{count, plural, one {# prestataire retenu} other {# prestataires retenus}}",
+      "createdFiches": "{count, plural, one {la fiche créée dans le carnet} other {les # fiches créées dans le carnet}}",
+      "tasks": "{count, plural, one {# tâche} other {# tâches}}",
+      "events": "{count, plural, one {le mariage « {event} »} other {# évènements}}",
+      "others": "{count, plural, one {# autre élément} other {# autres éléments}}",
+      "nothing": "rien"
+    },
+    "staying": {
+      "carnetFrom": "{count, plural, one {la fiche du carnet (elle vient de l'import {files})} other {les # fiches du carnet (elles viennent de l'import {files})}}",
+      "carnet": "{count, plural, one {la fiche du carnet (elle y était avant cet import)} other {les # fiches du carnet (elles y étaient avant cet import)}}",
+      "restoredSlots": "{count, plural, one {le poste {slots}, remis « à trouver »} other {les postes {slots}, remis « à trouver »}}",
+      "usedElsewhere": "{count, plural, one {# élément utilisé ailleurs} other {# éléments utilisés ailleurs}}",
+      "modified": "{count, plural, one {# élément modifié depuis à la main reste aussi.} other {# éléments modifiés depuis à la main restent aussi.}}"
+    },
+    "bodyBudget": "Le budget de « {event} » revient à ce qu'il était avant le {date}.",
+    "bodySheet": "Le mariage « {event} » que cette fiche a créé est retiré avec elle.",
+    "bodyOther": "Ce que cet import a écrit le {date} est retiré ; ce qui existait avant revient comme avant.",
+    "trigger": "Retirer cet import…",
+    "deadline": "Un import se retire jusqu'au {date} (90 jours).",
+    "title": "Retirer l'import « {file} » ?",
+    "confirm": "Retirer l'import",
+    "keep": "Garder l'import",
+    "leavingIntro": "Partent : {parts}.",
+    "stayingIntro": "Restent : {parts}.",
+    "forceModified": "{count, plural, one {Retirer aussi l'élément modifié depuis} other {Retirer aussi les # éléments modifiés depuis}}",
+    "redeposit": "Vous pourrez redéposer le fichier depuis la page de reprise."
+  },
+  "ImportBilan": {
+    "title": "Budget repris dans « {event} »",
+    "takeoverFailed": {
+      "expired": "Rien n'a été retiré : un des imports a passé sa date limite.",
+      "in_use": "Rien n'a été retiré : ce mariage a reçu depuis un devis ou des lignes saisies à la main.",
+      "failed": "Rien n'a été retiré : le retrait a échoué en route. Réessayez."
+    },
+    "deposits": {
+      "yes": "{count, plural, =0 {Acomptes payés} one {# acompte payé à la date du fichier} other {# acomptes payés aux dates du fichier}}.",
+      "no": "Acomptes non payés : ils restent à payer.",
+      "some": "Acomptes payés ligne par ligne, comme vous les avez cochés."
+    },
+    "contracts": {
+      "all": "Contrats signés pour tous les prestataires.",
+      "none": "Contrats non signés.",
+      "per_line": "Contrats signés ligne par ligne."
+    },
+    "chosenSplit": "« {slot} » rangé d'après le détail de chaque ligne.",
+    "chosenSame": "« {name} » : la fiche « {vendor} » du carnet.",
+    "chosenCreated": "« {name} » : une fiche créée dans le carnet.",
+    "chosenRemoved": "Poste « {slot} » retiré de ce mariage.",
+    "summaryTitle": "Bilan de l'import",
+    "importedBy": "{file} · importé le {date} par {author}",
+    "someone": "une personne de l'équipe",
+    "seeBudget": "Voir le budget",
+    "notTakenTitle": "Ce qui n'a pas été repris",
+    "notTaken": "{count, plural, one {# ligne du fichier n'a pas été reprise : elle était vide ou en erreur. Corrigez-la dans votre fichier, puis redéposez-le.} other {# lignes du fichier n'ont pas été reprises : elles étaient vides ou en erreur. Corrigez-les dans votre fichier, puis redéposez-le.}}",
+    "notTakenNone": "Rien de votre fichier : {count, plural, one {la ligne est dans le budget.} other {les # lignes sont dans le budget.}}",
+    "chosenTitle": "Ce que vous avez choisi",
+    "nextTitle": "Et maintenant",
+    "nextTakeover": "La ligne « Budget » de la reprise de « {event} » est cochée.",
+    "backToTakeover": "Retour à la reprise"
   }
 }

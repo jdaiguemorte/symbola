@@ -8,6 +8,8 @@ import { appDatabase } from "@symbola/db/client";
 import { markImportStepReviewed } from "@/modules/hub/service";
 import { getImportWizard, importStepHref, SAFE_MATCH_SCORE, undecidedMatchCount } from "@/lib/import/wizard";
 import { isValidId } from "../../access";
+import { pendingBudgetDoublons } from "@/lib/import/budget-doublons";
+import { doublonsContinueHref } from "@/lib/import/doublons-rules";
 
 
 async function authorized(formData: FormData): Promise<{ organizationId: string; importId: string } | null> {
@@ -70,6 +72,11 @@ export async function reviewMatchesAction(formData: FormData): Promise<void> {
   if (!context) return;
   // Lot 67a (HUB-14 ; R04) : tant qu'un rapprochement proposé attend, on reste ici et l'écran le dit.
   const view = await getImportMatchesView(context.organizationId, context.importId);
+  // Lot 71d (HUB-14, P-16) : un budget nomme les choix qui restent et mène au premier.
+  if (view?.entityType === "budget_lines") {
+    const target = doublonsContinueHref(importStepHref(context.importId, "matches"), await pendingBudgetDoublons(context.organizationId, context.importId));
+    if (target) redirect(target);
+  }
   if (view && undecidedMatchCount(view.rows) > 0) redirect(`${importStepHref(context.importId, "matches")}?filtre=a-verifier&reste=1#rapprochements-a-decider`);
   const db = appDatabase();
   await markImportStepReviewed(db, { organizationId: context.organizationId, importId: context.importId, step: "matches" });

@@ -44,8 +44,9 @@ import {
   type MatchDecision,
 } from "@/modules/hub/service";
 import { getVendorContacts, getVendorsByIds, listVendorFamilies, listVendorTypes, vendorTypeLabels, type VendorFamily, type VendorType } from "@/modules/vendors/service";
-import { listVendorConsultations } from "@/modules/events/service";
-import { compareVendorRecords, onlyOneNameInCommon, vendorMatchNeedsCheck, type VendorCompareLine } from "./vendor-compare";
+import { compareVendorRecords, findCarnetVendor, onlyOneNameInCommon, vendorMatchNeedsCheck, type VendorCompareLine } from "./vendor-compare";
+import { budgetRankingData, rankBudgetRows } from "./slot-ranking";
+import { listEventVendorSlots, listVendorConsultations } from "@/modules/events/service";
 import { ensureVendorFamilies, vendorCatalogInput } from "@/lib/vendors/catalog";
 import {
   listEventCandidates,
@@ -409,20 +410,15 @@ export async function computeImportMatching(organizationId: string, set: ImportW
       } else proposed(row.rowIndex, best);
     }
     return { matches, rowEvents, vendorTypes: await computeVendorTypeChoices(organizationId, rows) };
-  } else if (set.entityType === "tasks" || set.entityType === "budget_lines") {
+  } else if (set.entityType === "budget_lines") {
+    return computeBudgetMatching(organizationId, set, rows);
+  } else if (set.entityType === "tasks") {
     const events = await listEventCandidates(organizationId);
     const itemsByEvent = new Map<string, LabelCandidate[]>();
-    // Lot 71c (C-52) : un mariage pas encore dans Symbola reçoit les postes de départ de l'agence ; les
-    // lignes du budget se rangent sous eux, comme pour un mariage qui existe (aucune tâche à rapprocher).
-    const pendingItems = pendingNewEvent(set) && set.entityType === "budget_lines" ? asCandidates(await listLabelCandidates(organizationId, "vendor_slots")) : null;
     for (const row of rows) {
       const resolution = resolveEvent(row, events, set.targetEventId);
       rowEvents.push(resolution);
       const label = rowLabel(set.entityType, row.values);
-      if (pendingItems && label) {
-        proposed(row.rowIndex, bestMatch(label, pendingItems, labelSimilarity));
-        continue;
-      }
       if (!resolution.eventId || !label) continue;
       let items = itemsByEvent.get(resolution.eventId);
       if (!items) {
@@ -440,6 +436,81 @@ export async function computeImportMatching(organizationId: string, set: ImportW
   }
 
   return { matches, rowEvents };
+}
+
+// Lot 71d (HUB-14, BUD-01, PRE-01 ; spécification du lot 71, § 5.4 ; maquette 08) — un budget : chaque
+// ligne rangée sous un poste du mariage par la règle unique (`slot-ranking.ts`) ; même nom et nom proche
+// sont rangés, modifiables ; un poste du fichier réparti d'après le détail attend « C'est juste ». Lot 71c
+// (C-52) : un mariage pas encore dans Symbola reçoit les postes de départ de l'agence, et les lignes se
+// rangent sous eux. Dans une reprise, les postes encore « à trouver » qui ne reçoivent aucune ligne
+// attendent « garder » ou « retirer » (R17). Les prestataires nommés sont cherchés au carnet.
+const PENDING_EVENT = "pending";
+
+async function computeBudgetMatching(organizationId: string, set: ImportWorkingSet, rows: ParsedImportRow[]): Promise<ImportMatching> {
+  const events = await listEventCandidates(organizationId);
+  const pending = pendingNewEvent(set);
+  const matches: ImportMatch[] = [];
+  const rowEvents: ImportRowEvent[] = [];
+  const byEvent = new Map<string, ParsedImportRow[]>();
+  for (const row of rows) {
+    const resolution = resolveEvent(row, events, set.targetEventId);
+    rowEvents.push(resolution);
+    const key = pending ? PENDING_EVENT : resolution.eventId;
+    if (!key || !text(row.values.slotLabel)) continue;
+    byEvent.set(key, [...(byEvent.get(key) ?? []), row]);
+  }
+  const data = budgetRankingData();
+  let unusedSlots: ImportMatching["unusedSlots"];
+  for (const [eventId, eventRows] of byEvent) {
+    const slots =
+      eventId === PENDING_EVENT
+        ? (await listLabelCandidates(organizationId, "vendor_slots")).map((slot) => ({ ...slot, toFind: true }))
+        : (await listEventVendorSlots(organizationId, eventId)).map((slot) => ({ id: slot.id, label: slot.label, toFind: slot.status === "to_find" }));
+    const placements = rankBudgetRows(
+      eventRows.map((row) => ({ rowIndex: row.rowIndex, slotLabel: text(row.values.slotLabel), lineLabel: text(row.values.lineLabel) })),
+      slots,
+      data,
+    );
+    for (const placement of placements) {
+      if (!placement.slotId) continue;
+      const split = placement.reason === "split";
+      matches.push({
+        rowIndex: placement.rowIndex,
+        candidateId: placement.slotId,
+        score: placement.reason === "same" ? 100 : 90,
+        status: split ? "proposed" : "accepted",
+        manual: false,
+        placement: placement.reason as "same" | "close" | "split",
+        ...(split ? { toVerify: true, reviewed: false } : {}),
+      });
+    }
+    if (byEvent.size === 1 && (set.takeoverId !== null || pending)) {
+      const used = new Set(placements.map((placement) => placement.slotId));
+      unusedSlots = slots.filter((slot) => slot.toFind && !used.has(slot.id)).map((slot) => ({ slotId: slot.id, decision: null }));
+    }
+  }
+  const vendorLinks = await computeBudgetVendorLinks(organizationId, rows);
+  return { matches, rowEvents, ...(unusedSlots && unusedSlots.length > 0 ? { unusedSlots } : {}), ...(vendorLinks.length > 0 ? { vendorLinks } : {}) };
+}
+
+// Les noms de prestataires d'un budget, une fois chacun (casse et accents près), face au carnet.
+export function budgetVendorNames(rows: readonly Pick<ParsedImportRow, "values">[]): string[] {
+  const names = new Map<string, string>();
+  for (const row of rows) {
+    const name = text(row.values.vendorName)?.trim();
+    if (name && !names.has(normalizeLabel(name).join(" "))) names.set(normalizeLabel(name).join(" "), name);
+  }
+  return [...names.values()];
+}
+
+async function computeBudgetVendorLinks(organizationId: string, rows: ParsedImportRow[]): Promise<NonNullable<ImportMatching["vendorLinks"]>> {
+  const names = budgetVendorNames(rows);
+  if (names.length === 0) return [];
+  const carnet = await listVendorCandidates(organizationId);
+  return names.map((name) => {
+    const found = findCarnetVendor(name, carnet);
+    return { name, vendorId: found.kind === "none" ? null : found.vendorId, decision: found.kind === "found" ? "found" : found.kind === "possible" ? "proposed" : "absent" };
+  });
 }
 
 // Vue de l'étape « rapprochements ». Les rapprochements sont calculés à la

@@ -94,6 +94,38 @@ Mesures :
   choix des acomptes payés et de la nouvelle échéance se fait à l'étape « Questions », la maquette les
   met à « Vérifier ») ; les prestataires retenus et le programme hors de l'assistant commun.
 
+## Lot 71d — Doublons, « Vérifier », bilan et retrait
+
+- Date : 28/11/2026, en local, par Claude Code. Base de dev (migrations jusqu'à 0235 de `main`, aucune
+  nouvelle), socle de dev (Garage, ClamAV, Mailpit). Rejoué **à l'écran**, à 1 440 et à 375 px, par le
+  parcours `apps/symbola/e2e/lot-71d-doublons-bilan.spec.ts` (serveur sur le port 3071, session ouverte
+  en base faute du port 3000), et par les services dans
+  `apps/symbola/lib/import/doublons-bilan-71d.integration.test.ts` (16 tests, horloge simulée pour la date
+  limite), sur `tableur-planner/budget.csv`, la fiche PDF fictive et un carnet fictif de 7 fiches où
+  « Élodie Beauté » est écrite « Élodie Perrot · Beauté ». Camille seulement.
+
+| Étape du parcours | Ce qui est vérifié | Résultat |
+| --- | --- | --- |
+| « Doublons », les postes | « Postes : 8 postes du fichier, 10 postes dans ce mariage » ; « Lieu » sous « Lieu de réception » (nom proche), « Traiteur » (même nom, les 3 lignes gardent leur détail), « Fleurs » sous « Fleuriste », « Musique » sous « DJ / musiciens », « Transport » sous « Transport des invités » ; « Photo et vidéo » réparti (« Reportage photo » → Photographe, « Film » → Vidéaste), « À vérifier » jusqu'à « C'est juste » ; les 14 lignes restent 14 | Tenu |
+| Le poste sans ligne | « Décoration », poste de départ, à trouver : « Le garder « à trouver » » ou « Le retirer de ce mariage » ; retiré, il est « Non requis » | Tenu |
+| « Doublons », les prestataires | « Prestataires : 7 noms, 6 trouvés tels quels dans votre carnet » ; « Élodie Beauté » comparée à « Élodie Perrot · Beauté » colonne par colonne, « Ce qui les rapproche : « Élodie » et « Beauté » dans les deux noms » ; « C'est la même fiche » la retient sur « Coiffure et maquillage » ; aucune fiche doublée | Tenu |
+| « Continuer » avec des choix restants | « Encore 3 choix : Photo et vidéo, Décoration, Élodie Beauté », chacun un lien ; l'écran se place sur le premier | Tenu |
+| « Vérifier » | « 14 lignes dans 9 postes · 36 450,00 € prévus · 27 502,00 € de réel selon votre fichier (8 lignes non renseignées) · 8 727,00 € réglés : 6 acomptes · 18 775,00 € à payer : 5 soldes, du 20 février au 20 mars 2027 · 7 prestataires retenus (tous dans votre carnet) · aucune échéance en retard, aucune relance, aucune tâche créée » ; « Non repris : rien » ; le budget poste par poste, « tout afficher » ; jamais « engagé » | Tenu |
+| Le bilan | Les mêmes nombres, mot pour mot (texte comparé) ; « Rien de votre fichier : les 14 lignes sont dans le budget » ; « Ce que vous avez choisi » ; « Voir le budget » ; la date limite ; la page de reprise redit « 14 lignes » | Tenu |
+| « Retirer cet import… » | Niveau 2 : « Le budget de « Juliette & Romain » revient à ce qu'il était avant le … » ; « Partent : 14 lignes, les 6 acomptes réglés, les 5 soldes, 7 prestataires retenus » ; « Restent : les 7 fiches du carnet » ; « Garder l'import » d'abord ; après, le budget est vide, « Décoration » remis « à trouver », la ligne « Budget » de la reprise « À faire » | Tenu |
+| Lignes modifiées depuis, date limite | Une ligne retouchée reste, sauf la case ; refusé au 90e et au 91e jour, possible au 89e | Tenu (services) |
+| « Retirer toute la reprise… » (I10) | Niveau 3 avec « Je comprends… » ; budget puis fiche et mariage en une transaction ; échec au milieu : rien n'est retiré ; un import au-delà de 90 jours : non proposé, la fenêtre le nomme ; B ne retire rien de A | Tenu (services ; l'écran est rejoué sur le bilan de la fiche au rejeu d'ensemble) |
+
+Mesures :
+
+- **À 375 px** : aucune commande sous 44 px, aucun défilement de côté, la barre d'action jamais recouverte,
+  sur « Doublons », « Vérifier » et le bilan.
+- **axe-core** : aucune violation sur « Doublons », « Vérifier », le bilan et la fenêtre de retrait.
+- **30 minutes par mariage** : non mesuré ; les prestataires retenus et le programme changent au paquet 71e.
+- Écarts : la maquette écrit « 7 lignes non renseignées » (le fichier en a 8) et suppose d'autres postes
+  de départ (« Tenues », « Musique et animation ») ; « Le retirer de ce mariage » rend le poste « Non requis »
+  ; sur téléphone, les choix restent empilés (pas un choix par écran). Voir la PR du lot 71d.
+
 ## Lot 71f — la fiche d'un mariage repris et ses reflets
 
 - Date : 27/11/2026, en local, par Claude Code. Base de test dédiée (`symbola_lot71f`, migrations
