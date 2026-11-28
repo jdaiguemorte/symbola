@@ -29,6 +29,7 @@ import { DEFAULT_PAST_DUE_SPREAD, pastDueOutcomes, type PastDueSpread, type Past
 import { formatShortCalendarDate, type Locale } from "@symbola/i18n";
 import { useLocale } from "next-intl";
 import { PastDueStep, type PastDueItem } from "./past-due-step";
+import { usePastDueTranslator, type PastDueMessages } from "./past-due-messages";
 
 // Lot 74b (B7) : un modèle de rétroplanning proposé à la création, ses tâches dans l'ordre du modèle.
 export type NewEventTemplate = { id: string; name: string; eventTypeId: string | null; items: PastDueItem[] };
@@ -47,6 +48,7 @@ export function NewEventForm({
   templates = [],
   today = "",
   holidays = [],
+  pastDueMessages,
 }: {
   eventTypes: Pick<EventType, "id" | "label" | "audience">[];
   // Lot 16 (ADR 0045) : les libellés des clients suivent le type choisi.
@@ -61,7 +63,10 @@ export function NewEventForm({
   templates?: NewEventTemplate[];
   today?: string;
   holidays?: readonly string[];
+  // Lot 74b (NFR-02) : les textes de l'étape 2, passés par la seule page /events/new.
+  pastDueMessages: PastDueMessages;
 }) {
+  const tPast = usePastDueTranslator(pastDueMessages);
   const t = useTranslations("Events");
   const tFeedback = useTranslations("Feedback");
   const tCommon = useTranslations("Common");
@@ -131,7 +136,7 @@ export function NewEventForm({
       {/* Lot 39b (UX-09) : la saisie est gardée et se reprend sur tout appareil. */}
       <DraftKeeper formKey="event-new" submission={state} saved={Boolean(state.created)} />
       <ErrorSummary errors={validation.errors} labels={{ standing: t("standingLegend"), name: t("newName") }} fieldId={validation.fieldId} summaryKey="summaryEvent" />
-      {twoSteps ? <p className="meta new-event-step">{t("pastDue.step", { step: showsStep2 ? 2 : 1 })}</p> : null}
+      {twoSteps ? <p className="meta new-event-step">{tPast("step", { step: showsStep2 ? 2 : 1 })}</p> : null}
       {/* Lot 74b : l'étape 1 reste dans le formulaire (ses champs partent avec « Créer l'évènement »). */}
       <div hidden={showsStep2}>
       <RequiredLegend text={tCommon("requiredLegend")} />
@@ -198,34 +203,34 @@ export function NewEventForm({
         <div className="new-event-template">
           <p>
             {announced
-              ? t("pastDue.announce", { name: announced.name, count: announced.items.length, past: pastCount })
-              : t("pastDue.announceNone")}
+              ? tPast("announce", { name: announced.name, count: announced.items.length, past: pastCount })
+              : tPast("announceNone")}
           </p>
-          {twoSteps ? <p className="meta">{t("pastDue.announceNext")}</p> : null}
+          {twoSteps ? <p className="meta">{tPast("announceNext")}</p> : null}
           <input type="hidden" name="template" value={announced ? announced.id : "none"} />
           {templates.length > 0 ? (
             <details className="new-event-template-change">
-              <summary>{t("pastDue.change")}</summary>
+              <summary>{tPast("change")}</summary>
               <fieldset>
-                <legend className="sr-only">{t("pastDue.changeLegend")}</legend>
+                <legend className="sr-only">{tPast("changeLegend")}</legend>
                 {templates.map((candidate) => (
                   <label key={candidate.id} className="checkbox">
                     <input type="radio" name="templateChoice" value={candidate.id} checked={template?.id === candidate.id} onChange={() => setTemplateChoice(candidate.id)} />
-                    {t("pastDue.templateOption", { name: candidate.name, count: candidate.items.length })}
+                    {tPast("templateOption", { name: candidate.name, count: candidate.items.length })}
                   </label>
                 ))}
                 <label className="checkbox">
                   <input type="radio" name="templateChoice" value="none" checked={!template} onChange={() => setTemplateChoice("none")} />
-                  {t("pastDue.noTemplate")}
+                  {tPast("noTemplate")}
                 </label>
               </fieldset>
               {template ? (
                 <details>
-                  <summary>{t("pastDue.seeTasks")}</summary>
+                  <summary>{tPast("seeTasks")}</summary>
                   <ol className="new-event-template-tasks">
                     {template.items.map((item) => (
                       <li key={item.id}>
-                        {item.label} <span className="meta">{t("pastDue.offset", { days: item.offsetDays })}</span>
+                        {item.label} <span className="meta">{tPast("offset", { days: item.offsetDays })}</span>
                       </li>
                     ))}
                   </ol>
@@ -247,15 +252,16 @@ export function NewEventForm({
           onAnswer={setAnswers}
           spread={spread}
           onSpread={setSpread}
+          messages={pastDueMessages}
         />
       ) : null}
       {showsStep2 ? (
         <button type="button" className="button-link" onClick={() => setStep(1)}>
-          {t("pastDue.back")}
+          {tPast("back")}
         </button>
       ) : null}
       <button type="submit" className="button-primary" disabled={pending}>
-        {twoSteps && step === 1 ? t("pastDue.continue") : t("createEvent")}
+        {twoSteps && step === 1 ? tPast("continue") : t("createEvent")}
       </button>
       {state.error ? <p role="alert">{state.error}</p> : null}
     </form>

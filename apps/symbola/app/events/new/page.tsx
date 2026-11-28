@@ -8,6 +8,8 @@ import { clientFieldLabelsByAudience } from "@/lib/vocabulary";
 import { isEventsModuleEnabled } from "../module-access";
 import { NewEventForm } from "./new-event-form";
 import { parisToday } from "@symbola/i18n";
+import { getMessages } from "next-intl/server";
+import type { PastDueMessages } from "./past-due-messages";
 import { listTaskTemplates, pastDueHolidays } from "@/modules/events/service";
 
 // L12-HUB-13 (lot 12) : depuis un clic sur une date de l'agenda, la date est pré-remplie.
@@ -65,6 +67,7 @@ export default async function NewEventPage({ searchParams }: { searchParams: Pro
         templates={templates}
         today={today}
         holidays={pastDueHolidays(today)}
+        pastDueMessages={(await getMessages()).PastDue as PastDueMessages}
       />
     </main>
   );

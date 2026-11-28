@@ -7,7 +7,8 @@
 // (4 semaines proposé) ; la date de chacune s'écrit sous elle. Une tâche sans réponse est créée « à dater ».
 // Le calcul est celui du module events (packages/contracts, past-due.ts) : le compte annoncé est celui
 // qu'on retrouve (P-07).
-import { useLocale, useTranslations } from "next-intl";
+import { useLocale } from "next-intl";
+import { usePastDueTranslator, type PastDueMessages } from "./past-due-messages";
 import { formatShortCalendarDate, type Locale } from "@symbola/i18n";
 import { PAST_DUE_SPREADS, pastDueOutcomes, type PastDueSpread, type PastDueTaskAnswer } from "@symbola/contracts";
 
@@ -23,6 +24,7 @@ export function PastDueStep({
   onAnswer,
   spread,
   onSpread,
+  messages,
 }: {
   // Les tâches du modèle, dans son ordre (écart, puis position).
   items: PastDueItem[];
@@ -35,8 +37,9 @@ export function PastDueStep({
   onAnswer: (next: Record<string, PastDueTaskAnswer>) => void;
   spread: PastDueSpread;
   onSpread: (spread: PastDueSpread) => void;
+  messages: PastDueMessages;
 }) {
-  const t = useTranslations("Events.pastDue");
+  const t = usePastDueTranslator(messages);
   const locale = useLocale() as Locale;
   const holidaySet = new Set(holidays);
   const outcomes = pastDueOutcomes(items, { eventDate, today, answers, spread, holidays: holidaySet });

@@ -52,6 +52,9 @@ export const SERVER_ONLY_NAMESPACES = [
   "ImportDoublons",
   "ImportBilan",
   "ImportWithdraw",
+  // Lot 74b : les échéances déjà passées de « Nouvel évènement » ; la seule page /events/new les passe à sa
+  // fenêtre (createTranslator), elles ne partent pas avec les autres pages.
+  "PastDue",
 ] as const;
 
 const SERVER_ONLY = new Set<string>(SERVER_ONLY_NAMESPACES);

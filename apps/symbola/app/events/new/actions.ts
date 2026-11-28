@@ -82,9 +82,9 @@ export async function createEventAction(_prevState: NewEventFormState, formData:
   // Lot 74b (B7) : chaque réponse porte sur une tâche de ce modèle ; sinon rien n'est créé (une tâche d'un
   // autre modèle ou d'une autre organisation n'est pas lue).
   const pastDue = readPastDueAnswers(formData);
-  if (!pastDue) return { error: t("pastDue.invalid") };
-  if (template && Object.keys(pastDue.answers).some((id) => !template.items.some((item) => item.id === id))) return { error: t("pastDue.invalid") };
-  if (!template && Object.keys(pastDue.answers).length > 0) return { error: t("pastDue.invalid") };
+  if (!pastDue) return { error: (await getTranslations("PastDue"))("invalid") };
+  if (template && Object.keys(pastDue.answers).some((id) => !template.items.some((item) => item.id === id))) return { error: (await getTranslations("PastDue"))("invalid") };
+  if (!template && Object.keys(pastDue.answers).length > 0) return { error: (await getTranslations("PastDue"))("invalid") };
 
   let result: { id: string };
   try {
@@ -103,7 +103,7 @@ export async function createEventAction(_prevState: NewEventFormState, formData:
     });
   } catch (error) {
     if (error instanceof TaskTemplateNotFoundError) return { error: t("taskTemplateUnavailable") };
-    if (error instanceof TemplatePastDueInvalidError) return { error: t("pastDue.invalid") };
+    if (error instanceof TemplatePastDueInvalidError) return { error: (await getTranslations("PastDue"))("invalid") };
     // Un contact choisi qui n'existe pas (ou plus) dans l'organisation.
     if (error instanceof ContactNotFoundError) return { error: (await getTranslations("Contacts"))("notFound") };
     return { error: await unexpectedActionError(error) };
