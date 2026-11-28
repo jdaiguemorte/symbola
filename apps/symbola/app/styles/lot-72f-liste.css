@@ -32,7 +32,7 @@
     @apply p-0;
   }
   .events-period .segmented a {
-    @apply min-h-[36px] px-2.5 whitespace-nowrap;
+    @apply min-h-[36px] px-2 whitespace-nowrap;
   }
   .events-filters-open {
     @apply hidden;
@@ -112,7 +112,7 @@
       @apply h-11 w-11;
     }
     .events-list-screen .events-filters {
-      @apply mb-1 flex items-center gap-2 pr-13;
+      @apply mb-1 flex items-center gap-2 pr-12;
     }
     .events-list-screen .events-filters > .book-filters-sheet {
       @apply min-w-0 flex-1;
