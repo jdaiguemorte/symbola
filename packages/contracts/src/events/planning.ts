@@ -52,14 +52,17 @@ export type EventTypeVocabularyView = { eventTypeId: string; label: string; audi
 // L'état d'échéance d'une tâche à faire, le même partout (ligne, accueil, téléphone) : en retard (avant
 // aujourd'hui), aujourd'hui, demain, bientôt (jusqu'au seuil de l'organisation), plus tard. Pas d'état
 // « En cours » (Q47-4) ; une tâche faite n'a pas d'état d'échéance (null).
-export const TASK_DUE_STATES = ["late", "today", "tomorrow", "soon", "later"] as const;
+// Lot 74b (B7, L74-D3) : « à dater », une échéance déjà passée d'un mariage créé laissée sans réponse :
+// neutre, jamais en retard, comptée à part.
+export const TASK_DUE_STATES = ["late", "today", "tomorrow", "soon", "later", "undated"] as const;
 export type TaskDueStateKind = (typeof TASK_DUE_STATES)[number];
 export type TaskDueState =
   | { kind: "late"; days: number }
   | { kind: "today" }
   | { kind: "tomorrow" }
   | { kind: "soon"; days: number }
-  | { kind: "later"; days: number };
+  | { kind: "later"; days: number }
+  | { kind: "undated" };
 
 // Seuil de « Bientôt », en jours (M10) ; réglable par organisation, 7 au départ (planning-health.json).
 export const taskSoonDaysSchema = z.number().int().min(1).max(30);

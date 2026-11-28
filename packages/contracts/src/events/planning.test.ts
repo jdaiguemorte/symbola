@@ -38,7 +38,7 @@ describe("CHR-02 — Contrat de l'événement events.task.assigned (A19)", () =>
 
 describe("UX-06, CHR-05 — États d'une tâche sans « En cours », avec « Bientôt » (Q47-4)", () => {
   it("les états d'échéance sont fermés et ne comptent pas « En cours »", () => {
-    expect([...TASK_DUE_STATES]).toEqual(["late", "today", "tomorrow", "soon", "later"]);
+    expect([...TASK_DUE_STATES]).toEqual(["late", "today", "tomorrow", "soon", "later", "undated"]);
   });
 
   it("le seuil « Bientôt » va de 1 à 30 jours", () => {

@@ -52,6 +52,9 @@ export const SERVER_ONLY_NAMESPACES = [
   "ImportDoublons",
   "ImportBilan",
   "ImportWithdraw",
+  // Lot 74b : les échéances déjà passées de « Nouvel évènement » ; la seule page /events/new les passe à sa
+  // fenêtre (createTranslator), elles ne partent pas avec les autres pages.
+  "PastDue",
   // Lot 74g : les 38 rubriques et « Vos données », lus côté serveur ; l'accueil des Paramètres reçoit ses
   // textes en propriétés, sa recherche les siens (« SettingsSearch »).
   "SettingsMenu",

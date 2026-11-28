@@ -1615,6 +1615,13 @@
     {
       "idx": 230,
       "version": "7",
+      "when": 1795852580389,
+      "tag": "0245_lot74b_events_task_due_date_known",
+      "breakpoints": true
+    },
+    {
+      "idx": 231,
+      "version": "7",
       "when": 1795859028035,
       "tag": "0246_lot74h_hub_automations_paused",
       "breakpoints": true

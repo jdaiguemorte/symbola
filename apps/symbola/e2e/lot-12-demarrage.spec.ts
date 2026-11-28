@@ -8,6 +8,7 @@ import { createOrganization, createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
 import { addDefaultVendorSlots, createProspect, createProspectSource, createTaskTemplate } from "../modules/events/service";
 import { changeEventStatus, expectEventStep, readyOrganization, signIn as signInByLink } from "./helpers";
+import { submitNewEvent } from "./new-event";
 
 async function expectNoAxeViolation(page: Page) {
   const result = await new AxeBuilder({ page }).analyze();
@@ -109,7 +110,7 @@ test("L12-HUB-13 — un clic sur une date libre de l'agenda crée un évènement
 
   await page.getByRole("radio", { name: /^Signé, en préparation/ }).check();
   await page.getByLabel(/^Nom de l'évènement/).fill("Léa");
-  await page.getByRole("button", { name: "Créer l'évènement" }).click();
+  await submitNewEvent(page);
   await expect(page).toHaveURL(/\/events\/[0-9a-f-]{36}$/);
   await expectEventStep(page, "Signé, en préparation");
 });
