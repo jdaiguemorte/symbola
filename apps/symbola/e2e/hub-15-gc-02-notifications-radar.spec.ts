@@ -72,7 +72,8 @@ test("SC-03 / HUB-15 / UX-16 / GC-02 / CHR-05 / CHR-10 / HUB-24 / HUB-28 — not
   await expect(page).toHaveURL(new RegExp(`/events/${setup.eventId}\\?onglet=maries`));
   await expect(page.getByRole("link", { name: "Notifications, aucune non lue" })).toBeVisible();
   // HUB-24 : le terme réglé pour le type remplace « Mariés ».
-  await expect(page.getByRole("link", { name: "Les invitants" })).toBeVisible();
+  // Lot 72d : les onglets de la fiche sont des onglets (role tab).
+  await expect(page.getByRole("tab", { name: /^Les invitants/ })).toBeVisible();
 
   // CHR-05 : la santé s'explique, le jalon d'abord.
   await page.goto(`/events/${setup.eventId}`);

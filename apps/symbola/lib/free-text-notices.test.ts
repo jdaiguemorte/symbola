@@ -54,7 +54,7 @@ const NOTICED: Record<string, { file: string; name: string }> = {
 // Aussi mis en garde, bien que rangés autrement au registre : la note d'un contact, le motif d'une perte.
 const ALSO_NOTICED = [
   { file: "app/contacts/contact-forms.tsx", name: "body" },
-  { file: "app/events/[id]/change-status-form.tsx", name: "lossReasonNote" },
+  { file: "app/events/[id]/event-commands.tsx", name: "lossReasonNote" },
   // Lot 65d (M16) : la note d'une relance notée, rangée aux notes internes du prestataire.
   { file: "app/accueil/note-reminder.tsx", name: "note" },
 ];

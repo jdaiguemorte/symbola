@@ -26,7 +26,7 @@ import {
 } from "../modules/events/service";
 import { configureDeliveryWebhookAdapter, createContact, handleEmailDeliveryWebhook, sendOrganizationEmail, signSimulatedWebhook, simulatedWebhookAdapter, SIMULATED_SIGNATURE_HEADER } from "../modules/hub/service";
 import { getDocumentSettings, updateDocumentSettings } from "../modules/quotes/service";
-import { readyOrganization, signIn } from "./helpers";
+import { eventCommand, readyOrganization, signIn } from "./helpers";
 
 const WCAG = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"];
 const PDF = Buffer.from("%PDF-1.4\n1 0 obj<<>>endobj\ntrailer<<>>\n%%EOF\n", "latin1");
@@ -71,7 +71,8 @@ test("MSG-03 (SU-01) — Camille écrit dans le sujet « Traiteur » : deux zone
   const w = await wedding();
   await signIn(page, w.email);
   await page.goto(`/events/${w.eventId}`);
-  await page.getByRole("link", { name: "Messages", exact: true }).first().click();
+  // Lot 72d : « Messages » est au menu « ⋯ » de l'en-tête de la fiche.
+  await eventCommand(page, "Messages");
   await expect(page.getByRole("heading", { level: 1, name: "Messages" })).toBeVisible();
   await page.getByLabel("Nom du sujet").fill("Traiteur");
   await page.getByRole("button", { name: "Créer le sujet" }).click();

@@ -25,7 +25,7 @@ import {
   updateVendorCandidate,
 } from "../modules/events/service";
 import { createVendor } from "../modules/vendors/service";
-import { logout, readyOrganization, signIn as signInByLink } from "./helpers";
+import { eventCommand, logout, readyOrganization, signIn as signInByLink } from "./helpers";
 
 const PASSWORD = "mot-de-passe-jrj02-e2e";
 
@@ -114,9 +114,9 @@ test("JRJ-02 / ARC-09 — gardé la veille, le jour J s'ouvre sans réseau : pro
   const setup = await wedding();
   await login(page, setup.email);
 
-  // Depuis la fiche, le bouton « Jour J ».
+  // Depuis la fiche, « Ouvrir le Jour J » (lot 72d : l'action de l'en-tête à l'approche, sinon au menu « ⋯ »).
   await page.goto(`/events/${setup.eventId}`);
-  await page.getByRole("link", { name: "Jour J", exact: true }).click();
+  await eventCommand(page, "Ouvrir le Jour J");
   await expect(page).toHaveURL(`/jour-j/${setup.eventId}`);
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Léa & Hugo");
   const program = page.getByRole("region", { name: "Programme du jour" });

@@ -65,7 +65,7 @@ test("FAC-01 / HUB-21 / SC-02 étapes 3 à 5 — devis type depuis un modèle, e
 
   // Étape 3 : depuis la fiche, le devis part du modèle (sections, options, acompte).
   await page.goto(`/events/${setup.eventId}`);
-  await openEventTab(page, "Mes devis et factures");
+  await openEventTab(page, "Devis et factures");
   await page.getByLabel("Partir d'un modèle").selectOption({ label: "Mariage complet" });
   await page.getByRole("button", { name: "Créer un devis" }).click();
   await expect(page).toHaveURL(/\/devis\/[0-9a-f-]{36}$/);

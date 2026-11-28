@@ -39,17 +39,17 @@ test("HUB-11 / AIDE-07 — visite de la fiche d'un évènement, et centre d'aide
   // La visite de l'accueil se lance d'elle-même ; on la passe.
   await skipTour(page, "Aujourd'hui");
 
-  // Fiche d'un évènement : cinq étapes, la première sur les onglets, éclairés.
+  // Fiche d'un évènement : cinq étapes, la première sur l'en-tête (lot 72d : frise, action, menu, onglets), éclairé.
   await page.goto(`/events/${eventId}`);
   const tour = tourDialog(page, "Fiche de l'évènement");
   await expect(tour).toContainText("1 sur 5");
-  await expect(tour.getByRole("heading", { name: "Les onglets", level: 2 })).toBeFocused();
+  await expect(tour.getByRole("heading", { name: "L'en-tête", level: 2 })).toBeFocused();
   const spotOn = async (target: string) => {
     const zone = (await page.locator(`[data-tour='${target}']`).boundingBox())!;
     const spot = (await page.locator(".tour-spot").boundingBox())!;
     return Math.abs(spot.x + 6 - zone.x) < 2 && Math.abs(spot.y + 6 - zone.y) < 2;
   };
-  await expect.poll(() => spotOn("event-tabs")).toBe(true);
+  await expect.poll(() => spotOn("event-header")).toBe(true);
   await expectNoAxeViolation(page);
   await tour.getByRole("button", { name: "Suivant" }).click();
   await expect(tour.getByRole("heading", { name: "La synthèse", level: 2 })).toBeVisible();

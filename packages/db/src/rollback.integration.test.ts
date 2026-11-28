@@ -121,6 +121,8 @@ const LOT_65 = ["0206_lot65g_hub_import_target_event", "0205_lot65d_hub_relation
 // « task_assigned » (0217, hub) ; les plus récentes, annulées d'abord.
 // Lot 72a : date effective d'un changement de statut (0224), retrait de « En préparation » (0225).
 const LOT_72A = ["0225_lot72a_events_drop_in_preparation", "0224_lot72a_events_status_effective_date"];
+// Lot 72d : délai de « Ouvrir le Jour J » dans l'en-tête de la fiche (0226, events), après 0225.
+const LOT_72D = ["0226_lot72d_events_day_of_lead_days"];
 const LOT_70A = [
   "0217_lot70a_hub_notification_task_assigned",
   "0216_lot70a_hub_user_names",
@@ -267,6 +269,33 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
     await migrateAll();
     expect(await hasColumn("events", "event_vendor_candidates", "retained_at")).toBe(true);
     expect(await hasColumn("vendors", "vendor_document_kinds", "requested_by_default")).toBe(true);
+  });
+
+  it("lot 72d (EVT-02 ; J9) — 0226 : le délai de « Ouvrir le Jour J » va de 1 à 30 jours ; son annulation est refusée tant qu'une organisation l'a réglé, puis retire la colonne ; la migration se rejoue", async () => {
+    await migrateAll();
+    expect(await hasColumn("events", "planning_health_settings", "day_of_lead_days")).toBe(true);
+    const [organization] = await target<{ id: string }[]>`insert into hub.organizations (name) values ('Atelier 0226') returning id`;
+    const organizationId = organization!.id;
+    // Sans valeur, l'app prend la valeur de départ (7) ; la base n'en pose aucune.
+    await target`insert into events.planning_health_settings (organization_id, watch_points, late_points, milestone_weight) values (${organizationId}, 1, 4, 3)`;
+    expect(await target`select day_of_lead_days from events.planning_health_settings where organization_id = ${organizationId}`).toEqual([{ day_of_lead_days: null }]);
+    for (const refused of [0, 31]) {
+      await expect(target`update events.planning_health_settings set day_of_lead_days = ${refused} where organization_id = ${organizationId}`).rejects.toThrow(/planning_health_settings_day_of_lead_days_check/);
+    }
+    await target`update events.planning_health_settings set day_of_lead_days = 14 where organization_id = ${organizationId}`;
+
+    // Les migrations plus récentes s'annulent d'abord, quel que soit leur nombre (NEWEST_FIRST).
+    await rollbackNewerThan(LOT_72D[0]!);
+    await expect(rollback(LOT_72D[0]!)).rejects.toThrow(/Annulation refusée : un délai « Ouvrir le Jour J »/);
+    expect(await hasColumn("events", "planning_health_settings", "day_of_lead_days")).toBe(true);
+    await target`update events.planning_health_settings set day_of_lead_days = null where organization_id = ${organizationId}`;
+    await rollback(LOT_72D[0]!);
+    expect(await hasColumn("events", "planning_health_settings", "day_of_lead_days")).toBe(false);
+    // Le réglage de l'organisation reste, sans le délai.
+    expect(await target`select watch_points from events.planning_health_settings where organization_id = ${organizationId}`).toEqual([{ watch_points: 1 }]);
+    await migrateAll();
+    expect(await hasColumn("events", "planning_health_settings", "day_of_lead_days")).toBe(true);
+    await target`delete from events.planning_health_settings where organization_id = ${organizationId}`;
   });
 
   it("lot 72a (EVT-05 ; J1, J2, ADR 0121) — 0225 : les évènements, reports et historiques « En préparation » passent à « Confirmé » et la valeur disparaît ; 0224 ajoute la date effective ; les annulations rendent la valeur et retirent la colonne", async () => {

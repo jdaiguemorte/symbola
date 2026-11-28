@@ -7,7 +7,7 @@ import { createAppConnection } from "@symbola/db/client";
 import { createOrganization, createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
 import { addDefaultVendorSlots, createProspect, createProspectSource, createTaskTemplate } from "../modules/events/service";
-import { readyOrganization, changeEventStatus, signIn as signInByLink } from "./helpers";
+import { changeEventStatus, expectEventStep, readyOrganization, signIn as signInByLink } from "./helpers";
 
 async function expectNoAxeViolation(page: Page) {
   const result = await new AxeBuilder({ page }).analyze();
@@ -52,8 +52,7 @@ test("L12-EVT-12 / L12-EVT-13 / L12-EVT-15 / EVT-01 — statut en boutons, rétr
 
   // Lot 13 (L13-EVT-19) : frise du statut ; l'étape choisie se confirme, puis
   // le rétroplanning est proposé.
-  const steps = page.getByRole("list", { name: "Statut de l'évènement" });
-  await expect(steps.getByRole("listitem").filter({ hasText: "Option" })).toHaveAttribute("aria-current", "step");
+  await expectEventStep(page, "Une demande en cours");
   await changeEventStatus(page, "Confirmé");
   // Sur l'onglet Rétroplanning, le modèle s'applique sur place ; ailleurs,
   // une carte le propose.
@@ -112,5 +111,5 @@ test("L12-HUB-13 — un clic sur une date libre de l'agenda crée un évènement
   await page.getByLabel(/^Nom de l'évènement/).fill("Léa");
   await page.getByRole("button", { name: "Créer l'évènement" }).click();
   await expect(page).toHaveURL(/\/events\/[0-9a-f-]{36}$/);
-  await expect(page.getByRole("list", { name: "Statut de l'évènement" }).getByRole("listitem").filter({ hasText: "Confirmé" })).toHaveAttribute("aria-current", "step");
+  await expectEventStep(page, "Signé, en préparation");
 });

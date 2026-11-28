@@ -100,7 +100,7 @@ test("UX-13, UX-05 — programme : une ligne par séquence, une seule ligne ouve
   const before = await saved();
   await signIn(page, setup.email, /\/$/);
   await page.goto(`/events/${setup.eventId}`);
-  await openEventTab(page, "Programme du jour J");
+  await openEventTab(page, "Programme");
 
   // Chaque séquence est une ligne du tableau (début, fin, durée, séquence, lieu, qui), avec deux actions.
   const table = page.getByRole("table", { name: "Programme du jour J" });

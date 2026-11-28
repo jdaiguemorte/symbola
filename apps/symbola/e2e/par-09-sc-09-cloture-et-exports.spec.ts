@@ -14,7 +14,7 @@ import { saveOnboardingStep } from "../modules/hub/service";
 import { setPlannerFeeTerms } from "../modules/quotes/service";
 import { createVendor } from "../modules/vendors/service";
 import AxeBuilder from "./axe";
-import { readyOrganization, signIn } from "./helpers";
+import { closeEventFromTimeline, readyOrganization, signIn } from "./helpers";
 
 async function expectNoAxeViolation(page: Page) {
   const result = await new AxeBuilder({ page }).analyze();
@@ -63,7 +63,9 @@ test("PAR-09 / PRE-08 / EVT-08 — SC-09 : Camille clôture l'évènement en moi
   // Étape 1 : « À clôturer » dans Aujourd'hui, puis la liste de clôture.
   await expect(page.getByText("À clôturer").first()).toBeVisible();
   await page.goto(`/events/${setup.eventId}`);
-  await page.getByRole("link", { name: "Ouvrir la liste de clôture" }).click();
+  // Lot 72d (E2) : le lendemain du jour J, « Clôturer l'évènement… » au bout de la frise (sur téléphone,
+  // dans « Les étapes »).
+  await closeEventFromTimeline(page);
   await expect(page.getByRole("heading", { level: 1 })).toContainText("Clôture de l'évènement");
   const checklist = page.getByRole("list", { name: "Étapes de la clôture" });
   await expect(checklist.locator('[data-step="time_spent"]')).toContainText("Facultatif");

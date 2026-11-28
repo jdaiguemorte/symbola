@@ -3,7 +3,7 @@
 // en-tête simple pour un marié, écran centré pour la connexion. Les liens
 // du menu suivent les modules souscrits (dégradation propre, CLAUDE.md §2.3)
 // et le rôle ; ce sont ceux qu'affichait l'accueil jusqu'ici.
-import type { ReactNode } from "react";
+import { Suspense, type ReactNode } from "react";
 import {
   Activity,
   Archive,
@@ -51,7 +51,8 @@ import { currentLinkAccess } from "@/lib/link-session";
 import { AppNavLink } from "./app-nav-link";
 import { AppSidebar } from "./app-sidebar";
 import { phoneTabs, type PhoneEntry } from "./phone-tabs";
-import { PhoneScreenTitle, type PhoneScreen } from "./phone-screen-title";
+import { PhoneScreenTitle, PhoneTitleProvider, type PhoneScreen } from "./phone-screen-title";
+import { NavigationOrigin } from "./navigation-origin";
 import { LogoutButton } from "./logout-button";
 import { OfflineGuard } from "./offline-guard";
 import { SettingsNav, type SettingsGroup } from "./settings-nav";
@@ -724,6 +725,12 @@ export async function AppShell({ children }: { children: ReactNode }) {
           {/* Lot 70b (UX-07, M5) : le message de retour unique, en bas à gauche du contenu ; le fournisseur
               n'ajoute aucun élément : la zone du message est le dernier enfant de « app-main ». */}
           <FeedbackProvider>
+            {/* Lot 72d (P-12) : l'écran d'avant, pour le « ← » d'une fiche ; une fiche remplace le nom de
+                l'écran de la barre du haut du téléphone par « ← » et son nom. */}
+            <Suspense fallback={null}>
+              <NavigationOrigin />
+            </Suspense>
+            <PhoneTitleProvider>
             {/* Lot 16 (L16-HUB-19, ADR 0039) : recherche à gauche, le seul « ? » à droite. */}
             <section className="app-topbar" aria-label={t("topBar")}>
               {/* Lot 70f : sur téléphone, le nom de l'écran ouvre la barre de 60 px. */}
@@ -773,6 +780,7 @@ export async function AppShell({ children }: { children: ReactNode }) {
             <span id="contenu" className="skip-target" tabIndex={-1} />
             {/* Lot 39c (UX-07) : « Annuler » pendant dix secondes après une tâche cochée dans un tableau. */}
             <TaskUndoProvider undoLabel={tToday("undo.action")}>{children}</TaskUndoProvider>
+            </PhoneTitleProvider>
           </FeedbackProvider>
         </div>
       </HelpProvider>
