@@ -96,10 +96,48 @@ export async function logout(page: Page): Promise<void> {
 // Fiche évènement en onglets (lot 8) : ouvre l'onglet dont le nom commence
 // par `name` (« Budget 1/3 », « Rétroplanning 2 en retard »…).
 export async function openEventTab(page: Page, name: string): Promise<void> {
-  const tabs = page.getByRole("navigation", { name: "Sections de l'évènement" });
+  // Lot 72d (C-23, E3) : des onglets (role tab, aria-selected) ; à l'ordinateur étroit, ceux qui ne tiennent
+  // pas sont dans « Plus ▾ » ; sur téléphone, les noms se raccourcissent (« Budget », « Devis »).
+  const tabs = page.getByRole("tablist", { name: "Sections de l'évènement" });
   const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  await tabs.getByRole("link", { name: new RegExp(`^${escaped}`) }).click();
-  await expect(tabs.getByRole("link", { name: new RegExp(`^${escaped}`) })).toHaveAttribute("aria-current", "page");
+  const short = escaped.split(" ")[0]!;
+  const pattern = new RegExp(`^(?:${escaped}|${short}(?: |$))`);
+  const tab = tabs.getByRole("tab", { name: pattern });
+  if (!(await tab.isVisible())) {
+    const more = page.getByRole("button", { name: "Plus de sections de l'évènement" });
+    if (await more.isVisible()) {
+      await more.click();
+      await page.getByRole("menu", { name: "Plus de sections de l'évènement" }).getByRole("menuitem", { name: pattern }).click();
+      await expect(tab).toHaveAttribute("aria-selected", "true");
+      return;
+    }
+  }
+  await tab.click();
+  await expect(tab).toHaveAttribute("aria-selected", "true");
+}
+
+// Lot 72d (EVT-05 ; E1, E2) : la frise se lit ; une commande de la fiche est dans l'en-tête ou au menu « ⋯ »
+// (sur téléphone, toujours au menu ; « Ouvrir le Jour J » prend la place de l'action à l'approche du jour J).
+export async function eventCommand(page: Page, name: string | RegExp): Promise<void> {
+  const header = page.locator("#event-header");
+  await expect(header.getByRole("heading", { level: 1 })).toBeVisible();
+  const direct = header.locator(".object-header-actions").getByRole("link", typeof name === "string" ? { name, exact: true } : { name });
+  if (await direct.isVisible()) {
+    await direct.click();
+    return;
+  }
+  await header.getByRole("button", { name: /^Plus d'actions pour / }).click();
+  const pattern = typeof name === "string" ? new RegExp(`^${name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`) : name;
+  await page.locator(".event-menu").getByRole("menuitem", { name: pattern }).first().click();
+}
+
+// L'étape en cours de la frise (sur téléphone, dans la ligne « … · étape 2 sur 4 »).
+export async function expectEventStep(page: Page, step: "Une demande en cours" | "Signé, en préparation" | "Jour J" | "Clôturé"): Promise<void> {
+  const header = page.locator("#event-header");
+  await expect(header.getByRole("heading", { level: 1 })).toBeVisible();
+  const wide = header.getByRole("list", { name: "Où en est l'évènement" });
+  if (await wide.isVisible()) await expect(wide.getByRole("listitem").filter({ hasText: step })).toHaveAttribute("aria-current", "step");
+  else await expect(header.locator(".event-timeline-compact strong")).toHaveText(step);
 }
 
 // Réglages regroupés sous « Paramètres » (lot 13 : menu latéral par rubrique).
@@ -140,11 +178,33 @@ export async function readyOrganization(db: Parameters<typeof createOrganization
   return organization;
 }
 
-// Lot 13 (L13-EVT-19) : frise du statut ; un clic sur l'étape, puis « Confirmer ».
-export async function changeEventStatus(page: Page, status: string): Promise<void> {
-  await page.getByRole("button", { name: `Passer en ${status}` }).click();
-  await page.getByRole("form", { name: "Confirmer le changement de statut" }).getByRole("button", { name: "Confirmer" }).click();
-  await expect(page.getByRole("list", { name: "Statut de l'évènement" }).getByRole("listitem").filter({ hasText: status })).toHaveAttribute("aria-current", "step");
+// Lot 72d (E2) : « Clôturer l'évènement… », au bout de la frise (sur téléphone, dans « Les étapes »).
+export async function closeEventFromTimeline(page: Page): Promise<void> {
+  const header = page.locator("#event-header");
+  await expect(header.getByRole("heading", { level: 1 })).toBeVisible();
+  const wide = header.locator(".event-timeline-wide").getByRole("link", { name: "Clôturer l'évènement…" });
+  if (await wide.isVisible()) {
+    await wide.click();
+    return;
+  }
+  await header.getByRole("button", { name: "Les étapes" }).click();
+  await page.locator(".event-steps-sheet").getByRole("link", { name: "Clôturer l'évènement…" }).click();
+}
+
+// Lot 13 (L13-EVT-19), revu au lot 72d (E1, E2) : la frise se lit ; une demande passe en « Signé, en
+// préparation » par « Le contrat est signé… » (sur téléphone, dans « Les étapes »), à la date du jour.
+export async function changeEventStatus(page: Page, status: "Confirmé"): Promise<void> {
+  if (status !== "Confirmé") throw new Error("seule la signature se pose depuis la fiche");
+  const header = page.locator("#event-header");
+  await expect(header.getByRole("heading", { level: 1 })).toBeVisible();
+  const phone = !(await header.getByRole("list", { name: "Où en est l'évènement" }).isVisible());
+  if (phone) await header.getByRole("button", { name: "Les étapes" }).click();
+  const scope = phone ? page.locator(".event-steps-sheet") : header;
+  await scope.getByRole("button", { name: "Le contrat est signé…" }).click();
+  await scope.getByRole("button", { name: "Passer en signé" }).click();
+  await expect(feedback(page)).toContainText("Contrat signé");
+  if (phone) await page.keyboard.press("Escape");
+  await expectEventStep(page, "Signé, en préparation");
 }
 
 // Lot 13 (AIDE-11), revu au lot 63f (ADR 0104) — tiroir de l'aide d'un écran (« Aide : <écran> »),

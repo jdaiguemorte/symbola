@@ -4651,6 +4651,8 @@ export {
   // Lot 70a (UX-06, CHR-05 ; M10) : seuil de « Bientôt ».
   getTaskSoonDays,
   setTaskSoonDays,
+  getDayOfLeadDays,
+  setDayOfLeadDays,
   type LateTask,
 } from "./planning";
 

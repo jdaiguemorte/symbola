@@ -15,7 +15,9 @@ export function EventSourceForm({ eventId, sources, current }: { eventId: string
       <input type="hidden" name="eventId" value={eventId} />
       <label>
         {t("source")}
-        <select name="prospectSourceId" defaultValue={current ?? ""}>
+        {/* Lot 72d : la source enregistrée reste affichée (React remet le formulaire à zéro après l'envoi :
+            la liste repart de sa nouvelle valeur, pas de celle d'avant). */}
+        <select key={current ?? "none"} name="prospectSourceId" defaultValue={current ?? ""}>
           <option value="">{t("sourceNone")}</option>
           {sources.map((source) => (
             <option key={source.id} value={source.id}>

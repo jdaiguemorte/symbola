@@ -65,8 +65,13 @@ test("lot 16 — une wedding planner organise un séminaire : sa fiche parle du 
   await expectNoAxeViolation(page);
 
   // Le type change sur la fiche, et le vocabulaire avec lui.
-  await page.getByRole("combobox", { name: /^Type de l'évènement/ }).selectOption({ label: "Mariage" });
-  await page.getByRole("button", { name: "Changer le type" }).click();
+  // Lot 72d : « Changer le type… » au menu « ⋯ » de l'en-tête, une fenêtre courte.
+  await page.locator("#event-header").getByRole("button", { name: /^Plus d'actions pour / }).click();
+  await page.getByRole("menuitem", { name: /^Changer le type…/ }).click();
+  const typeWindow = page.getByRole("dialog", { name: /^Le type de « / });
+  await typeWindow.getByLabel("Type de l'évènement").selectOption({ label: "Mariage" });
+  await typeWindow.getByRole("button", { name: "Enregistrer" }).click();
+  await expect(typeWindow).toBeHidden();
   await expect(page.getByRole("heading", { name: "Coordonnées des mariés" })).toBeVisible();
 
   // Les écrans qui mêlent plusieurs évènements gardent le vocabulaire du métier.

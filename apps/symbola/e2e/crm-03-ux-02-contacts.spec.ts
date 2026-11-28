@@ -82,7 +82,7 @@ test("CRM-03 / UX-02 — Léa revient : sa fiche, son second évènement sans re
 
   // À l'envoi en signature : nom, e-mail et adresse de sa fiche ; l'adresse corrigée y est gardée.
   await page.waitForLoadState("networkidle");
-  await openEventTab(page, "Mes devis et factures");
+  await openEventTab(page, "Devis et factures");
   await page.getByRole("button", { name: "Créer un devis" }).click();
   await expect(page).toHaveURL(/\/devis\/[0-9a-f-]{36}$/);
   await page.waitForLoadState("networkidle");

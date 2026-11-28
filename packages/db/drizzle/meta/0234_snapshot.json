@@ -1,6 +1,6 @@
 {
   "id": "0ac29239-5cbd-42c0-8006-c4e16b22ad47",
-  "prevId": "eec05060-3f87-4208-be27-b2335ad27c11",
+  "prevId": "f0d0d7d5-5b24-4084-bcbc-d012464d0a90",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -12158,6 +12158,12 @@
           "primaryKey": false,
           "notNull": false
         },
+        "day_of_lead_days": {
+          "name": "day_of_lead_days",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp with time zone",
@@ -12218,6 +12224,10 @@
         "planning_health_settings_soon_days_check": {
           "name": "planning_health_settings_soon_days_check",
           "value": "\"events\".\"planning_health_settings\".\"soon_days\" is null or \"events\".\"planning_health_settings\".\"soon_days\" between 1 and 30"
+        },
+        "planning_health_settings_day_of_lead_days_check": {
+          "name": "planning_health_settings_day_of_lead_days_check",
+          "value": "\"events\".\"planning_health_settings\".\"day_of_lead_days\" is null or \"events\".\"planning_health_settings\".\"day_of_lead_days\" between 1 and 30"
         }
       },
       "isRLSEnabled": false
@@ -33908,7 +33918,7 @@
         },
         "vendor_bank_changes_masked_check": {
           "name": "vendor_bank_changes_masked_check",
-          "value": "(\"vendors\".\"vendor_bank_changes\".\"previous_masked\" is null or \"vendors\".\"vendor_bank_changes\".\"previous_masked\" ~ '^[A-Z]{2}[0-9]{2} [•  0-9A-Z]{4,40}$') and (\"vendors\".\"vendor_bank_changes\".\"next_masked\" is null or \"vendors\".\"vendor_bank_changes\".\"next_masked\" ~ '^[A-Z]{2}[0-9]{2} [•  0-9A-Z]{4,40}$') and (\"vendors\".\"vendor_bank_changes\".\"previous_masked\" is not null or \"vendors\".\"vendor_bank_changes\".\"next_masked\" is not null)"
+          "value": "(\"vendors\".\"vendor_bank_changes\".\"previous_masked\" is null or \"vendors\".\"vendor_bank_changes\".\"previous_masked\" ~ '^[A-Z]{2}[0-9]{2} [\u2022  0-9A-Z]{4,40}$') and (\"vendors\".\"vendor_bank_changes\".\"next_masked\" is null or \"vendors\".\"vendor_bank_changes\".\"next_masked\" ~ '^[A-Z]{2}[0-9]{2} [\u2022  0-9A-Z]{4,40}$') and (\"vendors\".\"vendor_bank_changes\".\"previous_masked\" is not null or \"vendors\".\"vendor_bank_changes\".\"next_masked\" is not null)"
         }
       },
       "isRLSEnabled": false

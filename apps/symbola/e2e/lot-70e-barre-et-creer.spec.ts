@@ -9,7 +9,7 @@ import { createUser, setUserNames } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
 import { addEventTask, addEventVendorSlot, changeEventStatus, createProspect, createProspectSource, listEvents } from "../modules/events/service";
 import { saveOnboardingStep, setModuleEnabled } from "../modules/hub/service";
-import { feedback, openAccountMenu, openMenu, openSearch, readyOrganization, signIn as signInByLink } from "./helpers";
+import { expectEventStep, feedback, openAccountMenu, openMenu, openSearch, readyOrganization, signIn as signInByLink } from "./helpers";
 
 // `within` : un menu ouvert se contrôle seul ; les petites cibles de la page qu'il recouvre en partie ne
 // sont pas les siennes (la page se contrôle menu fermé).
@@ -239,7 +239,8 @@ test.describe("lot 70e — « + Créer »", () => {
     await expect(page).toHaveURL(/\/events\/[0-9a-f-]{36}/);
     await expect(feedback(page)).toContainText("Évènement créé");
     await expect(page.getByRole("heading", { level: 1 })).toContainText("Inès & Sacha");
-    await expect(page.getByText("Option", { exact: true }).first()).toBeVisible();
+    // Lot 72d (E1) : la frise dit l'étape avec les mots de « Nouvel évènement ».
+    await expectEventStep(page, "Une demande en cours");
     // Signé, en préparation : Confirmé.
     await page.goto("/events/new");
     await page.getByRole("radio", { name: /^Signé, en préparation/ }).check();
@@ -247,7 +248,7 @@ test.describe("lot 70e — « + Créer »", () => {
     await submit.click();
     await expect(page).toHaveURL(/\/events\/[0-9a-f-]{36}/);
     await expect(page.getByRole("heading", { level: 1 })).toContainText("Zoé & Hugo");
-    await expect(page.getByText("Confirmé", { exact: true }).first()).toBeVisible();
+    await expectEventStep(page, "Signé, en préparation");
   });
 
   test("critère 6 — « Reprendre ses fichiers » mène à la page de reprise sans créer d'évènement", async ({ page }) => {

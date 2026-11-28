@@ -14,7 +14,7 @@ import { expect, test, type Page } from "@playwright/test";
 import { createUser } from "@symbola/auth";
 import { createAppConnection } from "@symbola/db/client";
 import { addEventTask, addLossReasons, changeEventStatus, createProspect, createProspectSource } from "../modules/events/service";
-import { feedback, readyOrganization, signIn } from "./helpers";
+import { eventCommand, expectEventStep, feedback, readyOrganization, signIn } from "./helpers";
 
 async function expectNoAxeViolation(page: Page, include?: string) {
   const builder = new AxeBuilder({ page });
@@ -154,7 +154,8 @@ for (const size of [
       await signIn(page, setup.email, /\/$/);
       await page.goto(`/events/${setup.eventId}`);
       await page.waitForLoadState("networkidle");
-      await page.getByRole("button", { name: "Annuler l'évènement…" }).click();
+      // Lot 72d : « Annuler l'évènement… » est au menu « ⋯ » de l'en-tête, en dernier.
+      await eventCommand(page, "Annuler l'évènement…");
       const dialog = page.getByRole("dialog", { name: "Annuler l'évènement « Léa & Maxime » ?" });
       await expect(dialog).toBeVisible();
       await expect(dialog).toContainText("Vous pourrez le rétablir depuis sa fiche");
@@ -176,16 +177,17 @@ for (const size of [
       // Renoncer ne change rien.
       await keep.click();
       await expect(dialog).toBeHidden();
-      await expect(page.getByRole("list", { name: "Statut de l'évènement" }).getByRole("listitem").filter({ hasText: "Confirmé" })).toHaveAttribute("aria-current", "step");
+      await expectEventStep(page, "Signé, en préparation");
 
-      // Annuler pour de bon, puis rétablir : il revient en « Option ».
-      await page.getByRole("button", { name: "Annuler l'évènement…" }).click();
+      // Annuler pour de bon, puis rétablir : il revient en « Option » (lot 72d : « Une demande en cours »).
+      await eventCommand(page, "Annuler l'évènement…");
       await dialog.getByLabel("Motif (pour vous)").selectOption({ index: 1 });
       await dialog.getByRole("button", { name: "Annuler l'évènement", exact: true }).click();
       await expect(feedback(page).filter({ hasText: "Évènement annulé : Léa & Maxime" })).toBeVisible();
-      await page.getByRole("button", { name: "Rétablir l'évènement" }).click();
+      await page.getByRole("button", { name: "Rétablir l'évènement…" }).click();
+      await page.getByRole("dialog", { name: "Rétablir « Léa & Maxime » ?" }).getByRole("button", { name: "Rétablir l'évènement", exact: true }).click();
       await expect(feedback(page).filter({ hasText: "Évènement rétabli : Léa & Maxime" })).toBeVisible();
-      await expect(page.getByRole("list", { name: "Statut de l'évènement" }).getByRole("listitem").filter({ hasText: "Option" })).toHaveAttribute("aria-current", "step");
+      await expectEventStep(page, "Une demande en cours");
       await expect(page.getByRole("button", { name: /Réactiver/ })).toHaveCount(0);
     });
 

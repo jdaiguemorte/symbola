@@ -315,7 +315,8 @@ for (const size of [
       await page.goto(`/events/${setup.eventId}?onglet=retroplanning&tache=${setup.late.id}`);
       await expect(page).toHaveURL(new RegExp(`onglet=taches&tache=${setup.late.id}`));
       await expect(page.getByRole("dialog", { name: "Confirmer la voiture des mariés" })).toBeVisible();
-      await expect(page.getByRole("navigation", { name: "Sections de l'évènement" }).getByRole("link", { name: /^Tâches/ })).toHaveAttribute("aria-current", "page");
+      // Lot 72d : les onglets de la fiche sont des onglets (role tab, aria-selected).
+      await expect(page.getByRole("tablist", { name: "Sections de l'évènement" }).getByRole("tab", { name: /^Tâches/ })).toHaveAttribute("aria-selected", "true");
 
       // Au clavier : Entrée sur le titre ouvre le panneau, Échap le ferme sans changement.
       await page.keyboard.press("Escape");

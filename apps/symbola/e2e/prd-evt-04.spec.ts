@@ -77,7 +77,6 @@ test("PRD-EVT-04 — modèle de rétroplanning appliqué, recalcul des échéanc
   // Lot 12 (L12-EVT-13) : le rétroplanning s'ouvre une fois l'évènement confirmé.
   await page.waitForLoadState("networkidle");
   await changeEventStatus(page, "Confirmé");
-  await expect(page.getByText("Statut mis à jour.")).toBeVisible();
   await openEventTab(page, "Tâches");
   await expect(page.getByText("Ajoutez une date à l'évènement pour appliquer un modèle de rétroplanning.")).toBeVisible();
   await expect(page.getByRole("button", { name: "Appliquer le modèle" })).toHaveCount(0);

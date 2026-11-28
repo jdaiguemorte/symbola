@@ -4,7 +4,7 @@
       "body": "A contact's first name and the source are enough to create the prospect; date, venue and budget can be filled in later. From the calendar, a free date opens this form with the date already set."
     },
     "eventsDetail": {
-      "body": "The whole event, in tabs. The top timeline shows where it stands: click the next step to move forward. The « Next step » banner says what to do now (send the quote, apply the planning, create the client's link). Each tab has a « Settings » link to its templates.",
+      "body": "The whole event, in tabs. At the top, one action (« Write to the client ») and the « ⋯ » menu for the rest. The steps show where the event stands; their button moves to the next step (« The contract is signed… »). The « Next step » banner says what to do now (send the quote, apply the planning, create the client's link). Each tab has a « Settings » link to its templates.",
       "faq": {
         "3": {
           "q": "What does the client see?",
@@ -133,5 +133,9 @@
   },
   "TaskLine": {
     "theClients": "The clients"
+  },
+  "EventHeader": {
+    "writeToClients": "Write to the client",
+    "messagesHint": "This event's threads"
   }
 }

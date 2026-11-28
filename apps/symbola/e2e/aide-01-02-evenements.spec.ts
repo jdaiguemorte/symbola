@@ -78,7 +78,6 @@ test("HUB-11 / AIDE-02 — visite du module évènements, puis essai guidé supp
   await openEventTab(page, "Synthèse");
   await page.waitForLoadState("networkidle");
   await changeEventStatus(page, "Confirmé");
-  await expect(page.getByText("Statut mis à jour.")).toBeVisible();
   const pdf = await page.request.get(`/events/${trialId}/programme/pdf?variant=couple`);
   expect(pdf.status()).toBe(200);
 

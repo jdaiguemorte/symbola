@@ -64,7 +64,7 @@ test("PRD-EVT-05 — programme du jour J depuis un modèle, chevauchement signal
   const detailUrl = page.url();
 
   // Le programme part du modèle : lignes triées par heure, postes reliés.
-  await openEventTab(page, "Programme du jour J");
+  await openEventTab(page, "Programme");
   await page.waitForLoadState("networkidle");
   await page.getByLabel("Modèle de programme à appliquer").selectOption({ label: "Programme du jour J (modèle de départ)" });
   await page.getByRole("button", { name: "Appliquer le modèle de programme" }).click();
