@@ -468,7 +468,7 @@
     },
     "home": {
       "title": "Aujourd'hui",
-      "body": "Ce qui demande votre attention, tous évènements confondus, d'ici quatorze jours. Un point est une chose à faire ou à surveiller d'ici quatorze jours : chaque point est une ligne, et le nombre du haut (« 7 points à traiter d'ici 14 jours, dont 2 en retard ») les compte toutes. Les retards viennent d'abord, du plus ancien au plus récent, puis tout le reste par date, quel que soit qui doit agir. Rien ne passe avant la liste, sauf une alerte qui bloque un envoi ou une obligation (plafond d'e-mails, rappels arrêtés, demande RGPD qui arrive à échéance). « À traiter en premier » montre les sept premiers points, regroupés par nature (relances et messages, tâches, paiements, décisions et signatures, prospects, « À regarder » pour les alertes du radar) ; une partie dit « 4 sur 7 » quand elle n'est pas montrée en entier, et « Tout afficher », au bas de la carte, ouvre le reste sur place. Chaque ligne dit son mariage (un lien vers sa fiche), son échéance en mots et qui doit agir : « Vous », une collègue, « Attend le client » ou le prestataire attendu, avec, sous le titre, le nom et le téléphone de la personne à appeler (sur téléphone, un toucher appelle). Le titre d'une tâche ouvre son panneau par-dessus l'accueil, et « Fermer » vous rend la même ligne ; « Fait » la coche, avec « Annuler » dix secondes ; « Noter une relance » note une relance faite à un prestataire ; « Les revoir » montre les tâches faites aujourd'hui. Dessous, « Mes évènements » : chaque mariage en cours, son compte à rebours et ses points (« 6 points, dont 2 en retard », « Pas encore de tâches », « À jour »). Puis le calendrier : vos évènements, vos rendez-vous, vos tâches de la couleur de leur catégorie et les échéances de paiement des prestataires non réglées ; « ‹ », « Aujourd'hui » et « › » le feuillettent, « Mois », « Semaine » et « Liste » changent la vue, un clic sur un jour en montre le détail. Sur téléphone, la semaine en cours. En bas, « Pour bien démarrer » dit les étapes qui restent ; « Masquer » la retire pour vous, sur tous vos appareils. Dans un espace neuf, l'écran propose une seule chose : créer votre premier mariage, ou reprendre un mariage en cours si vous suivez déjà vos mariages dans un tableur ou un logiciel. « À envoyer » : un message de la relation préparé par Symbola (relance, rappel, brief…), à envoyer de votre messagerie ; un clic ouvre la fenêtre « Préparer l'e-mail ». Sur téléphone, la barre du bas mène à Aujourd'hui, Évènements, Tâches (avec le nombre de tâches en retard) et Prestataires ; « Plus » ouvre le reste : Contacts, Rendez-vous, Devis et factures, Encaissements, Tous les modules, Paramètres, Tutoriels, Aide, puis votre compte et « Se déconnecter ». Il se ferme par Échap, un glissé vers le bas, un toucher dehors ou le retour arrière. Un module que vous n'avez pas laisse sa place dans la barre à l'entrée suivante de « Plus ». « Reprises en cours » liste en tête les mariages que vous reprenez d'un autre outil, avec ce qui reste ; ils n'entrent pas dans le nombre des points.",
+      "body": "Ce qui demande votre attention, tous évènements confondus, d'ici quatorze jours. Un point est une chose à faire ou à surveiller d'ici quatorze jours : chaque point est une ligne, et le nombre du haut (« 7 points à traiter d'ici 14 jours, dont 2 en retard ») les compte toutes. Les retards viennent d'abord, du plus ancien au plus récent, puis tout le reste par date, quel que soit qui doit agir. Rien ne passe avant la liste, sauf une alerte qui bloque un envoi ou une obligation (plafond d'e-mails, rappels arrêtés, demande RGPD qui arrive à échéance). « À traiter en premier » montre les sept premiers points, regroupés par nature (relances et messages, tâches, paiements, décisions et signatures, prospects, « À regarder » pour les alertes du radar) ; une partie dit « 4 sur 7 » quand elle n'est pas montrée en entier, et « Tout afficher », au bas de la carte, ouvre le reste sur place. Chaque ligne dit son mariage (un lien vers sa fiche), son échéance en mots et qui doit agir : « Vous », une collègue, « Attend le client » ou le prestataire attendu, avec, sous le titre, le nom et le téléphone de la personne à appeler (sur téléphone, un toucher appelle). Le titre d'une tâche ouvre son panneau par-dessus l'accueil, et « Fermer » vous rend la même ligne ; « Fait » la coche, avec « Annuler » dix secondes ; « Noter une relance » note une relance faite à un prestataire ; « Les revoir » montre les tâches faites aujourd'hui. Dessous, « Mes évènements » : chaque mariage en cours, son compte à rebours et ses points (« 6 points, dont 2 en retard », « Pas encore de tâches », « À jour »). Puis le calendrier : vos évènements, vos rendez-vous, vos tâches de la couleur de leur catégorie et les échéances de paiement des prestataires non réglées ; « ‹ », « Aujourd'hui » et « › » le feuillettent, « Mois », « Semaine » et « Liste » changent la vue, un clic sur un jour en montre le détail. Sur téléphone, la semaine en cours. En bas, « Pour bien démarrer » dit les étapes qui restent ; « Masquer » la retire pour vous, sur tous vos appareils. Dans une agence, « Moi · L'agence », à côté du titre : « Moi » (par défaut) ne garde que ce dont vous vous occupez, vos tâches et les lignes des évènements dont vous êtes planner principal ou qui n'en ont pas ; « L'agence » répond à « qui est en retard dans l'équipe ? » (une ligne par personne : en retard, aujourd'hui, d'ici 14 jours, évènements suivis, et « Voir ses tâches », qui ouvre « Tâches » sur elle, groupé par évènement) et à « quels mariages ont du retard ? » (planner principal, tâches faites, retards, le plus ancien retard ; les évènements à jour sont repliés, « Afficher » les montre). Votre dernier choix est gardé sur cet appareil ; vous n'y voyez que les évènements que vos droits vous ouvrent. Dans un espace neuf, l'écran propose une seule chose : créer votre premier mariage, ou reprendre un mariage en cours si vous suivez déjà vos mariages dans un tableur ou un logiciel. « À envoyer » : un message de la relation préparé par Symbola (relance, rappel, brief…), à envoyer de votre messagerie ; un clic ouvre la fenêtre « Préparer l'e-mail ». Sur téléphone, la barre du bas mène à Aujourd'hui, Évènements, Tâches (avec le nombre de tâches en retard) et Prestataires ; « Plus » ouvre le reste : Contacts, Rendez-vous, Devis et factures, Encaissements, Tous les modules, Paramètres, Tutoriels, Aide, puis votre compte et « Se déconnecter ». Il se ferme par Échap, un glissé vers le bas, un toucher dehors ou le retour arrière. Un module que vous n'avez pas laisse sa place dans la barre à l'entrée suivante de « Plus ». « Reprises en cours » liste en tête les mariages que vous reprenez d'un autre outil, avec ce qui reste ; ils n'entrent pas dans le nombre des points.",
       "faq": [
         {
           "q": "Comment changer les délais de relance des devis et des prospects ?",
@@ -7958,6 +7958,46 @@
       "takeoverBody": "Ses prestataires, son budget, ses tâches et son programme arrivent tels qu'ils sont.",
       "takeoverAction": "Reprendre un mariage",
       "otherNew": "Un mariage qui commence ?"
+    },
+    "scope": {
+      "label": "Ce que montre l'accueil",
+      "me": "Moi",
+      "agency": "L'agence"
+    },
+    "agency": {
+      "count": "L'agence : {late, plural, =0 {aucune tâche en retard} one {<red># tâche en retard</red>} other {<red># tâches en retard</red>}}{events, plural, =0 {} one {, dans # évènement} other {, dans # évènements}}",
+      "peopleTitle": "Par personne",
+      "peopleHint": "Tâches dont chacun s'occupe",
+      "person": "Personne",
+      "late": "En retard",
+      "today": "Aujourd'hui",
+      "horizon": "D'ici {days} jours",
+      "followed": "Évènements suivis",
+      "actions": "Accès",
+      "you": "(vous)",
+      "removed": "(accès retiré)",
+      "seeTasks": "Voir ses tâches",
+      "expected": "Attendu des mariés ou d'un prestataire",
+      "nobody": "Sans personne",
+      "see": "Voir",
+      "allPeople": "{count, plural, one {La personne} other {Les # personnes}}",
+      "phoneColumns": "en retard · {days} jours",
+      "eventsTitle": "Par évènement",
+      "withDelay": "{count, plural, =0 {aucun avec un retard} one {# avec un retard} other {# avec un retard}}",
+      "leadFilter": "Planner principal",
+      "leadAll": "Tous",
+      "event": "Évènement",
+      "date": "Date",
+      "lead": "Planner principal",
+      "progress": "Tâches faites",
+      "oldest": "Plus ancien retard",
+      "doneOf": "{done} sur {total}",
+      "noLead": "Personne",
+      "noDelay": "Aucun évènement n'a de retard.",
+      "upToDate": "{count, plural, one {# évènement à jour} other {# évènements à jour}}",
+      "show": "Afficher",
+      "hide": "Replier",
+      "noEvents": "Aucun évènement en cours."
     }
   },
   "QuickCreate": {

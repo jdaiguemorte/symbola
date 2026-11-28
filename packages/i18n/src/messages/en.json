@@ -468,7 +468,7 @@
     },
     "home": {
       "title": "Today",
-      "body": "What needs your attention, across all events, in the next fourteen days. An item is something to do or keep an eye on in the next fourteen days: each item is one line, and the number at the top (“7 items to handle in the next 14 days, 2 late”) counts them all. Late items come first, oldest first, then everything else by date, whoever has to act. Nothing comes before the list except an alert that blocks a sending or an obligation (email cap, stopped reminders, a GDPR request coming due). “Handle first” shows the first seven items, grouped by kind (follow-ups and messages, tasks, payments, decisions and signatures, prospects, “To watch” for the risk radar alerts); a group says “4 of 7” when it is not shown in full, and “Show all”, at the bottom of the card, opens the rest in place. Each line gives its wedding (a link to its page), its due date in words and who has to act: “You”, a colleague, “Waiting for the client” or the vendor awaited, with, under the title, the name and phone number of the person to call (on a phone, one tap calls). A task's title opens its panel over the home screen, and “Close” brings you back to the same line; “Done” ticks it, with “Undo” for ten seconds; “Log a reminder” records a reminder made to a vendor; “Review them” shows the tasks done today. Below, “My events”: each wedding in progress, its countdown and its items (“6 items, 2 late”, “No tasks yet”, “Up to date”). Then the calendar: your events, appointments, tasks in their category colour and unpaid vendor payment due dates; “‹”, “Today” and “›” page through it, “Month”, “Week” and “List” change the view, a click on a day shows its detail. On a phone, the current week. At the bottom, “Getting started” lists the steps left; “Hide” removes it for you, on all your devices. In a new space, the screen offers one thing only: create your first wedding, or import a wedding in progress if you already track your weddings in a spreadsheet or other software. “To send”: a relationship message prepared by Symbola (reminder, brief…), to send from your own mailbox; one click opens the “Prepare the email” window. On a phone, the bottom bar leads to Today, Events, Tasks (with the number of late tasks) and Vendors; “More” opens the rest: Contacts, Appointments, Quotes and invoices, Payments, All modules, Settings, Tutorials, Help, then your account and “Log out”. It closes with Escape, a swipe down, a tap outside or the back button. A module you don't have leaves its place in the bar to the next entry of “More”. « Takeovers in progress » lists first the weddings you are taking over from another tool, with what is left; they do not count in the number of items.",
+      "body": "What needs your attention, across all events, in the next fourteen days. An item is something to do or keep an eye on in the next fourteen days: each item is one line, and the number at the top (“7 items to handle in the next 14 days, 2 late”) counts them all. Late items come first, oldest first, then everything else by date, whoever has to act. Nothing comes before the list except an alert that blocks a sending or an obligation (email cap, stopped reminders, a GDPR request coming due). “Handle first” shows the first seven items, grouped by kind (follow-ups and messages, tasks, payments, decisions and signatures, prospects, “To watch” for the risk radar alerts); a group says “4 of 7” when it is not shown in full, and “Show all”, at the bottom of the card, opens the rest in place. Each line gives its wedding (a link to its page), its due date in words and who has to act: “You”, a colleague, “Waiting for the client” or the vendor awaited, with, under the title, the name and phone number of the person to call (on a phone, one tap calls). A task's title opens its panel over the home screen, and “Close” brings you back to the same line; “Done” ticks it, with “Undo” for ten seconds; “Log a reminder” records a reminder made to a vendor; “Review them” shows the tasks done today. Below, “My events”: each wedding in progress, its countdown and its items (“6 items, 2 late”, “No tasks yet”, “Up to date”). Then the calendar: your events, appointments, tasks in their category colour and unpaid vendor payment due dates; “‹”, “Today” and “›” page through it, “Month”, “Week” and “List” change the view, a click on a day shows its detail. On a phone, the current week. At the bottom, “Getting started” lists the steps left; “Hide” removes it for you, on all your devices. In an agency, “Me · The agency”, next to the title: “Me” (the default) keeps only what you handle, your tasks and the lines of the events you are lead planner of or that have none; “The agency” answers “who is behind in the team?” (one line per person: late, today, next 14 days, events followed, and “See their tasks”, which opens “Tasks” on them, grouped by event) and “which weddings are behind?” (lead planner, tasks done, delays, the oldest delay; up-to-date events are folded, “Show” shows them). Your last choice is kept on this device; you only see the events your rights open to you. In a new space, the screen offers one thing only: create your first wedding, or import a wedding in progress if you already track your weddings in a spreadsheet or other software. “To send”: a relationship message prepared by Symbola (reminder, brief…), to send from your own mailbox; one click opens the “Prepare the email” window. On a phone, the bottom bar leads to Today, Events, Tasks (with the number of late tasks) and Vendors; “More” opens the rest: Contacts, Appointments, Quotes and invoices, Payments, All modules, Settings, Tutorials, Help, then your account and “Log out”. It closes with Escape, a swipe down, a tap outside or the back button. A module you don't have leaves its place in the bar to the next entry of “More”. « Takeovers in progress » lists first the weddings you are taking over from another tool, with what is left; they do not count in the number of items.",
       "faq": [
         {
           "q": "How do I change the follow-up delays for quotes and prospects?",
@@ -7958,6 +7958,46 @@
       "takeoverBody": "Its vendors, budget, tasks and schedule come in as they are.",
       "takeoverAction": "Import a wedding",
       "otherNew": "A wedding just starting?"
+    },
+    "scope": {
+      "label": "What the home screen shows",
+      "me": "Me",
+      "agency": "The agency"
+    },
+    "agency": {
+      "count": "The agency: {late, plural, =0 {no late tasks} one {<red># late task</red>} other {<red># late tasks</red>}}{events, plural, =0 {} one {, in # event} other {, in # events}}",
+      "peopleTitle": "By person",
+      "peopleHint": "Tasks each one handles",
+      "person": "Person",
+      "late": "Late",
+      "today": "Today",
+      "horizon": "Next {days} days",
+      "followed": "Events followed",
+      "actions": "Access",
+      "you": "(you)",
+      "removed": "(access removed)",
+      "seeTasks": "See their tasks",
+      "expected": "Expected from the couple or a vendor",
+      "nobody": "No one",
+      "see": "See",
+      "allPeople": "{count, plural, one {The person} other {All # people}}",
+      "phoneColumns": "late · {days} days",
+      "eventsTitle": "By event",
+      "withDelay": "{count, plural, =0 {none with a delay} one {# with a delay} other {# with a delay}}",
+      "leadFilter": "Lead planner",
+      "leadAll": "All",
+      "event": "Event",
+      "date": "Date",
+      "lead": "Lead planner",
+      "progress": "Tasks done",
+      "oldest": "Oldest delay",
+      "doneOf": "{done} of {total}",
+      "noLead": "No one",
+      "noDelay": "No event is behind.",
+      "upToDate": "{count, plural, one {# event up to date} other {# events up to date}}",
+      "show": "Show",
+      "hide": "Fold",
+      "noEvents": "No event in progress."
     }
   },
   "QuickCreate": {
