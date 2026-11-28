@@ -27,7 +27,7 @@ import { PageHeader } from "@/app/ui/page-header";
 import { FilterBar } from "@/app/ui/filter-bar";
 import { requirePlanner } from "@/lib/guards";
 import { canSeeEvent } from "@/lib/event-visibility";
-import { loadPageTour } from "@/lib/help/page-tour";
+import { loadPageTour, onEmptyScreen } from "@/lib/help/page-tour";
 import { mapAssets } from "@/lib/map/tiles";
 import { PageTour } from "@/app/page-tour";
 import { settingsPanelHref } from "@/app/reglages/panels";
@@ -270,7 +270,7 @@ export default async function VendorBookPage({ searchParams }: { searchParams: P
           </>
         }
       />
-      <PageTour {...tour} helpTitle={tHelp("vendorBook.title")} helpBody={tHelp("vendorBook.body")} />
+      <PageTour {...onEmptyScreen(tour, bookIsEmpty)} helpTitle={tHelp("vendorBook.title")} helpBody={tHelp("vendorBook.body")} />
 
       {bookIsEmpty ? (
         // Lot 73b (critère 10 ; maquette 18, « Vide ») : le gabarit d'aujourd'hui, sans filtres ni carte.

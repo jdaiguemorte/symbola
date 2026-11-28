@@ -1,209 +1,342 @@
 {
-  "version": 1,
+  "version": 2,
   "tours": {
-    "hub": [
-      {
-        "target": "home-first",
-        "title": { "fr": "Votre priorité du jour", "en": "Your priority today" },
-        "body": {
-          "fr": "Les points les plus urgents, tous évènements confondus, calculés sur vos devis, vos tâches et vos dates. Chaque ligne dit qui doit agir et propose l'action en un clic.",
-          "en": "The most urgent items across all events, worked out from your quotes, tasks and dates. Each line says who has to act and offers the action in one click."
+    "hub": {
+      "automatic": true,
+      "steps": [
+        {
+          "target": "home-first",
+          "title": {
+            "fr": "Votre journée, ici",
+            "en": "Your day, here"
+          },
+          "body": {
+            "fr": "Chaque matin, ce qui presse, pour qui et quand : les retards d'abord, puis tout le reste par date.",
+            "en": "Every morning, what is pressing, for whom and when: late items first, then everything else by date."
+          },
+          "empty": {
+            "target": "home-first",
+            "title": {
+              "fr": "Votre journée, ici",
+              "en": "Your day, here"
+            },
+            "body": {
+              "fr": "Chaque matin, cet écran vous dira ce qui presse, pour qui et quand. Il reste vide tant qu'il n'y a pas d'évènement.",
+              "en": "Every morning, this screen will tell you what is pressing, for whom and when. It stays empty until you have an event."
+            }
+          }
+        },
+        {
+          "target": "task-line",
+          "title": {
+            "fr": "« Fait », en un geste",
+            "en": "“Done”, in one move"
+          },
+          "body": {
+            "fr": "Cochez « Fait » quand c'est fait ; « Annuler » reste proposé un instant si vous vous êtes trompée.",
+            "en": "Tick “Done” once it is done; “Undo” stays on offer for a moment in case of a mistake."
+          },
+          "touch": {
+            "fr": "Touchez « Fait » quand c'est fait ; « Annuler » reste proposé un instant si vous vous êtes trompée.",
+            "en": "Tap “Done” once it is done; “Undo” stays on offer for a moment in case of a mistake."
+          },
+          "empty": {
+            "target": "home-start",
+            "title": {
+              "fr": "Commencez ici",
+              "en": "Start here"
+            },
+            "body": {
+              "fr": "Créez votre premier mariage, ou reprenez ceux que vous suivez déjà : ses mariés, sa date, où il en est. Son rétroplanning et son budget arrivent avec.",
+              "en": "Create your first wedding, or bring in the ones you already follow: the couple, the date, where it stands. Its planning timeline and budget come with it."
+            }
+          }
+        },
+        {
+          "target": "help-button",
+          "title": {
+            "fr": "L'aide de chaque écran",
+            "en": "Help on every screen"
+          },
+          "body": {
+            "fr": "Ouvrez « ? » : il répond aux questions de l'écran où vous êtes, et relance cette visite quand vous voulez.",
+            "en": "Open “?”: it answers questions about the screen you are on, and starts this tour again whenever you like."
+          },
+          "touch": {
+            "fr": "Touchez « ? » : il répond aux questions de l'écran où vous êtes, et relance cette visite quand vous voulez.",
+            "en": "Tap “?”: it answers questions about the screen you are on, and starts this tour again whenever you like."
+          }
         }
-      },
-      {
-        "target": "home-count",
-        "title": { "fr": "Un point, une ligne", "en": "One item, one line" },
-        "body": {
-          "fr": "Un point est une chose à faire ou à surveiller d'ici quatorze jours : les retards d'abord, puis tout le reste par date. « Tout afficher » ouvre, dans la carte, ce qui ne tient pas dans les sept premières lignes.",
-          "en": "An item is something to do or keep an eye on in the next fourteen days: late ones first, then everything else by date. “Show all” opens, in the card, whatever does not fit in the first seven lines."
+      ]
+    },
+    "events": {
+      "steps": [
+        {
+          "target": "events-list",
+          "title": {
+            "fr": "Vos évènements, par date",
+            "en": "Your events, by date"
+          },
+          "body": {
+            "fr": "Les prochains d'abord, avec la date, le statut et les tâches faites. Un en-tête trie la liste, un nom ouvre la fiche.",
+            "en": "The next ones first, with the date, the status and the tasks done. A header sorts the list, a name opens the event."
+          },
+          "touch": {
+            "fr": "Les prochains d'abord, avec leur statut. Touchez un nom pour ouvrir la fiche.",
+            "en": "The next ones first, with their status. Tap a name to open the event."
+          }
+        },
+        {
+          "target": "events-filters",
+          "title": {
+            "fr": "Trouver un évènement",
+            "en": "Find an event"
+          },
+          "body": {
+            "fr": "Période, nom, statut, « Venu par », origine, année : la liste se filtre au choix et garde vos filtres d'une vue à l'autre.",
+            "en": "Period, name, status, “Came through”, origin, year: the list filters as you choose and keeps your filters from one view to another."
+          },
+          "touch": {
+            "fr": "Touchez « Terminés » pour les mariages passés, « Filtres » pour chercher par statut ou par origine.",
+            "en": "Tap “Finished” for past weddings, “Filters” to search by status or origin."
+          }
+        },
+        {
+          "target": "events-views",
+          "title": {
+            "fr": "Liste, colonnes ou calendrier",
+            "en": "List, columns or calendar"
+          },
+          "body": {
+            "fr": "Passez de la liste aux demandes par étape ou au calendrier des mois à venir ; sous le calendrier, la charge des mois qui ont un évènement.",
+            "en": "Switch from the list to enquiries by stage or to the calendar of the coming months; under the calendar, the load of the months that have an event."
+          },
+          "touch": {
+            "fr": "Touchez une vue pour passer de la liste aux demandes par étape ou au calendrier des mois à venir.",
+            "en": "Tap a view to switch from the list to enquiries by stage or to the calendar of the coming months."
+          }
         }
-      },
-      {
-        "target": "home-events",
-        "title": { "fr": "Mes évènements", "en": "My events" },
-        "body": {
-          "fr": "Vos évènements en cours, avec le compte à rebours et leurs points : « 6 points, dont 2 en retard », « Pas encore de tâches » ou « À jour ». Un clic ouvre la fiche.",
-          "en": "Your events in progress, with the countdown and their items: “6 items, 2 late”, “No tasks yet” or “Up to date”. One click opens the event."
+      ]
+    },
+    "event": {
+      "steps": [
+        {
+          "target": "event-header",
+          "title": {
+            "fr": "L'en-tête et la frise",
+            "en": "The header and the steps"
+          },
+          "body": {
+            "fr": "Le nom, la date et le lieu ; la frise dit où en est l'évènement, et son bouton propose l'étape suivante.",
+            "en": "Name, date and venue; the steps show where the event stands, and their button offers the next step."
+          }
+        },
+        {
+          "target": "event-tabs",
+          "title": {
+            "fr": "Les onglets",
+            "en": "The tabs"
+          },
+          "body": {
+            "fr": "Tâches, budget, devis, mariés : chaque partie de l'évènement a son onglet, qui reste en haut quand vous descendez.",
+            "en": "Tasks, budget, quotes, couple: each part of the event has its tab, which stays at the top as you scroll."
+          }
+        },
+        {
+          "target": "event-overview",
+          "title": {
+            "fr": "La suite",
+            "en": "The next step"
+          },
+          "body": {
+            "fr": "Une seule suite, selon où en est le mariage : le devis à envoyer, les tâches à créer, ou ses points des quatorze prochains jours.",
+            "en": "A single next step, depending on where the wedding stands: the quote to send, the tasks to create, or its items for the next fourteen days."
+          }
+        },
+        {
+          "target": "help-button",
+          "title": {
+            "fr": "L'aide de chaque écran",
+            "en": "Help on every screen"
+          },
+          "body": {
+            "fr": "Ouvrez « ? » : il répond aux questions de l'écran où vous êtes, et relance cette visite quand vous voulez.",
+            "en": "Open “?”: it answers questions about the screen you are on, and starts this tour again whenever you like."
+          },
+          "touch": {
+            "fr": "Touchez « ? » : il répond aux questions de l'écran où vous êtes, et relance cette visite quand vous voulez.",
+            "en": "Tap “?”: it answers questions about the screen you are on, and starts this tour again whenever you like."
+          }
         }
-      },
-      {
-        "target": "help-button",
-        "title": { "fr": "L'aide de chaque écran", "en": "Help on every screen" },
-        "body": {
-          "fr": "« ? » ouvre l'aide de l'écran affiché ; « Revoir la visite » relance cette visite quand vous voulez.",
-          "en": "“?” opens the help for the screen you are on; “Replay the tour” starts this tour again whenever you like."
+      ]
+    },
+    "tasks": {
+      "steps": [
+        {
+          "target": "task-line",
+          "title": {
+            "fr": "La ligne et « Fait »",
+            "en": "The row and “Done”"
+          },
+          "body": {
+            "fr": "Une tâche par ligne, les retards d'abord. Cochez « Fait » quand c'est fait ; le titre ouvre la tâche.",
+            "en": "One task per row, late ones first. Tick “Done” once it is done; the title opens the task."
+          },
+          "touch": {
+            "fr": "Une tâche par ligne, les retards d'abord. Touchez « Fait » quand c'est fait, le titre pour ouvrir la tâche.",
+            "en": "One task per row, late ones first. Tap “Done” once it is done, the title to open the task."
+          }
+        },
+        {
+          "target": "tasks-filters",
+          "title": {
+            "fr": "Les filtres",
+            "en": "Filters"
+          },
+          "body": {
+            "fr": "Un évènement, une personne, une période : la liste se resserre aussitôt, et l'adresse garde vos filtres.",
+            "en": "An event, a person, a period: the list narrows straight away, and the address keeps your filters."
+          },
+          "touch": {
+            "fr": "Touchez « Filtres » pour choisir un évènement, une personne ou une période.",
+            "en": "Tap “Filters” to pick an event, a person or a period."
+          }
+        },
+        {
+          "target": "tasks-select",
+          "title": {
+            "fr": "Plusieurs tâches d'un coup",
+            "en": "Several tasks at once"
+          },
+          "body": {
+            "fr": "« Sélectionner » coche plusieurs tâches pour les décaler, les confier ou les marquer faites ensemble.",
+            "en": "“Select” ticks several tasks to move them, hand them over or mark them done together."
+          },
+          "touch": {
+            "fr": "Touchez « Sélectionner » pour cocher plusieurs tâches et les décaler, les confier ou les marquer faites ensemble.",
+            "en": "Tap “Select” to tick several tasks and move them, hand them over or mark them done together."
+          }
         }
-      }
-    ],
-    "events": [
-      {
-        "target": "events-list",
-        "title": { "fr": "La liste", "en": "The list" },
-        "body": {
-          "fr": "Vos prospects et vos évènements, avec la date, le statut et les tâches faites ; un en-tête trie la liste, un nom ouvre la fiche.",
-          "en": "Your prospects and events, with the date, the status and the tasks done; a header sorts the list, a name opens the event."
+      ]
+    },
+    "vendors": {
+      "steps": [
+        {
+          "target": "vendor-types",
+          "title": {
+            "fr": "Familles et métiers",
+            "en": "Families and trades"
+          },
+          "body": {
+            "fr": "Une pastille par famille, avec le nombre de prestataires ; choisissez-en une pour voir ses métiers.",
+            "en": "One pill per family, with the number of vendors; pick one to see its trades."
+          },
+          "touch": {
+            "fr": "Une pastille par famille ; touchez-en une pour voir ses métiers.",
+            "en": "One pill per family; tap one to see its trades."
+          }
+        },
+        {
+          "target": "vendor-filters",
+          "title": {
+            "fr": "Les filtres",
+            "en": "Filters"
+          },
+          "body": {
+            "fr": "Nom, lieu et distance, pièces, prestataires avec qui vous avez déjà travaillé : la liste suit à la saisie.",
+            "en": "Name, place and distance, documents, vendors you have already worked with: the list follows as you type."
+          }
+        },
+        {
+          "target": "vendor-results",
+          "title": {
+            "fr": "Ajouter à un mariage",
+            "en": "Add to a wedding"
+          },
+          "body": {
+            "fr": "Chaque fiche se propose à un mariage par « Ajouter à un mariage… » : en comparaison, ou retenue sur un poste du budget.",
+            "en": "Each record can be offered to a wedding with “Add to a wedding…”: for comparison, or retained on a budget line."
+          }
         }
-      },
-      {
-        "target": "new-prospect",
-        "title": { "fr": "Nouvel évènement", "en": "New event" },
-        "body": {
-          "fr": "Dites où en est l'évènement et donnez-lui un nom : le reste se complète depuis sa fiche.",
-          "en": "Say where the event stands and give it a name: the rest is completed from its page."
+      ]
+    },
+    "quotes": {
+      "steps": [
+        {
+          "target": "quotes-catalog",
+          "title": {
+            "fr": "Le catalogue",
+            "en": "The catalogue"
+          },
+          "body": {
+            "fr": "Vos prestations réutilisables : intitulé, unité, prix HT, TVA et catégorie. Archivée, une prestation n'est plus proposée mais reste sur les devis qui l'utilisent.",
+            "en": "Your reusable services: label, unit, price excl. VAT, VAT rate and category. Once archived, a service is no longer offered but stays on the quotes that use it."
+          }
+        },
+        {
+          "target": "catalog-new",
+          "title": {
+            "fr": "Nouvel article",
+            "en": "New item"
+          },
+          "body": {
+            "fr": "Intitulé, unité et prix suffisent : l'article est aussitôt proposé quand vous composez un devis.",
+            "en": "Label, unit and price are enough: the item is offered right away when you compose a quote."
+          }
+        },
+        {
+          "target": "help-button",
+          "title": {
+            "fr": "L'aide de chaque écran",
+            "en": "Help on every screen"
+          },
+          "body": {
+            "fr": "Ouvrez « ? » : il répond aux questions de l'écran où vous êtes, et relance cette visite quand vous voulez.",
+            "en": "Open “?”: it answers questions about the screen you are on, and starts this tour again whenever you like."
+          },
+          "touch": {
+            "fr": "Touchez « ? » : il répond aux questions de l'écran où vous êtes, et relance cette visite quand vous voulez.",
+            "en": "Tap “?”: it answers questions about the screen you are on, and starts this tour again whenever you like."
+          }
         }
-      },
-      {
-        "target": "events-filters",
-        "title": { "fr": "Les filtres", "en": "Filters" },
-        "body": {
-          "fr": "Période, nom, statut, « Venu par », origine, année : la liste se filtre au choix et garde vos filtres d'une vue à l'autre.",
-          "en": "Period, name, status, “Came through”, origin, year: the list filters as you choose and keeps your filters from one view to another."
+      ]
+    },
+    "budget": {
+      "steps": [
+        {
+          "target": "budget-threshold",
+          "title": {
+            "fr": "Le seuil d'alerte",
+            "en": "Alert threshold"
+          },
+          "body": {
+            "fr": "Une alerte s'affiche avant de retenir un prestataire si le budget d'un évènement dépasserait ce pourcentage de son enveloppe. Chaque évènement peut l'ajuster.",
+            "en": "An alert shows before you retain a vendor if an event's budget would exceed this percentage of its envelope. Each event can adjust it."
+          }
+        },
+        {
+          "target": "budget-models",
+          "title": {
+            "fr": "Vos répartitions",
+            "en": "Your allocations"
+          },
+          "body": {
+            "fr": "Chaque modèle partage un budget total entre vos lignes, en pourcentages. Il propose les montants prévus quand vous simulez le budget d'un évènement.",
+            "en": "Each template splits a total budget across your lines, in percentages. It suggests planned amounts when you simulate an event's budget."
+          }
+        },
+        {
+          "target": "budget-new-model",
+          "title": {
+            "fr": "Nouveau modèle",
+            "en": "New template"
+          },
+          "body": {
+            "fr": "Un nom, puis un pourcentage par ligne ; le total doit faire 100 %. Les lignes sont celles de Paramètres › Lignes du budget.",
+            "en": "A name, then a percentage per line; the total must be 100 %. The lines are those of Settings › Budget lines."
+          }
         }
-      },
-      {
-        "target": "events-settings",
-        "title": { "fr": "Les réglages", "en": "Settings" },
-        "body": {
-          "fr": "Le menu « ⋯ » mène à « Reprendre et importer » et aux réglages : lignes du budget, sources et motifs, types d'évènements, modèles de rétroplanning et de programme.",
-          "en": "The “⋯” menu leads to “Take over and import” and to the settings: budget lines, sources and reasons, event types, planning and schedule templates."
-        }
-      },
-      {
-        "target": "events-views",
-        "title": { "fr": "Liste, colonnes ou calendrier", "en": "List, columns or calendar" },
-        "body": {
-          "fr": "Passez de la liste aux demandes par étape ou au calendrier des mois à venir ; sous le calendrier, la charge des mois qui ont un évènement.",
-          "en": "Switch from the list to enquiries by stage or to the calendar of the coming months; under the calendar, the load of the months that have an event."
-        }
-      }
-    ],
-    "event": [
-      {
-        "target": "event-header",
-        "title": { "fr": "L'en-tête", "en": "The header" },
-        "body": {
-          "fr": "Le nom, la date et le lieu ; la frise dit où en est l'évènement, et son bouton l'étape suivante (« Le contrat est signé… »). Une action, le menu « ⋯ » pour le reste (messages, type, reporter, annuler), puis les onglets, qui restent en haut en défilant.",
-          "en": "Name, date and venue; the steps show where the event stands, and their button the next step (\"The contract is signed…\"). One action, the \"⋯\" menu for the rest (messages, type, postpone, cancel), then the tabs, which stay at the top as you scroll."
-        }
-      },
-      {
-        "target": "event-overview",
-        "title": { "fr": "La synthèse", "en": "Summary" },
-        "body": {
-          "fr": "Une seule suite, selon où en est le mariage : le devis à envoyer, la liste des tâches à créer, ou ses points d'ici quatorze jours, les mêmes que sur « Aujourd'hui ». Dessous, où en est le mariage ; à droite, ses informations et « Modifier les informations ».",
-          "en": "A single next step, depending on where the wedding stands: the quote to send, the task list to create, or its items for the next fourteen days, the same as on \"Today\". Below, where the wedding stands; on the right, its details and \"Edit details\"."
-        }
-      },
-      {
-        "target": "tab-taches",
-        "title": { "fr": "Les tâches", "en": "Tasks" },
-        "body": {
-          "fr": "Les tâches de l'évènement, à partir d'un modèle de rétroplanning ; le nombre de l'onglet dit les retards.",
-          "en": "The event's tasks, from a planning timeline template; the tab's count shows what is late."
-        }
-      },
-      {
-        "target": "tab-budget",
-        "title": { "fr": "Le budget et les prestataires", "en": "Budget and vendors" },
-        "body": {
-          "fr": "Une ligne par prestation : le prestataire retenu, le prévu, le réel et ce qui est réglé.",
-          "en": "One line per service: the vendor retained, the planned and actual amounts, and what has been paid."
-        }
-      },
-      {
-        "target": "global-search",
-        "title": { "fr": "La recherche", "en": "Search" },
-        "body": {
-          "fr": "Un nom de client, un numéro de devis ou un écran : elle cherche partout.",
-          "en": "A client name, a quote number or a screen: it searches everywhere."
-        }
-      }
-    ],
-    "vendors": [
-      {
-        "target": "vendor-types",
-        "title": { "fr": "Les familles", "en": "Families" },
-        "body": {
-          "fr": "Une pastille par famille, avec le nombre de prestataires ; choisissez-en une pour voir ses métiers. « À classer » réunit ceux qui n'ont pas encore de famille.",
-          "en": "One pill per family, with the number of vendors; pick one to see its trades. “To sort” gathers those without a family yet."
-        }
-      },
-      {
-        "target": "vendor-filters",
-        "title": { "fr": "Les filtres", "en": "Filters" },
-        "body": {
-          "fr": "Nom, lieu et distance, prestataires avec qui vous avez déjà travaillé : la liste suit à la saisie.",
-          "en": "Name, place and distance, vendors you have already worked with: the list follows as you type."
-        }
-      },
-      {
-        "target": "vendor-results",
-        "title": { "fr": "La liste et la carte", "en": "List and map" },
-        "body": {
-          "fr": "Chaque fiche a son repère sur la carte : touchez l'un pour retrouver l'autre.",
-          "en": "Each record has its pin on the map: touch one to find the other."
-        }
-      },
-      {
-        "target": "vendor-new",
-        "title": { "fr": "Nouveau prestataire", "en": "New vendor" },
-        "body": {
-          "fr": "Une seule fiche par prestataire, retrouvée à chaque évènement.",
-          "en": "One record per vendor, found again for every event."
-        }
-      }
-    ],
-    "quotes": [
-      {
-        "target": "quotes-catalog",
-        "title": { "fr": "Le catalogue", "en": "The catalogue" },
-        "body": {
-          "fr": "Vos prestations réutilisables : intitulé, unité, prix HT, TVA et catégorie. « Modifier » ouvre un article ; archivé, il n'est plus proposé mais reste sur les devis qui l'utilisent.",
-          "en": "Your reusable services: label, unit, price excl. VAT, VAT rate and category. “Edit” opens an item; once archived it is no longer offered but stays on the quotes that use it."
-        }
-      },
-      {
-        "target": "catalog-new",
-        "title": { "fr": "Nouvel article", "en": "New item" },
-        "body": {
-          "fr": "Intitulé, unité et prix suffisent : l'article est aussitôt proposé quand vous composez un devis.",
-          "en": "Label, unit and price are enough: the item is offered right away when you compose a quote."
-        }
-      },
-      {
-        "target": "help-button",
-        "title": { "fr": "Pour aller plus loin", "en": "To go further" },
-        "body": {
-          "fr": "« ? » ouvre l'aide de cet écran et le tutoriel « Saisir son catalogue de prestations » ; « Revoir la visite » la relance.",
-          "en": "“?” opens the help for this screen and the “Enter your service catalogue” tutorial; “Replay the tour” starts it again."
-        }
-      }
-    ],
-    "budget": [
-      {
-        "target": "budget-threshold",
-        "title": { "fr": "Le seuil d'alerte", "en": "Alert threshold" },
-        "body": {
-          "fr": "Une alerte s'affiche avant de retenir un prestataire si le budget d'un évènement dépasserait ce pourcentage de son enveloppe. Chaque évènement peut l'ajuster.",
-          "en": "An alert shows before you retain a vendor if an event's budget would exceed this percentage of its envelope. Each event can adjust it."
-        }
-      },
-      {
-        "target": "budget-models",
-        "title": { "fr": "Vos répartitions", "en": "Your allocations" },
-        "body": {
-          "fr": "Chaque modèle partage un budget total entre vos lignes, en pourcentages. Il propose les montants prévus quand vous simulez le budget d'un évènement.",
-          "en": "Each template splits a total budget across your lines, in percentages. It suggests planned amounts when you simulate an event's budget."
-        }
-      },
-      {
-        "target": "budget-new-model",
-        "title": { "fr": "Nouveau modèle", "en": "New template" },
-        "body": {
-          "fr": "Un nom, puis un pourcentage par ligne ; le total doit faire 100 %. Les lignes sont celles de Paramètres › Lignes du budget.",
-          "en": "A name, then a percentage per line; the total must be 100 %. The lines are those of Settings › Budget lines."
-        }
-      }
-    ]
+      ]
+    }
   }
 }

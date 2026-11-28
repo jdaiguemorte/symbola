@@ -70,6 +70,9 @@ export const SERVER_ONLY_NAMESPACES = [
   // Lot 74h : le patron d'un écran de réglage (en-tête, « ✓ Enregistré », barre d'enregistrement) ; ses
   // composants client reçoivent leurs mots en propriétés.
   "SettingsPattern",
+  // Lot 74d : la ligne « Découvrir cet écran », rendue côté serveur et passée en propriétés aux seuls
+  // écrans qui la proposent.
+  "TourLine",
 ] as const;
 
 const SERVER_ONLY = new Set<string>(SERVER_ONLY_NAMESPACES);

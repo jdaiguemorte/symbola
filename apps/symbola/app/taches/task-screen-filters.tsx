@@ -130,7 +130,7 @@ const SHEET_ID = "task-filters-sheet";
 export function TaskFiltersPhoneButtons({ count, mine }: { count: number; mine: { href: string; active: boolean } }) {
   const t = useTranslations("TaskScreen");
   return (
-    <div className="task-filters-phone">
+    <div className="task-filters-phone" data-tour="tasks-filters">
       <button type="button" className="button-secondary" aria-haspopup="dialog" aria-controls={SHEET_ID} onClick={() => (document.getElementById(SHEET_ID) as HTMLDialogElement | null)?.showModal()}>
         {t("filters")}
         {count > 0 ? (
@@ -203,7 +203,7 @@ export function TaskScreenFilters({
   return (
     <div className="task-screen-filters">
       {/* À l'ordinateur : la barre de filtres, puis les pastilles. */}
-      <form action="/taches" method="get" className="task-filters task-filters-desktop" aria-label={tLine("filtersLabel")} onSubmit={(event) => event.preventDefault()}>
+      <form action="/taches" method="get" className="task-filters task-filters-desktop" data-tour="tasks-filters" aria-label={tLine("filtersLabel")} onSubmit={(event) => event.preventDefault()}>
         {Object.entries(keep).map(([name, value]) => (value ? <input key={name} type="hidden" name={name} value={value} /> : null))}
         <Fields values={values} change={change} events={events} who={who} categories={categories} idPrefix="filtre" />
         <Link href={mine.href} scroll={false} className="button-link task-mine" aria-current={mine.active ? "true" : undefined}>

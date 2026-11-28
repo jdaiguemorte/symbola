@@ -1,56 +1,55 @@
 "use client";
 
-// Lot 63f (HUB-11 ; ADR 0104, qui remplace les repères de l'ADR 0033) — visite guidée d'un écran :
-// le fond est assombri, la zone expliquée (attribut data-tour) reste claire, une bulle à côté dit
-// « N sur M » et propose « Précédent », « Suivant » (« Terminer » à la fin) et « Passer la visite ».
-// La bulle est une fenêtre : le focus y entre, y reste (Tab), revient à son point de départ à la
-// fermeture ; Échap ferme. Sur téléphone, pas de découpe : la bulle est ancrée en bas, la zone
-// encadrée. Une étape dont la zone n'est pas à l'écran a sa bulle seule, au centre. Positions posées
-// par le CSSOM (style.setProperty) : la CSP refuse les styles en ligne.
+// Lot 63f (HUB-11 ; ADR 0104, qui remplace les repères de l'ADR 0033), revu au lot 74d (D2, B12, C-02 ;
+// page 25 des maquettes du lot 68) — visite guidée d'un écran : le fond est assombri, la zone expliquée
+// (attribut data-tour) reste claire, une bulle à côté dit « Visite de l'écran · N sur M », un titre, deux
+// phrases, et propose « Précédent », « Suivant » (« Terminer » à la fin). Une croix « Fermer la visite »
+// est là à chaque bulle (plus de « Passer la visite »). Une bulle dont la zone n'est pas à l'écran est
+// sautée. Sur un écran tactile, le texte « touch » (« Touchez ») remplace le texte de la souris. La bulle
+// est une fenêtre : le focus y entre, y reste (Tab), revient à son point de départ à la fermeture ;
+// Échap ferme ; la page revient où elle était. Sur téléphone, la bulle se colle en bas et la zone
+// encadrée reste visible au-dessus. Positions posées par le CSSOM (style.setProperty) : la CSP refuse
+// les styles en ligne.
 import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from "react";
+import { placeTourBubble, visibleTourSteps } from "./tour-placement";
 
 export type TourStep = {
   title: string;
   body: string;
   target?: string | undefined;
+  // Lot 74d : le texte d'un écran tactile (« Touchez »).
+  touch?: string | undefined;
 };
 
 export type TourLabels = {
   // Nom de la fenêtre, déjà traduit (« Visite : Aujourd'hui »).
   dialog: string;
-  // « 2 sur 5 », déjà traduit par l'appelant.
+  // « Visite de l'écran · 2 sur 3 », déjà traduit par l'appelant.
   progress: (number: number, total: number) => string;
   previous: string;
   next: string;
   finish: string;
-  skip: string;
+  // La croix de chaque bulle (« Fermer la visite »).
+  close: string;
 };
 
-export type Rect = { top: number; left: number; width: number; height: number };
-export type Placement = { top: number; left: number; side: "below" | "above" | "center" };
-
-// Sous la zone si la place le permet, sinon au-dessus, sinon au centre ; jamais hors de l'écran.
-export function placeTourBubble(target: Rect | null, bubble: { width: number; height: number }, viewport: { width: number; height: number }, gap = 12): Placement {
-  const margin = 8;
-  const center = { top: Math.max(margin, (viewport.height - bubble.height) / 2), left: Math.max(margin, (viewport.width - bubble.width) / 2), side: "center" as const };
-  if (!target) return center;
-  const left = Math.min(Math.max(margin, target.left + target.width / 2 - bubble.width / 2), Math.max(margin, viewport.width - bubble.width - margin));
-  const below = target.top + target.height + gap;
-  if (below + bubble.height <= viewport.height - margin) return { top: below, left, side: "below" };
-  const above = target.top - gap - bubble.height;
-  if (above >= margin) return { top: above, left, side: "above" };
-  return center;
-}
+export { placeTourBubble, visibleTourSteps, type Placement, type Rect } from "./tour-placement";
 
 const MOBILE_QUERY = "(max-width: 767px)";
+const TOUCH_QUERY = "(max-width: 767px), (pointer: coarse)";
 const FOCUSABLE = 'button:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])';
+// La barre du haut du téléphone (60 px) et un peu d'air : la zone ne passe pas dessous.
+const PHONE_TOP = 72;
 
+// La première zone de ce nom qui est à l'écran (une même zone peut exister en deux formes, l'une pour
+// l'ordinateur, l'autre pour le téléphone).
 function targetOf(target: string | undefined): HTMLElement | null {
   if (!target) return null;
-  const element = document.querySelector<HTMLElement>(`[data-tour="${CSS.escape(target)}"]`);
-  if (!element) return null;
-  const rect = element.getBoundingClientRect();
-  return rect.width > 0 && rect.height > 0 ? element : null;
+  for (const element of document.querySelectorAll<HTMLElement>(`[data-tour="${CSS.escape(target)}"]`)) {
+    const rect = element.getBoundingClientRect();
+    if (rect.width > 0 && rect.height > 0 && getComputedStyle(element).visibility !== "hidden") return element;
+  }
+  return null;
 }
 
 export function GuidedTour({
@@ -62,40 +61,53 @@ export function GuidedTour({
   open: boolean;
   steps: TourStep[];
   labels: TourLabels;
-  // completed : arrivée au bout (« Terminer ») plutôt que passée.
+  // completed : arrivée au bout (« Terminer ») plutôt que fermée.
   onClose: (completed: boolean) => void;
 }) {
   const [index, setIndex] = useState(0);
+  // Les bulles montrées : celles dont la zone est à l'écran à l'ouverture.
+  const [shown, setShown] = useState<TourStep[]>([]);
+  const [touch, setTouch] = useState(false);
   const bubble = useRef<HTMLDivElement>(null);
   const spot = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
   const origin = useRef<HTMLElement | null>(null);
+  const scrollBack = useRef<number | null>(null);
   const titleId = useId();
   const bodyId = useId();
 
   const close = useCallback(
     (completed: boolean) => {
       onClose(completed);
-      // Le focus revient à son point de départ (le « ? », ou l'élément qui l'avait).
+      // La page revient où elle était ; le focus revient à son point de départ.
       const back = origin.current;
+      const top = scrollBack.current;
       origin.current = null;
-      if (back && back.isConnected) window.setTimeout(() => back.focus(), 0);
+      scrollBack.current = null;
+      if (top !== null) window.scrollTo({ top, behavior: "instant" });
+      if (back && back.isConnected) window.setTimeout(() => back.focus({ preventScroll: true }), 0);
     },
     [onClose],
   );
 
-  // Ouverture : on retient d'où vient le focus (avant de le prendre), on repart de la première étape.
+  // Ouverture : on retient d'où vient le focus et où était la page, on garde les bulles dont la zone
+  // est à l'écran, on repart de la première.
   useLayoutEffect(() => {
     if (!open) return;
     origin.current = document.activeElement instanceof HTMLElement && document.activeElement !== document.body ? document.activeElement : null;
+    scrollBack.current = window.scrollY;
+    const visible = visibleTourSteps(steps, (target) => targetOf(target) !== null);
+    setTouch(window.matchMedia(TOUCH_QUERY).matches);
+    setShown(visible);
     setIndex(0);
-  }, [open]);
+    if (visible.length === 0) onClose(false);
+  }, [open, steps, onClose]);
 
   const place = useCallback(() => {
     const box = bubble.current;
     const frame = spot.current;
     if (!box || !frame) return;
-    const element = targetOf(steps[index]?.target);
+    const element = targetOf(shown[index]?.target);
     const mobile = window.matchMedia(MOBILE_QUERY).matches;
     box.dataset.layout = mobile ? "sheet" : "float";
     if (element) {
@@ -119,17 +131,41 @@ export function GuidedTour({
     box.dataset.side = placement.side;
     box.style.setProperty("top", `${placement.top}px`);
     box.style.setProperty("left", `${placement.left}px`);
-  }, [index, steps]);
+  }, [index, shown]);
 
-  // Chaque étape : sa zone ramenée à l'écran, puis la bulle posée et le focus dans la bulle.
-  useLayoutEffect(() => {
-    if (!open) return;
-    const element = targetOf(steps[index]?.target);
+  // La zone ramenée à l'écran : au centre à l'ordinateur ; sur téléphone, sous la barre du haut et
+  // au-dessus de la bulle collée en bas quand elle y tient.
+  const bringIntoView = useCallback((element: HTMLElement) => {
     const mobile = window.matchMedia(MOBILE_QUERY).matches;
-    element?.scrollIntoView({ block: mobile ? "start" : "center", inline: "nearest" });
+    element.scrollIntoView({ block: mobile ? "start" : "center", inline: "nearest", behavior: "instant" });
+    if (!mobile) return;
+    const rect = element.getBoundingClientRect();
+    const sheetTop = bubble.current?.getBoundingClientRect().top ?? window.innerHeight;
+    const room = sheetTop - 8 - PHONE_TOP;
+    const shift = rect.height <= room ? rect.top - PHONE_TOP - Math.max(0, (room - rect.height) / 2) : rect.top - PHONE_TOP;
+    if (Math.abs(shift) > 1) window.scrollBy({ top: shift, behavior: "instant" });
+  }, []);
+
+  // Chaque bulle : sa zone ramenée à l'écran, puis la bulle posée et le focus dans la bulle. Un
+  // défilement de la page juste après (fin de chargement, retour en haut) ne doit pas la laisser hors
+  // de la fenêtre : on la ramène encore une fois quand l'écran s'est posé.
+  useLayoutEffect(() => {
+    if (!open || shown.length === 0) return;
+    const element = targetOf(shown[index]?.target);
+    if (element) bringIntoView(element);
     place();
-    titleRef.current?.focus();
-  }, [open, index, steps, place]);
+    titleRef.current?.focus({ preventScroll: true });
+    const again = window.setTimeout(() => {
+      const current = targetOf(shown[index]?.target);
+      if (!current) return;
+      const rect = current.getBoundingClientRect();
+      if (rect.bottom <= 0 || rect.top >= window.innerHeight) {
+        bringIntoView(current);
+        place();
+      }
+    }, 300);
+    return () => window.clearTimeout(again);
+  }, [open, index, shown, place, bringIntoView]);
 
   useEffect(() => {
     if (!open) return;
@@ -179,26 +215,30 @@ export function GuidedTour({
     return () => document.removeEventListener("keydown", onKeyDown);
   }, [open, close]);
 
-  if (!open || steps.length === 0) return null;
-  const step = steps[Math.min(index, steps.length - 1)]!;
-  const lastStep = index >= steps.length - 1;
+  if (!open || shown.length === 0) return null;
+  const step = shown[Math.min(index, shown.length - 1)]!;
+  const lastStep = index >= shown.length - 1;
 
   return (
     <div className="tour-layer">
       <div ref={spot} className="tour-spot" data-hidden="true" aria-hidden="true" />
       <div ref={bubble} className="tour-bubble" role="dialog" aria-modal="true" aria-label={labels.dialog} aria-describedby={bodyId} data-layout="float">
-        <p className="tour-progress">{labels.progress(index + 1, steps.length)}</p>
+        <div className="tour-head">
+          <p className="tour-progress">{labels.progress(index + 1, shown.length)}</p>
+          <button type="button" className="tour-close" onClick={() => close(false)} aria-label={labels.close} title={labels.close}>
+            <span aria-hidden="true">×</span>
+          </button>
+        </div>
         <h2 id={titleId} ref={titleRef} tabIndex={-1}>
           {step.title}
         </h2>
-        <p id={bodyId}>{step.body}</p>
+        <p id={bodyId}>{touch && step.touch ? step.touch : step.body}</p>
         <div className="tour-actions">
-          {/* Lot 69 (C-02) : à la dernière étape il n'y a plus rien à passer, « Terminer » suffit. */}
-          {lastStep ? null : (
-            <button type="button" className="button-ghost tour-skip" onClick={() => close(false)}>
-              {labels.skip}
-            </button>
-          )}
+          <span className="tour-dots" aria-hidden="true">
+            {shown.map((candidate, position) => (
+              <span key={`${candidate.target}-${position}`} className="tour-dot" data-current={position === index ? "true" : undefined} />
+            ))}
+          </span>
           <span className="tour-nav">
             {index > 0 ? (
               <button type="button" className="button-secondary" onClick={() => setIndex(index - 1)}>

@@ -1,0 +1,80 @@
+/* Lot 74d (D2 de l'audit, B10 à B12, C-02, C-06 ; page 25 des maquettes du lot 68) — les visites
+   proposées : la ligne « Découvrir cet écran en 1 minute », la bulle et sa croix, le repère encadré
+   (anneau d'encre sur liseré blanc, aucune teinte de marque : répartition A), « Revoir la visite de cet
+   écran » en tête du « ? ». Jetons de DESIGN.md seulement. */
+@layer components {
+  /* La ligne : sous l'en-tête, fond blanc, icône en encre, lien souligné ; aucun bouton plein ; la
+     croix de 44 px dit « Ne plus proposer cette visite ». */
+  .tour-line {
+    @apply mb-4 flex min-h-[52px] items-center gap-3 rounded-lg border border-line bg-surface py-1 pr-1 pl-3;
+  }
+  .tour-line-icon {
+    @apply inline-flex shrink-0 text-ink;
+  }
+  .tour-line-text {
+    @apply m-0 min-w-0 flex-1 text-label text-ink-muted;
+  }
+  .tour-line .tour-line-start {
+    @apply inline !h-auto !min-h-0 border-0 !bg-transparent !p-0 font-semibold !text-ink underline underline-offset-4;
+  }
+  .tour-line-close,
+  .tour-bubble .tour-close {
+    @apply inline-flex !h-11 !min-h-0 !w-11 !min-w-0 shrink-0 items-center justify-center rounded-full border-0 !bg-transparent !p-0 text-title !text-ink;
+  }
+  /* Sur téléphone, la ligne garde son lien seul : la phrase d'accroche s'efface. */
+  @media (max-width: 767px) {
+    .tour-line-lead {
+      @apply sr-only;
+    }
+  }
+  /* Liste des évènements sur téléphone (lot 72f) : le « ⋯ » de l'en-tête est posé en haut à droite, par-dessus
+     le premier bloc ; la ligne lui laisse sa place, comme les filtres. */
+  @media (max-width: 639px) {
+    .events-list-screen > .tour-line {
+      @apply mr-12;
+    }
+  }
+
+  /* La bulle : « Visite de l'écran · 2 sur 3 » et la croix en tête, des points d'avancement. */
+  .tour-head {
+    @apply -mt-2 -mr-2 flex items-center justify-between gap-2;
+  }
+  .tour-dots {
+    @apply inline-flex items-center gap-2;
+  }
+  .tour-dot {
+    @apply inline-block size-2 rounded-full bg-line;
+  }
+  .tour-dot[data-current="true"] {
+    @apply bg-ink;
+  }
+  .tour-layer .tour-spot {
+    outline: 3px solid var(--color-ink);
+    box-shadow:
+      0 0 0 3px var(--color-surface),
+      0 0 0 9999px color-mix(in srgb, var(--color-ink) 55%, transparent);
+  }
+  @media (max-width: 767px) {
+    .tour-layer .tour-spot {
+      box-shadow:
+        0 0 0 3px var(--color-surface),
+        0 0 0 9999px color-mix(in srgb, var(--color-ink) 35%, transparent);
+    }
+    /* Collée en bas, au-dessus de la barre du bas ; la zone encadrée reste visible au-dessus d'elle. */
+    .tour-bubble[data-layout="sheet"] {
+      bottom: var(--app-tabbar-height, 0px);
+      @apply max-h-[45vh] overflow-y-auto rounded-b-none pb-4;
+    }
+  }
+
+  /* « Revoir la visite de cet écran · 3 bulles, 1 minute · Lancer », en tête de l'aide. */
+  .help-drawer-tour {
+    @apply flex flex-wrap items-center justify-between gap-2 rounded-lg border border-line p-3;
+  }
+  .help-drawer-tour-text {
+    @apply m-0 flex flex-col;
+  }
+  .help-drawer-tour-meta {
+    @apply text-label text-ink-muted;
+  }
+}

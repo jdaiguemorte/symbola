@@ -46,7 +46,8 @@ export default async function AidePage() {
     modules = { hub: true, events, budget, quotes, vendors, guests, appointments, floorplans };
     progress = await getHelpProgress(db, auth.user.id);
   }
-  const seen = (tour: string) => progress.some((entry) => entry.itemKey === `tour:${tour}`);
+  // Lot 74d : une visite seulement proposée (« postponed », ses venues) n'est pas encore vue.
+  const seen = (tour: string) => progress.some((entry) => entry.itemKey === `tour:${tour}` && entry.status === "completed");
   const tutorials = TUTORIALS.filter((tutorial) => modules[tutorial.module]);
   const completed = tutorials.filter((tutorial) => progress.some((entry) => entry.itemKey === `tutorial:${tutorial.key}` && entry.status === "completed")).length;
   const autoTours = (await cookies()).get(AUTO_TOURS_COOKIE)?.value !== "0";

@@ -24,7 +24,7 @@ import { rankToday } from "@/lib/today/rank";
 import { isValidId } from "./events/module-access";
 import { PrivacyPurgeAlertBlock, PrivacyRequestsAlertBlock } from "./rgpd/dashboard-block";
 import { PageTour } from "./page-tour";
-import { loadPageTour } from "@/lib/help/page-tour";
+import { loadPageTour, onEmptyScreen } from "@/lib/help/page-tour";
 import { todayWords, UnavailableNotice } from "./accueil/today-view";
 import { TakeoversInProgress } from "./accueil/takeovers-in-progress";
 import { EmptyHome, FirstStepsView, MyEventsView, TodayCardView, TodayHeader } from "./accueil/home-view";
@@ -300,7 +300,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
         />
       ) : null}
       {state.kind === "empty" ? null : <TodayScrollKeeper panelOpen={openTask !== null} />}
-      <PageTour {...tour} helpTitle={tHelp("home.title")} helpBody={tHelp("home.body")} />
+      <PageTour {...onEmptyScreen(tour, state.kind === "empty")} helpTitle={tHelp("home.title")} helpBody={tHelp("home.body")} />
     </main>
   );
 }

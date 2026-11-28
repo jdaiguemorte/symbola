@@ -41,6 +41,7 @@ import {
   updatePlatformComplianceChecks,
 } from "./repository";
 import { memoizePerRequest } from "@/lib/request-memo";
+import { nextTourVenue, type TourProgress } from "./tour-offer";
 import type { Language } from "./types";
 
 // Lot 6 (RGPD-04) — demandes d'exercice de droits et réglages RGPD.
@@ -1363,15 +1364,19 @@ export async function restartHelpItem(db: AppDatabase, userId: string, itemKey: 
   await resetHelpProgressItem(db, userId, itemKey, new Date());
 }
 
-// AIDE-01, AIDE-05 — une visite s'ouvre d'elle-même tant que le compte ne l'a
-// jamais ouverte ; mise de côté ou terminée, elle ne s'impose plus (la barre
-// d'aide propose de la reprendre).
-export async function hasSeenTour(db: AppDatabase, userId: string, moduleKey: string): Promise<boolean> {
-  return (await findHelpProgress(db, userId)).some((row) => row.itemKey === `tour:${moduleKey}`);
+// Lot 74d (D2, B11 ; L74-D9) — une venue sur un écran à visite proposée : la ligne « Découvrir » compte
+// au plus une venue par jour, trois en tout ; une visite vue n'en compte plus (tour-offer.ts).
+export { nextTourVenue, tourOffer, TOUR_LINE_VENUES, type TourOffer, type TourProgress } from "./tour-offer";
+
+export function tourProgressOf(entries: HelpProgressEntry[], tourKey: string): TourProgress {
+  const entry = entries.find((candidate) => candidate.itemKey === `tour:${tourKey}`);
+  return entry ? { status: entry.status, step: entry.step, updatedAt: entry.updatedAt } : null;
 }
 
-export async function markTourSeen(db: AppDatabase, userId: string, moduleKey: string): Promise<void> {
-  await recordHelpProgress(db, { userId, itemKey: `tour:${moduleKey}`, status: "completed" });
+export async function recordTourVenue(db: AppDatabase, userId: string, tourKey: string, now: Date = new Date()): Promise<void> {
+  const venues = nextTourVenue(tourProgressOf(await getHelpProgress(db, userId), tourKey), now);
+  if (venues === null) return;
+  await recordHelpProgress(db, { userId, itemKey: `tour:${tourKey}`, status: "postponed", step: venues, now });
 }
 
 // AIDE-04 — « L'utilisateur peut masquer la liste [premiers pas]. »

@@ -35,7 +35,7 @@ export const HELP_SCREENS: HelpScreen[] = [
   // Lot 29a (ARC-09, JRJ-02) : écran du jour J, ouvert depuis la fiche (installation comprise).
   { key: "dayOf", group: "events", audience: "team", module: "events", path: null, capture: false },
   { key: "eventsNew", group: "events", audience: "team", module: "events", path: "/events/new", capture: true },
-  { key: "allTasks", group: "events", audience: "team", module: "events", path: "/taches", capture: true },
+  { key: "allTasks", group: "events", audience: "team", module: "events", path: "/taches", tour: "tasks", capture: true },
   // Lot 55 (MSG-03) : les fils de discussion d'un évènement, ouverts depuis sa fiche.
   { key: "eventMessages", group: "events", audience: "team", module: "events", path: null, capture: false },
   // Lot 63c (DOC-01, #30) : l'article des documents d'un évènement, où mène « Lire l'aide ».

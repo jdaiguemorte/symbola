@@ -1,5 +1,5 @@
-// AIDE-11/02, HUB-11 (lot 63f, ADR 0104) — module évènements : visite guidée lancée à la première
-// ouverture, relancée depuis « ? › Revoir la visite », puis essai guidé sur un mariage fictif,
+// AIDE-11/02, HUB-11 (lot 63f, ADR 0104 ; lot 74d) — module évènements : la liste vide ne propose pas sa
+// visite, le « ? » la garde (« Revoir la visite de cet écran ») ; puis essai guidé sur un mariage fictif,
 // supprimé à la fin de l'essai. En taille ordinateur et en 375 px,
 // axe-core sur chaque écran.
 import { randomUUID } from "node:crypto";
@@ -7,7 +7,7 @@ import AxeBuilder from "./axe";
 import { createAppConnection } from "@symbola/db/client";
 import { createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
-import { changeEventStatus, helpPanel, openEventTab, readyOrganization, signIn as signInByLink, skipTour, tourDialog } from "./helpers";
+import { changeEventStatus, helpPanel, openEventTab, readyOrganization, signIn as signInByLink, tourDialog } from "./helpers";
 
 async function loginAndSetupMfa(page: Page, email: string, _password: string) {
   // Lot 33 : lien magique et fournisseur d'identité (e2e/helpers.ts).
@@ -35,36 +35,27 @@ test("HUB-11 / AIDE-02 — visite du module évènements, puis essai guidé supp
   }
   await loginAndSetupMfa(page, email, password);
 
-  // HUB-11 : la visite se lance d'office à la première ouverture.
+  // Lot 74d (D2, C-69) : la liste vide ne lance aucune visite et ne la propose pas (pas de ligne
+  // « Découvrir ») ; le « ? » garde « Revoir la visite de cet écran ».
   await page.goto("/events");
   const tour = tourDialog(page, "Liste des évènements");
-  await expect(tour.getByRole("heading", { name: "La liste", level: 2 })).toBeFocused();
-  await expectNoAxeViolation(page);
-  await tour.getByRole("button", { name: "Suivant" }).click();
-  await expect(tour.getByRole("heading", { name: "Nouvel évènement", level: 2 })).toBeVisible();
-  await expect(tour).toContainText("2 sur 5");
-  await skipTour(page, "Liste des évènements");
-
-  // Déjà vue : elle ne revient plus d'elle-même, mais depuis « ? › Revoir la visite ».
-  const panel = helpPanel(page, "Liste des évènements");
-  await page.reload();
   await expect(page.getByRole("button", { name: "Aide sur cet écran" })).toBeVisible();
   await expect(tour).toHaveCount(0);
+  await expect(page.getByRole("complementary", { name: "Visite proposée" })).toHaveCount(0);
+  const panel = helpPanel(page, "Liste des évènements");
   await page.getByRole("button", { name: "Aide sur cet écran" }).click();
-  await panel.getByRole("button", { name: "Revoir la visite" }).click();
-  await expect(panel).toHaveCount(0);
-  await expect(tour.getByRole("heading", { name: "La liste", level: 2 })).toBeVisible();
+  await expect(panel).toContainText("Revoir la visite de cet écran");
+  await expectNoAxeViolation(page);
   await page.keyboard.press("Escape");
-  await expect(tour).toHaveCount(0);
-  await expect(page.getByRole("button", { name: "Aide sur cet écran" })).toBeFocused();
+  await expect(panel).toHaveCount(0);
 
   // AIDE-02 : l'essai ouvre un mariage fictif complet, marqué comme tel.
   // Lot 20 (décision 2) : l'essai se lance depuis l'aide de l'écran.
   await page.getByRole("button", { name: "Aide sur cet écran" }).click();
   await panel.getByRole("button", { name: "Démarrer l'essai" }).click();
   await expect(page).toHaveURL(/\/events\/[0-9a-f-]{36}$/);
-  // La visite de la fiche se lance d'elle-même ; ce parcours la passe.
-  await skipTour(page, "Fiche de l'évènement");
+  // Lot 74d (D2) : la fiche ne lance plus sa visite d'elle-même.
+  await expect(tourDialog(page, "Fiche de l'évènement")).toHaveCount(0);
   const trialUrl = page.url();
   const trialId = trialUrl.split("/").pop()!;
   await expect(page.getByRole("heading", { name: "Exemple — données fictives" })).toBeVisible();

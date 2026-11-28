@@ -7,7 +7,7 @@ import { createAppConnection } from "@symbola/db/client";
 import { createOrganization, createUser } from "@symbola/auth";
 import { eq, inArray } from "drizzle-orm";
 import { users } from "@symbola/db/schema/hub";
-import { hasSeenTour, hideFirstSteps, markTourSeen, showFirstSteps } from "./service";
+import { getHelpProgress, hideFirstSteps, recordHelpProgress, showFirstSteps, tourProgressOf } from "./service";
 
 const { sql, db } = createAppConnection();
 
@@ -27,22 +27,19 @@ async function createTestUser(): Promise<string> {
 }
 
 describe("AIDE-01 — Visite guidée", () => {
-  it("n'a pas encore été vue par défaut, puis reste vue après l'avoir marquée", async () => {
+  it("n'a pas encore été vue par défaut, puis reste vue après l'avoir lancée ; le suivi est par écran", async () => {
     const userId = await createTestUser();
-
-    expect(await hasSeenTour(db, userId, "hub")).toBe(false);
-
-    await markTourSeen(db, userId, "hub");
-    expect(await hasSeenTour(db, userId, "hub")).toBe(true);
-
-    // Un autre module reste non vu : le suivi est bien par module.
-    expect(await hasSeenTour(db, userId, "autre-module")).toBe(false);
+    const seen = async (key: string) => tourProgressOf(await getHelpProgress(db, userId), key)?.status === "completed";
+    expect(await seen("hub")).toBe(false);
+    await recordHelpProgress(db, { userId, itemKey: "tour:hub", status: "completed" });
+    expect(await seen("hub")).toBe(true);
+    expect(await seen("events")).toBe(false);
   });
 
   it("peut être marquée vue plusieurs fois sans erreur (relance)", async () => {
     const userId = await createTestUser();
-    await markTourSeen(db, userId, "hub");
-    await expect(markTourSeen(db, userId, "hub")).resolves.not.toThrow();
+    await recordHelpProgress(db, { userId, itemKey: "tour:hub", status: "completed" });
+    await expect(recordHelpProgress(db, { userId, itemKey: "tour:hub", status: "completed" })).resolves.not.toThrow();
   });
 });
 

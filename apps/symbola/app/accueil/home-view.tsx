@@ -110,7 +110,7 @@ export async function EmptyHome({ takeoverFirst }: { takeoverFirst: boolean }) {
       <h2 id="today-empty-title">{takeoverFirst ? t("takeoverTitle") : t("title")}</h2>
       <p>{takeoverFirst ? t("takeoverBody") : t("body")}</p>
       <div className="row-wrap">
-        <Link href={takeoverFirst ? "/reprise" : "/events/new"} className="button-link button-link-primary">
+        <Link href={takeoverFirst ? "/reprise" : "/events/new"} className="button-link button-link-primary" data-tour="home-start">
           {takeoverFirst ? t("takeoverAction") : t("newEvent")}
         </Link>
       </div>

@@ -57,7 +57,7 @@ test("AIDE-12 — une vignette par écran avec sa capture, une fiche avec captur
   const capture = page.getByRole("img", { name: "Capture de l'écran « Fiche de l'évènement », visite guidée ouverte" });
   await expect(capture).toBeVisible();
   expect(await capture.evaluate((image: HTMLImageElement) => image.naturalWidth)).toBe(1280);
-  await expect(page.getByRole("region", { name: "La visite de cet écran" }).getByRole("listitem")).toHaveCount(5);
+  await expect(page.getByRole("region", { name: "La visite de cet écran" }).getByRole("listitem")).toHaveCount(4);
   await expect(page.getByText("Comment marquer un évènement perdu ?")).toBeVisible();
   await expect(page.getByText("Cet écran s'ouvre depuis la fiche d'un évènement.")).toBeVisible();
   await expectNoAxeViolation(page);

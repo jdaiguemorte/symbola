@@ -4624,9 +4624,6 @@
     "progressShort": "Tutoriels {completed}/{total}",
     "resumeTutorial": "Reprendre : {title}",
     "collapse": "Replier la barre d'aide",
-    "inviteKicker": "Découvrir en {minutes} minutes",
-    "inviteStart": "Commencer le tutoriel",
-    "inviteLater": "Plus tard",
     "tours": "Visites vues : {seen} sur {total}",
     "resumeLabel": "Reprendre où vous en étiez"
   },
@@ -4677,12 +4674,12 @@
         "description": "Coordonnées, logo, couleur, textes et IBAN : vos documents à votre image, avec un exemple en PDF."
       }
     },
-    "intro": "Chaque écran a sa fiche : à quoi il sert, sa visite guidée et les questions fréquentes. Sur l'écran lui-même, « ? › Revoir la visite » relance la visite.",
+    "intro": "Chaque écran a sa fiche : à quoi il sert et les questions fréquentes. Les écrans qui ont une visite guidée la proposent à leurs premières ouvertures ; ensuite, « ? › Revoir la visite de cet écran » la relance.",
     "progressTitle": "Tutoriels faits : {completed} sur {total}",
     "nextSuggestion": "Prochaine étape conseillée : {title} ({minutes} minutes).",
     "continue": "Continuer ma prise en main",
     "allDone": "Bravo, vous avez suivi tous les tutoriels. Ils restent disponibles ici pour les revoir.",
-    "autoTours": "Lancer la visite guidée et proposer les tutoriels à la première ouverture d'un écran",
+    "autoTours": "Proposer la visite d'un écran à sa première ouverture",
     "tutorialKind": "Tutoriel · {minutes} min",
     "stateInProgress": "En cours · étape {step}",
     "stateNew": "À découvrir",
@@ -6617,15 +6614,23 @@
     "panel": "Aide : {screen}",
     "close": "Fermer l'aide",
     "center": "Centre d'aide",
-    "replay": "Revoir la visite",
+    "replay": "Revoir la visite de cet écran",
+    "replayMeta": "{count, plural, one {# bulle} other {# bulles}}, 1 minute",
+    "replayStart": "Lancer",
     "tour": {
       "dialog": "Visite : {screen}",
-      "progress": "{number} sur {total}",
+      "progress": "Visite de l'écran · {number} sur {total}",
       "previous": "Précédent",
       "next": "Suivant",
       "finish": "Terminer",
-      "skip": "Passer la visite"
+      "close": "Fermer la visite"
     }
+  },
+  "TourLine": {
+    "label": "Visite proposée",
+    "lead": "Première fois sur cet écran ? Une visite d'une minute en montre l'essentiel.",
+    "start": "Découvrir cet écran en 1 minute",
+    "close": "Ne plus proposer cette visite"
   },
   "AdminMenu": {
     "brand": "Exploitation",

@@ -168,7 +168,7 @@ export function TaskLine({
   const parts = lineParts(form);
   const done = doneColumns ? line.doneInfo : null;
   return (
-    <li className="task-line" data-form={form} data-due={line.due?.kind ?? undefined} data-done={line.done ? "true" : undefined} data-selected={selected ? "true" : undefined} data-rest={rest ? "true" : undefined}>
+    <li className="task-line" data-tour="task-line" data-form={form} data-due={line.due?.kind ?? undefined} data-done={line.done ? "true" : undefined} data-selected={selected ? "true" : undefined} data-rest={rest ? "true" : undefined}>
       {selecting ? (
         <label className="task-line-select">
           <input type="checkbox" checked={selected} onChange={onSelect} />

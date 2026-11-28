@@ -18,7 +18,7 @@ import { requirePlanner } from "@/lib/guards";
 import { purgeOrganizationsDemoData } from "@/lib/demo-purge";
 import { PageTour } from "../page-tour";
 import { EventsHeader, keptQuery } from "./events-header";
-import { loadPageTour } from "@/lib/help/page-tour";
+import { loadPageTour, onEmptyScreen } from "@/lib/help/page-tour";
 import { isEventsModuleEnabled } from "./module-access";
 import { startTrialAction } from "./trial-actions";
 import { parseYear, tabCounts, yearOptions } from "./events-list-options";
@@ -226,7 +226,8 @@ export default async function EventsListPage({ searchParams }: { searchParams: P
   return (
     <main className="events-list-screen">
       <EventsHeader view={calendarView ? "calendar" : "list"} upcoming={counts.upcoming} keep={keep} />
-      <PageTour {...tour} helpTitle={tHelp("eventsList.title")} helpBody={tHelp("eventsList.body")} helpExtra={trialHelp} />
+      {/* Lot 74d (C-69) : la ligne « Découvrir » ne paraît pas sur la liste vide. */}
+      <PageTour {...onEmptyScreen(tour, empty)} helpTitle={tHelp("eventsList.title")} helpBody={tHelp("eventsList.body")} helpExtra={trialHelp} />
 
       {essai === "termine" ? <p role="status">{t("trialEnded")}</p> : null}
       {calendarView ? null : (
