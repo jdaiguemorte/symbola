@@ -638,7 +638,16 @@ export function planningSoftwareProfile(): {
 // chaque morceau est un synonyme d'un type différent.
 const vendorTypeSynonymsSchema = z.object({
   version: z.literal(1),
-  items: z.array(z.object({ key: z.string().min(1), fr: z.array(z.string().min(1)).min(1), en: z.array(z.string().min(1)).min(1) })),
+  items: z.array(
+    z.object({
+      key: z.string().min(1),
+      fr: z.array(z.string().min(1)).min(1),
+      en: z.array(z.string().min(1)).min(1),
+      // Lot 71d (HUB-14) : mots du détail d'une ligne de budget qui désignent ce métier (« Reportage
+      // photo » → Photographe, « Film » → Vidéaste), pour ranger un poste combiné du fichier.
+      details: z.object({ fr: z.array(z.string().min(1)), en: z.array(z.string().min(1)) }).optional(),
+    }),
+  ),
   combined: z.object({
     separators: z.array(z.string().min(1)).min(1),
     items: z.array(z.object({ parts: z.array(z.string().min(1)).min(2), fr: z.array(z.string().min(1)).min(1), en: z.array(z.string().min(1)).min(1) })),
@@ -653,6 +662,12 @@ export function starterVendorTypeSynonymGroups(): string[][] {
 // Synonymes de chaque type de départ, par clé et par langue.
 export function starterVendorTypeSynonyms(): { key: string; fr: string[]; en: string[] }[] {
   return vendorTypeSynonyms.items.map((item) => ({ key: item.key, fr: [...item.fr], en: [...item.en] }));
+}
+
+// Lot 71d (HUB-14) : les mots du détail de chaque métier (français et anglais), pour répartir un poste
+// combiné du fichier (« Photo et vidéo ») entre les postes du mariage.
+export function starterVendorTypeDetailWords(): { key: string; words: string[] }[] {
+  return vendorTypeSynonyms.items.flatMap((item) => (item.details ? [{ key: item.key, words: [...item.details.fr, ...item.details.en] }] : []));
 }
 
 export type StarterCombinedVendorType = { parts: string[]; fr: string[]; en: string[] };
