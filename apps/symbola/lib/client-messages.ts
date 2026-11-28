@@ -47,6 +47,9 @@ export const SERVER_ONLY_NAMESPACES = [
   "Organizations",
   "Manifest",
   "Loading",
+  // Lot 72e : la Synthèse d'un évènement (suite, « Où en est le mariage », « Informations ») est rendue par le
+  // serveur ; seule la fenêtre « Modifier les informations » (EventInfoWindow) lit ses textes au navigateur.
+  "EventOverview",
 ] as const;
 
 const SERVER_ONLY = new Set<string>(SERVER_ONLY_NAMESPACES);

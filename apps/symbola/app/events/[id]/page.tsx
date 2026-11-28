@@ -677,7 +677,7 @@ export default async function EventDetailPage({
         canPostpone={!archived && canPostpone(event.status)}
         canCancel={!archived && event.status !== "cancelled" && event.status !== "closed"}
         reasons={reasons}
-        editInfo={archived ? null : { href: editHref(null), label: tOverview("window.menu"), hint: tOverview("window.menuHint") }}
+        editInfo={archived ? null : { href: editHref(null), label: tOverview("info.edit"), hint: tOverview("info.editMenuHint") }}
         openPostpone={query.reporter === "1" && !archived && canPostpone(event.status) ? { cleanHref: overviewHref() } : null}
       >
         <header id="event-header" className="object-header" data-tour="event-header">

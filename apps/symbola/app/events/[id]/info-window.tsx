@@ -54,7 +54,7 @@ function readForm(form: HTMLFormElement | null): DetailsRaw {
 }
 
 export function InfoWindow(props: InfoWindowProps) {
-  const t = useTranslations("EventOverview.window");
+  const t = useTranslations("EventInfoWindow");
   const locale = useLocale();
   const router = useRouter();
   const feedback = useFeedback();
@@ -142,7 +142,7 @@ export function InfoWindow(props: InfoWindowProps) {
       <div className="window-head">
         <button type="button" className="button-ghost window-back" onClick={() => requestClose()}>
           <span aria-hidden="true">← </span>
-          {t("back", { names: props.names })}
+          {props.names}
         </button>
         <h2 id={titleId}>
           <span className="info-window-title-long">{t("title", { names: props.names })}</span>

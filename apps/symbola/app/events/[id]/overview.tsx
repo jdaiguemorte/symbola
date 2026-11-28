@@ -71,6 +71,7 @@ export async function EventProgress(props: {
               <dd>
                 {tSheet("budgetFromFile", { amount: formatAmount(props.takeover.unallocated.committedCents, locale) })}
                 {budget.envelope ? ` · ${tSheet("budgetEnvelope", { envelope: formatAmount(budget.envelope.amountCents, locale) })}` : null}
+                <span className="meta"> · {tSheet("budgetFromFileDetail", { paid: formatAmount(props.takeover.unallocated.paidCents, locale), allocated: formatAmount(props.takeover.unallocated.allocatedCents, locale) })}</span>
               </dd>
             ) : (
               <dd className={budget.envelope?.exceeded ? "text-overdue" : undefined}>
@@ -94,6 +95,8 @@ export async function EventProgress(props: {
                 {facts.vendors.contractsAwaited > 0 ? ` · ${t("contractsAwaited", { count: facts.vendors.contractsAwaited })}` : null}
               </>
             )}
+            {/* Lot 71f (C-53) : pour un mariage repris, les prestataires retenus et leurs contrats signés. */}
+            {props.takeover ? <span className="meta"> · {tSheet("vendorsSummary", { retained: props.takeover.retained, signed: props.takeover.signed })}</span> : null}
           </dd>
         </div>
         <div>

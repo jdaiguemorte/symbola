@@ -32,7 +32,7 @@ const REFUSED: { [K in EventDetailsRefusedField]: [DetailsField, DetailsErrorCod
 };
 
 export async function saveEventInfoAction(_previous: InfoWindowState, formData: FormData): Promise<InfoWindowState> {
-  const t = await getTranslations("EventOverview.window.error");
+  const t = await getTranslations("EventInfoWindow.error");
   const tEvents = await getTranslations("Events");
   const auth = await getPlannerAuthContext();
   if (auth.status !== "authenticated" || !auth.user.organizationId) return { error: tEvents("unauthenticated") };
