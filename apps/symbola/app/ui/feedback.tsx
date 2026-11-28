@@ -25,6 +25,8 @@ export type FeedbackInput = {
   detail?: string | undefined;
   // « Annuler », « Réessayer » : un geste ; « Ouvrir sa fiche » : un lien.
   action?: { kind: Exclude<FeedbackActionKind, "link">; label: string; run: () => void | Promise<void> } | { kind: "link"; label: string; href: string };
+  // Lot 73c (critère 5) : un lien après le geste (« Annuler » puis « Ouvrir le poste »).
+  link?: { label: string; href: string } | undefined;
 };
 
 type FeedbackValue = { show: (input: FeedbackInput) => void; dismiss: () => void };
@@ -195,6 +197,11 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
                   {action.label}
                 </button>
               )
+            ) : null}
+            {input?.link ? (
+              <Link className="feedback-action" href={input.link.href} onClick={dismiss}>
+                {input.link.label}
+              </Link>
             ) : null}
             <button type="button" className="feedback-close" aria-label={t("close")} onClick={dismiss}>
               <span aria-hidden="true">×</span>

@@ -26,6 +26,7 @@ import type { VendorDocumentFilter, VendorListItem, VendorSort } from "@symbola/
 import { PageHeader } from "@/app/ui/page-header";
 import { FilterBar } from "@/app/ui/filter-bar";
 import { requirePlanner } from "@/lib/guards";
+import { canSeeEvent } from "@/lib/event-visibility";
 import { loadPageTour } from "@/lib/help/page-tour";
 import { mapAssets } from "@/lib/map/tiles";
 import { PageTour } from "@/app/page-tour";
@@ -95,7 +96,9 @@ export default async function VendorBookPage({ searchParams }: { searchParams: P
     loadPageTour(auth.user.id, "vendors", typeof query.visite === "string" ? query.visite : undefined),
   ]);
   const bookImport = (familyCounts.families.find((entry) => entry.familyId === null)?.count ?? 0) > 0 ? await latestBookImport(organizationId) : null;
-  const { families, types, tags, tagGroups, filters, center, centerNotFound, results, target, importFilter } = selection;
+  const { families, types, tags, tagGroups, filters, center, centerNotFound, results, importFilter } = selection;
+  // Lot 73c (SEC-13, lot 52) : un poste d'un mariage hors de l'équipe d'une Planner restreinte ne se nomme pas.
+  const target = selection.target && (await canSeeEvent(auth, selection.target.eventId)) ? selection.target : null;
   const typeById = new Map(types.map((type) => [type.id, type]));
   const familyById = new Map(families.map((family) => [family.id, family]));
   const familyOf = (typeId: string | null) => {
@@ -218,6 +221,7 @@ export default async function VendorBookPage({ searchParams }: { searchParams: P
       reason,
       phone: vendor.phone,
       email: vendor.email,
+      onSlot: target?.onSlot.get(vendor.id) ?? null,
     };
   };
   const NAME = "\u0000";
@@ -229,7 +233,11 @@ export default async function VendorBookPage({ searchParams }: { searchParams: P
     menu: once("row.menuLabel", { vendor: NAME }),
     call: once("row.callVendor", { vendor: NAME, phone: PHONE }),
     select: once("row.select", { vendor: NAME }),
-    addToSlot: target ? once("addToSlot", { vendor: NAME, slot: target.slotLabel }) : null,
+    // Lot 73c : le carnet ouvert depuis un poste.
+    addToSlot: target ? once("addToSlotShort") : null,
+    addToSlotFor: target ? once("addToSlotFor", { vendor: NAME, slot: target.slotLabel }) : null,
+    inComparison: once("rowInComparison"),
+    retained: once("rowRetained"),
   };
 
   return (
@@ -294,12 +302,15 @@ export default async function VendorBookPage({ searchParams }: { searchParams: P
             </p>
           ) : null}
 
+          {/* Lot 73c (critère 8 ; maquette 19, « Depuis le poste ») : le bandeau du poste, et le retour. Un
+              bloc, pas un repère : la liste reste la seule région nommée de l'écran. */}
           {target ? (
-            <section className="card" aria-labelledby="target-title">
-              <h2 id="target-title">{t("targetTitle", { slot: target.slotLabel, event: target.eventLabel })}</h2>
-              <p>{t("targetHint")}</p>
-              <Link href={`/events/${target.eventId}?onglet=budget&poste=${target.slotId}`}>{t("targetBack")}</Link>
-            </section>
+            <div className="vendor-slot-banner">
+              <p className="m-0">{t("slotBanner", { slot: target.slotLabel, event: target.eventLabel })}</p>
+              <Link href={`/events/${target.eventId}?onglet=budget&poste=${target.slotId}`} className="button-link">
+                {t("slotBannerBack")}
+              </Link>
+            </div>
           ) : null}
 
           {/* Lot 73b (critère 8) : la phrase « à classer », sa raison, et son geste, bouton plein. */}

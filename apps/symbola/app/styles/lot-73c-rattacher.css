@@ -1,0 +1,110 @@
+/* Lot 73c — « Ajouter à un mariage… » et le panneau du poste (spécification du lot 73, § 5.3, critère 9 ;
+   maquette 19). Mêmes jetons que globals.css (DESIGN.md), aucun style en ligne (CSP). La fenêtre suit la
+   règle des fenêtres (ADR 0107) : courte sur ordinateur, une page entière sur téléphone. */
+@layer components {
+  /* La fenêtre : « Comment l'ajouter ? » en deux choix nommés, chacun sa phrase. */
+  .add-to-event .field {
+    @apply flex flex-col gap-1;
+  }
+  .add-to-event select,
+  .add-to-event input[type="text"] {
+    @apply min-h-11 w-full;
+  }
+  .add-to-event-modes {
+    @apply m-0 flex flex-col gap-2 border-0 p-0;
+  }
+  .add-to-event-modes > legend {
+    @apply mb-1 p-0 font-semibold;
+  }
+  .add-to-event-mode {
+    @apply flex min-h-11 cursor-pointer items-start gap-3 rounded-md border border-line px-3 py-2;
+  }
+  .add-to-event-mode:has(input:checked) {
+    @apply border-primary bg-ground;
+  }
+  .add-to-event-mode input {
+    @apply mt-1 shrink-0;
+  }
+  .add-to-event-mode > span {
+    @apply flex min-w-0 flex-col gap-1;
+  }
+  .add-to-event-warning {
+    @apply m-0 mt-1;
+  }
+  /* P12 : « Remplacer {nom} » puis « Retenir aussi », chacun avec ce qu'il fait. */
+  .add-to-event-choice-option,
+  .slot-panel-ask-option {
+    @apply flex flex-col items-start gap-1;
+  }
+  .add-to-event-choice .add-to-event-choice-option .meta {
+    @apply max-w-[16rem];
+  }
+
+  /* Le panneau du poste : 700 px rattachés à la ligne ; les noms ne se coupent pas mot par mot. */
+  .vendor-choice-popover.slot-panel {
+    @apply w-[min(700px,calc(100vw-2rem))] max-h-[min(36rem,calc(100dvh-8rem))] overflow-y-auto;
+  }
+  .slot-panel-head {
+    @apply flex items-center gap-3;
+  }
+  .slot-panel-head > h3 {
+    @apply m-0 text-body-strong;
+  }
+  .slot-panel-back {
+    @apply hidden;
+  }
+  .slot-panel input[type="search"] {
+    @apply min-h-11 w-full;
+  }
+  .slot-panel-hint {
+    @apply m-0;
+  }
+  .slot-panel-group > h4 {
+    @apply m-0 mt-2 mb-1 text-label font-semibold text-ink-muted;
+  }
+  .slot-panel .vendor-choice-who > strong {
+    overflow-wrap: normal;
+    word-break: normal;
+    hyphens: none;
+  }
+  .slot-panel .vendor-choice-actions .button-secondary,
+  .slot-panel .vendor-choice-actions .link-button {
+    @apply min-h-11 whitespace-nowrap;
+  }
+  .slot-panel-ask {
+    @apply flex w-full flex-wrap items-start gap-3;
+  }
+
+  /* Le carnet ouvert depuis un poste : le bandeau et l'état d'une fiche déjà sur le poste. */
+  .vendor-book-screen .vendor-slot-banner {
+    @apply my-4 flex flex-wrap items-center justify-between gap-3 rounded-md border border-line bg-surface px-4 py-3;
+  }
+  .vendor-row-on-slot {
+    @apply inline-flex min-h-11 items-center whitespace-nowrap text-label text-ink-muted;
+  }
+
+  @media (width < 640px) {
+    /* Sur téléphone, le panneau du poste s'ouvre en page (« ← Budget »). */
+    .vendor-choice-popover.slot-panel {
+      @apply fixed inset-0 z-50 m-0 h-dvh max-h-none w-screen max-w-none rounded-none border-0 p-4 shadow-none;
+    }
+    .slot-panel-back {
+      @apply inline-flex min-h-11;
+    }
+    .slot-panel .vendor-choice-actions {
+      @apply w-full flex-wrap;
+    }
+    .slot-panel .vendor-choice-actions .button-secondary {
+      @apply flex-1;
+    }
+    .add-to-event-choice {
+      @apply flex-col items-stretch;
+    }
+    .add-to-event-choice .add-to-event-choice-option .meta {
+      @apply max-w-none;
+    }
+    .vendor-board .vendor-row-on-slot {
+      @apply hidden;
+    }
+  }
+}

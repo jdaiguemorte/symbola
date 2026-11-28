@@ -85,6 +85,7 @@ import { removeDayContactAction } from "./day-contact-actions";
 import { makeReceptionPlaceAction, removePlaceAction } from "./place-actions";
 import { findVendors, getVendor, listVendorTypes } from "@/modules/vendors/service";
 import { isVendorsModuleEnabled } from "@/app/prestataires/module-access";
+import { slotBookHref, slotBookQueries } from "@/lib/vendors/add-to-event";
 import {
   VENDOR_STATUS_CLASSES,
   VENDOR_STATUS_LABEL_KEYS,
@@ -336,12 +337,14 @@ export default async function EventDetailPage({
   const [budgetAvailable, candidates, vendorsAvailable] =
     tab === "budget" ? await Promise.all([isBudgetModuleEnabled(organizationId), listVendorCandidates(organizationId, id), isVendorsModuleEnabled(organizationId)]) : [false, [], false];
   const bookOptionsWanted = (selectedSlot || (tab === "budget" && budgetAvailable)) && vendorsAvailable;
-  const [budgetView, catalogVendors, budgetFollowUps, vendorTypes] = await Promise.all([
+  const [budgetView, catalogVendors, budgetFollowUps, vendorTypes, slotBooks] = await Promise.all([
     budgetAvailable ? listBudgetLines(organizationId, id) : null,
     bookOptionsWanted ? findVendors({ organizationId }) : [],
     // Lot 65b (M14 B) : les relances du détail des prestataires, montré dans la fenêtre du poste.
     budgetAvailable ? listVendorFollowUps(organizationId, id) : [],
     tab === "budget" && budgetAvailable && vendorsAvailable ? listVendorTypes(organizationId) : [],
+    // Lot 73c (critère 8) : le carnet ouvert depuis un poste, filtré par son métier ou sa famille.
+    tab === "budget" && budgetAvailable && vendorsAvailable ? slotBookQueries(organizationId, vendorSlots) : ({} as Awaited<ReturnType<typeof slotBookQueries>>),
   ]);
   // Lot 28b (Q33) : chaque poste est une catégorie du budget, avec ses lignes.
   const categoryOf = (slotId: string) => budgetView?.categories.find((category) => category.eventVendorSlotId === slotId) ?? null;
@@ -1094,7 +1097,7 @@ export default async function EventDetailPage({
                     return [slot.id, { comparing: inTheRunning.length, quotes: inTheRunning.filter((candidate) => candidate.quoteAmountCents !== null || candidate.hasQuoteFile).length, signature }];
                   }),
                 )}
-                catalogHrefs={Object.fromEntries(vendorSlots.map((slot) => [slot.id, `/prestataires?evenement=${event.id}&poste=${slot.id}`]))}
+                catalogHrefs={Object.fromEntries(vendorSlots.map((slot) => [slot.id, slotBookHref(event.id, slot.id, slotBooks[slot.id])]))}
                 consultationHrefs={Object.fromEntries(vendorSlots.map((slot) => [slot.id, `/events/${event.id}/consultation/${slot.id}`]))}
                 vendorsAvailable={vendorsAvailable}
                 vendorTypes={budgetVendorTypes}
