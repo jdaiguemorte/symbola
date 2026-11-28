@@ -10,13 +10,15 @@ import { depositPaidFor, sameImportValue, type ImportAnswers, type ImportApplyRe
 import { appDatabase } from "@symbola/db/client";
 import { budgetLineAttachments, budgetLineHistory, budgetLines, vendorPayments } from "@symbola/db/schema/budget";
 import { withOrganization } from "@symbola/db/with-organization";
-import { importVendorSlotsForBudget, undoImportedEventsElements } from "@/modules/events/service";
+import { importVendorSlotsForBudget, undoImportedEventsElements, type BudgetVendorLink } from "@/modules/events/service";
 import { findModifiedUnallocatedTotals, UNALLOCATED_TOTAL_KIND, undoUnallocatedTotal } from "./unallocated";
 
 type Tx = Parameters<Parameters<typeof withOrganization>[2]>[0];
 type Values = Record<string, unknown>;
 
-async function inTransaction<T>(organizationId: string, fn: (tx: Tx) => Promise<T>): Promise<T> {
+// Lot 71d (HUB-14, I10) : `outer`, la transaction d'organisation de « Retirer toute la reprise… ».
+async function inTransaction<T>(organizationId: string, fn: (tx: Tx) => Promise<T>, outer?: Tx): Promise<T> {
+  if (outer) return fn(outer);
   const db = appDatabase();
   return await withOrganization(db, organizationId, fn);
 }
@@ -171,9 +173,19 @@ export async function importBudgetLineRows(input: {
   // d'une reprise ; sans elles, les règles d'avant.
   answers?: ImportAnswers | null;
   takeover?: boolean;
+  // Lot 71d (HUB-14, R17) : fiches du carnet des prestataires nommés, postes sans ligne retirés.
+  vendorLinks?: readonly BudgetVendorLink[];
+  removeSlotIds?: readonly string[];
 }): Promise<ImportApplyResult> {
   const labels = input.paymentLabels ?? { deposit: "Acompte", balance: "Solde" };
-  const slots = await importVendorSlotsForBudget({ organizationId: input.organizationId, rows: input.rows, answers: input.answers ?? null, takeover: input.takeover ?? false });
+  const slots = await importVendorSlotsForBudget({
+    organizationId: input.organizationId,
+    rows: input.rows,
+    answers: input.answers ?? null,
+    takeover: input.takeover ?? false,
+    ...(input.vendorLinks ? { vendorLinks: input.vendorLinks } : {}),
+    ...(input.removeSlotIds ? { removeSlotIds: input.removeSlotIds } : {}),
+  });
   try {
     const result = await inTransaction(input.organizationId, async (tx) => {
       const items: ImportedItem[] = [];
@@ -315,7 +327,7 @@ export async function findModifiedImportedBudgetElements(
 
 // Une ligne créée par l'import puis complétée d'un devis joint (PRD-BUD-03), ou
 // dont un montant a changé à la main, n'est annulée qu'avec confirmation.
-export async function undoImportedBudgetElements(organizationId: string, userId: string, items: ImportUndoItem[]): Promise<ImportUndoOutcome[]> {
+export async function undoImportedBudgetElements(organizationId: string, userId: string, items: ImportUndoItem[], outer?: Tx): Promise<ImportUndoOutcome[]> {
   return inTransaction(organizationId, async (tx) => {
     const outcomes: ImportUndoOutcome[] = [];
     for (const item of items) {
@@ -356,5 +368,5 @@ export async function undoImportedBudgetElements(organizationId: string, userId:
       outcomes.push("undone");
     }
     return outcomes;
-  });
+  }, outer);
 }

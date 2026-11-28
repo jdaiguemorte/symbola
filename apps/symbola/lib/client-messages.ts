@@ -47,6 +47,11 @@ export const SERVER_ONLY_NAMESPACES = [
   "Organizations",
   "Manifest",
   "Loading",
+  // Lot 71d : les nombres, « Doublons », le bilan et le retrait d'un import, rendus côté serveur.
+  "ImportFigures",
+  "ImportDoublons",
+  "ImportBilan",
+  "ImportWithdraw",
   // Lot 73d : la fenêtre de création et la fiche d'un prestataire reçoivent leurs textes de l'écran.
   "VendorCreate",
   "VendorSheet",

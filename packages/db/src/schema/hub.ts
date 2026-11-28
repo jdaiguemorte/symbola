@@ -561,6 +561,9 @@ export type ImportMatch = {
   // deux prestataires » par défaut. Reste dans « À vérifier » jusqu'à ce que la planner l'ait vue.
   toVerify?: boolean;
   reviewed?: boolean;
+  // Lot 71d (HUB-14, BUD-01) : ligne de budget rangée sous un poste du mariage, et pourquoi (même nom,
+  // nom proche, poste combiné du fichier réparti d'après le détail : « À vérifier »).
+  placement?: "same" | "close" | "split";
 };
 
 // Tâche ou ligne de budget : événement existant auquel la ligne se rattache
@@ -611,6 +614,15 @@ export type ImportMatching = {
   // Lot 71a (HUB-14 ; ADR 0119) : réponses de l'étape « Questions » (contrat ImportAnswers de
   // packages/contracts) ; gardées quand les rapprochements sont recalculés.
   answers?: Record<string, unknown>;
+  // Lot 71d (HUB-14, R17 ; maquette 08, « Doublons ») : les postes du mariage qui ne reçoivent aucune
+  // ligne du fichier et sont encore « à trouver » : la planner les garde ou les retire de ce mariage
+  // (null : pas encore décidé). Identifiants des postes du mariage (ou des postes de départ de l'agence
+  // pour un mariage créé à l'écriture).
+  unusedSlots?: { slotId: string; decision: "keep" | "remove" | null }[];
+  // Lot 71d : les prestataires nommés par un budget, retrouvés au carnet (`found`), doublon possible à
+  // trancher (`proposed`), tranché (`same` : la fiche du carnet ; `create` : créer une fiche), ou
+  // absents du carnet (`absent`). `name` : le nom écrit dans le fichier ; `vendorId` : la fiche du carnet.
+  vendorLinks?: { name: string; vendorId: string | null; decision: "found" | "proposed" | "same" | "create" | "absent" }[];
 };
 
 export const importStatusEnum = hubSchema.enum("import_status", ["draft", "applied", "undone", "cancelled"]);
@@ -668,7 +680,18 @@ export const imports = hubSchema.table("imports", {
 // Lot 71a (R14) : l'annuaire d'un programme repris d'un PDF, proposé au carnet depuis le bilan.
 export type ImportLeftovers = { directory?: { role: string; company: string | null; contact: string | null; phone: string | null }[] };
 
-export type ImportResult = { created: number; updated: number; unchanged: number; rejected: number };
+export type ImportResult = {
+  created: number;
+  updated: number;
+  unchanged: number;
+  rejected: number;
+  // Lot 71d (HUB-14, C-58) : les nombres annoncés à « Vérifier », comptés par importFigures
+  // (packages/contracts) sur ce que l'import a écrit, redits mot pour mot par le bilan et la reprise.
+  figures?: Record<string, unknown>;
+  // Lot 71d : « Ce que vous avez choisi » (choix de « Doublons »), sans valeur personnelle autre que les
+  // intitulés de postes et les noms de prestataires du fichier, déjà dans le budget.
+  choices?: { splits: string[]; removedSlots: string[]; sameVendors: { name: string; vendorName: string }[]; createdVendors: string[] };
+};
 
 // IMP-05 — un élément écrit par un import confirmé : de quoi l'annuler
 // (valeurs précédentes) et détecter une modification à la main depuis

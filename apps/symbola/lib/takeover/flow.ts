@@ -46,6 +46,7 @@ import {
 import { parseWorkingSetRows, pendingNewEvent } from "@/lib/import/matching";
 import { getImportWizard, type ImportStepKey } from "@/lib/import/wizard";
 import {
+  importFigureCount,
   importFigureKey,
   takeoverImportEntityType,
   takeoverPageState,
@@ -110,7 +111,7 @@ async function buildModel(actor: TakeoverActor, view: Omit<TakeoverView, "id"> &
       ...row,
       fileName: summary?.fileName ?? null,
       at: summary ? (row.state === "done" ? (summary.appliedAt ?? summary.createdAt) : summary.createdAt) : row.state === "done" ? row.decidedAt : null,
-      figure: summary && row.state === "done" && summary.result ? { key: importFigureKey(summary.entityType), count: summary.result.created + summary.result.updated } : null,
+      figure: summary && row.state === "done" && summary.result ? { key: importFigureKey(summary.entityType), count: importFigureCount(summary.result) } : null,
       stoppedAt,
       coveredVendorCount: row.state === "covered" && budgetImport ? await countBudgetVendorNames(db(), actor.organizationId, budgetImport) : null,
     });
@@ -340,6 +341,11 @@ export async function createImportPendingEvent(actor: TakeoverActor, importId: s
     return slotId ? [{ ...match, candidateId: slotId }] : [];
   });
   const rowEvents = parseWorkingSetRows(set).map((row) => ({ rowIndex: row.rowIndex, eventId, score: 100 }));
-  await saveImportMatching(db(), { organizationId: actor.organizationId, importId, matching: { ...matching, matches, rowEvents } });
+  // Lot 71d (R17) : les postes de départ gardés ou retirés à « Doublons » deviennent ceux du mariage.
+  const unusedSlots = matching.unusedSlots?.flatMap((entry) => {
+    const slotId = slotFor(entry.slotId);
+    return slotId ? [{ ...entry, slotId }] : [];
+  });
+  await saveImportMatching(db(), { organizationId: actor.organizationId, importId, matching: { ...matching, matches, rowEvents, ...(unusedSlots ? { unusedSlots } : {}) } });
   return { eventId, takeoverId };
 }

@@ -115,8 +115,9 @@ test("IMP-07 — reprendre ses prestataires depuis l'export Excel de l'outil act
   // Annulation : la fiche existante retrouve ses valeurs, les créées disparaissent.
   await page.goto("/import");
   await page.getByRole("link", { name: "prestataires.xlsx" }).click();
-  await page.getByText("Annuler cet import", { exact: true }).click();
-  await page.getByRole("button", { name: "Annuler l'import" }).click();
+  // Lot 71d (C-66) : « Retirer cet import… », danger de niveau 2.
+  await page.getByRole("button", { name: "Retirer cet import…" }).click();
+  await page.getByRole("dialog").getByRole("button", { name: "Retirer l'import" }).click();
   await expect(page.getByText(/éléments annulés ; aucun gardé car modifié ; aucun gardé car utilisé\./)).toBeVisible();
   await expectNoAxeViolation(page);
   await page.goto(`/prestataires/${existingId}`);
