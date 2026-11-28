@@ -12,8 +12,30 @@ paquet : SC-04 et SC-05 se rejouent au 73g, comme pour le 73b et le 73c.
    suite Vitest de l'app : 1 538 réussis.
 3. Intégration contre PostgreSQL : `lib/vendors/vendor-sheet-73d.integration.test.ts` (12) et les tests voisins
    des modules Prestataires et Évènements (liens compris) : 173 réussis.
-4. Parcours `e2e/lot-73d-creer-lire.spec.ts`, projets « desktop » et « mobile-375 », sur l'app de cette copie en
-   mode développement (port 3073, session ouverte en base sans le fournisseur d'identité local) : RESULTAT_E2E.
+4. Parcours sur l'app compilée de la branche (production, `NODE_ENV=test`, port 3073, session ouverte en base sans
+   le fournisseur d'identité local), projets « desktop » et « mobile-375 » : `lot-73d-creer-lire` et les parcours
+   voisins mis à jour ou touchés (`lot-73b-carnet`, `lot-73c-rattacher`, `lot-63e-prestataires-metiers`,
+   `pre-05-06-10-sec-27-prestataires`, `lot-11-prestataires`, `lot-21-etiquettes-et-reglages`,
+   `lot-20-retours-recette`, `imp-07-prestataires`, `bud-09-10-pre-01-tva-export-carnet`,
+   `por-01-lien-prestataire`, `lot-70e-barre-et-creer`) : **104 réussis, 10 sautés par construction**. Trois
+   échecs d'environnement au premier passage (PostgreSQL à court de connexions, charge de la machine) ont réussi
+   rejoués seuls.
+
+## Poids et temps des pages (consigne du chantier du 28/11, NFR-02)
+
+`main` (6c8f2b5c + #219) et la branche compilées en production, servies côte à côte sur la même base, une agence
+de 200 évènements et 510 fiches ; six séries de dix demandes par page, l'ordre alterné à chaque série :
+
+| Page | main | branche | écart |
+| --- | --- | --- | --- |
+| `/events` (200 évènements) | 896 838 octets | 894 176 octets | − 2,6 Ko |
+| `/prestataires` (500 fiches) | 1 462 346 octets | 1 460 916 octets | − 1,4 Ko |
+
+Les textes de la création et de la fiche (« VendorCreate », « VendorSheet ») sont réservés au serveur et passés
+à la fenêtre et aux boutons par l'écran qui les ouvre ; les textes devenus inutiles (ancien formulaire en
+rubriques, ancienne fiche, ancienne fenêtre du poste) sont retirés : chaque page pèse un peu moins que sur `main`.
+Les temps n'ont pas pu être départagés sur ce poste (charge de 20 à 55, autres sessions) : selon l'ordre et l'âge
+des serveurs, l'une ou l'autre version sortait devant (p95 médians de 200 à 800 ms des deux côtés). La CI tranche.
 
 ## Ce que montrent les parcours
 
@@ -58,6 +80,7 @@ paquet : SC-04 et SC-05 se rejouent au 73g, comme pour le 73b et le 73c.
   son message de retour : l'envoi se suit désormais dans sa propre suite.
 - Une fenêtre `.window` montée fermée (« Demander au prestataire ») restait affichée : règle « non ouverte,
   cachée » sur la fiche.
+- Un `role="alert"` posé sur un élément de liste (axe-core) : il est passé sur le texte de l'alerte.
 - La colonne de droite rangeait ses caractéristiques sur plusieurs colonnes à 1 280 px : un libellé, une valeur
   par rang.
 
