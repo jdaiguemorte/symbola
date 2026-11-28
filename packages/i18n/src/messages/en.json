@@ -5567,7 +5567,7 @@
       "review": "Review"
     },
     "addToSlotShort": "Add to this item…",
-    "addToSlotFor": "Add “{vendor}” to the “{slot}” item…",
+    "addToSlotFor": "Add to this item… ({vendor})",
     "rowInComparison": "In the comparison",
     "rowRetained": "Booked",
     "slotBanner": "For the “{slot}” item of {event} · choose one vendor, or several.",

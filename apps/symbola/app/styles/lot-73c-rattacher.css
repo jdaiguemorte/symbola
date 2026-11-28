@@ -71,6 +71,11 @@
   .slot-panel .vendor-choice-actions .link-button {
     @apply min-h-11 whitespace-nowrap;
   }
+  /* Les deux liens du pied du panneau : des commandes isolées, de 44 px. */
+  .slot-panel .vendor-choice-more > a,
+  .slot-panel .vendor-choice-more > .link-button {
+    @apply inline-flex min-h-11 items-center;
+  }
   .slot-panel-ask {
     @apply flex w-full flex-wrap items-start gap-3;
   }
@@ -87,6 +92,10 @@
     /* Sur téléphone, le panneau du poste s'ouvre en page (« ← Budget »). */
     .vendor-choice-popover.slot-panel {
       @apply fixed inset-0 z-50 m-0 h-dvh max-h-none w-screen max-w-none rounded-none border-0 p-4 shadow-none;
+    }
+    /* Le message de retour (« Annuler ») reste au-dessus du panneau en page. */
+    body:has(.slot-panel) .feedback-region {
+      @apply z-[60];
     }
     .slot-panel-back {
       @apply inline-flex min-h-11;

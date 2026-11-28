@@ -235,7 +235,7 @@ export default async function VendorBookPage({ searchParams }: { searchParams: P
     select: once("row.select", { vendor: NAME }),
     // Lot 73c : le carnet ouvert depuis un poste.
     addToSlot: target ? once("addToSlotShort") : null,
-    addToSlotFor: target ? once("addToSlotFor", { vendor: NAME, slot: target.slotLabel }) : null,
+    addToSlotFor: target ? once("addToSlotFor", { vendor: NAME }) : null,
     inComparison: once("rowInComparison"),
     retained: once("rowRetained"),
   };

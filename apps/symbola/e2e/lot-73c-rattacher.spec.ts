@@ -81,7 +81,7 @@ async function openFromRow(page: Page, vendorId: string, name: string) {
     await row.getByRole("button", { name: `Autres actions pour ${name}` }).click();
     await page.getByRole("menu", { name: `Autres actions pour ${name}` }).getByRole("menuitem", { name: /^Ajouter à (un mariage|ce poste)…/ }).click();
   } else {
-    await row.getByRole("button", { name: new RegExp(`^Ajouter (à un mariage… \\(${name}\\)|« ${name} » au poste)`) }).click();
+    await row.getByRole("button", { name: new RegExp(`^Ajouter à (un mariage|ce poste)… \\(${name}\\)`) }).click();
   }
 }
 

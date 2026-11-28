@@ -5567,7 +5567,7 @@
       "review": "Revoir"
     },
     "addToSlotShort": "Ajouter à ce poste…",
-    "addToSlotFor": "Ajouter « {vendor} » au poste « {slot} »…",
+    "addToSlotFor": "Ajouter à ce poste… ({vendor})",
     "rowInComparison": "Dans la comparaison",
     "rowRetained": "Retenu",
     "slotBanner": "Pour le poste « {slot} » de {event} · choisissez un prestataire, ou plusieurs.",
