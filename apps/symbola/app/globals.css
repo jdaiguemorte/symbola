@@ -7569,3 +7569,193 @@
     }
   }
 }
+
+/* Lot 72c (PAR-10, HUB-03 ; C-14, A7, M8 ; spécification du lot 72, § 5.3 ; maquette 14 du lot 68) — « Moi ·
+   L'agence ». La bascule tient sur la ligne du titre (la première ligne de la carte ne recule pas sur téléphone) ;
+   l'option active est en encre, jamais dans la couleur d'action, et la bascule n'est pas un bouton plein. La vue
+   d'agence : deux tables (par personne, par évènement) ; la barre d'avancement en encre sur `line`, toujours avec
+   son compte en mots ; aucune teinte d'état hors du rouge du retard. Sur téléphone : par personne en lignes
+   courtes (« Nadia Belkacem 3 · 6 »), quatre personnes puis « Les 6 personnes » ; par évènement en cartes. */
+@layer components {
+  .today-header[data-scope] {
+    @apply grid items-center gap-x-4 gap-y-1;
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .today-header[data-scope] > :not(h1):not(.today-scope) {
+    grid-column: 1 / -1;
+  }
+  .segmented.today-scope {
+    @apply -my-1 p-0;
+  }
+  .segmented.today-scope a {
+    @apply min-h-9 px-3;
+  }
+  .segmented.today-scope a[aria-current="page"] {
+    @apply bg-ink text-on-primary;
+  }
+  .agency-section {
+    @apply mt-4;
+  }
+  .agency-section .today-part-head h2 {
+    @apply m-0;
+  }
+  .agency-hint {
+    @apply m-0 text-label text-ink-muted;
+  }
+  .agency-hint-phone {
+    @apply hidden;
+  }
+  .agency-table-wrap {
+    @apply relative mt-3 overflow-x-auto;
+  }
+  .agency-table {
+    @apply w-full border-collapse text-body;
+  }
+  .agency-table th,
+  .agency-table td {
+    @apply border-b border-line px-3 py-2 text-left align-middle;
+  }
+  .agency-table thead th {
+    @apply text-label font-medium text-ink-muted;
+  }
+  .agency-table tbody th {
+    @apply font-medium text-ink;
+  }
+  .agency-table .task-avatar {
+    @apply mr-1 align-middle;
+  }
+  .agency-table .agency-num {
+    @apply text-right tabular-nums;
+  }
+  .agency-muted {
+    @apply font-normal text-ink-muted;
+  }
+  .agency-progress {
+    @apply mr-2 inline-block h-1.5 w-24 overflow-hidden rounded-full bg-line align-middle;
+  }
+  .agency-progress svg {
+    @apply block h-1.5 w-full;
+  }
+  .agency-progress rect {
+    fill: var(--color-ink);
+  }
+  .agency-see-short {
+    @apply hidden;
+  }
+  .agency-progress-words {
+    @apply whitespace-nowrap tabular-nums;
+  }
+  .agency-events-head {
+    @apply flex flex-row flex-wrap items-end justify-between gap-3;
+  }
+  .agency-lead-filter {
+    @apply flex flex-col gap-1 text-label text-ink-muted;
+  }
+  .agency-lead-filter select {
+    @apply m-0 h-[38px] min-h-0 w-auto max-w-64 min-w-48 rounded-md border border-line-strong bg-surface px-3 py-0 text-body text-ink;
+  }
+  .agency-fold,
+  .agency-all-people {
+    @apply mb-0 mt-3 text-body text-ink-muted;
+  }
+  .agency-all-people {
+    @apply hidden;
+  }
+  .agency-up-to-date tr:first-child > * {
+    @apply border-t border-line-strong;
+  }
+
+  @media (max-width: 639px) {
+    /* La bascule (44 px) dépasse le titre (28 px) : elle monte dans la marge du haut et l'en-tête perd ses
+       écarts, pour que la première ligne de la carte n'arrive pas plus bas qu'avant (252 px à 360 px). */
+    .today-header[data-scope] {
+      @apply gap-y-0;
+    }
+    .segmented.today-scope {
+      @apply -mt-3 mb-0;
+    }
+    .segmented.today-scope a {
+      @apply min-h-11;
+    }
+    .agency-hint-long,
+    .agency-today,
+    .agency-followed,
+    .agency-event-oldest {
+      @apply hidden;
+    }
+    .agency-hint-phone {
+      @apply inline;
+    }
+    .agency-table thead {
+      @apply sr-only;
+    }
+    .agency-table th,
+    .agency-table td {
+      @apply px-1;
+    }
+    .agency-people td {
+      @apply whitespace-nowrap;
+    }
+    .agency-see-long {
+      @apply hidden;
+    }
+    .agency-see-short {
+      @apply inline;
+    }
+    .agency-people .agency-num + .agency-num::before {
+      content: "· ";
+      @apply text-ink-muted;
+    }
+    .agency-people .agency-action a {
+      @apply inline-flex min-h-11 min-w-11 items-center justify-center;
+    }
+    .agency-lead-filter select {
+      @apply h-11;
+    }
+    .agency-people:not([data-all]) tbody tr.agency-person:nth-child(n + 5):not(.agency-expected):not(.agency-nobody) {
+      @apply hidden;
+    }
+    .agency-all-people {
+      @apply block;
+    }
+    .agency-all-people a {
+      @apply inline-flex min-h-11 items-center;
+    }
+    .agency-events tr {
+      @apply flex flex-wrap items-baseline gap-x-2 border-b border-line py-2;
+    }
+    .agency-events th,
+    .agency-events td {
+      @apply border-0 p-0;
+    }
+    /* Une carte : le nom et le nombre de retards ; la date et le planner ; « 32 sur 42 ». */
+    .agency-events tbody th {
+      flex: 1 1 calc(100% - 3rem);
+    }
+    .agency-events td.agency-num {
+      @apply order-1 ml-auto;
+    }
+    .agency-events .agency-event-date,
+    .agency-events .agency-event-lead {
+      @apply order-2;
+    }
+    .agency-events .agency-event-progress {
+      @apply order-3;
+    }
+    .agency-events .agency-event-date .agency-muted {
+      @apply hidden;
+    }
+    .agency-events .agency-event-lead::before {
+      content: "· ";
+    }
+    .agency-events .agency-event-progress {
+      @apply w-full text-ink-muted;
+    }
+    .agency-events .today-item-title {
+      @apply inline-flex min-h-11 items-center;
+    }
+    .agency-fold a {
+      @apply inline-flex min-h-11 items-center;
+    }
+  }
+}

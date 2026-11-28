@@ -2,16 +2,22 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { after } from "next/server";
 import { getLocale, getTranslations } from "next-intl/server";
-import { formatDateTime, type Locale } from "@symbola/i18n";
+import { cookies } from "next/headers";
+import { formatDateTime, parisToday, type Locale } from "@symbola/i18n";
+import { TODAY_HORIZON_DAYS } from "@symbola/contracts";
 import { organizationMailQuota } from "@symbola/mail";
 import { appDatabase } from "@symbola/db/client";
 import { getOrganizationProfile, getSetupState, isModuleEnabled, recentEmailVariableProblems, SETUP_STEPS } from "@/modules/hub/service";
-import { getTaskSoonDays, listEventTasks, listOrganizationTasks, listStandaloneTasks } from "@/modules/events/service";
+import { getTaskSoonDays, listAgencyOverview, listEventLeads, listEventTasks, listEvents, listOrganizationTasks, listStandaloneTasks } from "@/modules/events/service";
 import { buildTaskLines } from "@/lib/tasks/task-lines";
 import { taskMemberOptions } from "@/lib/tasks/members";
 import { TaskPanelLoader } from "./ui/task-panel-loader";
 import { requireSignedIn } from "@/lib/guards";
-import { visibleEventScope, withinScope } from "@/lib/event-visibility";
+import { taskListViewer, visibleEventScope, withinScope } from "@/lib/event-visibility";
+import { agencyView, HOME_SCOPE_COOKIE, HOME_SCOPE_WORDS, homeScope, meEvents } from "@/lib/today/agency";
+import { meScope } from "@/lib/today/scope";
+import { AgencyView } from "./accueil/agency-view";
+import { RememberHomeScope } from "./accueil/agency-client";
 import { recordUsage } from "@/lib/usage";
 import { isActiveEvent, loadTodayItems } from "@/lib/today/load";
 import { rankToday } from "@/lib/today/rank";
@@ -21,7 +27,6 @@ import { PageTour } from "./page-tour";
 import { loadPageTour } from "@/lib/help/page-tour";
 import { todayWords, UnavailableNotice } from "./accueil/today-view";
 import { TakeoversInProgress } from "./accueil/takeovers-in-progress";
-import { taskListViewer } from "@/lib/event-visibility";
 import { EmptyHome, FirstStepsView, MyEventsView, TodayCardView, TodayHeader } from "./accueil/home-view";
 import { UndoTaskNotice } from "./accueil/today-client";
 import { TodayScrollKeeper } from "./accueil/today-card-client";
@@ -39,7 +44,7 @@ import { ensureTaskCategories } from "@/lib/events/task-categories";
 // tâches, encaissements, relances, alertes de liens et de règlements) passent dans la liste ;
 // l'agenda passe à « Évènements ». Les alertes du titulaire et le plafond d'envois gardent leur
 // bandeau en tête.
-export default async function HomePage({ searchParams }: { searchParams: Promise<{ fait?: string; evenement?: string; visite?: string; mois?: string; vue?: string; semaine?: string; tache?: string; tout?: string }> }) {
+export default async function HomePage({ searchParams }: { searchParams: Promise<{ fait?: string; evenement?: string; visite?: string; mois?: string; vue?: string; semaine?: string; tache?: string; tout?: string; planner?: string; "a-jour"?: string; personnes?: string }> }) {
   const auth = await requireSignedIn();
   // Lot 13 (L13-HUB-17) : l'Admin arrive sur la console, pas sur un accueil vide.
   if (auth.user.role === "admin") redirect("/exploitation");
@@ -98,6 +103,72 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   const tTemplates = await getTranslations("EmailTemplates");
   const tRisk = await getTranslations("RiskRadar");
 
+  // Lot 72b (C-18) : seules les alertes qui bloquent un envoi ou une obligation passent avant la liste (puis
+  // « Reprendre le questionnaire », le message de retour et « Une partie des urgences ne répond pas ») ; lot 72c :
+  // dans les deux vues de la bascule.
+  const blockingAlerts = (
+    <>
+      {mailQuota?.reached && mailQuota.resumesAt ? (
+        <p className="notice" role="alert">
+          {tHome("mailQuotaReached", { sent: mailQuota.sent, cap: mailQuota.cap, time: formatDateTime(mailQuota.resumesAt, locale) })}
+        </p>
+      ) : null}
+      {mailProblems ? (
+        <p className="notice" role="alert">
+          {tTemplates("todayBanner", { count: mailProblems.events, template: tTemplates(`kinds.${mailProblems.kind}.title`) })}{" "}
+          <Link href={`/parametres/emails/${mailProblems.kind}?langue=${mailProblems.locale}`}>{tTemplates("todayBannerLink")}</Link>
+        </p>
+      ) : null}
+      {/* RGPD-04 : demandes dont l'échéance approche et purges annoncées, titulaire seulement. */}
+      {auth.user.role === "owner" ? <PrivacyRequestsAlertBlock organizationId={organizationId} /> : null}
+      {auth.user.role === "owner" ? <PrivacyPurgeAlertBlock organizationId={organizationId} /> : null}
+      {resumeQuestionnaire ? (
+        <p className="notice" role="status">
+          {tOnboarding("resume", { count: SETUP_STEPS - setup.step + 1 })} <Link href="/demarrage">{tOnboarding("resumeLink")}</Link>
+        </p>
+      ) : null}
+      {/* Lot 70a (A1) : le prénom, pour que l'équipe reconnaisse la personne. */}
+      <NamesPrompt userId={auth.user.id} />
+    </>
+  );
+
+  // Lot 72c (PAR-10, HUB-03 ; J4) : « Moi · L'agence » n'existe que dans une agence (plus d'un membre actif),
+  // décidé ici, côté serveur : `?vue=agence` sur l'espace d'une personne rend la vue « Moi », sans erreur.
+  const members = modules.events ? await taskMemberOptions(organizationId, auth.user.id) : [];
+  const activeMembers = members.filter((member) => !member.removed).length;
+  const choice = homeScope({ vue: query.vue, cookie: (await cookies()).get(HOME_SCOPE_COOKIE)?.value, activeMembers });
+  const remember = choice.remember ? <RememberHomeScope cookie={HOME_SCOPE_COOKIE} value={HOME_SCOPE_WORDS[choice.remember]} /> : null;
+  // Lot 52 (EVT-06, D2) : seulement les évènements visibles de la personne (réglage de visibilité).
+  const viewerAuth = { user: { id: auth.user.id, role: auth.user.role, organizationId } };
+  const scope = auth.user.role === "member" ? await visibleEventScope(viewerAuth) : null;
+
+  if (choice.scope === "agency") {
+    // La vue d'agence ne lit que ses comptes groupés et la liste des évènements : ni les sources de l'accueil,
+    // ni le calendrier. Ce que la personne ne voit pas (lot 52, A20) n'y entre jamais, ni ligne ni nombre.
+    const agencyNow = new Date();
+    const agencyToday = parisToday(agencyNow);
+    const [overview, listed] = await Promise.all([
+      taskListViewer(viewerAuth).then((viewer) => listAgencyOverview({ organizationId, viewer, today: agencyToday, horizonDays: TODAY_HORIZON_DAYS })),
+      listEvents({ organizationId, archived: "exclude" }),
+    ]);
+    const visible = withinScope(scope, listed, (event) => event.id);
+    // Un espace sans évènement garde son état vide et sa seule action (72b) : pas de vue d'agence.
+    if (homeState({ eventsEnabled: true, events: visible, points: 0 }).kind !== "empty") {
+      const agencyEvents = visible.filter((event) => isActiveEvent(event) && !event.isDemo);
+      const leads = await listEventLeads(organizationId, agencyEvents.map((event) => event.id));
+      const view = agencyView({ overview, members, events: agencyEvents, leads, plannerFilter: query.planner ?? null, showUpToDate: query["a-jour"] === "1" });
+      return (
+        <main data-state="agency">
+          <TodayHeader now={agencyNow} locale={locale} activeEvents={agencyEvents.length} ranked={rankToday([], agencyToday)} state={{ kind: "filled" }} scope="agency" agency={{ late: view.late, events: view.lateEvents }} />
+          {blockingAlerts}
+          <AgencyView view={view} locale={locale} today={agencyToday} allPeople={query.personnes === "toutes"} />
+          {remember}
+          <PageTour {...tour} helpTitle={tHelp("home.title")} helpBody={tHelp("home.body")} />
+        </main>
+      );
+    }
+  }
+
   const now = new Date();
   const loaded = await loadTodayItems(organizationId, modules, {
       ...todayWords(t),
@@ -106,11 +177,13 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
       // visibilité comme les autres (la section « Risques » à part n'existe plus).
       watch: (alert) => ({ title: tRisk(`rules.${alert.rule}.label`), detail: tRisk(`rules.${alert.rule}.alert`, { ...alert.facts, threshold: alert.thresholdDays }) }),
     }, locale, now);
-  // Lot 52 (EVT-06, D2) : seulement les évènements visibles de la personne (réglage de visibilité).
-  const scope = auth.user.role === "member" ? await visibleEventScope({ user: { id: auth.user.id, role: auth.user.role, organizationId } }) : null;
   const { today, unavailable } = loaded;
-  const items = withinScope(scope, loaded.items, (item) => item.eventId);
-  const events = withinScope(scope, loaded.events, (event) => event.id);
+  // Lot 72c (HUB-08, J3) : dans une agence, « Moi » garde ce dont la personne s'occupe (portée du lot 72a) :
+  // ses tâches, les lignes des évènements dont elle est planner principale ou sans planner principal.
+  const visibleEvents = withinScope(scope, loaded.events, (event) => event.id);
+  const meInput = { userId: auth.user.id, activeMembers, leads: choice.toggle ? await listEventLeads(organizationId, visibleEvents.map((event) => event.id)) : new Map<string, string>() };
+  const items = meScope(withinScope(scope, loaded.items, (item) => item.eventId), meInput);
+  const events = meEvents(visibleEvents, meInput, items);
   const ranked = rankToday(items, today);
   const activeEvents = events.filter((event) => isActiveEvent(event) && !event.isDemo).length;
   // Lot 63d : le calendrier vit des évènements, des rendez-vous ou du budget ; sans aucun, il n'apparaît pas.
@@ -144,7 +217,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   const taskLines =
     modules.events && taskSources.length > 0
       ? Object.fromEntries(
-          (await buildTaskLines({ organizationId, locale, tasks: taskSources, members: await taskMemberOptions(organizationId, auth.user.id), href: (task) => (query.tout === "1" ? `/?tout=1&tache=${task.id}` : `/?tache=${task.id}`) })).lines.map((line) => [line.id, line]),
+          (await buildTaskLines({ organizationId, locale, tasks: taskSources, members, href: (task) => (query.tout === "1" ? `/?tout=1&tache=${task.id}` : `/?tache=${task.id}`) })).lines.map((line) => [line.id, line]),
         )
       : {};
   const parisDay = (instant: string) => new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Paris", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date(instant));
@@ -166,36 +239,15 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   const closeHref = expanded ? "/?tout=1" : "/";
   return (
     <main data-state={state.kind}>
-      <TodayHeader now={now} locale={locale} activeEvents={state.kind === "empty" ? null : activeEvents} ranked={ranked} state={state} />
-      {/* Lot 72b (C-18) : seules les alertes qui bloquent un envoi ou une obligation passent avant la liste ;
-          puis « Reprendre le questionnaire », le message de retour et « Une partie des urgences ne répond pas ». */}
-      {mailQuota?.reached && mailQuota.resumesAt ? (
-        <p className="notice" role="alert">
-          {tHome("mailQuotaReached", { sent: mailQuota.sent, cap: mailQuota.cap, time: formatDateTime(mailQuota.resumesAt, locale) })}
-        </p>
-      ) : null}
-      {mailProblems ? (
-        <p className="notice" role="alert">
-          {tTemplates("todayBanner", { count: mailProblems.events, template: tTemplates(`kinds.${mailProblems.kind}.title`) })}{" "}
-          <Link href={`/parametres/emails/${mailProblems.kind}?langue=${mailProblems.locale}`}>{tTemplates("todayBannerLink")}</Link>
-        </p>
-      ) : null}
-      {/* RGPD-04 : demandes dont l'échéance approche et purges annoncées, titulaire seulement. */}
-      {auth.user.role === "owner" ? <PrivacyRequestsAlertBlock organizationId={organizationId} /> : null}
-      {auth.user.role === "owner" ? <PrivacyPurgeAlertBlock organizationId={organizationId} /> : null}
-      {resumeQuestionnaire ? (
-        <p className="notice" role="status">
-          {tOnboarding("resume", { count: SETUP_STEPS - setup.step + 1 })} <Link href="/demarrage">{tOnboarding("resumeLink")}</Link>
-        </p>
-      ) : null}
-      {/* Lot 70a (A1) : le prénom, pour que l'équipe reconnaisse la personne. */}
-      <NamesPrompt userId={auth.user.id} />
+      <TodayHeader now={now} locale={locale} activeEvents={state.kind === "empty" ? null : activeEvents} ranked={ranked} state={state} scope={choice.toggle && state.kind !== "empty" ? "me" : null} />
+      {blockingAlerts}
+      {state.kind === "empty" ? null : remember}
       {undone ? (
         <UndoTaskNotice key={undone.taskId} eventId={undone.eventId} taskId={undone.taskId} message={t("undo.taskDone", { label: undone.label })} undoLabel={t("undo.action")} returnTo="home" />
       ) : null}
       <UnavailableNotice sources={unavailable} />
       {/* Lot 71f (HUB-08 ; maquette 09) : les reprises en cours, entre les alertes et « À traiter en premier », hors du compteur des points (C-20). */}
-      {modules.events ? <TakeoversInProgress organizationId={organizationId} viewer={await taskListViewer({ user: { id: auth.user.id, role: auth.user.role, organizationId } })} locale={locale} today={today} /> : null}
+      {modules.events ? <TakeoversInProgress organizationId={organizationId} viewer={await taskListViewer(viewerAuth)} locale={locale} today={today} /> : null}
       {state.kind === "empty" ? (
         <>
           <EmptyHome takeoverFirst={onboardingSuggestsTakeover(profile.replacedTools)} />

@@ -18,6 +18,7 @@ import { daysUntil, TODAY_HORIZON_DAYS, type RankedItem, type RankedToday } from
 import { contactParts, eventPointsWord, type HomeState, type TodayCard } from "@/lib/today/home";
 import { isActiveEvent } from "@/lib/today/load";
 import type { FirstStepsLine } from "@/lib/onboarding/first-steps";
+import { HOME_SCOPE_WORDS, type HomeScope } from "@/lib/today/agency";
 import type { ChecklistItem } from "@/lib/onboarding/checklist";
 import { NoteReminderButton } from "./note-reminder";
 import { TodayCardFrame, WhenExpanded } from "./today-card-client";
@@ -32,19 +33,42 @@ function dayText(now: Date, locale: Locale, withYear: boolean): string {
 
 // Le haut de l'écran : le titre, la date et « N évènements en cours », puis le compte (A1, C-20). Sur téléphone,
 // la date perd l'année et le compte perd « à traiter » (maquette 13, 375 px).
-export async function TodayHeader({ now, locale, activeEvents, ranked, state }: { now: Date; locale: Locale; activeEvents: number | null; ranked: RankedToday; state: HomeState }) {
+// Lot 72c (PAR-10, J4, M8) : dans une agence, la bascule « Moi · L'agence » à côté du titre (deux liens, l'option
+// active en encre, jamais un bouton plein ni la couleur d'action) ; dans « L'agence », le compte de l'équipe.
+export async function TodayHeader({
+  now,
+  locale,
+  activeEvents,
+  ranked,
+  state,
+  scope = null,
+  agency = null,
+}: {
+  now: Date;
+  locale: Locale;
+  activeEvents: number | null;
+  ranked: RankedToday;
+  state: HomeState;
+  scope?: HomeScope | null;
+  agency?: { late: number; events: number } | null;
+}) {
   const t = await getTranslations("Today");
   const days = TODAY_HORIZON_DAYS;
   const events = activeEvents === null ? null : t.rich("eventsInProgress", { count: activeEvents, long: (chunks) => <span className="today-events-long">{chunks}</span> });
   return (
-    <div className="page-header today-header">
+    <div className="page-header today-header" data-scope={scope ?? undefined}>
       <h1>{t("title")}</h1>
+      {scope ? <ScopeToggle scope={scope} /> : null}
       <p className="today-summary">
         <span className="today-date-long">{dayText(now, locale, true)}</span>
         <span className="today-date-short">{dayText(now, locale, false)}</span>
         {events ? <> · {events}</> : null}
       </p>
-      {state.kind === "empty" ? null : (
+      {agency ? (
+        <p className="today-count" data-tour="home-count">
+          {t.rich("agency.count", { late: agency.late, events: agency.events, red: (chunks) => <strong className="today-count-late">{chunks}</strong> })}
+        </p>
+      ) : state.kind === "empty" ? null : (
         <p className="today-count" data-tour="home-count">
           {state.kind === "quiet"
             ? t("countQuiet", { days, count: state.withoutTasks.length })
@@ -60,6 +84,20 @@ export async function TodayHeader({ now, locale, activeEvents, ranked, state }: 
         </p>
       )}
     </div>
+  );
+}
+
+async function ScopeToggle({ scope }: { scope: HomeScope }) {
+  const t = await getTranslations("Today.scope");
+  const choices: HomeScope[] = ["me", "agency"];
+  return (
+    <nav aria-label={t("label")} className="segmented today-scope" data-tour="home-scope">
+      {choices.map((choice) => (
+        <Link key={choice} href={`/?vue=${HOME_SCOPE_WORDS[choice]}`} aria-current={choice === scope ? "page" : undefined}>
+          {t(choice === "me" ? "me" : "agency")}
+        </Link>
+      ))}
+    </nav>
   );
 }
 
