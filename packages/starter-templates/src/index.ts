@@ -1409,11 +1409,11 @@ export type OnboardingVatRegime = "franchise" | "assujetti";
 const checklistKeySchema = z.enum(ONBOARDING_CHECKLIST_KEYS);
 const onboardingSchema = z.object({
   version: z.literal(1),
-  defaults: z.object({
+  // Lot 74a (HUB-09 ; M13, B2 à B5) : seul le métier a une réponse proposée (les types suivent le
+  // métier, eventTypeDefaults). Un fait sur la planner (TVA, volume, mariages en cours, outils) n'en a
+  // jamais : le schéma refuse toute autre clé.
+  defaults: z.strictObject({
     metier: z.enum(["wedding_planner", "event_agency", "autre"]),
-    vatRegime: z.enum(["franchise", "assujetti"]),
-    volume: z.string().min(1),
-    tools: z.array(z.string().min(1)),
   }),
   eventTypeDefaults: z.object({
     wedding_planner: z.array(z.string().min(1)).min(1),
@@ -1429,14 +1429,14 @@ const onboardingSchema = z.object({
 const onboarding = onboardingSchema.parse(onboardingFile);
 
 export type StarterOnboarding = {
-  defaults: { metier: StarterMetier; vatRegime: OnboardingVatRegime; volume: string; tools: string[] };
+  defaults: { metier: StarterMetier };
   volumes: { key: string; label: string }[];
   tools: { key: string; label: string }[];
 };
 
 export function starterOnboarding(locale: StarterLocale): StarterOnboarding {
   return {
-    defaults: { ...onboarding.defaults, tools: [...onboarding.defaults.tools] },
+    defaults: { ...onboarding.defaults },
     volumes: onboarding.volumes.map(({ key, label }) => ({ key, label: label[locale] })),
     tools: onboarding.tools.map(({ key, label }) => ({ key, label: label[locale] })),
   };

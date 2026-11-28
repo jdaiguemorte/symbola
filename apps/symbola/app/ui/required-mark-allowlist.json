@@ -10,7 +10,6 @@
   "app/contacts/contact-forms.tsx",
   "app/contacts/doublons/[pairId]/merge-form.tsx",
   "app/creation-rapide/quick-create.tsx",
-  "app/demarrage/pret/first-event-form.tsx",
   "app/devis/[quoteId]/contract-forms.tsx",
   "app/devis/[quoteId]/invoice-forms.tsx",
   "app/devis/[quoteId]/proposal-forms.tsx",

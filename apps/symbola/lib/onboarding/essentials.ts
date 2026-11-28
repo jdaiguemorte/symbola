@@ -96,7 +96,8 @@ export async function loadEssentials(organizationId: string, userId: string): Pr
     postalCode: details.postalCode,
     city: details.city,
     logoKey: details.logoKey,
-    vatRegime: profile.vatRegime,
+    // Lot 74a (L74-D4) : « Je ne sais pas encore » à l'assistant vaut une TVA encore à dire.
+    vatRegime: profile.vatAnswerPending ? null : profile.vatRegime,
     iban: documents?.iban ?? null,
     quotesEnabled,
     reached: entry?.step ?? 0,

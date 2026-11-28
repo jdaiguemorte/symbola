@@ -349,6 +349,11 @@ export const organizationProfiles = hubSchema.table("organization_profiles", {
   // (packages/starter-templates, onboarding.json) ; elles règlent l'ordre de la prise en main.
   annualEventVolume: text("annual_event_volume"),
   replacedTools: text("replaced_tools").array().notNull().default(sql`'{}'::text[]`),
+  // Lot 74a (HUB-09 ; B3, B5, D6, L74-D4) : « Avez-vous déjà des mariages en cours ? » (`yes`, `no` ; nul :
+  // pas encore répondu, parcours non choisi), et « Je ne sais pas encore » pour la TVA : la franchise est
+  // gardée et le drapeau posé ; aucun devis ne s'envoie tant qu'il l'est. Aucune valeur proposée (M13).
+  hasOngoingEvents: text("has_ongoing_events"),
+  vatAnswerPending: boolean("vat_answer_pending").notNull().default(false),
   completedAt: timestamp("completed_at", { withTimezone: true }),
   // Lot 12 (ONB-03) : assistant de démarrage — étape en cours et fin. Lot 33b (HUB-09, D9) :
   // questionnaire d'accueil en cinq questions ; les menus ne sont plus verrouillés.
@@ -401,6 +406,7 @@ export const organizationProfiles = hubSchema.table("organization_profiles", {
   check("organization_profiles_general_terms_check", sql`${table.generalTerms} is null or char_length(${table.generalTerms}) between 1 and 20000`),
   check("organization_profiles_annual_event_volume_check", sql`${table.annualEventVolume} is null or char_length(${table.annualEventVolume}) between 1 and 40`),
   check("organization_profiles_replaced_tools_check", sql`cardinality(${table.replacedTools}) <= 10`),
+  check("organization_profiles_has_ongoing_events_check", sql`${table.hasOngoingEvents} is null or ${table.hasOngoingEvents} in ('yes', 'no')`),
 ]);
 
 // Historique des changements de régime de TVA (PRD ONB-02) : chaque

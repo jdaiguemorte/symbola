@@ -1065,7 +1065,7 @@ Q50 aux lots 72 et 73 écrits en même temps ; à renuméroter à la fusion si b
    questions, et l'étape 2 de SC-01 dit « douze par an ». La maquette validée (B2) le sort de
    l'assistant, puisqu'il n'est lu nulle part, et le met dans la fiche de l'entreprise. Proposition :
    accepter l'écart (HUB-09 dit aussi « tout reste modifiable dans les réglages »), ADR court au
-   paquet 74a, `gap.csv` (HUB-09) et compte rendu de SC-01. Décision L74-D5 du lot. **Tranché : écart accepté** (B2, plus récente, l'emporte).
+   paquet 74a, `gap.csv` (HUB-09) et compte rendu de SC-01. Décision L74-D5 du lot. **Tranché : écart accepté** (B2, plus récente, l'emporte). Réalisé au lot 74a : ADR 0123.
 2. **Les formulaires de réglage à champs liés s'enregistrent par un bouton (D7)**. Même écart avec
    UX-09 que M1 (Q47, point 1) : barre collée en bas, jamais grisée, question à la sortie, brouillon
    gardé. Proposition : un avenant à l'ADR de M1, au paquet 74h. **Tranché : D7 l'emporte**, avenant
@@ -1074,7 +1074,8 @@ Q50 aux lots 72 et 73 écrits en même temps ; à renuméroter à la fusion si b
    garde la franchise en base, dont la mention part sur les devis. Je ne tranche pas. Proposition :
    aucun devis envoyé tant que la réponse manque (le brouillon reste possible), à faire confirmer par
    l'expert-comptable. Décision L74-D4 du lot. **Tranché : « il faut qu'elle choisisse »** : aucun devis envoyé tant
-   que la réponse manque, le brouillon reste possible.
+   que la réponse manque, le brouillon reste possible. Réalisé au lot 74a : l'envoi ouvre la question (« Non » ou
+   « Oui ») et reprend une fois la réponse donnée ; « L'essentiel » la redemande.
 
 ## Remarques sur le nouveau document lui-même
 

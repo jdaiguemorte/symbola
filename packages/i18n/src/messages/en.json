@@ -1018,11 +1018,11 @@
     },
     "setup": {
       "title": "Getting started",
-      "body": "Five questions, one per screen: your business, your event types, your VAT status, your number of events per year and the tools Symbola replaces. Each question has a suggested answer: \"Skip\" keeps it. Your answers pick the templates loaded (budget lines, planning, programme, catalogue); everything can be changed later in Settings."
+      "body": "Five questions at most, one per screen: your line of work, your event types, whether you already have weddings under way (and if so, where you track them), and whether your quotes include VAT. Only the line of work and the types are suggested; « I don't know yet » is an answer for VAT. Each answer is saved straight away: you pick up where you left off, on any device. Everything can be changed later in Settings."
     },
     "setupReady": {
       "title": "Your workspace is ready",
-      "body": "What Symbola prepared from your answers: event types, planning, budget lines, VAT status. Then two paths: create your first event (clients' first names, date, type: the planning and the budget appear straight away), or explore a fictional wedding labelled \"Example\", which contacts no one and disappears on its own after 30 days."
+      "body": "Your first step, based on your answers: create your first wedding, bring in a wedding under way from your files, or enter a wedding that is already signed. Below, your answers and what they set up (planning timeline, starter budget, event types), each with its link. « Open an example wedding » shows a fictional wedding that contacts no one and disappears on its own after 30 days. « Change my answers » reopens the questions."
     },
     "activityLog": {
       "title": "Activity log",
@@ -3166,7 +3166,12 @@
     "closeItem": "Close",
     "closeItemNamed": "Close “{label}”",
     "archiveItemShort": "Archive",
-    "signerSameAddress": "Same address as signer 1"
+    "signerSameAddress": "Same address as signer 1",
+    "vatQuestionTitle": "Before sending: do your quotes include VAT?",
+    "vatQuestionHint": "You answered « I don't know yet ». Your answer sets the legal wording on this quote and the next ones; your accountant will know.",
+    "vatQuestionSubmit": "Answer and send the quote",
+    "vatAnswerRequired": "Choose an answer.",
+    "vatQuestionBeforeSend": "When you send it, you will say whether your quotes include VAT: you answered « I don't know yet »."
   },
   "Documents": {
     "pdfSellerHeading": "From",
@@ -5868,80 +5873,119 @@
     "dismiss": "Close"
   },
   "Onboarding": {
-    "title": "Let's set up your workspace",
-    "intro": "Five questions, one per screen. Each answer has a suggested value: \"Skip\" keeps it. Everything can be changed later in Settings.",
-    "progress": "Question {number} of {total}",
-    "progressLabel": "Setup questions",
-    "stepItem": "{number}. {label}",
-    "stepDone": "(answered)",
-    "steps": {
-      "1": "Business",
-      "2": "Events",
-      "3": "VAT",
-      "4": "Volume",
-      "5": "Tools"
-    },
+    "title": "Set up your workspace",
+    "progress": "Set up your workspace · question {number} of {total}",
     "questions": {
       "1": {
-        "title": "What is your business?",
-        "hint": "It picks your starter templates: budget lines, planning, day-of programme, catalogue."
+        "title": "What is your line of work?",
+        "hint": "It picks your starter templates: budget lines, planning timeline, wedding-day programme, catalogue."
       },
       "2": {
         "title": "Which events do you organise?",
-        "hint": "Tick at least one. You can add more whenever you like."
+        "hint": "Tick at least one. You can add others whenever you like."
       },
       "3": {
-        "title": "Are you registered for VAT?",
-        "hint": "It sets the legal notices on your quotes and invoices. A later change takes effect from a date."
+        "title": "{metier, select, wedding_planner {Do you already have weddings under way?} other {Do you already have events under way?}}",
+        "hint": "Your first step depends on it: bring them in, or create one."
       },
       "4": {
-        "title": "How many events do you organise per year?",
-        "hint": "An estimate is enough: it helps us suggest the right first steps."
+        "title": "Where do you keep track of them today?",
+        "hint": "Tick everything you use. Symbola will tell you which files to bring in."
       },
       "5": {
-        "title": "What do you want Symbola to replace?",
-        "hint": "Tick everything that applies, or nothing. What saves you the most time will come first."
+        "title": "Do your quotes include VAT?",
+        "hint": "Your answer sets the legal wording on your quotes and invoices."
+      }
+    },
+    "ongoingAnswers": {
+      "yes": {
+        "title": "{metier, select, wedding_planner {Yes, I have weddings under way} other {Yes, I have events under way}}",
+        "body": "{metier, select, wedding_planner {You will bring them in without retyping anything: files, or entering a wedding that is already signed.} other {You will bring them in without retyping anything: files, or entering an event that is already signed.}}"
+      },
+      "no": {
+        "title": "No, I'm starting from scratch",
+        "body": "{metier, select, wedding_planner {Your first wedding will be a new enquiry or a contract just signed.} other {Your first event will be a new enquiry or a contract just signed.}}"
+      }
+    },
+    "vatAnswers": {
+      "no": {
+        "title": "No, my prices are without VAT",
+        "body": "Your quotes carry « TVA non applicable, art. 293 B du CGI »: this is the VAT-free threshold scheme (franchise en base)."
+      },
+      "yes": {
+        "title": "Yes, I add VAT to my prices",
+        "body": "Your quotes and invoices include VAT: you are VAT-registered."
+      },
+      "unknown": {
+        "title": "I don't know yet",
+        "body": "Symbola starts without VAT and asks you again before your first quote. Your accountant will know."
       }
     },
     "continue": "Continue",
-    "finish": "See my workspace",
-    "skip": "Skip",
-    "skipHint": "\"Skip\" keeps the suggested answer.",
     "back": "Previous question",
-    "eventTypesRequired": "Tick at least one event type, or choose \"Skip\".",
-    "metierRequired": "Choose your business, or \"Skip\".",
-    "volumeRequired": "Choose an estimate, or \"Skip\".",
-    "ownerOnly": "Only the account owner answers the questionnaire.",
-    "ownerMustFinish": "The account owner is setting up your workspace. The modules are already open.",
-    "resume": "Finish setting up your workspace: {count, plural, one {# question} other {# questions}} left.",
-    "resumeLink": "Resume the questionnaire",
+    "chooseAnswer": "Choose an answer.",
+    "editLater": "Everything can be changed later in Settings.",
+    "ownerOnly": "Only the account holder answers the set-up questions.",
+    "ownerMustFinish": "The account holder is setting up your workspace. The modules are already open.",
+    "notReady": {
+      "title": "Your workspace isn't quite ready",
+      "left": "{left, plural, one {# of {total} questions left} other {# of {total} questions left}}, about 1 minute.",
+      "action": "Continue the questions"
+    },
     "ready": {
       "title": "Your workspace is ready",
-      "intro": "Here is what Symbola prepared from your answers:",
-      "eventTypes": "Your event types: {types}",
-      "tasks": "{count, plural, =0 {No task} one {# task} other {# tasks}} in your planning",
-      "budgetLines": "{count, plural, =0 {No budget line} one {# budget line} other {# budget lines}}",
-      "vat": "Your VAT status: {regime}",
-      "editLater": "Everything can be changed later in Settings.",
-      "settingsLink": "Open Settings",
-      "choiceTitle": "What next?",
-      "firstEventTitle": "Create my first event",
-      "firstEventBody": "The clients' first names, the date and the type: the planning and the budget appear straight away.",
-      "firstEventSubmit": "Create the event",
-      "exampleTitle": "Explore with an example",
-      "exampleBody": "A fictional wedding, labelled \"Example\", to try everything safely. It contacts no one and disappears on its own after 30 days.",
-      "exampleSubmit": "Open the example",
+      "titleNamed": "Your workspace is ready, {name}",
+      "progress": "Set up your workspace · done",
+      "firstStep": {
+        "create": {
+          "title": "{metier, select, wedding_planner {Start with your first wedding} other {Start with your first event}}",
+          "body": "{metier, select, wedding_planner {The couple, the date, where it stands: three entries. Its planning timeline and budget come with it, dated from the big day.} other {The client, the date, where it stands: three entries. Its planning timeline and budget come with it, dated from the event day.}}",
+          "action": "{metier, select, wedding_planner {Create your first wedding} other {Create your first event}}"
+        },
+        "takeover": {
+          "title": "Bring in a wedding under way",
+          "action": "Bring in a wedding under way"
+        },
+        "enter": {
+          "title": "{metier, select, wedding_planner {Start with a wedding under way} other {Start with an event under way}}",
+          "body": "Enter one, choosing « Signed, in preparation »: its planning timeline and budget come with it.",
+          "action": "{metier, select, wedding_planner {Enter a wedding under way} other {Enter an event under way}}"
+        }
+      },
+      "exampleLead": "Want to try first?",
+      "exampleSubmit": "Open an example wedding",
       "exampleOpen": "See the example again",
+      "answersTitle": "Your answers, and what they set up",
+      "answers": {
+        "metier": "Your line of work",
+        "ongoing": "{metier, select, wedding_planner {Weddings under way} other {Events under way}}",
+        "ongoingNo": "None: you are starting from scratch",
+        "ongoingYes": "Yes",
+        "ongoingYesTools": "Yes, with {tools}",
+        "vat": "VAT",
+        "vat_franchise": "No VAT on your prices (franchise en base)",
+        "vat_assujetti": "Yes, you add VAT to your prices (VAT-registered)",
+        "vatUnknown": "Not said yet: no VAT meanwhile, the question comes back before your first quote",
+        "notAnswered": "Not provided"
+      },
+      "preparedTitle": "Set up for you",
+      "prepared": {
+        "tasks": "A planning timeline « {name} », {count, plural, =0 {no tasks} one {# task} other {# tasks}}",
+        "noTasks": "No starter planning timeline",
+        "tasksLink": "See the tasks",
+        "budgetLines": "A starter budget, {count, plural, =0 {no lines} one {# line} other {# lines}}",
+        "budgetLinesLink": "See the lines",
+        "eventTypes": "Your event types: {types}",
+        "eventTypesLink": "See the types"
+      },
+      "editAnswers": "Change my answers",
+      "goHomeShort": "See the home screen",
+      "footer": "Everything can be changed later in Settings. The example wedding is fictional, contacts no one and disappears on its own after 30 days.",
       "noEventsModule": "The Events module is not subscribed: your first steps start with the checklist on the home page.",
       "goHome": "Go to the home page",
-      "noSource": "First add a lead source in the event settings.",
-      "dateRequired": "Enter the event date: the planning is calculated from it.",
-      "takeoverTitle": "Take over an ongoing wedding",
       "takeoverIntro": "You track your weddings in {tools} today. To avoid retyping, take over an ongoing wedding first: Symbola tells you which files to drop, in which order.",
       "takeoverBody": "Six files at most: vendor book, sheet, budget, vendors, to-do list, schedule. About 30 minutes per wedding. Nothing is written without your approval.",
-      "takeoverStart": "Take over an ongoing wedding",
       "takeoverCreate": "Create a new wedding",
-      "takeoverElsewhere": "Already tracking weddings elsewhere?",
       "toolsAnd": "{first} and {last}"
     },
     "vatRegime": {
