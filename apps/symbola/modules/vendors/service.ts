@@ -974,7 +974,8 @@ export async function getVendorHistory(organizationId: string, vendorId: string,
       for (const line of view.lines) linesBySlot.set(line.eventVendorSlotId, [...(linesBySlot.get(line.eventVendorSlotId) ?? []), line]);
     }
   }
-  const entries = consultations.map(({ slotId, candidateId, status, ...entry }) => {
+  const entries = consultations.map(({ candidateId, ...entry }) => {
+    const { slotId, status } = entry;
     if (entry.outcome !== "selected") return { ...entry, finalCents: null };
     const slotLines = linesBySlot.get(slotId) ?? [];
     const own = slotLines.filter((line) => line.vendorCandidateId === candidateId);

@@ -144,6 +144,7 @@ import {
   findLinkSessionRow,
   findLinkVendorRow,
   findVendorTaskRows,
+  hasOpenVendorLinkRow,
   toggleVendorTaskRow,
   findPendingRenewalRows,
   findReminderCandidateRows,
@@ -3403,6 +3404,14 @@ export function listLinkProfiles(locale: "fr" | "en", vocabulary: EventTypeAudie
 }
 
 // Décision D5 : demandes de nouveau lien en attente, pour « Aujourd'hui ».
+// Lot 73d (PRE-05 ; spécification du lot 73, § 7) : une demande de pièce se dépose sur le lien du
+// prestataire ; sans lien ouvert sur aucun de ses mariages, la fenêtre le dit au lieu de laisser croire
+// qu'il est prévenu.
+export async function vendorHasOpenLink(organizationId: string, vendorId: string): Promise<boolean> {
+  if (!/^[0-9a-f-]{36}$/i.test(vendorId)) return false;
+  return hasOpenVendorLinkRow(organizationId, vendorId);
+}
+
 export async function listPendingLinkRenewals(organizationId: string): Promise<{ linkId: string; eventId: string; personName: string; requestedAt: string }[]> {
   return (await findPendingRenewalRows(organizationId)).map((row) => ({ ...row, requestedAt: row.requestedAt.toISOString() }));
 }
