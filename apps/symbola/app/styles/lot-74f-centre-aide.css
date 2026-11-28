@@ -107,8 +107,14 @@
   .help-answers-count {
     @apply m-0 flex flex-wrap items-baseline gap-x-3 gap-y-1;
   }
-  .help-answers-none > h2 {
+  .help-answers-none h2 {
     @apply m-0 text-heading;
+  }
+  .help-answers-none [role="status"] {
+    @apply flex flex-col gap-2;
+  }
+  .help-answers-none p {
+    @apply m-0;
   }
   .help-best {
     @apply flex flex-col gap-2;
@@ -200,5 +206,17 @@
   }
   .tutorials-path-choice > span {
     @apply flex flex-col gap-1;
+  }
+}
+
+/* « Pour bien démarrer » sur l'accueil vide : « Voir le parcours » sous les étapes. */
+@layer components {
+  .first-steps-more {
+    @apply m-0 basis-full;
+  }
+  /* Une cible de 44 px au doigt, comme les autres liens de la ligne. */
+  .first-steps-more a,
+  .first-steps-actions > a:not(.button-link) {
+    @apply inline-flex min-h-11 items-center;
   }
 }

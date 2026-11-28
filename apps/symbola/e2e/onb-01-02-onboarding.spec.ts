@@ -32,10 +32,14 @@ test("ONB-01-01 — « Pour bien démarrer » guide vers la fiche entreprise inc
   // L'accueil reste accessible : aucune redirection forcée (PRD : ne
   // jamais bloquer l'entrée dans la plateforme).
   const firstSteps = page.getByRole("region", { name: "Pour bien démarrer" });
-  await expect(firstSteps).toContainText("0 sur 2");
+  await expect(firstSteps).toContainText("0 étape faite sur 4");
   await expect(page.getByText("Votre fiche entreprise n'est pas encore complète.")).toHaveCount(0);
 
-  await firstSteps.getByRole("link", { name: "Régler l'essentiel : société, adresse, TVA" }).click();
+  // Lot 74f (C-68, C-10) : la fiche entreprise est demandée quand elle sert, à l'étape « Devis et factures »
+  // du parcours, dont « Régler l'essentiel » est la première marche.
+  await firstSteps.getByRole("link", { name: "Voir le parcours" }).click();
+  await expect(page).toHaveURL(/\/tutoriels$/);
+  await page.getByRole("link", { name: "Régler l'essentiel : société, adresse, TVA" }).click();
   await expect(page).toHaveURL(/\/demarrage\/essentiel$/, { timeout: 20_000 });
   const violations = await new AxeBuilder({ page }).analyze();
   expect(violations.violations, JSON.stringify(violations.violations, null, 2)).toEqual([]);

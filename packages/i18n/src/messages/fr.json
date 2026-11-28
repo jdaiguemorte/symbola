@@ -1590,10 +1590,7 @@
   },
   "Aide": {
     "title": "Aide",
-    "search": "Rechercher dans l'aide",
-    "noResults": "Aucun article ne correspond à votre recherche.",
     "link": "Aide",
-    "tutorialsCount": "Tutoriels faits : {completed} sur {total}",
     "tutorialsLink": "Tutoriels"
   },
   "EventVendorsImport": {
@@ -4707,18 +4704,6 @@
         "description": "Sur un mariage d'exemple repris d'un tableur, complétez ce que les fichiers ne disaient pas : invités, tâches."
       }
     },
-    "intro": "Chaque écran a sa fiche : à quoi il sert, sa visite guidée et les questions fréquentes. Sur l'écran lui-même, « ? › Revoir la visite » relance la visite.",
-    "progressTitle": "Tutoriels faits : {completed} sur {total}",
-    "nextSuggestion": "Prochaine étape conseillée : {title} ({minutes} minutes).",
-    "continue": "Continuer ma prise en main",
-    "allDone": "Bravo, vous avez suivi tous les tutoriels. Ils restent disponibles ici pour les revoir.",
-    "autoTours": "Lancer la visite guidée et proposer les tutoriels à la première ouverture d'un écran",
-    "tutorialKind": "Tutoriel · {minutes} min",
-    "stateInProgress": "En cours · étape {step}",
-    "stateNew": "À découvrir",
-    "openTutorials": "Voir le parcours des tutoriels",
-    "stateSeen": "Visite faite",
-    "results": "Écrans trouvés : {count}",
     "groups": {
       "events": "Évènements",
       "vendors": "Prestataires",

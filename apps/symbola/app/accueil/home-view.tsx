@@ -355,13 +355,18 @@ export async function FirstStepsView({ line, listed }: { line: FirstStepsLine; l
         </div>
       )}
       {listed ? (
-        <ol className="first-steps-list">
-          {line.remaining.map((item) => (
-            <li key={item.key}>
-              <Link href={item === line.next ? line.href : "/tutoriels"}>{stage(item.key)}</Link>
-            </li>
-          ))}
-        </ol>
+        <>
+          <ol className="first-steps-list">
+            {line.remaining.map((item) => (
+              <li key={item.key}>
+                <Link href={item === line.next ? line.href : "/tutoriels"}>{stage(item.key)}</Link>
+              </li>
+            ))}
+          </ol>
+          <p className="first-steps-more">
+            <Link href="/tutoriels">{t("seeJourney")}</Link>
+          </p>
+        </>
       ) : null}
     </section>
   );

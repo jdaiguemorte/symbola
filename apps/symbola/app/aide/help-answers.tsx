@@ -22,10 +22,10 @@ export async function HelpAnswers({ query, result, compact = false }: { query: s
   if (!result.best) {
     return (
       <section className="help-answers help-answers-none" aria-labelledby="help-answers-title">
-        <h2 id="help-answers-title" role="status">
-          {t("noneTitle", { query })}
-        </h2>
-        <p>{t("noneHint")}</p>
+        <div role="status">
+          <h2 id="help-answers-title">{t("noneTitle", { query })}</h2>
+          <p>{t("noneHint")}</p>
+        </div>
       </section>
     );
   }

@@ -33,13 +33,14 @@ test("AIDE-10 — parcours des tutoriels, un seul en cours à la fois", async ({
   await login(page, email, password);
 
   // Une page à part, avec le parcours en étapes. Lot 74g (G11) : elle s'ouvre depuis « Aide ».
+  // Lot 74f (D6) : sans réponse au démarrage, le parcours « Je pars de zéro » ; « Ensuite » sur la seule
+  // étape suivante, l'import sous « Autres tutoriels ».
   await clickMenuLink(page, "Aide");
-  await page.getByRole("link", { name: "Voir le parcours des tutoriels" }).click();
+  await page.getByRole("link", { name: "Voir tout le parcours" }).click();
   await expect(page).toHaveURL(/\/tutoriels$/);
-  await expect(page.getByRole("heading", { name: "Tutoriels faits : 0 sur 11" })).toBeVisible();
-  const activity = page.getByRole("region", { name: "Préparer votre activité" });
-  // Lot 18 (AIDE-13) : personnaliser ses documents est conseillé en premier.
-  await expect(activity.getByRole("link", { name: /Personnaliser vos devis et factures/ })).toContainText("Conseillé ensuite");
+  await expect(page.getByRole("heading", { level: 2, name: "Votre parcours : je pars de zéro" })).toBeVisible();
+  const firstStage = page.getByRole("listitem").filter({ has: page.getByRole("heading", { name: /Créer votre premier mariage/ }) });
+  await expect(firstStage).toContainText("Ensuite");
   await expect(page.getByRole("region", { name: "Autres tutoriels" })).toContainText("Importer ses évènements existants");
   await expectNoAxeViolation(page);
 
@@ -51,7 +52,10 @@ test("AIDE-10 — parcours des tutoriels, un seul en cours à la fois", async ({
     await sql2.end();
   }
   await page.reload();
-  await expect(page.getByText("En cours : Préparer le programme du jour J (étape 2)")).toBeVisible();
+  // Lot 74f (maquette 28) : un tutoriel commencé se reprend en tête de la page, à son étape.
+  const current = page.getByRole("region", { name: "En cours" });
+  await expect(current).toContainText("Préparer le programme du jour J");
+  await expect(current).toContainText("Étape 2");
   await page.getByRole("link", { name: /Saisir son catalogue de prestations/ }).click();
   const conflict = page.getByRole("alertdialog", { name: "Un tutoriel est déjà en cours" });
   await expect(conflict).toBeVisible();
@@ -63,5 +67,5 @@ test("AIDE-10 — parcours des tutoriels, un seul en cours à la fois", async ({
   await expect(page.getByRole("heading", { level: 1, name: "Saisir son catalogue de prestations" })).toBeVisible();
 
   await page.goto("/tutoriels");
-  await expect(page.getByText(/En cours :/)).toHaveCount(0);
+  await expect(page.getByRole("region", { name: "En cours" })).toHaveCount(0);
 });

@@ -1590,10 +1590,7 @@
   },
   "Aide": {
     "title": "Help",
-    "search": "Search help articles",
-    "noResults": "No article matches your search.",
     "link": "Help",
-    "tutorialsCount": "Tutorials done: {completed} of {total}",
     "tutorialsLink": "Tutorials"
   },
   "EventVendorsImport": {
@@ -4707,18 +4704,6 @@
         "description": "On a sample wedding taken over from a spreadsheet, complete what the files did not say: guests, tasks."
       }
     },
-    "intro": "Every screen has its own page: what it is for, its guided tour and frequently asked questions. On the screen itself, “? › Replay the tour” starts the tour again.",
-    "progressTitle": "Tutorials done: {completed} of {total}",
-    "nextSuggestion": "Suggested next step: {title} ({minutes} minutes).",
-    "continue": "Continue getting started",
-    "allDone": "Well done, you have followed every tutorial. They stay available here to review.",
-    "autoTours": "Start the guided tour and suggest tutorials the first time a screen opens",
-    "tutorialKind": "Tutorial · {minutes} min",
-    "stateInProgress": "In progress · step {step}",
-    "stateNew": "To discover",
-    "openTutorials": "See the tutorial path",
-    "stateSeen": "Tour done",
-    "results": "Screens found: {count}",
     "groups": {
       "events": "Events",
       "vendors": "Vendors",
