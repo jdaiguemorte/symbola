@@ -261,6 +261,8 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
     expect(await target`select enabled from hub.automations where organization_id = ${organizationId}`).toEqual([{ enabled: false }]);
     await migrateAll();
     expect(await hasColumn("hub", "automations", "paused_at")).toBe(true);
+    // Un automatisme coupé bloque l'annulation du lot 53 (0183) jouée par les tests suivants : on le retire.
+    await target`delete from hub.automations where organization_id = ${organizationId}`;
   });
 
   it("lot 74a (HUB-09 ; B3, B5, L74-D4) — 0244 s'annule et se rejoue sur une base vide ; « mariages en cours » n'accepte que oui ou non, le drapeau de TVA est faux d'office", async () => {
