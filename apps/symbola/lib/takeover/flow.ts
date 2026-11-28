@@ -32,7 +32,6 @@ import {
   getTakeover,
   listImportSummaries,
   listTakeovers,
-  markTakeoverStepImported,
   previewTakeover,
   saveImportMatching,
   setImportTargetEvent,

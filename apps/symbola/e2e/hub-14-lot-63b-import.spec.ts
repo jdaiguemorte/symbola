@@ -5,17 +5,16 @@
 // (fichier fabriqué aux noms inventés). En taille ordinateur et en 375 px (projets Playwright),
 // axe-core sur chaque écran.
 import { randomUUID } from "node:crypto";
-import path from "node:path";
 import AxeBuilder from "./axe";
 import { createUser } from "@symbola/auth";
 import { createAppConnection } from "@symbola/db/client";
 import { vendors, vendorTypeLinks, vendorTypes } from "@symbola/db/schema/vendors";
 import { withOrganization } from "@symbola/db/with-organization";
 import { expect, test, type Page } from "@playwright/test";
-import { addEventVendorSlot, addVendorCandidate, createProspect, createProspectSource } from "../modules/events/service";
 import { readyOrganization, signIn } from "./helpers";
 
-const PROGRAM_PDF = path.resolve(process.cwd(), "../../packages/testing/import-corpus/files/logiciel-tiers/programme-jour-j.pdf");
+// Lot 71e : le programme lu depuis le PDF de l'ancien logiciel passe par l'assistant commun
+// (e2e/lot-71e-retenus-programme.spec.ts).
 
 async function expectNoAxeViolation(page: Page) {
   const result = await new AxeBuilder({ page }).analyze();
@@ -135,40 +134,4 @@ test("HUB-14 — import de prestataires : chargement visible, colonnes avec aper
   await expectNoAxeViolation(page);
   await page.getByRole("link", { name: /^Retirer le filtre « Import du/ }).click();
   await expect(page.getByText("4 fiches, par nom")).toBeVisible();
-});
-
-test("CHR-08 — programme du jour J importé depuis le PDF de l'ancien logiciel : intervenants rattachés, ligne cachée des mariés importée cachée", async ({ page }) => {
-  test.setTimeout(180_000);
-  const { organizationId, userId, email } = await atelier("planner-63b-programme");
-  const source = await createProspectSource(organizationId, "Salon");
-  const event = await createProspect({ organizationId, createdByUserId: userId, prospectSourceId: source.id, clients: [{ firstName: "Clémence", lastName: null }], eventDate: "2027-06-12" });
-  const dj = await addEventVendorSlot(organizationId, event.id, "DJ");
-  await addVendorCandidate({ organizationId, eventId: event.id, vendorSlotId: dj.id, vendorName: "Ondes Sonores" });
-  await signIn(page, email, /\/$/);
-
-  await page.goto(`/events/${event.id}?onglet=programme`);
-  await page.getByRole("link", { name: "Importer", exact: true }).click();
-  // Lot 65g (CHR-08) : l'import s'ouvre en tête de la carte, une fois la page rechargée.
-  await expect(page).toHaveURL(/importer=1/);
-  await page.getByLabel("Fichier CSV, XLSX ou PDF").setInputFiles(PROGRAM_PDF);
-  await page.getByRole("button", { name: "Voir avant d'importer" }).click();
-
-  await expect(page.getByRole("heading", { name: "12 séquences lues" })).toBeVisible({ timeout: 30_000 });
-  await expect(page.getByText("Programme lu depuis le PDF de votre ancien logiciel")).toBeVisible();
-  // L'intervenant « DJ » de l'en-tête est rattaché au poste de l'évènement qui porte son nom.
-  await expect(page.getByLabel("Prestataire de l'évènement pour « DJ »")).toHaveValue(dj.id);
-  // Q44 : la ligne « Caché des mariés » s'importe cachée d'eux, pas écartée.
-  await expect(page.getByText(/est « Cachée des mariés » dans le fichier : elle s'importe cachée d'eux/)).toBeVisible();
-  await expect(page.getByRole("checkbox", { name: "Écarter la ligne 10" })).not.toBeChecked();
-  await expectNoAxeViolation(page);
-
-  await page.getByRole("button", { name: "Importer 12 séquences" }).click();
-  await expect(page.getByText("12 séquences importées, 2 temps forts créés.")).toBeVisible({ timeout: 30_000 });
-  // Dans l'éditeur, la séquence porte la pastille et la case cochée.
-  await page.reload();
-  const surprise = page.getByRole("row").filter({ hasText: "Animation surprise" });
-  await expect(surprise).toContainText("Cachée des mariés");
-  await surprise.getByRole("button", { name: /Modifier/ }).click();
-  await expect(page.getByRole("checkbox", { name: /Cachée des mariés/ })).toBeChecked();
-  await expectNoAxeViolation(page);
 });

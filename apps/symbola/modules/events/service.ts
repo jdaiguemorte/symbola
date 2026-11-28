@@ -268,7 +268,7 @@ import { buildDayReport, saveDayReport } from "./day-report";
 import { insertLeadIfNone, deleteEventTeamMember, deleteMemberFromAllTeams, findEventLeads, findEventTeam, findTeamEventIds, findTeamRole, seesAllEvents, upsertEventTeamMember, type EventViewer } from "./team";
 import { importProgram } from "./program-import";
 import { previewImportedProgram, writeImportedProgram, type ImportedProgramPreview } from "./program-pdf-import";
-import { completeProgramItem, missingEndItems, programAwaitsEnds, ProgramGapInvalidError } from "./program-gaps";
+import { programAwaitsEnds } from "./program-gaps";
 export { completeProgramItem, missingEndItems, programAwaitsEnds, ProgramGapInvalidError } from "./program-gaps";
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;

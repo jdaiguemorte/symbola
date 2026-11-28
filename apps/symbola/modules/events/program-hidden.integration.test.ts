@@ -9,6 +9,8 @@ import { createOrganization } from "@symbola/auth";
 import { createAppConnection } from "@symbola/db/client";
 import type { EventLinkRights } from "@symbola/contracts";
 import { readImportCorpusFile } from "@symbola/testing/import-corpus";
+import { DEFAULT_PDF_LIMITS, parseProgramExport, readPdfText } from "@symbola/import-engine";
+import { planningSoftwareProfile } from "@symbola/starter-templates";
 import {
   addEventVendorSlot,
   addProgramItem,
@@ -20,11 +22,12 @@ import {
   getEventProgramPublication,
   getLinkEventView,
   getVendorLinkView,
-  importEventProgram,
   programForVariant,
   publishEventProgram,
   ProgramItemNotFoundError,
   updateProgramItem,
+  previewEventProgramDocument,
+  writeEventProgramDocument,
 } from "./service";
 
 const plannerId = randomUUID();
@@ -100,8 +103,15 @@ describe("CHR-08 — Séquence cachée des mariés (lot 63b, Q44)", () => {
   it("l'import du PDF reprend « Caché des mariés » : la séquence s'importe cachée, pas écartée", async () => {
     const organizationId = await organization();
     const w = await wedding(organizationId);
-    const result = await importEventProgram({ organizationId, eventId: w.eventId, bytes: readImportCorpusFile("logiciel-tiers/programme-jour-j.pdf"), apply: { skipLines: [] } });
-    expect(result).toMatchObject({ status: "applied", items: 12 });
+    // Lot 71e : le PDF passe par l'assistant commun ; le module reçoit ce qui a été lu.
+    const profile = planningSoftwareProfile();
+    const read = await readPdfText(readImportCorpusFile("logiciel-tiers/programme-jour-j.pdf"), { ...DEFAULT_PDF_LIMITS, maxPages: profile.programExport.maxPages });
+    if (!read.ok) throw new Error(read.reason);
+    const parsed = parseProgramExport(read.pages, profile.programExport, { weekdays: profile.eventSheet.weekdays, months: profile.eventSheet.months });
+    if (!parsed.ok) throw new Error(parsed.reason);
+    const preview = await previewEventProgramDocument({ organizationId, eventId: w.eventId, program: parsed.program, speakerSlots: {}, catalogVendors: [] });
+    const result = await writeEventProgramDocument({ organizationId, eventId: w.eventId, rows: preview.rows });
+    expect(result).toMatchObject({ count: 12 });
     const imported = (await getEventProgram(organizationId, w.eventId)).items.filter((item) => item.label === "Animation surprise");
     expect(imported.map((item) => item.hiddenFromClients)).toEqual([true, true]);
   });
