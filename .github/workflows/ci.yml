@@ -356,14 +356,26 @@ jobs:
           E2E_SERVEUR_PARTAGE: "1"
           E2E_SOCLE: "1"
         run: pnpm --filter @symbola/app test:e2e --project=desktop --project=mobile-375
-      - name: Parcours Playwright (mesures du temps de réponse, NFR-01 et NFR-02)
+      # Les mesures des parcours P0 d'abord : les mesures des paquets créent chacune des centaines de
+      # lignes (500 tâches, 200 évènements, 510 fiches) dont le serveur traite ensuite les événements ;
+      # jouées avant, elles alourdissaient les mesures P0 (1er essai du lot 76 : coche à 97 ms au lieu
+      # de 17 à 25 sur main).
+      - name: Parcours Playwright (mesures des parcours P0, NFR-01 et NFR-02)
         if: matrix.mode == 'mesures'
         timeout-minutes: ${{ matrix.limite }}
         env:
           E2E_SERVEUR_PARTAGE: "1"
           E2E_MESURES: "1"
           E2E_MESURES_FICHIER: ${{ github.workspace }}/mesures.jsonl
-        run: pnpm --filter @symbola/app test:e2e ${{ matrix.projets }} --global-timeout=$(( (${{ matrix.limite }} - 2) * 60000 ))
+        run: pnpm --filter @symbola/app test:e2e ${{ matrix.projets }} nfr-01-02-mesures.spec.ts --global-timeout=$(( (${{ matrix.limite }} - 2) * 60000 ))
+      - name: Parcours Playwright (mesures des paquets, NFR-02)
+        if: (success() || failure()) && matrix.mode == 'mesures'
+        timeout-minutes: ${{ matrix.limite }}
+        env:
+          E2E_SERVEUR_PARTAGE: "1"
+          E2E_MESURES: "1"
+          E2E_MESURES_FICHIER: ${{ github.workspace }}/mesures.jsonl
+        run: pnpm --filter @symbola/app test:e2e ${{ matrix.projets }} --grep-invert=nfr-01-02-mesures --global-timeout=$(( (${{ matrix.limite }} - 2) * 60000 ))
       - name: Mesures — tableau des valeurs, seuils et marges (résumé du job)
         if: always() && matrix.mode == 'mesures'
         run: node tools/ci-pipeline/tableau-mesures.mjs "$GITHUB_WORKSPACE/mesures.jsonl" | tee -a "$GITHUB_STEP_SUMMARY"
