@@ -10,10 +10,10 @@
 //   500 ms.
 // Chromium seulement (bridage par le protocole des outils de développement), une fois par version.
 // Les chiffres vont au résumé du job de CI et au rapport des parcours.
-import { appendFileSync } from "node:fs";
 import { expect, test, type Browser, type BrowserContext, type Page } from "@playwright/test";
 import { atelier40c, type Atelier40c } from "./atelier-40c";
 import { signIn } from "./helpers";
+import { reportMeasure } from "./mesure";
 
 const LCP_LIMIT_MS = 2500;
 const GESTURE_LIMIT_MS = 200;
@@ -107,10 +107,10 @@ test.afterAll(({}, testInfo) => {
   if (!measured(testInfo) || lines.length === 0) return;
   const report = ["### Mesures du lot 40c (NFR-01, NFR-02, UX-15, HUB-12)", "", "| Mesure | Valeur | Seuil |", "| --- | ---: | ---: |", ...lines, ""].join("\n");
   console.log(report);
-  if (process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY, `${report}\n`);
+  // Lot 76 : le résumé du job reçoit le tableau de toutes les mesures, avec leur marge (e2e/mesure.ts).
 });
 
-test("NFR-01 — chaque écran des parcours P0 s'affiche en moins de 2,5 s sur un téléphone de milieu de gamme en 4G, sans erreur", async ({ browser }) => {
+test("NFR-01 — chaque écran des parcours P0 s'affiche en moins de 2,5 s sur un téléphone de milieu de gamme en 4G, sans erreur", async ({ browser }, testInfo) => {
   test.setTimeout(240_000);
   const screens: [string, string, typeof session][] = [
     ["Aujourd'hui", "/", session],
@@ -127,13 +127,14 @@ test("NFR-01 — chaque écran des parcours P0 s'affiche en moins de 2,5 s sur u
   for (const [name, url, storageState] of screens) {
     const { lcp, errors } = await coldLoad(browser, url, storageState);
     lines.push(`| Affichage : ${name} | ${lcp} ms | ${LCP_LIMIT_MS} ms |`);
+    reportMeasure(testInfo, { mesure: `NFR-01 — affichage à froid en 4G : ${name}`, valeur: lcp, seuil: LCP_LIMIT_MS });
     if (lcp === 0 || lcp > LCP_LIMIT_MS) problems.push(`${name} : ${lcp} ms`);
     for (const error of errors) problems.push(`${name} : erreur dans la page (${error})`);
   }
   expect(problems).toEqual([]);
 });
 
-test("NFR-01, UX-15 — un geste optimiste réagit en moins de 100 ms ; ⌘K ouvre la palette en moins de 200 ms", async ({ browser }) => {
+test("NFR-01, UX-15 — un geste optimiste réagit en moins de 100 ms ; ⌘K ouvre la palette en moins de 200 ms", async ({ browser }, testInfo) => {
   test.setTimeout(120_000);
   const context = await browser.newContext({ storageState: session, locale: "fr-FR" });
   try {
@@ -161,6 +162,7 @@ test("NFR-01, UX-15 — un geste optimiste réagit en moins de 100 ms ; ⌘K ouv
       return reacted;
     });
     lines.push(`| Coche d'une tâche (réaction visible) | ${Math.round(check)} ms | ${OPTIMISTIC_LIMIT_MS} ms |`);
+    reportMeasure(testInfo, { mesure: "UX-15 — coche d'une tâche (réaction visible)", valeur: check, seuil: OPTIMISTIC_LIMIT_MS });
     expect(check).toBeGreaterThanOrEqual(0);
     expect(check).toBeLessThan(OPTIMISTIC_LIMIT_MS);
 
@@ -175,13 +177,14 @@ test("NFR-01, UX-15 — un geste optimiste réagit en moins de 100 ms ; ⌘K ouv
       return focused;
     });
     lines.push(`| ⌘K : la palette prête à saisir | ${Math.round(palette)} ms | ${GESTURE_LIMIT_MS} ms |`);
+    reportMeasure(testInfo, { mesure: "NFR-01 — ⌘K : la palette prête à saisir", valeur: palette, seuil: GESTURE_LIMIT_MS });
     expect(palette).toBeLessThan(GESTURE_LIMIT_MS);
   } finally {
     await context.close();
   }
 });
 
-test("NFR-02, HUB-12 — 95 % des requêtes des parcours P0 en moins de 300 ms ; la recherche en moins de 500 ms", async ({ browser }) => {
+test("NFR-02, HUB-12 — 95 % des requêtes des parcours P0 en moins de 300 ms ; la recherche en moins de 500 ms", async ({ browser }, testInfo) => {
   test.setTimeout(300_000);
   const context = await browser.newContext({ storageState: session, locale: "fr-FR" });
   const coupleContext = await browser.newContext({ storageState: coupleSession, locale: "fr-FR" });
@@ -228,6 +231,8 @@ test("NFR-02, HUB-12 — 95 % des requêtes des parcours P0 en moins de 300 ms ;
     const searchP95 = median(searchSeries);
     lines.push(`| Serveur : pages des parcours P0, médiane des 95e centiles de ${SERIES} séries (${pageCount} requêtes chacune : ${pageSeries.join(", ")} ms) | ${pagesP95} ms | ${SERVER_P95_LIMIT_MS} ms |`);
     lines.push(`| Serveur : recherche, médiane des 95e centiles de ${SERIES} séries (${searchCount} requêtes chacune : ${searchSeries.join(", ")} ms) | ${searchP95} ms | ${SEARCH_P95_LIMIT_MS} ms |`);
+    reportMeasure(testInfo, { mesure: `NFR-02 — serveur : pages des parcours P0 (médiane des 95e centiles de ${SERIES} séries)`, valeur: pagesP95, seuil: SERVER_P95_LIMIT_MS, detail: `séries : ${pageSeries.join(", ")} ms, ${pageCount} requêtes chacune` });
+    reportMeasure(testInfo, { mesure: `HUB-12 — serveur : recherche (médiane des 95e centiles de ${SERIES} séries)`, valeur: searchP95, seuil: SEARCH_P95_LIMIT_MS, detail: `séries : ${searchSeries.join(", ")} ms, ${searchCount} requêtes chacune` });
     expect(pagesP95).toBeLessThan(SERVER_P95_LIMIT_MS);
     expect(searchP95).toBeLessThan(SEARCH_P95_LIMIT_MS);
   } finally {
