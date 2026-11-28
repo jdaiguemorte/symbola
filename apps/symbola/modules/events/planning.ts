@@ -157,7 +157,8 @@ export async function listLatePlannerTasks(organizationId: string, today: string
       .select({ task: eventTasks, isDemo: events.isDemo, eventDate: events.eventDate })
       .from(eventTasks)
       .innerJoin(events, eq(events.id, eventTasks.eventId))
-      .where(and(isNull(eventTasks.doneAt), lt(eventTasks.dueDate, today), eq(eventTasks.responsible, "planner"), inArray(events.status, [...IN_PROGRESS_STATUSES]))),
+      // Lot 74b (B7) : une tâche « à dater » n'est jamais en retard (ni radar, ni rappel).
+      .where(and(isNull(eventTasks.doneAt), eq(eventTasks.dueDateKnown, true), lt(eventTasks.dueDate, today), eq(eventTasks.responsible, "planner"), inArray(events.status, [...IN_PROGRESS_STATUSES]))),
   );
   return rows.map((row) => ({ taskId: row.task.id, eventId: row.task.eventId!, label: row.task.label, dueDate: row.task.dueDate, isMilestone: row.task.isMilestone, isDemo: row.isDemo, eventDate: row.eventDate }));
 }
@@ -228,7 +229,8 @@ export async function getPlanningHealth(organizationId: string, eventId: string,
       tx
         .select({ id: eventTasks.id, label: eventTasks.label, dueDate: eventTasks.dueDate, doneAt: eventTasks.doneAt, isMilestone: eventTasks.isMilestone })
         .from(eventTasks)
-        .where(and(eq(eventTasks.eventId, eventId), eq(eventTasks.responsible, "planner"))),
+        // Lot 74b (B7) : une tâche « à dater » n'entre pas dans la santé du planning.
+        .where(and(eq(eventTasks.eventId, eventId), eq(eventTasks.responsible, "planner"), eq(eventTasks.dueDateKnown, true))),
     ),
   ]);
   return planningHealth(

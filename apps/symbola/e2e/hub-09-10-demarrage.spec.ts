@@ -7,6 +7,7 @@ import { createOrganization, createUser } from "@symbola/auth";
 import { createAppConnection } from "@symbola/db/client";
 import { expect, test, type Page } from "@playwright/test";
 import { signIn } from "./helpers";
+import { submitNewEvent } from "./new-event";
 
 async function expectNoAxeViolation(page: Page) {
   const result = await new AxeBuilder({ page }).analyze();
@@ -140,7 +141,7 @@ test("HUB-10 / PAR-01 — l'exemple est étiqueté « Exemple » et ne contacte 
   await page.getByRole("radio", { name: /^Signé, en préparation/ }).check();
   await page.getByLabel(/^Nom de l'évènement/).fill("Chloé & Hugo");
   await page.getByLabel(/^Date/).fill("2027-09-18");
-  await page.getByRole("button", { name: "Créer l'évènement" }).click();
+  await submitNewEvent(page);
   await expect(page).toHaveURL(/\/events\/[0-9a-f-]{36}\?exemple=proposer$/);
   const eventUrl = page.url().replace(/\?.*$/, "");
   await expect(page.getByRole("heading", { name: "Votre premier évènement est créé" })).toBeVisible();

@@ -121,7 +121,10 @@ export async function EmptyHome({ takeoverFirst }: { takeoverFirst: boolean }) {
 }
 
 function actorText(item: RankedItem, t: TodayTranslator): string {
-  return item.actor.kind === "vendor" ? t("actor.vendor", { name: item.actor.name }) : t(`actor.${item.actor.kind}`);
+  if (item.actor.kind === "vendor") return t("actor.vendor", { name: item.actor.name });
+  // Lot 74b (page 23) : une tâche des mariés, avant et après l'ouverture de leur espace.
+  if (item.actor.kind === "client" && item.actor.portalOpen !== undefined) return t(item.actor.portalOpen ? "actor.clientWaiting" : "actor.clientWith");
+  return t(`actor.${item.actor.kind}`);
 }
 
 // Une ligne qui n'est pas une tâche (relance, paiement, décision, alerte du radar…), dans l'anatomie de la

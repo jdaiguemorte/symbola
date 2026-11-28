@@ -88,7 +88,7 @@ export async function EventCockpit({
 
   // Santé : planning, budget engagé sur l'enveloppe, décisions du client en attente.
   const doneCount = tasks.filter((task) => task.done).length;
-  const overdueCount = tasks.filter((task) => !task.done && task.dueDate < today).length;
+  const overdueCount = tasks.filter((task) => !task.done && task.dueDateKnown !== false && task.dueDate < today).length;
   const budget = budgetAvailable ? await listBudgetLines(organizationId, eventId) : null;
   const pending = (await listEventDecisions(organizationId, eventId))
     .filter((decision) => decision.status === "pending")

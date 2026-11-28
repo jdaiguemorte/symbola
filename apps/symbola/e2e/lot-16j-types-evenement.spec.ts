@@ -12,6 +12,7 @@ import { createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
 import { createProspectSource } from "../modules/events/service";
 import { readyOrganization, signIn as signInByLink } from "./helpers";
+import { submitNewEvent } from "./new-event";
 
 async function login(page: Page, email: string, _password: string) {
   // Lot 33 : lien magique et fournisseur d'identité (e2e/helpers.ts).
@@ -40,7 +41,7 @@ async function createEvent(page: Page, type: string, expectedLabel: string): Pro
   await page.getByRole("radio", { name: /^Une demande en cours/ }).check();
   await page.getByLabel(/^Nom de l'évènement/).fill("Inès");
   await page.getByLabel(expectedLabel).fill("Inès");
-  await page.getByRole("button", { name: "Créer l'évènement" }).click();
+  await submitNewEvent(page);
   await expect(page).toHaveURL(/\/events\/[0-9a-f-]{36}$/);
   return new URL(page.url()).pathname;
 }

@@ -43,7 +43,8 @@ appartient à `julien` : `sudo git pull` se lance **depuis ta session
 - L'image `symbola` est construite et publiée par la CI
   (`.github/workflows/ci.yml`, job `publish-image`) sur
   `ghcr.io/<owner>/<repo>` à chaque fusion sur `main`, taguée par le SHA
-  du commit et `latest`. Déployer = changer `APP_IMAGE_TAG` puis tirer
+  du commit et `latest`, seulement si tous les contrôles et la suite
+  complète des parcours sont verts (ADR 0124). Déployer = changer `APP_IMAGE_TAG` puis tirer
   l'image. Revenir en arrière = remettre l'ancien tag.
 
 ## Domaine et DNS
@@ -483,7 +484,17 @@ peut rester : il ne change que des statuts.
 ## Mise à jour (nouvelle version) : une commande (lot 40a, ADR 0075)
 
 1. La CI publie l'image de chaque commit fusionné sur `main`, taguée par son
-   SHA complet (40 caractères) : le noter.
+   SHA complet (40 caractères) : le noter. **Ne déployer qu'un commit dont la
+   suite complète est verte** (lot 76, ADR 0124) : sur GitHub, onglet Actions,
+   l'exécution « CI » du commit sur `main` (événement `push`), verte en
+   entier : les quatre parts sous Chromium, les scénarios sous Firefox et
+   WebKit, les mesures du temps de réponse, et « Publier l'image ». Une PR
+   n'a joué que la voie rapide (le socle et ses parcours) : sa CI verte ne
+   suffit pas. L'image n'est publiée que si toute la suite est verte, et
+   `deploy.sh` refuse un commit sans image (« image introuvable ») : ne jamais
+   publier une image à la main. Avant le premier déploiement réel, Julien
+   tranche s'il exige en plus la suite complète avant chaque fusion (ADR 0124,
+   § Condition).
 2. Sur le VPS, depuis ta session `julien` (sudo, pas `sudo -i`) :
    ```bash
    sudo /opt/symbola/infra/server/deploy.sh staging <sha>
