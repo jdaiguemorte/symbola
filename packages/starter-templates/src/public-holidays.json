@@ -1,0 +1,8 @@
+{
+  "version": 1,
+  "_comment": "Lot 74b (B7) : jours fériés de France métropolitaine, non comptés comme jours ouvrés quand Symbola redate les tâches déjà passées d'un mariage créé. Dates fixes (MM-JJ) et écarts au dimanche de Pâques : lundi de Pâques (+1), Ascension (+39), lundi de Pentecôte (+50).",
+  "fr": {
+    "fixed": ["01-01", "05-01", "05-08", "07-14", "08-15", "11-01", "11-11", "12-25"],
+    "easterOffsets": [1, 39, 50]
+  }
+}

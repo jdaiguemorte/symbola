@@ -7,6 +7,10 @@ import { ensureEventTypes } from "@/lib/events/event-types";
 import { clientFieldLabelsByAudience } from "@/lib/vocabulary";
 import { isEventsModuleEnabled } from "../module-access";
 import { NewEventForm } from "./new-event-form";
+import { parisToday } from "@symbola/i18n";
+import { getMessages } from "next-intl/server";
+import type { PastDueMessages } from "./past-due-messages";
+import { listTaskTemplates, pastDueHolidays } from "@/modules/events/service";
 
 // L12-HUB-13 (lot 12) : depuis un clic sur une date de l'agenda, la date est pré-remplie.
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -37,6 +41,17 @@ export default async function NewEventPage({ searchParams }: { searchParams: Pro
   // Lot 16 (ADR 0045) : le type de l'événement, et les libellés des clients qui le suivent.
   const eventTypes = await ensureEventTypes(auth.user.organizationId, locale);
   const contact = query.contact && UUID.test(query.contact) ? await getContact(auth.user.organizationId, query.contact) : null;
+  // Lot 74b (B7) : les modèles de rétroplanning, dans l'ordre de leurs tâches (écart, puis position), le jour
+  // à Paris et les jours fériés de la période de répartition : la fenêtre compte les échéances déjà passées.
+  const today = parisToday();
+  const templates = (await listTaskTemplates(auth.user.organizationId)).map((template) => ({
+    id: template.id,
+    name: template.name,
+    eventTypeId: template.eventTypeId,
+    items: [...template.items]
+      .sort((a, b) => a.offsetDays - b.offsetDays || a.position - b.position)
+      .map((item) => ({ id: item.id, label: item.label, offsetDays: item.offsetDays, responsible: item.responsible })),
+  }));
   const initialContact = contact && !contact.isDemo && !contact.anonymized ? { id: contact.id, kind: contact.kind, displayName: contact.displayName, email: contact.email, city: contact.city } : null;
 
   return (
@@ -49,6 +64,10 @@ export default async function NewEventPage({ searchParams }: { searchParams: Pro
         initialContact={initialContact}
         initialDate={initialDate}
         initialStanding={initialStanding}
+        templates={templates}
+        today={today}
+        holidays={pastDueHolidays(today)}
+        pastDueMessages={(await getMessages()).PastDue as PastDueMessages}
       />
     </main>
   );

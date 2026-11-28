@@ -896,3 +896,12 @@ describe("PRE-05 — Les natures de pièces de départ (lot 73a)", () => {
     for (const kind of starterVendorDocumentKinds("fr")) expect(kind.shortLabel.length).toBeLessThanOrEqual(40);
   });
 });
+
+describe("CHR-01 — Jours fériés, fichier de données (lot 74b, B7)", () => {
+  it("onze jours fériés de France métropolitaine : huit à date fixe, trois liés à Pâques", async () => {
+    const { starterPublicHolidays } = await import("./index");
+    const holidays = starterPublicHolidays();
+    expect(holidays.fixed).toEqual(["01-01", "05-01", "05-08", "07-14", "08-15", "11-01", "11-11", "12-25"]);
+    expect(holidays.easterOffsets).toEqual([1, 39, 50]);
+  });
+});
