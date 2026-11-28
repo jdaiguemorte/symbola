@@ -346,28 +346,31 @@ jobs:
         run: |
           nohup sh -c "$E2E_SERVER_COMMAND" > /dev/null 2>&1 &
           timeout 90 bash -c 'until curl -sf -o /dev/null http://localhost:3000/login; do sleep 1; done'
-      - name: Mesures — réchauffer le serveur par le socle
+      - name: Mesures — réchauffer le serveur par le socle (375 px)
         if: matrix.mode == 'mesures'
         timeout-minutes: 15
         # Un échec du réchauffement n'empêche pas les mesures : le socle est joué, et jugé, par la
-        # suite complète.
+        # voie rapide et la suite complète.
         continue-on-error: true
         env:
           E2E_SERVEUR_PARTAGE: "1"
           E2E_SOCLE: "1"
-        run: pnpm --filter @symbola/app test:e2e --project=desktop --project=mobile-375
+        run: pnpm --filter @symbola/app test:e2e --project=mobile-375
       # Les mesures des parcours P0 d'abord : les mesures des paquets créent chacune des centaines de
       # lignes (500 tâches, 200 évènements, 510 fiches) dont le serveur traite ensuite les événements ;
       # jouées avant, elles alourdissaient les mesures P0 (1er essai du lot 76 : coche à 97 ms au lieu
-      # de 17 à 25 sur main).
-      - name: Parcours Playwright (mesures des parcours P0, NFR-01 et NFR-02)
+      # de 17 à 25 sur main). Elles se jouent dans la même invocation que le socle en ordinateur, dont
+      # les fichiers rangés avant « nfr- » passent d'abord : le navigateur est chaud lui aussi, comme
+      # au milieu de la suite (3e essai : coche à 101 ms avec un navigateur neuf, 20 à la reprise).
+      - name: Parcours Playwright (socle en ordinateur et mesures des parcours P0, NFR-01 et NFR-02)
         if: matrix.mode == 'mesures'
         timeout-minutes: ${{ matrix.limite }}
         env:
           E2E_SERVEUR_PARTAGE: "1"
-          E2E_MESURES: "1"
+          E2E_SOCLE: "1"
+          E2E_FICHIERS: nfr-01-02-mesures.spec.ts
           E2E_MESURES_FICHIER: ${{ github.workspace }}/mesures.jsonl
-        run: pnpm --filter @symbola/app test:e2e ${{ matrix.projets }} nfr-01-02-mesures.spec.ts --global-timeout=$(( (${{ matrix.limite }} - 2) * 60000 ))
+        run: pnpm --filter @symbola/app test:e2e ${{ matrix.projets }} --global-timeout=$(( (${{ matrix.limite }} - 2) * 60000 ))
       - name: Parcours Playwright (mesures des paquets, NFR-02)
         if: (success() || failure()) && matrix.mode == 'mesures'
         timeout-minutes: ${{ matrix.limite }}
