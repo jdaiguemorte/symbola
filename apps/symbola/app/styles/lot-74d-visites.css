@@ -27,6 +27,13 @@
       @apply sr-only;
     }
   }
+  /* Liste des évènements sur téléphone (lot 72f) : le « ⋯ » de l'en-tête est posé en haut à droite, par-dessus
+     le premier bloc ; la ligne lui laisse sa place, comme les filtres. */
+  @media (max-width: 639px) {
+    .events-list-screen > .tour-line {
+      @apply mr-12;
+    }
+  }
 
   /* La bulle : « Visite de l'écran · 2 sur 3 » et la croix en tête, des points d'avancement. */
   .tour-head {

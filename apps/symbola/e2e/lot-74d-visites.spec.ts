@@ -163,7 +163,7 @@ test.describe("L74-74d — Les visites proposées", () => {
     // La fermeture est enregistrée : rechargée, la ligne ne revient pas pour elle.
     await expect(async () => {
       await page.reload();
-      await expect(page.getByRole("row", { name: /Léa/ })).toBeVisible();
+      await expect(page.getByRole("link", { name: "Léa & Maxime" }).first()).toBeVisible();
       await expect(line(page)).toHaveCount(0);
     }).toPass();
     // La collègue, dans son propre navigateur.
@@ -172,7 +172,7 @@ test.describe("L74-74d — Les visites proposées", () => {
       const colleague = await other.newPage();
       await signIn(colleague, setup.colleagueEmail, "/");
       await colleague.goto("/events");
-      await expect(colleague.getByRole("row", { name: /Léa/ })).toBeVisible();
+      await expect(colleague.getByRole("link", { name: "Léa & Maxime" }).first()).toBeVisible();
       await expect(line(colleague)).toBeVisible();
     } finally {
       await other.close();
