@@ -7,7 +7,8 @@ import { getLocale } from "next-intl/server";
 import type { TourStep } from "@symbola/ui";
 import { starterTour } from "@symbola/starter-templates";
 import { appDatabase } from "@symbola/db/client";
-import { getHelpProgress } from "@/modules/hub/service";
+import { getHelpProgress, getSetupState } from "@/modules/hub/service";
+import { getAuthContext } from "@/lib/auth-context";
 import { AUTO_TOURS_COOKIE } from "./preferences";
 import type { TourKey } from "./tours";
 
@@ -26,9 +27,13 @@ export async function loadPageTour(userId: string, tourKey: TourKey, resume?: st
   const asked = resume === "reprendre" || resume === "revoir";
   // Préférence « Lancer la visite à la première ouverture d'un écran » (centre d'aide).
   const autoTours = (await cookies()).get(AUTO_TOURS_COOKIE)?.value !== "0";
+  // Lot 74a (HUB-09 ; C-68, critère 1) : aucune visite ne s'ouvre seule avant la fin de l'assistant de
+  // démarrage ; demandée, elle s'ouvre toujours.
+  const auth = await getAuthContext();
+  const setupDone = auth.status !== "authenticated" || !auth.user.organizationId || (await getSetupState(db, auth.user.organizationId)).completed;
   return {
     tourKey,
     steps,
-    initialOpen: (!entry && autoTours) || asked,
+    initialOpen: (!entry && autoTours && setupDone) || asked,
   };
 }

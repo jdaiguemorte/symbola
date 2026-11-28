@@ -1,9 +1,11 @@
 "use server";
 
-// Lot 33b (HUB-09, PAR-01 ; D9, D11) — questionnaire d'accueil : cinq questions, une par écran.
-// Chaque réponse s'enregistre et ouvre la question suivante ; « Passer » garde la réponse déjà
-// donnée, sinon la valeur proposée (packages/starter-templates, onboarding.json). Le kit de départ
-// du métier se charge dès les types d'évènements choisis. Réservé à la Propriétaire.
+// Lot 33b (HUB-09, PAR-01 ; D9, D11), refait au lot 74a (HUB-09 ; C-68, D6, M13, B1 à B6 ; page 22 des
+// maquettes du lot 68) — l'assistant de démarrage : cinq questions au plus, une par écran, un seul
+// « Continuer ». Chaque réponse s'enregistre aussitôt (rien n'est perdu au rechargement, sur un autre appareil
+// ni à la fermeture du navigateur) et ouvre la question suivante ; sans réponse, la question le dit dessous.
+// Seuls le métier et les types sont proposés d'avance ; un fait (mariages en cours, outils, TVA) ne l'est
+// jamais. Réservé à la titulaire : l'organisation et le rôle viennent de la session, jamais du formulaire.
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
@@ -11,16 +13,15 @@ import { parisToday } from "@symbola/i18n";
 import { appDatabase } from "@symbola/db/client";
 import {
   isOnboardingTool,
-  isOnboardingVolume,
-  onboardingDefaultEventTypes,
   starterEventTypes,
   starterOnboarding,
   type StarterLocale,
   type StarterMetier,
 } from "@symbola/starter-templates";
-import { addStarterEventTypes, listEventTypes, updateDefaultVendorSlot } from "@/modules/events/service";
+import { addStarterEventTypes, updateDefaultVendorSlot } from "@/modules/events/service";
 import {
-  changeVatRegime,
+  answerOngoingEvents,
+  answerOnboardingVat,
   completeSetup,
   getOrganizationProfile,
   getSetupState,
@@ -31,11 +32,13 @@ import {
 } from "@/modules/hub/service";
 import { getPlannerAuthContext } from "@/lib/auth-context";
 import { loadStarterKit, loadStarterQuoteTemplates } from "@/lib/setup/starter-kit";
+import { isOngoingAnswer, isVatAnswer, nextQuestion, reachableQuestion, vatAnswerEffect } from "@/lib/onboarding/questionnaire";
 import { isValidId } from "@/app/events/module-access";
 import { ICON_KEYS } from "@/app/budget-line-icon";
 
 export type SetupFormState = { error?: string; success?: boolean };
-export type QuestionFormState = { error?: string };
+// fieldError : la question n'a pas de réponse (« Choisissez une réponse », sous la question) ; error : refus.
+export type QuestionFormState = { error?: string; fieldError?: string };
 
 const METIERS: Metier[] = ["wedding_planner", "event_agency", "autre"];
 
@@ -47,77 +50,73 @@ async function owner() {
 
 const text = (formData: FormData, name: string) => String(formData.get(name) ?? "").trim();
 
-// La question suivante, sans jamais faire reculer la progression (revenir à une question déjà
-// répondue puis la valider ne rouvre pas les suivantes).
+// La question suivante (celle des outils seulement après « Oui »), sans jamais faire reculer la progression
+// enregistrée ; après la dernière, « Votre espace est prêt ».
 async function goToNext(organizationId: string, step: number, locale: StarterLocale): Promise<never> {
   const db = appDatabase();
-  const state = await getSetupState(db, organizationId);
-  if (step >= SETUP_STEPS) {
+  const [state, profile] = await Promise.all([getSetupState(db, organizationId), getOrganizationProfile(db, organizationId)]);
+  const next = nextQuestion(step, profile.hasOngoingEvents);
+  if (next === null) {
     // Le régime de TVA est connu : le modèle de devis de départ peut se charger.
     await loadStarterQuoteTemplates(organizationId, locale);
     if (!state.completed) await completeSetup(db, organizationId);
     revalidatePath("/", "layout");
     redirect("/demarrage/pret");
   }
-  await saveSetupStep(db, organizationId, Math.max(state.step, step + 1));
+  if (!state.completed) await saveSetupStep(db, organizationId, Math.max(state.step, next));
   revalidatePath("/demarrage");
-  redirect(`/demarrage?etape=${step + 1}`);
+  redirect(`/demarrage?etape=${next}`);
 }
 
 export async function answerQuestionAction(_prev: QuestionFormState, formData: FormData): Promise<QuestionFormState> {
   const t = await getTranslations("Onboarding");
   const access = await owner();
   if (!access) return { error: t("ownerOnly") };
-  const step = Number(text(formData, "step"));
-  if (!Number.isInteger(step) || step < 1 || step > SETUP_STEPS) return { error: t("ownerOnly") };
-  const skip = text(formData, "intent") === "skip";
-  const locale = ((await getLocale()) === "en" ? "en" : "fr") as StarterLocale;
-  const defaults = starterOnboarding(locale).defaults;
   const db = appDatabase();
-  const profile = await getOrganizationProfile(db, access.organizationId);
-  const metier = (profile.metier ?? defaults.metier) as StarterMetier;
+  const [state, profile] = await Promise.all([getSetupState(db, access.organizationId), getOrganizationProfile(db, access.organizationId)]);
+  const step = Number(text(formData, "step"));
+  // Une question pas encore atteinte, ou celle des outils après « Non », se refuse comme une question inconnue.
+  const current = state.completed ? SETUP_STEPS : state.step;
+  if (!Number.isInteger(step) || step < 1 || step > SETUP_STEPS || reachableQuestion(step, current, profile.hasOngoingEvents) !== step) return { error: t("ownerOnly") };
+  const locale = ((await getLocale()) === "en" ? "en" : "fr") as StarterLocale;
+  const chooseAnswer = { fieldError: t("chooseAnswer") };
 
   switch (step) {
     case 1: {
-      const chosen = (skip ? (profile.metier ?? defaults.metier) : text(formData, "metier")) as Metier;
-      if (!METIERS.includes(chosen)) return { error: t("metierRequired") };
-      const metierPrecision = chosen === "autre" && !skip ? text(formData, "metierPrecision").slice(0, 120) || null : profile.metierPrecision;
+      const chosen = text(formData, "metier") as Metier;
+      if (!METIERS.includes(chosen)) return chooseAnswer;
+      const metierPrecision = chosen === "autre" ? text(formData, "metierPrecision").slice(0, 120) || null : null;
       await saveOnboardingStep(db, access.organizationId, { metier: chosen, metierPrecision });
       break;
     }
     case 2: {
-      const installed = await listEventTypes(access.organizationId);
-      const starters = starterEventTypes(locale, metier);
-      const keys = skip ? (installed.length > 0 ? [] : onboardingDefaultEventTypes(metier)) : formData.getAll("eventTypes").map(String);
-      const chosen = starters.filter((type) => keys.includes(type.key));
-      if (!skip && chosen.length === 0) return { error: t("eventTypesRequired") };
+      const metier = (profile.metier ?? starterOnboarding(locale).defaults.metier) as StarterMetier;
+      const keys = formData.getAll("eventTypes").map(String);
+      const chosen = starterEventTypes(locale, metier).filter((type) => keys.includes(type.key));
+      if (chosen.length === 0) return chooseAnswer;
       if (profile.metier === null) await saveOnboardingStep(db, access.organizationId, { metier });
       // Le métier et les types décident du kit : postes de budget, rétroplanning, programme,
       // sources, catalogue (seulement là où l'organisation n'a encore rien).
-      if (chosen.length > 0) await addStarterEventTypes(access.organizationId, chosen);
+      await addStarterEventTypes(access.organizationId, chosen);
       await loadStarterKit(access.organizationId, metier, locale);
       break;
     }
     case 3: {
-      const regime = skip ? (profile.vatRegime ?? defaults.vatRegime) : text(formData, "vatRegime") === "assujetti" ? "assujetti" : "franchise";
-      if (profile.vatRegime !== regime) {
-        await changeVatRegime(db, { organizationId: access.organizationId, userId: access.userId, newRegime: regime, effectiveDate: parisToday() });
-      }
+      const answer = text(formData, "ongoing");
+      if (!isOngoingAnswer(answer)) return chooseAnswer;
+      await answerOngoingEvents(db, access.organizationId, answer);
       break;
     }
     case 4: {
-      const volume = skip ? (profile.annualEventVolume ?? defaults.volume) : text(formData, "volume");
-      if (!isOnboardingVolume(volume)) return { error: t("volumeRequired") };
-      await saveOnboardingStep(db, access.organizationId, { annualEventVolume: volume });
+      const tools = [...new Set(formData.getAll("tools").map(String))].filter(isOnboardingTool);
+      if (tools.length === 0) return chooseAnswer;
+      await saveOnboardingStep(db, access.organizationId, { replacedTools: tools });
       break;
     }
     case 5: {
-      const tools = skip
-        ? profile.replacedTools.length > 0
-          ? profile.replacedTools
-          : defaults.tools
-        : [...new Set(formData.getAll("tools").map(String))].filter(isOnboardingTool);
-      await saveOnboardingStep(db, access.organizationId, { replacedTools: tools });
+      const answer = text(formData, "vat");
+      if (!isVatAnswer(answer)) return chooseAnswer;
+      await answerOnboardingVat(db, { organizationId: access.organizationId, userId: access.userId, ...vatAnswerEffect(answer), effectiveDate: parisToday() });
       break;
     }
   }

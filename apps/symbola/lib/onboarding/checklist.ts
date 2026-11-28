@@ -45,9 +45,11 @@ export async function loadOnboardingChecklist(organizationId: string): Promise<C
       // Lot 63f (ADR 0103) : ce qu'il faut pour envoyer un devis (raison sociale, adresse, SIRET,
       // régime de TVA), réglé par l'assistant ou les Paramètres. Une organisation déjà cochée au
       // lot 63a (SIREN, adresse, TVA) ne voit pas la carte revenir.
+      // Lot 74a (L74-D4) : « Je ne sais pas encore » pour la TVA laisse l'essentiel à faire.
       essentials:
-        missingForQuote({ ...details, vatRegime: profile.vatRegime, logoKey: null, iban: null, quotesEnabled: false, reached: 0, finished: false }).length === 0 ||
-        (profile.siren !== null && profile.address !== null && profile.vatRegime !== null),
+        !profile.vatAnswerPending &&
+        (missingForQuote({ ...details, vatRegime: profile.vatRegime, logoKey: null, iban: null, quotesEnabled: false, reached: 0, finished: false }).length === 0 ||
+          (profile.siren !== null && profile.address !== null && profile.vatRegime !== null)),
       first_vendor: vendorCount > 0,
     },
   });

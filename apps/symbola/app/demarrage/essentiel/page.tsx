@@ -80,7 +80,8 @@ export default async function EssentialsPage({ searchParams }: { searchParams: P
         return { step, logoVersion: snapshot.logoKey?.split("/").pop() ?? null };
       case "vat": {
         const profile = await getOrganizationProfile(db, organizationId);
-        return { step, vatRegime: profile.vatRegime, vatNumber: profile.vatNumber ?? "" };
+        // Lot 74a (L74-D4) : « Je ne sais pas encore » à l'assistant ; la question se repose, rien de coché.
+        return { step, vatRegime: profile.vatAnswerPending ? null : profile.vatRegime, vatNumber: profile.vatNumber ?? "" };
       }
       case "bank": {
         const documents = await getDocumentSettings(organizationId);

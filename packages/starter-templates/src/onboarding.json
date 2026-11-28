@@ -1,10 +1,7 @@
 {
   "version": 1,
   "defaults": {
-    "metier": "wedding_planner",
-    "vatRegime": "franchise",
-    "volume": "11_to_25",
-    "tools": []
+    "metier": "wedding_planner"
   },
   "eventTypeDefaults": {
     "wedding_planner": ["wedding"],
@@ -19,10 +16,10 @@
   ],
   "tools": [
     { "key": "spreadsheet", "takeover": true, "label": { "fr": "Un tableur (Excel, Google Sheets…)", "en": "A spreadsheet (Excel, Google Sheets…)" }, "first": [] },
-    { "key": "other_software", "takeover": true, "label": { "fr": "Un autre logiciel de gestion", "en": "Another management software" }, "first": [] },
-    { "key": "word_processor", "label": { "fr": "Un traitement de texte pour les devis", "en": "A word processor for quotes" }, "first": [] },
+    { "key": "other_software", "takeover": true, "label": { "fr": "Un autre logiciel de planning ou de gestion", "en": "Another planning or management software" }, "first": [] },
+    { "key": "paper", "label": { "fr": "Un carnet et du papier", "en": "A notebook and paper" }, "first": [] },
     { "key": "email_calendar", "label": { "fr": "Ma messagerie et mon agenda", "en": "My e-mail and calendar" }, "first": [] },
-    { "key": "paper", "label": { "fr": "Un carnet et du papier", "en": "A notebook and paper" }, "first": [] }
+    { "key": "word_processor", "label": { "fr": "Un traitement de texte, pour les devis", "en": "A word processor, for quotes" }, "first": [] }
   ],
   "checklist": ["essentials", "first_vendor"]
 }

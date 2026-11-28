@@ -149,7 +149,7 @@ export default async function QuotePage({ params, searchParams }: { params: Prom
       {next?.kind === "send" || next?.kind === "revise" ? (
         <NextActionProvider action={next.kind}>
           {header}
-          <NextActionFeedback label={nextLabel!} successMessage={t(next.kind === "send" ? "quoteSent" : "versionCreated")} />
+          <NextActionFeedback label={nextLabel!} quoteId={quote.id} successMessage={t(next.kind === "send" ? "quoteSent" : "versionCreated")} />
         </NextActionProvider>
       ) : (
         header
@@ -416,6 +416,8 @@ async function LinesRubric({
                 </div>
               ) : null}
               {compliance ? <CompliancePanel document="quote" {...compliance} /> : null}
+              {/* Lot 74a (L74-D4) : « Je ne sais pas encore » pour la TVA ; la question vient à l'envoi. */}
+              {profile.vatAnswerPending && !quote.isDemo ? <p className="field-hint">{t("vatQuestionBeforeSend")}</p> : null}
               <p className="field-hint">{t("sendQuoteHint")}</p>
             </>
           ) : null}

@@ -573,6 +573,10 @@ export type OrganizationProfile = {
   // Lot 33b (HUB-09, D11) : réponses du questionnaire d'accueil (clés de onboarding.json).
   annualEventVolume: string | null;
   replacedTools: string[];
+  // Lot 74a (HUB-09 ; B3, B5, D6, L74-D4) : « Avez-vous déjà des mariages en cours ? » (nul : pas encore
+  // répondu, parcours non choisi) ; « Je ne sais pas encore » pour la TVA (aucun devis ne s'envoie).
+  hasOngoingEvents: OngoingEventsAnswer | null;
+  vatAnswerPending: boolean;
   completedAt: Date | null;
   // Lot 17 (DEV-07) : coordonnées et mentions des devis et factures.
   contactEmail: string | null;
@@ -608,6 +612,8 @@ const EMPTY_PROFILE: OrganizationProfile = {
   vatRateDefaultBasisPoints: null,
   annualEventVolume: null,
   replacedTools: [],
+  hasOngoingEvents: null,
+  vatAnswerPending: false,
   completedAt: null,
   contactEmail: null,
   contactPhone: null,
@@ -635,9 +641,12 @@ export async function getOrganizationLanguage(db: AppDatabase, organizationId: s
   return findOrganizationLanguage(db, organizationId);
 }
 
+export type OngoingEventsAnswer = "yes" | "no";
+
 export async function getOrganizationProfile(db: AppDatabase, organizationId: string): Promise<OrganizationProfile> {
   const row = await findOrganizationProfile(db, organizationId);
-  return row ?? EMPTY_PROFILE;
+  if (!row) return EMPTY_PROFILE;
+  return { ...row, hasOngoingEvents: row.hasOngoingEvents === "yes" || row.hasOngoingEvents === "no" ? row.hasOngoingEvents : null };
 }
 
 export type OnboardingStepInput = Partial<Omit<OrganizationProfile, "completedAt">>;
@@ -687,6 +696,36 @@ export async function saveSetupStep(db: AppDatabase, organizationId: string, ste
 
 export async function completeSetup(db: AppDatabase, organizationId: string): Promise<void> {
   await upsertOrganizationProfileFields(db, organizationId, { setupStep: SETUP_STEPS, setupCompletedAt: new Date() });
+}
+
+// Lot 74a (HUB-09 ; D6, R3) — « Avez-vous déjà des mariages en cours ? ». « Non » efface la réponse aux
+// outils : elle ne se garde qu'après « Oui » (la question ne se pose pas sinon).
+export async function answerOngoingEvents(db: AppDatabase, organizationId: string, answer: OngoingEventsAnswer): Promise<void> {
+  await upsertOrganizationProfileFields(db, organizationId, answer === "no" ? { hasOngoingEvents: "no", replacedTools: [] } : { hasOngoingEvents: "yes" });
+}
+
+// Lot 74a (HUB-09 ; B5, L74-D4) — « Vos devis portent-ils la TVA ? » : « Non », la franchise en base ;
+// « Oui », l'assujettissement ; « Je ne sais pas encore », la franchise gardée et le drapeau posé, relu avant
+// tout envoi de devis. Le régime se date du jour, comme tout changement (ONB-02).
+export async function answerOnboardingVat(
+  db: AppDatabase,
+  input: { organizationId: string; userId: string; regime: VatRegime; pending: boolean; effectiveDate: string },
+): Promise<void> {
+  const profile = await getOrganizationProfile(db, input.organizationId);
+  if (profile.vatRegime !== input.regime) {
+    await changeVatRegime(db, { organizationId: input.organizationId, userId: input.userId, newRegime: input.regime, effectiveDate: input.effectiveDate });
+  }
+  await upsertOrganizationProfileFields(db, input.organizationId, { vatAnswerPending: input.pending });
+}
+
+// Lot 74a (L74-D4) — la réponse qui manquait, donnée avant l'envoi d'un devis ou dans « L'essentiel » :
+// « Non » ou « Oui », jamais « Je ne sais pas encore ». Le drapeau tombe.
+export async function answerPendingVat(db: AppDatabase, input: { organizationId: string; userId: string; regime: VatRegime; effectiveDate: string }): Promise<void> {
+  await answerOnboardingVat(db, { ...input, pending: false });
+}
+
+export async function isVatAnswerPending(db: AppDatabase, organizationId: string): Promise<boolean> {
+  return (await getOrganizationProfile(db, organizationId)).vatAnswerPending;
 }
 
 // Lot 13 (L13-HUB-15) — délais de relance du bloc « À traiter » de l'accueil :
@@ -1144,7 +1183,8 @@ export async function changeVatRegime(
     changedByUserId: input.userId,
   });
 
-  await upsertOrganizationProfileFields(db, input.organizationId, { vatRegime: input.newRegime });
+  // Lot 74a (L74-D4) : un régime choisi est une réponse ; « Je ne sais pas encore » ne tient plus.
+  await upsertOrganizationProfileFields(db, input.organizationId, { vatRegime: input.newRegime, vatAnswerPending: false });
 }
 
 export type PlatformSettings = {

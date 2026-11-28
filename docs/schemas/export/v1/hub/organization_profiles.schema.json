@@ -114,6 +114,15 @@
         "type": "string"
       }
     },
+    "hasOngoingEvents": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "vatAnswerPending": {
+      "type": "boolean"
+    },
     "completedAt": {
       "anyOf": [
         {
@@ -325,6 +334,8 @@
     "vatRateDefaultBasisPoints",
     "annualEventVolume",
     "replacedTools",
+    "hasOngoingEvents",
+    "vatAnswerPending",
     "completedAt",
     "setupStep",
     "setupCompletedAt",

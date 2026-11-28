@@ -53,7 +53,8 @@ async function setup(page: Page, options: { tools?: string[] } = {}): Promise<Ta
   const { sql, db } = createAppConnection();
   try {
     const organization = await readyOrganization(db, `Org 71b ${randomUUID()}`);
-    if (options.tools) await saveOnboardingStep(db, organization.id, { replacedTools: options.tools });
+    // Lot 74a (D6) : les outils ne se gardent qu'après « Oui » à « Avez-vous déjà des mariages en cours ? ».
+    if (options.tools) await saveOnboardingStep(db, organization.id, { hasOngoingEvents: "yes", replacedTools: options.tools });
     const user = await createUser(db, { organizationId: organization.id, email, role: "owner" });
     await signIn(page, email);
     return { organizationId: organization.id, userId: user.id, viewer: { userId: user.id, role: "owner", allPlannersSeeAll: true } };
@@ -241,12 +242,16 @@ test.describe("HUB-14 — La page de reprise et ses portes (lot 71b)", () => {
     await expect(start).toHaveClass(/button-link-primary/);
     await expect(create).not.toHaveClass(/button-link-primary/);
     await expect(start).toHaveAttribute("href", "/reprise");
+    // Lot 74a (D8) : créer passe par « Nouvel évènement ».
+    await expect(create).toHaveAttribute("href", "/events/new");
     if (isPhone(page)) {
       await expect(page.locator(".ready-takeover-bar")).toBeVisible();
       const [first, second] = [await start.boundingBox(), await create.boundingBox()];
       expect(first!.y).toBeLessThan(second!.y);
-      // Collés en bas de l'écran, le principal au-dessus.
-      expect(second!.y + second!.height).toBeGreaterThan(page.viewportSize()!.height - 48);
+      // Collés en bas de l'écran, juste au-dessus de la barre d'onglets (lot 74a : plus rien de caché dessous).
+      const tabbar = await page.locator(".app-tabbar").boundingBox();
+      expect(second!.y + second!.height).toBeLessThanOrEqual(tabbar!.y + 1);
+      expect(second!.y + second!.height).toBeGreaterThan(tabbar!.y - 48);
       await expectPhoneRules(page);
     }
     await expectNoAxeViolation(page);
@@ -254,12 +259,14 @@ test.describe("HUB-14 — La page de reprise et ses portes (lot 71b)", () => {
     await expect(page.getByRole("heading", { level: 1, name: "Reprendre un mariage en cours" })).toBeVisible();
   });
 
-  test("I5 — sans tableur ni autre logiciel, créer reste le bouton plein et la reprise une ligne à part", async ({ page }) => {
+  // Lot 74a (R3, critère 7) : des mariages en cours sur papier seulement : « Entrer un mariage en cours » est le
+  // bouton plein, et la reprise de fichiers ne s'y propose plus.
+  test("I5 — sans tableur ni autre logiciel, entrer un mariage en cours est le bouton plein", async ({ page }) => {
     await setup(page, { tools: ["paper"] });
     await page.goto("/demarrage/pret");
     await expect(page.getByRole("region", { name: "Reprendre un mariage en cours" })).toHaveCount(0);
-    await expect(page.getByRole("button", { name: "Créer l'évènement" })).toHaveClass(/button-primary/);
-    await expect(page.getByRole("link", { name: "Reprendre un mariage en cours" })).toHaveAttribute("href", "/reprise");
+    await expect(page.getByRole("link", { name: "Entrer un mariage en cours" })).toHaveClass(/button-link-primary/);
+    await expect(page.getByRole("link", { name: "Reprendre un mariage en cours" })).toHaveCount(0);
   });
 });
 

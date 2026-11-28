@@ -39,30 +39,33 @@ test("SC-01 / PAR-01 / UX-04 — le premier quart d'heure sur téléphone : de l
   // 1. Elle s'inscrit avec son e-mail et confirme.
   await signUp(page, email);
 
-  // 2. Le questionnaire : wedding planner, mariages, franchise de TVA, douze par an, tableur.
-  await page.getByRole("radio", { name: /Wedding planner/ }).check();
+  // 2. Les questions (lot 74a, C-68, D6) : wedding planner, mariages, des mariages en cours dans un tableur, pas
+  // de TVA. Le volume annuel n'est plus demandé (B2, L74-D5 : écart accepté avec l'étape 2 du scénario).
+  await expect(page.getByRole("radio", { name: /Wedding planner/ })).toBeChecked();
   await page.getByRole("button", { name: "Continuer" }).click();
   await expect(page.getByRole("checkbox", { name: "Mariage" })).toBeChecked();
   await page.getByRole("button", { name: "Continuer" }).click();
-  await page.getByRole("radio", { name: /Franchise en base/ }).check();
-  await page.getByRole("button", { name: "Continuer" }).click();
-  await page.getByRole("radio", { name: "De 11 à 25" }).check();
+  await page.getByRole("radio", { name: /Oui, j'ai des mariages en cours/ }).check();
   await page.getByRole("button", { name: "Continuer" }).click();
   await page.getByRole("checkbox", { name: "Un tableur (Excel, Google Sheets…)" }).check();
-  await page.getByRole("button", { name: "Voir mon espace" }).click();
+  await page.getByRole("button", { name: "Continuer" }).click();
+  await page.getByRole("radio", { name: /Non, mes prix sont sans TVA/ }).check();
+  await page.getByRole("button", { name: "Continuer" }).click();
 
-  // 3. « Votre espace est prêt » : elle y reconnaît ses catégories.
-  await expect(page.getByRole("heading", { level: 1, name: "Votre espace est prêt" })).toBeVisible();
-  const prepared = page.getByRole("region", { name: "Voici ce que Symbola a préparé d'après vos réponses :" });
-  await expect(prepared).toContainText("Vos types d'évènements : Mariage");
-  await expect(prepared).toContainText(/\d+ postes de budget/);
+  // 3. « Votre espace est prêt » : elle y reconnaît son métier et ce qui a été préparé.
+  await expect(page.getByRole("heading", { level: 1, name: /^Votre espace est prêt/ })).toBeVisible();
+  const prepared = page.getByRole("region", { name: "Vos réponses, et ce qu'elles ont préparé" });
+  await expect(prepared).toContainText("Wedding planner · mariage");
+  await expect(prepared).toContainText(/Un budget de départ, \d+ postes/);
   await expectNoAxeViolation(page);
   await noHorizontalScroll(page);
 
-  // 4. Elle crée le mariage de Léa et Maxime : nom, date, type.
-  await page.getByLabel("Prénom du premier marié").fill("Léa");
-  await page.getByLabel("Prénom du second marié (facultatif)").fill("Maxime");
-  await page.getByLabel("Date de l'évènement", { exact: true }).fill("2027-06-12");
+  // 4. Elle crée le mariage de Léa et Maxime dans « Nouvel évènement » (D8) : où il en est, nom, date.
+  await page.getByRole("link", { name: "Créer un nouveau mariage" }).click();
+  await expect(page).toHaveURL(/\/events\/new$/);
+  await page.getByRole("radio", { name: /^Signé, en préparation/ }).check();
+  await page.getByLabel(/^Nom de l'évènement/).fill("Léa & Maxime");
+  await page.getByLabel(/^Date/).fill("2027-06-12");
   await page.getByRole("button", { name: "Créer l'évènement" }).click();
   await expect(page).toHaveURL(/\/events\/[0-9a-f-]{36}$/);
   const eventUrl = page.url();
@@ -108,27 +111,29 @@ test("SC-10 / PAR-01 — étape 1 à 150 % : inscription et questionnaire lus en
   // 1 280 × 800 à 150 % de zoom : 853 × 533 pixels de mise en page.
   await page.setViewportSize({ width: 853, height: 533 });
   await signUp(page, `sophie-sc10-${randomUUID()}@symbola.test`);
-  const titles = [
-    "Quel est votre métier ?",
-    "Quels évènements organisez-vous ?",
-    "Êtes-vous soumise à la TVA ?",
-    "Combien d'évènements organisez-vous par an ?",
-    "Que voulez-vous remplacer par Symbola ?",
+  // Lot 74a (C-68, D6) : cinq questions, la quatrième (outils) seulement après « Oui ».
+  const steps: { title: string; answer?: { role: "radio" | "checkbox"; name: RegExp | string } }[] = [
+    { title: "Quel est votre métier ?" },
+    { title: "Quels évènements organisez-vous ?" },
+    { title: "Avez-vous déjà des mariages en cours ?", answer: { role: "radio", name: /Oui, j'ai des mariages en cours/ } },
+    { title: "Où les suivez-vous aujourd'hui ?", answer: { role: "checkbox", name: "Un tableur (Excel, Google Sheets…)" } },
+    { title: "Vos devis portent-ils la TVA ?", answer: { role: "radio", name: /Non, mes prix sont sans TVA/ } },
   ];
-  for (const [index, title] of titles.entries()) {
-    await expect(page.getByRole("heading", { level: 2, name: title })).toBeVisible();
-    await expect(page.getByText(`Question ${index + 1} sur 5`)).toBeVisible();
+  for (const [index, step] of steps.entries()) {
+    await expect(page.getByRole("heading", { level: 1, name: step.title })).toBeVisible();
+    await expect(page.getByText(`question ${index + 1} sur 5`)).toBeVisible();
     await noHorizontalScroll(page);
     await expectNoAxeViolation(page);
     // Revenir en arrière reste possible à chaque question (sauf la première).
     if (index > 0) await expect(page.getByRole("link", { name: "Question précédente" })).toBeVisible();
-    const next = page.getByRole("button", { name: index === titles.length - 1 ? "Voir mon espace" : "Continuer" });
-    await next.scrollIntoViewIfNeeded();
+    if (step.answer) await page.getByRole(step.answer.role, { name: step.answer.name }).check();
+    const next = page.getByRole("button", { name: "Continuer" });
+    // « Continuer » collé en bas : dans la fenêtre sans défiler.
     await expect(next).toBeInViewport();
-    await expect(page.getByRole("button", { name: "Passer" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Passer" })).toHaveCount(0);
     await next.click();
   }
-  await expect(page.getByRole("heading", { level: 1, name: "Votre espace est prêt" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: /^Votre espace est prêt/ })).toBeVisible();
   await noHorizontalScroll(page);
   await expectNoAxeViolation(page);
 });

@@ -1018,11 +1018,11 @@
     },
     "setup": {
       "title": "Démarrage",
-      "body": "Cinq questions, une par écran : votre métier, vos types d'évènements, votre régime de TVA, votre nombre d'évènements par an et les outils que Symbola remplace. Chaque question a une réponse proposée : « Passer » la garde. Vos réponses choisissent les modèles chargés (postes de budget, rétroplanning, programme, catalogue) ; tout se modifie ensuite dans Paramètres."
+      "body": "Cinq questions au plus, une par écran : votre métier, vos types d'évènements, si vous avez déjà des mariages en cours (et, si oui, où vous les suivez), et si vos devis portent la TVA. Seuls le métier et les types sont proposés d'avance ; « Je ne sais pas encore » est une réponse pour la TVA. Chaque réponse s'enregistre aussitôt : vous reprenez où vous vous êtes arrêtée, sur tout appareil. Tout se modifie ensuite dans les Paramètres."
     },
     "setupReady": {
       "title": "Votre espace est prêt",
-      "body": "Ce que Symbola a préparé d'après vos réponses : types d'évènements, rétroplanning, postes de budget, régime de TVA. Ensuite, deux chemins : créer votre premier évènement (prénoms des clients, date, type : le rétroplanning et le budget apparaissent aussitôt), ou explorer un mariage fictif étiqueté « Exemple », qui ne contacte personne et disparaît seul au bout de 30 jours."
+      "body": "Votre premier pas, selon vos réponses : créer votre premier mariage, reprendre un mariage en cours depuis vos fichiers, ou entrer un mariage déjà signé. Dessous, vos réponses et ce qu'elles ont préparé (rétroplanning, budget de départ, types d'évènements), chacun avec son lien. « Ouvrir un mariage d'exemple » montre un mariage fictif, qui ne contacte personne et disparaît seul au bout de 30 jours. « Modifier mes réponses » rouvre les questions."
     },
     "activityLog": {
       "title": "Journal d'activité",
@@ -3154,7 +3154,12 @@
     "closeItem": "Fermer",
     "closeItemNamed": "Fermer « {label} »",
     "archiveItemShort": "Archiver",
-    "signerSameAddress": "Même adresse que le signataire 1"
+    "signerSameAddress": "Même adresse que le signataire 1",
+    "vatQuestionTitle": "Avant d'envoyer : vos devis portent-ils la TVA ?",
+    "vatQuestionHint": "Vous aviez répondu « Je ne sais pas encore ». La réponse règle les mentions de ce devis et des suivants ; votre comptable saura vous répondre.",
+    "vatQuestionSubmit": "Répondre et envoyer le devis",
+    "vatAnswerRequired": "Choisissez une réponse.",
+    "vatQuestionBeforeSend": "À l'envoi, vous direz si vos devis portent la TVA : vous aviez répondu « Je ne sais pas encore »."
   },
   "Documents": {
     "pdfSellerHeading": "De",
@@ -5856,19 +5861,8 @@
     "dismiss": "Fermer"
   },
   "Onboarding": {
-    "title": "Préparons votre espace",
-    "intro": "Cinq questions, une par écran. Chaque réponse a une valeur proposée : « Passer » la garde. Tout reste modifiable ensuite dans les Paramètres.",
-    "progress": "Question {number} sur {total}",
-    "progressLabel": "Questions du démarrage",
-    "stepItem": "{number}. {label}",
-    "stepDone": "(répondue)",
-    "steps": {
-      "1": "Métier",
-      "2": "Évènements",
-      "3": "TVA",
-      "4": "Volume",
-      "5": "Outils"
-    },
+    "title": "Préparer votre espace",
+    "progress": "Préparer votre espace · question {number} sur {total}",
     "questions": {
       "1": {
         "title": "Quel est votre métier ?",
@@ -5879,57 +5873,107 @@
         "hint": "Cochez-en au moins un. Vous en ajouterez d'autres quand vous voudrez."
       },
       "3": {
-        "title": "Êtes-vous soumise à la TVA ?",
-        "hint": "Il fixe les mentions de vos devis et factures. Un changement plus tard se fera avec une date d'effet."
+        "title": "{metier, select, wedding_planner {Avez-vous déjà des mariages en cours ?} other {Avez-vous déjà des évènements en cours ?}}",
+        "hint": "Votre premier pas en dépend : les reprendre, ou en créer un."
       },
       "4": {
-        "title": "Combien d'évènements organisez-vous par an ?",
-        "hint": "Une estimation suffit : elle nous aide à vous proposer la bonne prise en main."
+        "title": "Où les suivez-vous aujourd'hui ?",
+        "hint": "Cochez tout ce qui sert. Symbola vous dira quels fichiers reprendre."
       },
       "5": {
-        "title": "Que voulez-vous remplacer par Symbola ?",
-        "hint": "Cochez tout ce qui s'applique, ou rien. Ce qui vous fera gagner le plus de temps passera en premier."
+        "title": "Vos devis portent-ils la TVA ?",
+        "hint": "La réponse règle les mentions de vos devis et de vos factures."
+      }
+    },
+    "ongoingAnswers": {
+      "yes": {
+        "title": "{metier, select, wedding_planner {Oui, j'ai des mariages en cours} other {Oui, j'ai des évènements en cours}}",
+        "body": "{metier, select, wedding_planner {Vous les reprendrez sans rien ressaisir : fichiers, ou saisie d'un mariage déjà signé.} other {Vous les reprendrez sans rien ressaisir : fichiers, ou saisie d'un évènement déjà signé.}}"
+      },
+      "no": {
+        "title": "Non, je pars de zéro",
+        "body": "{metier, select, wedding_planner {Votre premier mariage sera une nouvelle demande ou un contrat tout juste signé.} other {Votre premier évènement sera une nouvelle demande ou un contrat tout juste signé.}}"
+      }
+    },
+    "vatAnswers": {
+      "no": {
+        "title": "Non, mes prix sont sans TVA",
+        "body": "Vos devis portent « TVA non applicable, art. 293 B du CGI » : c'est la franchise en base."
+      },
+      "yes": {
+        "title": "Oui, j'ajoute la TVA à mes prix",
+        "body": "Vos devis et factures portent la TVA : vous êtes assujettie."
+      },
+      "unknown": {
+        "title": "Je ne sais pas encore",
+        "body": "Symbola part sans TVA et vous le redemande avant votre premier devis. Votre comptable saura vous répondre."
       }
     },
     "continue": "Continuer",
-    "finish": "Voir mon espace",
-    "skip": "Passer",
-    "skipHint": "« Passer » garde la réponse proposée.",
     "back": "Question précédente",
-    "eventTypesRequired": "Cochez au moins un type d'évènement, ou choisissez « Passer ».",
-    "metierRequired": "Choisissez votre métier, ou « Passer ».",
-    "volumeRequired": "Choisissez une estimation, ou « Passer ».",
-    "ownerOnly": "Seule la Propriétaire du compte répond au questionnaire.",
-    "ownerMustFinish": "La Propriétaire du compte prépare votre espace. Les modules sont déjà ouverts.",
-    "resume": "Terminez la préparation de votre espace : il reste {count, plural, one {# question} other {# questions}}.",
-    "resumeLink": "Reprendre le questionnaire",
+    "chooseAnswer": "Choisissez une réponse.",
+    "editLater": "Tout reste modifiable ensuite dans les Paramètres.",
+    "ownerOnly": "Seule la titulaire du compte répond aux questions de démarrage.",
+    "ownerMustFinish": "La titulaire du compte prépare votre espace. Les modules sont déjà ouverts.",
+    "notReady": {
+      "title": "Votre espace n'est pas tout à fait prêt",
+      "left": "{left, plural, one {# question sur {total} reste} other {# questions sur {total} restent}}, environ 1 minute.",
+      "action": "Continuer les questions"
+    },
     "ready": {
       "title": "Votre espace est prêt",
-      "intro": "Voici ce que Symbola a préparé d'après vos réponses :",
-      "eventTypes": "Vos types d'évènements : {types}",
-      "tasks": "{count, plural, =0 {Aucune tâche} one {# tâche} other {# tâches}} de rétroplanning",
-      "budgetLines": "{count, plural, =0 {Aucun poste} one {# poste} other {# postes}} de budget",
-      "vat": "Votre régime de TVA : {regime}",
-      "editLater": "Tout se modifie ensuite dans les Paramètres.",
-      "settingsLink": "Ouvrir les Paramètres",
-      "choiceTitle": "Et maintenant ?",
-      "firstEventTitle": "Créer mon premier évènement",
-      "firstEventBody": "Les prénoms des clients, la date et le type : le rétroplanning et le budget apparaissent aussitôt.",
-      "firstEventSubmit": "Créer l'évènement",
-      "exampleTitle": "Explorer avec un exemple",
-      "exampleBody": "Un mariage fictif, étiqueté « Exemple », pour tout essayer sans risque. Il ne contacte personne et disparaît seul au bout de 30 jours.",
-      "exampleSubmit": "Ouvrir l'exemple",
+      "titleNamed": "Votre espace est prêt, {name}",
+      "progress": "Préparer votre espace · terminé",
+      "firstStep": {
+        "create": {
+          "title": "{metier, select, wedding_planner {Commencez par votre premier mariage} other {Commencez par votre premier évènement}}",
+          "body": "{metier, select, wedding_planner {Ses mariés, sa date, où il en est : trois saisies. Son rétroplanning et son budget arrivent avec, datés depuis le jour J.} other {Son client, sa date, où il en est : trois saisies. Son rétroplanning et son budget arrivent avec, datés depuis le jour J.}}",
+          "action": "{metier, select, wedding_planner {Créer votre premier mariage} other {Créer votre premier évènement}}"
+        },
+        "takeover": {
+          "title": "Reprendre un mariage en cours",
+          "action": "Reprendre un mariage en cours"
+        },
+        "enter": {
+          "title": "{metier, select, wedding_planner {Commencez par un mariage en cours} other {Commencez par un évènement en cours}}",
+          "body": "Saisissez-en un en choisissant « Signé, en préparation » : son rétroplanning et son budget arrivent avec.",
+          "action": "{metier, select, wedding_planner {Entrer un mariage en cours} other {Entrer un évènement en cours}}"
+        }
+      },
+      "exampleLead": "Envie d'essayer avant ?",
+      "exampleSubmit": "Ouvrir un mariage d'exemple",
       "exampleOpen": "Revoir l'exemple",
+      "answersTitle": "Vos réponses, et ce qu'elles ont préparé",
+      "answers": {
+        "metier": "Votre métier",
+        "ongoing": "{metier, select, wedding_planner {Mariages en cours} other {Évènements en cours}}",
+        "ongoingNo": "Aucun : vous partez de zéro",
+        "ongoingYes": "Oui",
+        "ongoingYesTools": "Oui, avec {tools}",
+        "vat": "TVA",
+        "vat_franchise": "Pas de TVA sur vos prix (franchise en base)",
+        "vat_assujetti": "Oui, vous ajoutez la TVA à vos prix (assujettie)",
+        "vatUnknown": "Pas encore dite : pas de TVA en attendant, la question revient avant votre premier devis",
+        "notAnswered": "Non renseigné"
+      },
+      "preparedTitle": "Préparé pour vous",
+      "prepared": {
+        "tasks": "Un rétroplanning « {name} », {count, plural, =0 {sans tâche} one {# tâche} other {# tâches}}",
+        "noTasks": "Aucun rétroplanning de départ",
+        "tasksLink": "Voir les tâches",
+        "budgetLines": "Un budget de départ, {count, plural, =0 {sans poste} one {# poste} other {# postes}}",
+        "budgetLinesLink": "Voir les postes",
+        "eventTypes": "Vos types d'évènements : {types}",
+        "eventTypesLink": "Voir les types"
+      },
+      "editAnswers": "Modifier mes réponses",
+      "goHomeShort": "Voir l'accueil",
+      "footer": "Tout reste modifiable ensuite dans les Paramètres. Le mariage d'exemple est fictif, ne contacte personne et disparaît seul au bout de 30 jours.",
       "noEventsModule": "Le module Évènements n'est pas souscrit : vos premiers pas commencent par la liste de prise en main de l'accueil.",
       "goHome": "Aller à l'accueil",
-      "noSource": "Ajoutez d'abord une source de prospects dans les Paramètres des évènements.",
-      "dateRequired": "Indiquez la date de l'évènement : le rétroplanning se calcule à partir d'elle.",
-      "takeoverTitle": "Reprendre un mariage en cours",
       "takeoverIntro": "Vous suivez aujourd'hui vos mariages dans {tools}. Pour ne rien ressaisir, reprenez d'abord un mariage en cours : Symbola vous dit quels fichiers déposer, dans quel ordre.",
       "takeoverBody": "Six fichiers au plus : carnet, fiche, budget, prestataires, liste « à faire », programme. Environ 30 minutes par mariage. Rien n'est écrit avant votre accord.",
-      "takeoverStart": "Reprendre un mariage en cours",
       "takeoverCreate": "Créer un nouveau mariage",
-      "takeoverElsewhere": "Vous suivez déjà des mariages ailleurs ?",
       "toolsAnd": "{first} et {last}"
     },
     "vatRegime": {
