@@ -62,6 +62,38 @@ Mesures :
   « Questions ») ; les PDF des prestataires retenus et du programme s'ouvrent sur la fiche du mariage et
   cochent leur ligne sans bilan (paquet 71e).
 
+## Lot 71c — l'assistant qui demande
+
+- Date : 27/11/2026, en local, par Claude Code. Base de test dédiée (`symbola_lot71c`, migrations
+  jusqu'à 0235 de `main`, aucune nouvelle), socle de dev (Garage, ClamAV, Mailpit). Rejoué **à l'écran**,
+  à 1 440 et à 375 px, par le parcours `apps/symbola/e2e/lot-71c-questions.spec.ts` (version compilée
+  sur le port 3071, session ouverte en base faute du port 3000), et par les services dans
+  `apps/symbola/lib/import/questions-71c.integration.test.ts` (horloge simulée au 25/11/2026), sur les
+  fichiers fictifs du tableur de la planner et la fiche PDF fictive du logiciel. Camille seulement :
+  Sophie à 150 % reste au paquet 71g et au rejeu d'ensemble.
+
+| Étape du parcours | Ce qui est vérifié | Résultat |
+| --- | --- | --- |
+| Le budget déposé hors de la reprise (« Reprendre et importer ») | La première question est « Pour quel mariage est ce budget ? » (les mariages à venir avec l'état de leur budget, et « Un mariage qui n'est pas encore dans Symbola ») ; aucune ligne rejetée « introuvable » ; le mariage « Clara & Yanis » est créé à l'écriture, d'origine « reprise », avec sa page de reprise où le budget est fait | Tenu |
+| Le budget déposé depuis la page de reprise | Le mariage n'est pas demandé : « Pour « Juliette & Romain », 20 mars 2027 : choisi depuis la page de reprise. » | Tenu |
+| Les acomptes (`budget.csv`) | Aucune réponse cochée ; « Oui » annonce et écrit 8 727,00 € réglés, 18 775,00 € à payer, aucune en retard ; « Non », 0,00 €, 27 502,00 €, 6 en retard ; « Certains seulement » : 5 payés sur 6, le total suit ; « Continuer » sans réponse écrit sous chaque question ce qui manque | Tenu |
+| Les contrats (I1) | « Leurs contrats sont-ils signés ? » posée pour les 7 prestataires du budget (Tous, Aucun, Ligne par ligne) ; aucune relance « à faire signer » ensuite | Tenu |
+| La fiche d'un logiciel | « Où en est-il ? » sans réponse cochée, type posé quand l'espace n'en a qu'un et demandé sinon, source facultative laissée « non renseignée » ; « Ce qui sera écrit » : « Léa Martin · Hugo Bernard » (« Écrits ainsi dans le fichier : « Léa MARTIN », « Hugo BERNARD » »), 21 650,50 € dont 3 200,00 € réglés à répartir | Tenu |
+| La liste « à faire » | « Fait ? », « Quoi », « Pour quand », « Qui » reconnus d'office ; « 2 tâches non faites ont une échéance déjà passée » ; les garder (2 en retard), les redater (2 redatées, date obligatoire et à venir), les dire faites (7 faites au lieu de 5, date de fin non renseignée) ; « Ce que Symbola a compris » : « x » → Faite, « moi » → Vous, « mariés » → Les mariés | Tenu |
+| « Partir d'un modèle » (I3) | Sur un mariage repris, les tâches du modèle déjà passées posent la même question ; sans réponse, rien n'est appliqué ; aucun modèle n'est appliqué d'office à un mariage repris | Tenu (services ; l'écran est le formulaire du modèle de l'onglet « Tâches ») |
+| « Abandonner cet import… » | Un bouton à chaque étape, la fenêtre de niveau 2 qui nomme le fichier (« Continuer l'import », « Abandonner l'import ») ; retour à la page de reprise avec « Import abandonné : rien n'a été importé. » | Tenu |
+
+Mesures :
+
+- **Aucune commande sous 44 px, aucun défilement de côté à 375 px** sur chaque question ; sur téléphone,
+  la frise se lit « Étape 3 sur 5 · Questions ».
+- **axe-core** : aucune violation sur chaque question, avant et après « Continuer » sans réponse, et sur la
+  fenêtre d'abandon.
+- **30 minutes par mariage** : non mesuré ; « Vérifier », les doublons et le bilan changent au paquet 71d.
+- Ce qui reste provisoire jusqu'aux paquets 71d et 71e : l'étape « Doublons » et « Vérifier » d'avant (le
+  choix des acomptes payés et de la nouvelle échéance se fait à l'étape « Questions », la maquette les
+  met à « Vérifier ») ; les prestataires retenus et le programme hors de l'assistant commun.
+
 ## Lot 71f — la fiche d'un mariage repris et ses reflets
 
 - Date : 27/11/2026, en local, par Claude Code. Base de test dédiée (`symbola_lot71f`, migrations

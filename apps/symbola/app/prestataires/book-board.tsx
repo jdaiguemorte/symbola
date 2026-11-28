@@ -10,8 +10,10 @@
 // - « Sélectionner » : une case par ligne en mode sélection seulement, et la barre de sélection du volet 1
 //   (70d) collée au bas, bordée d'encre : « Ajouter à un mariage… », « Ajouter une étiquette… »,
 //   « Exporter… », « Archiver… » (niveau 2), « Tout désélectionner », « Terminer la sélection » ;
-// - « Ajouter à un mariage… » : la fenêtre de rattachement est au paquet 73c ; en attendant, une fenêtre
-//   courte dit où le faire aujourd'hui (le budget du mariage).
+// - « Ajouter à un mariage… » (lot 73c) : la fenêtre de rattachement, montée au clic (une seule pour tout
+//   le carnet), depuis la ligne, le menu « ⋯ » (téléphone) ou la sélection. Le carnet ouvert depuis un
+//   poste : « Ajouter à ce poste… » ouvre la même fenêtre, mariage et poste déjà choisis ; une fiche déjà
+//   sur le poste dit « Dans la comparaison » ou « Retenu ».
 //
 // Tout passe par délégation d'évènements sur le tableau : les lignes restent du HTML du serveur.
 import Link from "next/link";
@@ -20,7 +22,8 @@ import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useFeedback } from "@/app/ui/feedback";
 import { TaskPopover, usePopover } from "@/app/ui/task-popover";
-import { addVendorToSlotAction, archiveVendorAction, archiveVendorsAction, restoreVendorsTagsAction, tagVendorsAction, unarchiveVendorsAction, type VendorBulkResult } from "./actions";
+import { AddToEventDialog, type AdditionPreset } from "./add-to-event-dialog";
+import { archiveVendorAction, archiveVendorsAction, restoreVendorsTagsAction, tagVendorsAction, unarchiveVendorsAction, type VendorBulkResult } from "./actions";
 
 export const SELECT_TOGGLE_EVENT = "symbola:vendor-select-toggle";
 export const SELECTING_EVENT = "symbola:vendor-selecting";
@@ -45,12 +48,14 @@ export type BookRowData = {
   reason: string | null;
   phone: string | null;
   email: string | null;
+  // Lot 73c : le carnet ouvert depuis un poste, la fiche déjà sur ce poste.
+  onSlot: "compared" | "retained" | null;
 };
 // Les libellés qui portent le nom de la fiche : un modèle, le nom (\u0000) et le téléphone (\u0002) à glisser.
-export type BookRowLabels = { demo: string; add: string; addFor: string; menu: string; call: string; select: string; addToSlot: string | null };
+export type BookRowLabels = { demo: string; add: string; addFor: string; menu: string; call: string; select: string; addToSlot: string | null; addToSlotFor: string | null; inComparison: string; retained: string };
 const fill = (template: string, name: string, phone = "") => template.replace("\u0000", name).replace("\u0002", phone);
 
-const BookRow = memo(function BookRow({ row, labels, target, selecting, selected, onToggle }: { row: BookRowData; labels: BookRowLabels; target: { eventId: string; slotId: string } | null; selecting: boolean; selected: boolean; onToggle: (id: string) => void }) {
+const BookRow = memo(function BookRow({ row, labels, target, selecting, selected, onToggle }: { row: BookRowData; labels: BookRowLabels; target: AdditionPreset | null; selecting: boolean; selected: boolean; onToggle: (id: string) => void }) {
   return (
     <tr data-vendor-id={row.id}>
       <td className="vendor-select-cell">
@@ -94,15 +99,14 @@ const BookRow = memo(function BookRow({ row, labels, target, selecting, selected
             {row.phone}
           </a>
         ) : null}
-        {target && labels.addToSlot ? (
-          <form action={addVendorToSlotAction}>
-            <input type="hidden" name="vendorId" value={row.id} />
-            <input type="hidden" name="eventId" value={target.eventId} />
-            <input type="hidden" name="slotId" value={target.slotId} />
-            <button type="submit" className="button-secondary vendor-row-add">
-              {fill(labels.addToSlot, row.name)}
-            </button>
-          </form>
+        {target && row.onSlot ? (
+          <span className="vendor-row-on-slot" data-on-slot={row.onSlot}>
+            {row.onSlot === "retained" ? labels.retained : labels.inComparison}
+          </span>
+        ) : target && labels.addToSlot && labels.addToSlotFor ? (
+          <button type="button" className="button-secondary vendor-row-add" data-add-to-event aria-label={fill(labels.addToSlotFor, row.name)}>
+            {labels.addToSlot}
+          </button>
         ) : (
           <button type="button" className="button-secondary vendor-row-add" data-add-to-event aria-label={fill(labels.addFor, row.name)}>
             {labels.add}
@@ -124,7 +128,7 @@ function moveFocus(event: React.KeyboardEvent<HTMLElement>) {
   event.preventDefault();
 }
 
-function RowMenu({ target, anchor, requests, back, onAddToEvent }: { target: RowMenuTarget; anchor: HTMLElement | null; requests: number; back: string; onAddToEvent: (() => void) | null }) {
+function RowMenu({ target, anchor, requests, back, addLabel, onAddToEvent }: { target: RowMenuTarget; anchor: HTMLElement | null; requests: number; back: string; addLabel: string; onAddToEvent: (() => void) | null }) {
   const t = useTranslations("VendorBook");
   const menu = usePopover();
   const [pending, startTransition] = useTransition();
@@ -147,7 +151,7 @@ function RowMenu({ target, anchor, requests, back, onAddToEvent }: { target: Row
               onAddToEvent();
             }}
           >
-            <span>{t("addToEvent.button")}</span>
+            <span>{addLabel}</span>
           </button>
         ) : null}
         <Link role="menuitem" href={`/prestataires/${target.id}`} data-autofocus onClick={() => menu.close()}>
@@ -190,26 +194,6 @@ function RowMenu({ target, anchor, requests, back, onAddToEvent }: { target: Row
         </button>
       </div>
     </TaskPopover>
-  );
-}
-
-// « Ajouter à un mariage… » en attendant la fenêtre du paquet 73c.
-function AddToEventInterim({ dialog, names }: { dialog: React.RefObject<HTMLDialogElement | null>; names: string[] }) {
-  const t = useTranslations("VendorBook");
-  const title = names.length === 1 ? t("addToEvent.titleOne", { vendor: names[0]! }) : t("addToEvent.titleMany", { count: names.length });
-  return (
-    <dialog ref={dialog} className="confirm-dialog" aria-labelledby="vendor-add-interim-title">
-      <h2 id="vendor-add-interim-title">{title}</h2>
-      <p>{t("addToEvent.interimBody")}</p>
-      <div className="confirm-dialog-actions">
-        <button type="button" autoFocus onClick={() => dialog.current?.close()}>
-          {t("addToEvent.close")}
-        </button>
-        <Link className="button-link" href="/events">
-          {t("addToEvent.openEvents")}
-        </Link>
-      </div>
-    </dialog>
   );
 }
 
@@ -416,8 +400,8 @@ export function BookBoard({
 }: {
   rows: BookRowData[];
   labels: BookRowLabels;
-  // Le carnet ouvert depuis un poste : l'action rapide ajoute à ce poste (règle actuelle, avant le 73c).
-  target: { eventId: string; slotId: string } | null;
+  // Le carnet ouvert depuis un poste (lot 73c) : « Ajouter à ce poste… », mariage et poste déjà choisis.
+  target: AdditionPreset | null;
   caption: string;
   // Les en-têtes qui trient, rendus par le serveur.
   head: ReactNode;
@@ -432,8 +416,8 @@ export function BookBoard({
   const [selecting, setSelecting] = useState(false);
   const [selected, setSelected] = useState<string[]>([]);
   const [menu, setMenu] = useState<{ target: RowMenuTarget; anchor: HTMLElement; requests: number } | null>(null);
-  const addDialog = useRef<HTMLDialogElement>(null);
-  const [addNames, setAddNames] = useState<string[]>([]);
+  // La fenêtre « Ajouter à un mariage… », montée au clic seulement.
+  const [adding, setAdding] = useState<{ ids: string[]; names: string[] } | null>(null);
   const byId = useMemo(() => new Map(rows.map((row) => [row.id, row])), [rows]);
   // Les fiches qui quittent la liste (archivées, filtrées) quittent la sélection.
   const shown = selected.filter((id) => byId.has(id));
@@ -462,10 +446,7 @@ export function BookBoard({
   }, [selecting, end]);
 
   const nameOf = (id: string) => byId.get(id)?.name ?? "";
-  const openAdd = (names: string[]) => {
-    setAddNames(names);
-    requestAnimationFrame(() => addDialog.current?.showModal());
-  };
+  const openAdd = (ids: string[]) => setAdding({ ids, names: ids.map(nameOf) });
 
   return (
     <div
@@ -482,7 +463,7 @@ export function BookBoard({
           setMenu((current) => ({ target: { id: row.id, name: row.name, phone: row.phone, email: row.email }, anchor: menuButton, requests: (current?.requests ?? 0) + 1 }));
           return;
         }
-        if (element.closest("[data-add-to-event]")) openAdd([row.name]);
+        if (element.closest("[data-add-to-event]")) openAdd([row.id]);
       }}
     >
       {selecting ? (
@@ -501,9 +482,18 @@ export function BookBoard({
           ))}
         </tbody>
       </table>
-      {menu ? <RowMenu target={menu.target} anchor={menu.anchor} requests={menu.requests} back={back} onAddToEvent={target ? null : () => openAdd([menu.target.name])} /> : null}
-      {selecting ? <BulkBar ids={shown} names={shown.map(nameOf)} tags={tags} exportFields={exportFields} exportListHrefs={exportListHrefs} onEnd={end} onAddToEvent={() => openAdd(shown.map(nameOf))} onDeselect={() => setSelected([])} /> : null}
-      <AddToEventInterim dialog={addDialog} names={addNames} />
+      {menu ? (
+        <RowMenu
+          target={menu.target}
+          anchor={menu.anchor}
+          requests={menu.requests}
+          back={back}
+          addLabel={target && labels.addToSlot ? labels.addToSlot : t("addToEvent.button")}
+          onAddToEvent={target && byId.get(menu.target.id)?.onSlot ? null : () => openAdd([menu.target.id])}
+        />
+      ) : null}
+      {selecting ? <BulkBar ids={shown} names={shown.map(nameOf)} tags={tags} exportFields={exportFields} exportListHrefs={exportListHrefs} onEnd={end} onAddToEvent={() => openAdd(shown)} onDeselect={() => setSelected([])} /> : null}
+      {adding ? <AddToEventDialog vendorIds={adding.ids} names={adding.names} preset={target ?? undefined} onClose={() => setAdding(null)} onAdded={() => (selecting ? end() : undefined)} /> : null}
     </div>
   );
 }

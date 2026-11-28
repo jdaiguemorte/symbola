@@ -47,13 +47,19 @@ async function advancePlacement(db: AppDatabase, organizationId: string, job: Ac
 // traitement interrompu, puis toutes les 5 minutes, en filet de sécurité.
 export const FULL_SCAN_INTERVAL_MS = 5 * 60 * 1000;
 let lastFullScanAt: number | null = null;
+// Lot 71c (rejeu à 375 px) : la suite du tour complet, reprise au passage suivant. Le tour tient dans le
+// temps d'un passage, organisation par organisation : avec des centaines d'organisations, il durait plus
+// de 30 s, et une fiche déposée entre-temps attendait sa fin. Les organisations signalées passent avant.
+let fullScanBacklog: string[] = [];
 
-async function organizationsToVisit(db: AppDatabase, now: number): Promise<string[]> {
+async function organizationsToVisit(db: AppDatabase, now: number): Promise<{ awakened: string[]; backlog: string[] }> {
   const awakenedIds = takeAwakenedImportOrganizations();
-  if (lastFullScanAt !== null && now - lastFullScanAt < FULL_SCAN_INTERVAL_MS) return awakenedIds;
-  lastFullScanAt = now;
-  const all = (await listOrganizations(db)).map((organization) => organization.id);
-  return [...new Set([...awakenedIds, ...all])];
+  if (lastFullScanAt === null || now - lastFullScanAt >= FULL_SCAN_INTERVAL_MS) {
+    lastFullScanAt = now;
+    fullScanBacklog = (await listOrganizations(db)).map((organization) => organization.id);
+  }
+  const awakened = new Set(awakenedIds);
+  return { awakened: awakenedIds, backlog: fullScanBacklog.filter((id) => !awakened.has(id)) };
 }
 
 // `organizationIds` : seulement ces organisations, sans rien signaler (tests).
@@ -61,13 +67,22 @@ export async function runImportJobsOnce(budgetMs: number = STEP_BUDGET_MS, organ
   const started = Date.now();
   const db = appDatabase();
   let steps = 0;
-  const targets = organizationIds ?? (await organizationsToVisit(db, started));
+  const visit = organizationIds ? { awakened: organizationIds, backlog: [] } : await organizationsToVisit(db, started);
+  const targets = [...visit.awakened, ...visit.backlog];
+  const outOfTime = () => Date.now() - started >= budgetMs;
   for (const [index, organizationId] of targets.entries()) {
+    // Temps écoulé : les organisations pas encore visitées passent au prochain tour (les signalées restent
+    // signalées ; la suite du tour complet reste à faire).
+    if (index > 0 && outOfTime()) {
+      if (!organizationIds) leaveForNextPass(targets.slice(index), visit.awakened);
+      return steps;
+    }
+    if (!organizationIds) fullScanBacklog = fullScanBacklog.filter((id) => id !== organizationId);
     const jobs = await listActiveImportJobs(db, organizationId);
     for (const job of jobs) {
       try {
         let more = true;
-        while (more && Date.now() - started < budgetMs) {
+        while (more && !outOfTime()) {
           more = job.kind === "read_sheets" ? await readNextSheet(db, organizationId, job) : await advancePlacement(db, organizationId, job);
           steps += 1;
         }
@@ -76,9 +91,8 @@ export async function runImportJobsOnce(budgetMs: number = STEP_BUDGET_MS, organ
         console.error("traitement d'import échoué", { organizationId, jobId: job.id, error: error instanceof Error ? error.name : "inconnue" });
         await updateImportJob(db, organizationId, job.id, { status: "failed", error: "processing_failed", finishedAt: new Date() });
       }
-      if (Date.now() - started >= budgetMs) {
-        // Temps écoulé : cette organisation et celles pas encore visitées passent au prochain tour.
-        if (!organizationIds) for (const pending of targets.slice(index)) wakeImportJobs(pending);
+      if (outOfTime()) {
+        if (!organizationIds) leaveForNextPass(targets.slice(index), visit.awakened);
         return steps;
       }
     }
@@ -86,6 +100,15 @@ export async function runImportJobsOnce(budgetMs: number = STEP_BUDGET_MS, organ
     if (!organizationIds && jobs.length > 0 && (await listActiveImportJobs(db, organizationId)).length > 0) wakeImportJobs(organizationId);
   }
   return steps;
+}
+
+// Les signalées pas encore visitées restent signalées ; les autres restent dans la suite du tour complet.
+function leaveForNextPass(pending: string[], awakened: string[]): void {
+  const signalled = new Set(awakened);
+  for (const organizationId of pending) {
+    if (signalled.has(organizationId)) wakeImportJobs(organizationId);
+    else if (!fullScanBacklog.includes(organizationId)) fullScanBacklog.push(organizationId);
+  }
 }
 
 // Jusqu'au bout (tests, essais) : passages répétés tant qu'il reste du travail.

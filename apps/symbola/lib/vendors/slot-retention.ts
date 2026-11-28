@@ -6,14 +6,19 @@
 // « Comparer » l'ajoute à la comparaison du poste, « Retenir » le retient. Sans rien taper, la liste
 // montre tout le carnet du métier du poste.
 import { addVendorCandidate, countWorkedWithByVendor, EventNotFoundError, listEventVendorSlots, listVendorCandidates, selectVendorCandidate } from "@/modules/events/service";
-import { ENGAGED_CANDIDATE_STATUSES } from "@symbola/contracts";
-import { createVendor, findVendors, getVendor, listVendorTypes, VendorNotFoundError } from "@/modules/vendors/service";
+import { ENGAGED_CANDIDATE_STATUSES, type VendorDocumentState } from "@symbola/contracts";
+import { countVendorsByFamily, createVendor, findVendors, getVendor, listVendorTypes, VendorNotFoundError } from "@/modules/vendors/service";
+import { matchSlotToVendorType } from "@/modules/events/service";
+import { slotMatchCatalog } from "./add-to-event";
 import { rankSlotVendors, slotChoiceList, slotMatchesVendorType } from "./slot-type-match";
 
 // onSlot : déjà dans la comparaison du poste (« compared ») ou retenu (« retained »).
-export type SlotVendorChoice = { id: string; name: string; city: string | null; typeLabel: string | null; matchesSlot: boolean; workedWith: boolean; workedWithCount: number; onSlot: "compared" | "retained" | null };
-// matchingCount : les fiches du carnet du métier du poste (« Voir tout le carnet (N) »).
-export type SlotVendorSearch = { choices: SlotVendorChoice[]; matchingCount: number };
+// Lot 73c (critère 7) : l'évaluation et l'état des pièces de chaque fiche, montrés dans le panneau du poste.
+export type SlotVendorChoice = { id: string; name: string; city: string | null; typeLabel: string | null; matchesSlot: boolean; workedWith: boolean; workedWithCount: number; onSlot: "compared" | "retained" | null; rating: number | null; documentState: VendorDocumentState };
+// matchingCount : les fiches du carnet du métier du poste (« {métier} du carnet · N ») ; tradeLabel : ce
+// métier (ou sa famille), nul sans correspondance ; bookCount : tout le carnet (« Chercher dans tout le
+// carnet (N fiches) »), lot 73c.
+export type SlotVendorSearch = { choices: SlotVendorChoice[]; matchingCount: number; tradeLabel: string | null; bookCount: number };
 
 async function slotOf(organizationId: string, eventId: string, slotId: string) {
   const slot = (await listEventVendorSlots(organizationId, eventId)).find((entry) => entry.id === slotId);
@@ -24,8 +29,19 @@ async function slotOf(organizationId: string, eventId: string, slotId: string) {
 export async function searchSlotVendors(input: { organizationId: string; eventId: string; slotId: string; term: string; locale: string }): Promise<SlotVendorSearch> {
   const slot = await slotOf(input.organizationId, input.eventId, input.slotId);
   const term = input.term.trim();
-  const [types, worked, candidates] = await Promise.all([listVendorTypes(input.organizationId), countWorkedWithByVendor(input.organizationId), listVendorCandidates(input.organizationId, input.eventId)]);
-  const matchingTypeIds = types.filter((type) => slotMatchesVendorType(slot.label, type.label)).map((type) => type.id);
+  const [types, worked, candidates, catalog, book] = await Promise.all([
+    listVendorTypes(input.organizationId),
+    countWorkedWithByVendor(input.organizationId),
+    listVendorCandidates(input.organizationId, input.eventId),
+    slotMatchCatalog(input.organizationId),
+    countVendorsByFamily(input.organizationId),
+  ]);
+  // Lot 73c : la correspondance du 73a (même libellé, synonymes, famille) d'abord, puis la ressemblance
+  // des mots du lot 63c.
+  const match = matchSlotToVendorType(slot.label, catalog);
+  const matched = match?.kind === "type" ? types.filter((type) => type.id === match.typeId) : match?.kind === "family" ? types.filter((type) => type.familyId === match.familyId) : [];
+  const matchingTypeIds = [...new Set([...matched, ...types.filter((type) => slotMatchesVendorType(slot.label, type.label))].map((type) => type.id))];
+  const tradeLabel = match?.kind === "family" ? (catalog.families.find((family) => family.id === match.familyId)?.label ?? null) : (types.find((type) => type.id === matchingTypeIds[0])?.label ?? null);
   // Le carnet du métier, en entier (au plus 60 fiches) ; le reste du carnet pour une recherche.
   const ofType = matchingTypeIds.length > 0 ? await findVendors({ organizationId: input.organizationId, typeIds: matchingTypeIds, limit: 60 }) : [];
   const vendors = term || ofType.length === 0 ? await findVendors({ organizationId: input.organizationId, ...(term ? { text: term } : {}), limit: 60 }) : ofType;
@@ -40,9 +56,20 @@ export async function searchSlotVendors(input: { organizationId: string; eventId
     .map((vendor): SlotVendorChoice => {
       const label = vendor.typeId ? (typeLabel.get(vendor.typeId) ?? null) : null;
       const count = worked.get(vendor.id) ?? 0;
-      return { id: vendor.id, name: vendor.name, city: vendor.city, typeLabel: label, matchesSlot: label !== null && slotMatchesVendorType(slot.label, label), workedWith: count > 0, workedWithCount: count, onSlot: onSlot.get(vendor.id) ?? null };
+      return {
+        id: vendor.id,
+        name: vendor.name,
+        city: vendor.city,
+        typeLabel: label,
+        matchesSlot: vendor.typeIds.some((typeId) => matchingTypeIds.includes(typeId)),
+        workedWith: count > 0,
+        workedWithCount: count,
+        onSlot: onSlot.get(vendor.id) ?? null,
+        rating: vendor.rating,
+        documentState: vendor.documentState,
+      };
     });
-  return { choices: slotChoiceList(rankSlotVendors(choices, input.locale), term), matchingCount: ofType.filter((vendor) => !vendor.isDemo).length };
+  return { choices: slotChoiceList(rankSlotVendors(choices, input.locale), term), matchingCount: ofType.filter((vendor) => !vendor.isDemo).length, tradeLabel: matchingTypeIds.length > 0 ? tradeLabel : null, bookCount: book.total };
 }
 
 // « Comparer » : le prestataire entre dans la comparaison du poste (« Pressenti »), sans être retenu ;

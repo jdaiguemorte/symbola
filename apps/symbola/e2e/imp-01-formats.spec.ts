@@ -9,7 +9,7 @@ import AxeBuilder from "./axe";
 import { createAppConnection } from "@symbola/db/client";
 import { createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
-import { readyOrganization, signIn as signInByLink } from "./helpers";
+import { feedback, readyOrganization, signIn as signInByLink } from "./helpers";
 
 async function loginAndSetupMfa(page: Page, email: string, _password: string) {
   // Lot 33 : lien magique et fournisseur d'identité (e2e/helpers.ts).
@@ -70,10 +70,13 @@ test("IMP-01 — un CSV Excel est lu, un .xls refusé, l'import en cours abandon
   await expect(page.getByRole("cell", { name: "Domaine des Œillets" })).toBeVisible();
   await expectNoAxeViolation(page);
 
-  // Abandon : lien discret, confirmé ; retour au journal, l'import y figure comme abandonné.
-  await page.getByRole("link", { name: "Abandonner l'import" }).click();
-  await page.getByRole("button", { name: "Oui, abandonner" }).click();
-  await expect(page).toHaveURL(/\/import$/);
+  // Abandon : lien discret, confirmé ; retour au journal, l'import y figure comme abandonné. Lot 71c (C-59) :
+  // « Abandonner cet import… » est un bouton qui ouvre la fenêtre de danger de niveau 2 ; le message de
+  // retour le dit.
+  await page.getByRole("button", { name: "Abandonner cet import…" }).click();
+  await page.getByRole("dialog", { name: "Abandonner l'import « excel-fr-windows1252.csv » ?" }).getByRole("button", { name: "Abandonner l'import" }).click();
+  await expect(page).toHaveURL(/\/import\?abandonne=1$/);
+  await expect(feedback(page)).toContainText("Import abandonné : rien n'a été importé.");
   const entry = page.getByRole("row").filter({ hasText: "excel-fr-windows1252.csv" });
   // Lot 71b : l'état du journal de « Reprendre et importer », en mot avec sa majuscule.
   await expect(entry).toContainText("Abandonné");

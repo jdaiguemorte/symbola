@@ -362,3 +362,15 @@ export async function closeSlotWindow(page: Page, slot: string) {
   await window.locator(".window-actions").getByRole("button", { name: "Fermer" }).click();
   await expect(window).toHaveCount(0);
 }
+
+// Lot 71c (HUB-14 ; C-64) : l'étape « Questions » d'une fiche d'un logiciel — « Où en est-il ? », et la
+// source si elle est donnée ; puis « Continuer » jusqu'à « Vérifier et confirmer ».
+export async function answerSheetQuestions(page: Page, options: { source?: string } = {}): Promise<void> {
+  await expect(page).toHaveURL(/\/questions$/, { timeout: 30_000 });
+  await page.getByRole("radio", { name: /Signé, en préparation/ }).check();
+  const type = page.getByRole("group", { name: "Quel type d'évènement ?" });
+  if ((await type.count()) > 0) await type.getByRole("radio").first().check();
+  if (options.source) await page.getByLabel("Comment ce couple vous a-t-il connue ? (facultatif)").selectOption({ label: options.source });
+  await page.getByRole("group", { name: "Actions de l'étape" }).getByRole("button", { name: "Continuer" }).click();
+  await expect(page).toHaveURL(/\/confirmation$/, { timeout: 30_000 });
+}

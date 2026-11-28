@@ -14,7 +14,7 @@ import { EventAppointments } from "./event-appointments";
 import { isFloorplansAvailable } from "@/app/plans-de-salle/access";
 import { ProspectExchanges } from "./prospect-exchanges";
 import { appDatabase } from "@symbola/db/client";
-import { clientTermForEvent, getEvent, getEventProgram, getEventProgramPublication, listProgramRecipients, proposeProgramShift, getEventStatusDates, closingDue, eventNames, getTaskRecalculation, previewTaskRecalculation, getActiveEventsTrial, listEventActivity, getEventProspectRequest, listEventDecisions, listEventDocuments, listEventDayContacts, listDayDocumentChoices, listEventLinks, listLinkProfiles, listEventTasks, periodRange, listEventVendorSlots, listVendorCandidates, listVendorFollowUps, listEventPlaces, listTaskTemplates, listLossReasons, listProgramTemplates, listProspectSources, summarizeVendorSlots, type EventVendorSlot, getEventIdentityState } from "@/modules/events/service";
+import { clientTermForEvent, getEvent, getEventProgram, getEventProgramPublication, listProgramRecipients, proposeProgramShift, getEventStatusDates, closingDue, eventNames, getTaskRecalculation, previewTaskRecalculation, getActiveEventsTrial, listEventActivity, getEventProspectRequest, listEventDecisions, listEventDocuments, listEventDayContacts, listDayDocumentChoices, listEventLinks, listLinkProfiles, listEventTasks, periodRange, listEventVendorSlots, listVendorCandidates, listVendorFollowUps, listEventPlaces, listTaskTemplates, countTemplatePastDue, listLossReasons, listProgramTemplates, listProspectSources, summarizeVendorSlots, type EventVendorSlot, getEventIdentityState } from "@/modules/events/service";
 import { getEventBudget, getUnallocatedTotals, listBudgetLines } from "@/modules/budget/service";
 import { getEventSignedOn } from "@/modules/events/service";
 import { taskListViewer } from "@/lib/event-visibility";
@@ -85,6 +85,7 @@ import { removeDayContactAction } from "./day-contact-actions";
 import { makeReceptionPlaceAction, removePlaceAction } from "./place-actions";
 import { findVendors, getVendor, listVendorTypes } from "@/modules/vendors/service";
 import { isVendorsModuleEnabled } from "@/app/prestataires/module-access";
+import { slotBookHref, slotBookQueries } from "@/lib/vendors/add-to-event";
 import {
   VENDOR_STATUS_CLASSES,
   VENDOR_STATUS_LABEL_KEYS,
@@ -193,6 +194,8 @@ export default async function EventDetailPage({
     // Lot 44 (CRM-01, D5) : la demande reçue par le formulaire de contact, affichée telle quelle.
     getEventProspectRequest(organizationId, id),
   ]);
+  // Lot 71c (I3) : « Partir d'un modèle » sur un mariage repris, les tâches du modèle déjà passées.
+  const templatePastDue = Object.fromEntries(await countTemplatePastDue(organizationId, id));
   const senders = sentEmails.length > 0 ? new Map((await listTeam(appDatabase(), organizationId)).map((member) => [member.id, member.email])) : new Map<string, string>();
   const tEmailKinds = await getTranslations("EmailTemplates");
   const programLabels = new Map(
@@ -336,12 +339,14 @@ export default async function EventDetailPage({
   const [budgetAvailable, candidates, vendorsAvailable] =
     tab === "budget" ? await Promise.all([isBudgetModuleEnabled(organizationId), listVendorCandidates(organizationId, id), isVendorsModuleEnabled(organizationId)]) : [false, [], false];
   const bookOptionsWanted = (selectedSlot || (tab === "budget" && budgetAvailable)) && vendorsAvailable;
-  const [budgetView, catalogVendors, budgetFollowUps, vendorTypes] = await Promise.all([
+  const [budgetView, catalogVendors, budgetFollowUps, vendorTypes, slotBooks] = await Promise.all([
     budgetAvailable ? listBudgetLines(organizationId, id) : null,
     bookOptionsWanted ? findVendors({ organizationId }) : [],
     // Lot 65b (M14 B) : les relances du détail des prestataires, montré dans la fenêtre du poste.
     budgetAvailable ? listVendorFollowUps(organizationId, id) : [],
     tab === "budget" && budgetAvailable && vendorsAvailable ? listVendorTypes(organizationId) : [],
+    // Lot 73c (critère 8) : le carnet ouvert depuis un poste, filtré par son métier ou sa famille.
+    tab === "budget" && budgetAvailable && vendorsAvailable ? slotBookQueries(organizationId, vendorSlots) : ({} as Awaited<ReturnType<typeof slotBookQueries>>),
   ]);
   // Lot 28b (Q33) : chaque poste est une catégorie du budget, avec ses lignes.
   const categoryOf = (slotId: string) => budgetView?.categories.find((category) => category.eventVendorSlotId === slotId) ?? null;
@@ -532,7 +537,7 @@ export default async function EventDetailPage({
         {step === "apply_retroplanning" ? (
           <>
             <p>{event.eventDate ? t("proposeRetroplanningBody") : t("taskTemplateNeedsDate")}</p>
-            {event.eventDate ? <ApplyTaskTemplateForm eventId={event.id} templates={templates} /> : null}
+            {event.eventDate ? <ApplyTaskTemplateForm eventId={event.id} templates={templates} pastDue={templatePastDue} /> : null}
           </>
         ) : (
           <>
@@ -1094,7 +1099,7 @@ export default async function EventDetailPage({
                     return [slot.id, { comparing: inTheRunning.length, quotes: inTheRunning.filter((candidate) => candidate.quoteAmountCents !== null || candidate.hasQuoteFile).length, signature }];
                   }),
                 )}
-                catalogHrefs={Object.fromEntries(vendorSlots.map((slot) => [slot.id, `/prestataires?evenement=${event.id}&poste=${slot.id}`]))}
+                catalogHrefs={Object.fromEntries(vendorSlots.map((slot) => [slot.id, slotBookHref(event.id, slot.id, slotBooks[slot.id])]))}
                 consultationHrefs={Object.fromEntries(vendorSlots.map((slot) => [slot.id, `/events/${event.id}/consultation/${slot.id}`]))}
                 vendorsAvailable={vendorsAvailable}
                 vendorTypes={budgetVendorTypes}
@@ -1273,7 +1278,7 @@ export default async function EventDetailPage({
                 </p>
               ) : null
             ) : !recalculation.pending ? (
-              <ApplyTaskTemplateForm eventId={event.id} templates={templates} />
+              <ApplyTaskTemplateForm eventId={event.id} templates={templates} pastDue={templatePastDue} />
             ) : null}
             <TaskFiltersForm
               action={`/events/${event.id}`}

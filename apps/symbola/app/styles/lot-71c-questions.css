@@ -1,0 +1,91 @@
+/* Lot 71c (HUB-14, UX-10 ; maquette 07 du lot 68) — l'étape « Questions » de l'assistant d'import : les
+   questions à gauche, « Ce que Symbola a compris » à droite (l'un sous l'autre sur téléphone). Jetons de
+   DESIGN.md seulement (ADR 0057), aucun style en ligne (CSP). L'étape en cours est marquée en encre (S6
+   du Design System) ; chaque coche a 44 px avec sa carte. */
+@layer components {
+  .import-questions {
+    @apply grid gap-6 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start;
+  }
+  .import-questions-form > fieldset.card {
+    @apply p-4;
+  }
+  .import-question-rows {
+    @apply m-0 mt-2 flex flex-col gap-2 border-0 p-0 pl-2;
+  }
+  .import-question-rows > legend {
+    @apply mb-1 p-0 text-label font-medium;
+  }
+  .import-question-row {
+    @apply flex min-h-11 cursor-pointer items-start gap-3 rounded-md border border-line bg-surface p-3;
+  }
+  .import-question-row:has(input:checked) {
+    @apply border-ink;
+  }
+  .import-question-row > span {
+    @apply flex flex-col;
+  }
+  .import-question-row > input {
+    @apply mt-1;
+  }
+  .import-question-total {
+    @apply m-0 text-label font-semibold;
+  }
+  .import-new-event {
+    @apply ml-2 flex flex-col gap-2;
+  }
+  .import-fixed-event {
+    @apply m-0 mb-4 rounded-md border border-line bg-surface px-4 py-3;
+  }
+  .import-keep-case {
+    @apply flex min-h-11 items-center gap-2;
+  }
+  .import-understood h2 {
+    @apply m-0 mb-3 text-body font-semibold;
+  }
+  .import-understood-table {
+    @apply mb-3 w-full text-label;
+  }
+  .import-understood-table th,
+  .import-understood-table td {
+    @apply border-b border-line py-2 pr-2 text-left align-top;
+  }
+  .import-understood-table tbody th {
+    @apply font-normal text-ink-muted;
+  }
+  .import-written {
+    @apply m-0 mb-3 flex flex-col gap-2 text-label;
+  }
+  .import-written > div {
+    @apply flex flex-col;
+  }
+  .import-written dt {
+    @apply text-ink-muted;
+  }
+  .import-written dd {
+    @apply m-0;
+  }
+  /* « Abandonner cet import… » : un bouton secondaire, plus un lien souligné (C-59). */
+  .import-head > .import-abandon {
+    @apply min-h-11;
+  }
+  /* S6 : l'étape en cours, en encre. */
+  .stepper li[data-state="current"] {
+    @apply border-ink;
+  }
+  /* Sur téléphone, le lien d'une étape faite a 44 px, comme toute commande. */
+  .stepper-text > a {
+    @apply max-md:inline-flex max-md:min-h-11 max-md:items-center;
+  }
+  /* Sur téléphone, la frise se lit en une ligne : « Étape 3 sur 5 · Questions ». */
+  .stepper-compact {
+    @apply m-0 mt-2 text-label font-semibold md:hidden;
+  }
+}
+
+/* Lot 71c (rejeu à 375 px) : sur téléphone, la barre d'action de l'assistant (« Retour », « Continuer »)
+   se tient au-dessus de la barre du bas du lot 70f, qui la recouvrait : « Continuer » ne répondait plus. */
+@media (max-width: 767px) {
+  .has-tabbar .action-bar {
+    bottom: var(--app-tabbar-height);
+  }
+}

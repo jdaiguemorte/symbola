@@ -16,10 +16,9 @@ export function ConfirmForm({ importId, prospectSources }: { importId: string; p
       {prospectSources ? (
         <label>
           {t("defaultSourceLabel")}
-          <select name="defaultProspectSourceId" required defaultValue="">
-            <option value="" disabled>
-              {t("defaultSourcePlaceholder")}
-            </option>
+          {/* Lot 71a/71c (C-64) : facultative ; sans elle, « non renseignée ». */}
+          <select name="defaultProspectSourceId" defaultValue="">
+            <option value="">{t("questions.sourceNone")}</option>
             {prospectSources.map((source) => (
               <option key={source.id} value={source.id}>
                 {source.label}

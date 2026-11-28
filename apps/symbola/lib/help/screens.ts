@@ -161,6 +161,8 @@ export const HELP_SCREENS: HelpScreen[] = [
   { key: "importTypes", group: "data", audience: "team", path: null, capture: false },
   // Lot 36b (D11) : lignes à écarter d'un import de contacts.
   { key: "importRows", group: "data", audience: "team", path: null, capture: false },
+  // Lot 71c (HUB-14 ; maquette 07) : ce que le fichier ne dit pas, demandé une fois.
+  { key: "importQuestions", group: "data", audience: "team", path: null, capture: false },
   { key: "importMatches", group: "data", audience: "team", path: null, capture: false },
   { key: "importGaps", group: "data", audience: "team", path: null, capture: false },
   { key: "importConfirm", group: "data", audience: "team", path: null, capture: false },

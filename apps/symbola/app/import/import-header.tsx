@@ -1,10 +1,14 @@
 // Lot 16 (IMP-11, ADR 0041) — en-tête commun des étapes de l'assistant
 // d'import : titre, frise des étapes (résumé des étapes faites), et
 // « Abandonner l'import », lien discret qui demande confirmation.
+// Lot 71c (C-59 ; maquette 07) : « Abandonner cet import… » devient un bouton secondaire, à chaque étape,
+// qui ouvre la fenêtre de danger de niveau 2 du lot 70b (le renoncement nommé, « Continuer l'import ») ;
+// sur téléphone, la frise se lit « Étape 3 sur 5 · Questions ».
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { Stepper } from "@/app/ui/stepper";
 import { importStepHref, type ImportStepKey, type ImportWizard } from "@/lib/import/wizard";
+import { ConfirmDialog } from "@/app/ui/confirm-dialog";
 import { cancelImportAction } from "./actions";
 import { requirePlanner } from "@/lib/guards";
 import { takeoverBackLink } from "@/lib/takeover/flow";
@@ -39,10 +43,22 @@ export async function ImportHeader({ wizard, current, abandon }: { wizard: Impor
       ) : null}
       <div className="import-head">
         <h1>{t("wizardTitle", { fileName: wizard.fileName })}</h1>
-        <Link href={`${here}?abandon=1`} className="import-abandon" scroll={false}>
-          {t("abandonLink")}
-        </Link>
+        <ConfirmDialog
+          trigger={t("abandonButton")}
+          triggerLabel={t("abandonButton")}
+          triggerClassName="import-abandon button-secondary"
+          title={t("abandonDialogTitle", { fileName: wizard.fileName })}
+          body={t("abandonBody")}
+          confirmLabel={t("abandonConfirm")}
+          keepLabel={t("abandonKeep")}
+          action={cancelImportAction}
+          fields={{ importId: wizard.importId }}
+        />
       </div>
+      <p className="stepper-compact" aria-hidden="true">
+        {t("stepOf", { current: Math.max(1, wizard.steps.findIndex((step) => step.key === current) + 1), total: wizard.steps.length, label: t(`wizardStep.${current}`) })}
+      </p>
+      {/* Sans JavaScript, l'adresse « ?abandon=1 » garde la confirmation dans la page. */}
       {abandon ? (
         <section className="import-abandon-confirm" aria-labelledby="abandon-title">
           <h2 id="abandon-title">{t("abandonTitle")}</h2>

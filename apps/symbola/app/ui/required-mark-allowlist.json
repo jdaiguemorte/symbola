@@ -74,7 +74,6 @@
   "app/exploitation/organisations/organization-form.tsx",
   "app/exploitation/parametres/settings-form.tsx",
   "app/import/[importId]/colonnes/columns-form.tsx",
-  "app/import/[importId]/confirmation/confirm-form.tsx",
   "app/import/new-import-form.tsx",
   "app/jour-j/[eventId]/day-checklists-prep.tsx",
   "app/jour-j/[eventId]/field-day.tsx",

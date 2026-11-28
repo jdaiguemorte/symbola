@@ -6,6 +6,11 @@
 // pouvoir être annulé.
 import type { ImportAnswers, ImportApplyResult, ImportApplyRow, ImportCellValue, ImportedItem, ImportEntityType, ImportUndoItem, ImportUndoOutcome } from "@symbola/contracts";
 import { appNameCase } from "@symbola/import-engine";
+import { parisToday } from "@symbola/i18n";
+import { eventStatusForStage } from "@symbola/contracts";
+import { createImportPendingEvent } from "@/lib/takeover/flow";
+import { applyPastDueAnswer } from "./question-rules";
+import { getImportQuestions } from "./questions";
 import { appDatabase, type AppDatabase } from "@symbola/db/client";
 import {
   findModifiedImportedBudgetElements,
@@ -63,7 +68,7 @@ import {
 } from "@/modules/vendors/service";
 import { getImportGapsView } from "./gaps";
 import { getImportMatchesView, loadVendorTypeCatalog, parseWorkingSetRows, type MatchesRowView, type VendorTypeCatalog } from "./matching";
-import type { ImportVendorTypeTarget } from "@/modules/hub/service";
+import type { ImportVendorTypeTarget, TakeoverViewer } from "@/modules/hub/service";
 import { starterBudgetImportPaymentLabels, type StarterLocale } from "@symbola/starter-templates";
 import { organizationTagCatalog } from "@/lib/vendors/tag-catalog";
 
@@ -93,7 +98,8 @@ async function withHubDb<T>(fn: (db: AppDatabase) => Promise<T>): Promise<T> {
 
 // —— Aperçu ————————————————————————————————————————————————————————————
 
-export type PreviewBlocker = "columns_undecided" | "matches_undecided" | "nothing_to_import" | "vat_rate_unknown" | "no_prospect_source";
+// Lot 71c : « questions_pending », une réponse de l'étape « Questions » manque.
+export type PreviewBlocker = "columns_undecided" | "questions_pending" | "matches_undecided" | "nothing_to_import" | "vat_rate_unknown" | "no_prospect_source";
 
 export type PreviewRow = Pick<MatchesRowView, "rowIndex" | "lineNumber" | "values" | "match" | "event">;
 
@@ -121,7 +127,7 @@ async function defaultVatRate(organizationId: string): Promise<number | null> {
 
 // Lot 36b : une ligne de contact ignorée par la planner (doublon d'adresse) n'est pas importée.
 function isImportable(row: MatchesRowView): boolean {
-  return row.errors.length === 0 && (!row.event || row.event.candidate !== null) && row.ignored !== true;
+  return row.errors.length === 0 && (!row.event || row.event.candidate !== null || row.event.pendingNew === true) && row.ignored !== true;
 }
 
 // Lot 36b : une ligne de contact qui répète une adresse plus haut (sans contact rapproché) ne met à
@@ -287,13 +293,39 @@ async function arrangeImportedTags(organizationId: string, importId: string, loc
   }
 }
 
+function withoutStage(answers: ImportAnswers): ImportAnswers {
+  const rest = { ...answers };
+  delete rest.eventStage;
+  return rest;
+}
+
+function withoutSource(answers: ImportAnswers): ImportAnswers {
+  const rest = { ...answers };
+  delete rest.prospectSourceId;
+  return rest;
+}
+
 export async function confirmImport(input: {
   organizationId: string;
   userId: string;
   importId: string;
   defaultProspectSourceId?: string | null;
   locale?: StarterLocale;
+  // Lot 71c : ce que voit la personne (lot 52), pour la reprise d'un mariage créé à l'écriture ; et
+  // l'heure, pour les échéances passées (horloge simulée dans les tests).
+  viewer?: TakeoverViewer;
+  now?: Date;
 }): Promise<ConfirmImportResult> {
+  const now = input.now ?? new Date();
+  // Lot 71c (critère 3) : aucune réponse n'est supposée ; il en manque une, rien n'est écrit.
+  const questions = await getImportQuestions(input.organizationId, input.importId, { now, locale: input.locale ?? "fr" });
+  if (questions && questions.missing.length > 0) return { status: "blocked", blockers: ["questions_pending"] };
+  // Lot 71c (critère 1) : « Un mariage qui n'est pas encore dans Symbola » est créé maintenant, avec sa
+  // reprise ; les lignes y vont.
+  if (questions?.answers?.newEvent) {
+    const viewer = input.viewer ?? { userId: input.userId, role: "owner" as const, allPlannersSeeAll: true };
+    await createImportPendingEvent({ organizationId: input.organizationId, userId: input.userId, viewer }, input.importId, input.locale ?? "fr");
+  }
   const preview = await getImportPreview(input.organizationId, input.importId);
   if (!preview) return { status: "not_found" };
   if (preview.blockers.length > 0) return { status: "blocked", blockers: preview.blockers };
@@ -303,7 +335,9 @@ export async function confirmImport(input: {
   if ((preview.entityType === "events" || preview.entityType === "event_sheets") && defaultProspectSourceId !== null && !preview.prospectSources.some((source) => source.id === defaultProspectSourceId)) {
     return { status: "invalid_default_source" };
   }
-  const answers = await withHubDb((db) => getImportAnswers(db, input.organizationId, input.importId));
+  const stored = await withHubDb((db) => getImportAnswers(db, input.organizationId, input.importId));
+  // Lot 71c (SEC-13) : une source d'une autre organisation n'est pas reprise ; « non renseignée ».
+  const answers = stored?.prospectSourceId && !preview.prospectSources.some((source) => source.id === stored.prospectSourceId) ? withoutSource(stored) : stored;
   const takeoverId = await withHubDb((db) => getImportTakeoverId(db, input.organizationId, input.importId));
   const takeover = takeoverId !== null;
 
@@ -314,7 +348,14 @@ export async function confirmImport(input: {
   const catalog = preview.entityType === "vendors" ? await loadVendorTypeCatalog(input.organizationId) : null;
   const typeColumn = set.mapping.find((choice) => choice.target === "field" && choice.fieldKey === "type");
 
-  const rows: ImportApplyRow[] = matches.rows.filter(isImportable).map((row) => ({
+  // Lot 71c (R16) : les tâches passées gardées, redatées ou dites faites, selon la réponse.
+  const importable = preview.entityType === "tasks" ? applyPastDueAnswer(matches.rows.filter(isImportable), answers?.pastDueTasks, parisToday(now)) : matches.rows.filter(isImportable);
+  // Lot 71c (C-64) : « Où en est-il ? » donne le statut de chaque fiche, sauf celle dont la planner a
+  // choisi le statut dans l'aperçu (décision J, lot 63a), qui l'emporte.
+  const chosenStatus = new Map((set.matching?.rowStatuses ?? []).map((entry) => [entry.rowIndex, entry.status]));
+  const stageStatus = preview.entityType === "event_sheets" && answers?.eventStage ? eventStatusForStage(answers.eventStage) : null;
+  const withStatus = (row: (typeof importable)[number]) => (stageStatus && !chosenStatus.has(row.rowIndex) ? { ...row, values: { ...row.values, status: stageStatus } } : row);
+  const rows: ImportApplyRow[] = importable.map(withStatus).map((row) => ({
     rowIndex: row.rowIndex,
     // Lot 71a : noms et villes à la casse de l'app, sauf « Garder les capitales ».
     values: answers?.nameCase === "keep" ? row.values : withAppNameCase(preview.entityType, row.values),
@@ -326,7 +367,8 @@ export async function confirmImport(input: {
   const applied = await applyToModules(input.organizationId, input.userId, preview.entityType, rows, {
     defaultProspectSourceId,
     defaultVatRateBasisPoints: (await defaultVatRate(input.organizationId)) ?? 0,
-    answers,
+    // Le statut des fiches est déjà posé ligne par ligne (ci-dessus).
+    answers: stageStatus && answers ? withoutStage(answers) : answers,
     takeover,
     vendorTypeChoices: catalog ? (matches.vendorTypes ?? []).map(({ label, typeId, target }) => ({ label, typeId, target: vendorTypeTarget(target, catalog) })) : [],
     typeColumnHeader: typeColumn ? set.headers[typeColumn.columnIndex] || null : null,

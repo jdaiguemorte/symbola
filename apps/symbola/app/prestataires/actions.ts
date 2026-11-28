@@ -10,7 +10,6 @@ import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { z } from "zod";
 import { VENDOR_SOCIAL_NETWORKS } from "@symbola/contracts";
-import { addVendorCandidate, VendorCandidateNotFoundError } from "@/modules/events/service";
 import {
   addVendorTypeField,
   arrangeVendorTags,
@@ -27,7 +26,6 @@ import {
   createVendor,
   createVendorTag,
   createVendorTagGroup,
-  getVendor,
   InvalidVendorFieldValueError,
   InvalidVendorLinkError,
   InvalidVendorRatingError,
@@ -207,25 +205,6 @@ export async function removeVendorFileAction(formData: FormData): Promise<void> 
   if (!access || !isValidId(vendorId) || !isValidId(fileId)) return;
   await removeVendorFile(access.organizationId, fileId);
   revalidatePath(`/prestataires/${vendorId}`);
-}
-
-// L11-PRE-10 — du carnet vers le poste d'un événement.
-export async function addVendorToSlotAction(formData: FormData): Promise<void> {
-  const access = await authorize();
-  const vendorId = text(formData, "vendorId");
-  const eventId = text(formData, "eventId");
-  const slotId = text(formData, "slotId");
-  if (!access || ![vendorId, eventId, slotId].every(isValidId)) return;
-  const vendor = await getVendor(access.organizationId, vendorId);
-  if (!vendor) return;
-  try {
-    await addVendorCandidate({ organizationId: access.organizationId, eventId, vendorSlotId: slotId, vendorName: vendor.name, vendorId: vendor.id });
-  } catch (error) {
-    if (!(error instanceof VendorCandidateNotFoundError)) throw error;
-    return;
-  }
-  revalidatePath(`/events/${eventId}`);
-  redirect(`/events/${eventId}?onglet=budget&poste=${slotId}`);
 }
 
 // L11-PRE-02 — types, champs, étiquettes, trajet.

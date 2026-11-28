@@ -12,6 +12,9 @@ export const NAME_CASE_ANSWERS = ["app", "keep"] as const;
 export type ImportAnswers = {
   // Le mariage visé, quand le fichier n'a pas de colonne pour le désigner (contrôlé par le service).
   targetEvent?: string;
+  // Lot 71c (C-52) : « Un mariage qui n'est pas encore dans Symbola » : son nom et sa date ; il est
+  // créé à l'écriture de l'import, avec sa reprise. Exclusif de targetEvent.
+  newEvent?: { name: string; eventDate: string | null };
   // « Les montants de l'acompte ont-ils été payés ? » ; « some » : les lignes du fichier (rowIndex)
   // dont l'acompte est payé.
   depositsPaid?: { answer: (typeof DEPOSITS_PAID_ANSWERS)[number]; paidRows?: number[] };
@@ -53,3 +56,8 @@ export function depositPaidFor(answers: ImportAnswers | null | undefined, rowInd
 export function eventStatusForStage(stage: (typeof EVENT_STAGE_ANSWERS)[number]): "option" | "confirmed" {
   return stage === "signed" ? "confirmed" : "option";
 }
+
+// Lot 71c (HUB-14, UX-10 ; maquette 07) — les questions de l'étape « Questions », dans l'ordre où
+// l'écran les pose. `prospectSource` est facultative ; les autres attendent une réponse.
+export const IMPORT_QUESTION_KEYS = ["targetEvent", "depositsPaid", "contracts", "eventType", "eventStage", "prospectSource", "pastDueTasks"] as const;
+export type ImportQuestionKey = (typeof IMPORT_QUESTION_KEYS)[number];

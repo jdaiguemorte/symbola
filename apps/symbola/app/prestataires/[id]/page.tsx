@@ -28,7 +28,8 @@ import { removeVendorDocumentAction, verifyVendorBankAction, verifyVendorDocumen
 import { requirePlanner } from "@/lib/guards";
 import { mapAssets } from "@/lib/map/tiles";
 import { isBudgetModuleEnabled } from "@/app/budget/module-access";
-import { isValidId } from "@/app/events/module-access";
+import { isEventsModuleEnabled, isValidId } from "@/app/events/module-access";
+import { AddToEventButton } from "../add-to-event-button";
 import { archiveVendorAction, removeVendorFileAction } from "../actions";
 import { isVendorsModuleEnabled } from "../module-access";
 import { ImportedFields } from "@/app/imported-fields";
@@ -84,7 +85,7 @@ export default async function VendorPage({ params, searchParams }: { params: Pro
   // Lot 58 (PRE-08) : évaluations après les évènements et noms de ces évènements (module events).
   const collaborations = await getVendorCollaborationHistory(organizationId, id);
   const evaluatedEvents = await getEventNamesByIds(organizationId, collaborations.evaluations.map((evaluation) => evaluation.eventId));
-  const [types, tags, history, assets, budget, families, tagGroups] = await Promise.all([
+  const [types, tags, history, assets, budget, families, tagGroups, eventsEnabled] = await Promise.all([
     listVendorTypes(organizationId),
     listVendorTags(organizationId),
     isBudgetModuleEnabled(organizationId).then((enabled) => getVendorHistory(organizationId, id, { budget: enabled })),
@@ -92,6 +93,7 @@ export default async function VendorPage({ params, searchParams }: { params: Pro
     isBudgetModuleEnabled(organizationId),
     listVendorFamilies(organizationId),
     listVendorTagGroups(organizationId),
+    isEventsModuleEnabled(organizationId),
   ]);
   const query = await searchParams;
   const placement = query.placement;
@@ -137,6 +139,8 @@ export default async function VendorPage({ params, searchParams }: { params: Pro
       {placement === "placed" ? <p role="status">{t("geocodingPlaced")}</p> : null}
       {placement === "not_found" ? <p role="status">{t("geocodingNotFound")}</p> : null}
       <p className="toolbar">
+        {/* Lot 73c (critère 1) : la même fenêtre que le carnet ; sans le module Évènements, rien (ARC-06). */}
+        {!vendor.archived && eventsEnabled ? <AddToEventButton vendorId={vendor.id} vendorName={vendor.name} /> : null}
         {vendor.location ? (
           <Link className="button-link" href={`/prestataires?autour=fiche:${vendor.id}`}>
             {t("searchAround", { vendor: vendor.name })}

@@ -1,7 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { formatAmount, formatCalendarDate, type Locale } from "@symbola/i18n";
-import { EVENT_STATUS_CHOICES } from "@symbola/contracts";
+import { EVENT_STATUS_CHOICES, eventStatusForStage } from "@symbola/contracts";
 import { foldSearchText } from "@symbola/db/search";
 import { normalizeVendorImportValues, type ImportValue } from "@symbola/import-engine";
 import { planningSoftwareProfile } from "@symbola/starter-templates";
@@ -92,6 +92,10 @@ export default async function ImportConfirmationPage({
   }
   const freeColumns = (wizard.draft.mapping ?? []).filter((choice) => choice.target === "free").map((choice) => wizard.draft.headers[choice.columnIndex] || t("unnamedColumn", { number: choice.columnIndex + 1 }));
   const total = preview.counts.creations + preview.counts.updates;
+  // Lot 71c : le statut montré est celui choisi dans l'aperçu, sinon celui de « Où en est-il ? ».
+  const chosen = new Set((wizard.draft.matching?.rowStatuses ?? []).map((entry) => entry.rowIndex));
+  const stage = wizard.questions?.answers?.eventStage;
+  const sheetStatus = (row: PreviewRow) => (stage && !chosen.has(row.rowIndex) ? eventStatusForStage(stage) : typeof row.values.status === "string" ? row.values.status : "option");
   const previousStep = wizard.steps.filter((step) => step.key !== "confirm").at(-1)?.key ?? "columns";
 
   return (
@@ -133,6 +137,8 @@ export default async function ImportConfirmationPage({
         </dl>
       </section>
 
+      {/* Lot 71c (C-64) : le statut d'une fiche vient de « Où en est-il ? », à l'étape « Questions » ; la
+          planner peut encore le changer fiche par fiche ici (décision J). */}
       {preview.counts.creations > 0 && preview.entityType === "event_sheets" ? (
         <section aria-labelledby="preview-creations">
           <h2 id="preview-creations">{t("previewCreationsTitle", { count: preview.counts.creations })}</h2>
@@ -144,7 +150,7 @@ export default async function ImportConfirmationPage({
                 importId={preview.importId}
                 rowIndex={row.rowIndex}
                 label={t("rowHeading", { line: row.lineNumber, title: describe(row.values) })}
-                initialStatus={typeof row.values.status === "string" ? row.values.status : "option"}
+                initialStatus={sheetStatus(row)}
                 options={EVENT_STATUS_CHOICES.map((status) => ({ value: status, label: tEvents(STATUS_KEYS[status] ?? "statusOption") }))}
                 savedText={t("sheetStatusSaved")}
                 failedText={t("sheetStatusFailed")}
@@ -199,6 +205,11 @@ export default async function ImportConfirmationPage({
                     {" "}
                     <Link href={`${importStepHref(importId, "matches")}?filtre=a-verifier`}>{t("blockerLink.matches_undecided")}</Link>
                   </>
+                ) : blocker === "questions_pending" ? (
+                  <>
+                    {" "}
+                    <Link href={importStepHref(importId, "questions")}>{t("blockerLink.questions_pending")}</Link>
+                  </>
                 ) : blocker === "columns_undecided" ? (
                   <>
                     {" "}
@@ -210,7 +221,8 @@ export default async function ImportConfirmationPage({
           </ul>
         </div>
       ) : (
-        <ConfirmForm importId={preview.importId} prospectSources={preview.entityType === "events" || preview.entityType === "event_sheets" ? preview.prospectSources : null} />
+        // Lot 71c (C-64) : la source d'une fiche est demandée à l'étape « Questions », facultative.
+        <ConfirmForm importId={preview.importId} prospectSources={preview.entityType === "events" ? preview.prospectSources : null} />
       )}
 
       <ActionBar label={t("actionBarLabel")} backHref={importStepHref(importId, previousStep)} backLabel={t("back")}>

@@ -14,7 +14,8 @@ import { getPlannerAuthContext } from "@/lib/auth-context";
 import { changeRetainedVendor, countWorkedWithByVendor, getVendorComparison, listLastVendorReminders, listVendorCandidates, selectVendorCandidate, updateVendorCandidate, type VendorReminderChannel } from "@/modules/events/service";
 import { isEventsModuleEnabled } from "../module-access";
 import { isVendorsModuleEnabled } from "@/app/prestataires/module-access";
-import { compareVendorForSlot, createAndRetainVendor, retainVendorForSlot, searchSlotVendors, type SlotVendorSearch } from "@/lib/vendors/slot-retention";
+import { createAndRetainVendor, searchSlotVendors, type SlotVendorSearch } from "@/lib/vendors/slot-retention";
+import { documentStateView, shortDayMonth } from "@/app/prestataires/book-row";
 import { engagementAlert } from "./engagement-alert";
 
 async function eventsAccess(): Promise<{ organizationId: string; userId: string } | null> {
@@ -39,55 +40,42 @@ function refresh(eventId: string, slotId: string) {
   revalidatePath(`/events/${eventId}/consultation/${slotId}`);
 }
 
-export async function searchSlotVendorsAction(input: unknown): Promise<SlotVendorSearch> {
+// Lot 73c (critère 7) : chaque fiche du panneau du poste avec l'état de ses pièces en mots (P3, mêmes mots
+// que le carnet) et son évaluation, formatés ici : le panneau n'importe aucune règle serveur.
+export type SlotPanelChoice = SlotVendorSearch["choices"][number] & { documents: { tone: string; icon: string | null; text: string }; ratingText: string | null };
+export type SlotPanelSearch = Omit<SlotVendorSearch, "choices"> & { choices: SlotPanelChoice[] };
+const EMPTY_SEARCH: SlotPanelSearch = { choices: [], matchingCount: 0, tradeLabel: null, bookCount: 0 };
+
+export async function searchSlotVendorsAction(input: unknown): Promise<SlotPanelSearch> {
   const allowed = await access();
   const parsed = slotSchema.extend({ term: z.string().max(100) }).safeParse(input);
-  if (!allowed || !parsed.success) return { choices: [], matchingCount: 0 };
+  if (!allowed || !parsed.success) return EMPTY_SEARCH;
   try {
-    return await searchSlotVendors({ organizationId: allowed.organizationId, ...parsed.data, locale: await getLocale() });
+    const rawLocale = await getLocale();
+    const locale = rawLocale === "en" ? "en" : "fr";
+    const found = await searchSlotVendors({ organizationId: allowed.organizationId, ...parsed.data, locale: rawLocale });
+    const t = await getTranslations("VendorBook");
+    type Key = Parameters<typeof t>[0];
+    return {
+      ...found,
+      choices: found.choices.map((choice) => {
+        const view = documentStateView(choice.documentState);
+        const values = Object.fromEntries(Object.entries(view.message.values).map(([key, value]) => [key, key === "date" && typeof value === "string" ? shortDayMonth(value, locale) : value]));
+        return {
+          ...choice,
+          documents: { tone: view.tone, icon: view.icon, text: `${t(`documents.${view.message.key}` as Key, values)}${view.more > 0 ? ` ${t("documents.more", { count: view.more })}` : ""}` },
+          ratingText: choice.rating ? t("row.rating", { rating: choice.rating }) : null,
+        };
+      }),
+    };
   } catch {
     // Un poste d'un autre évènement ou d'une autre organisation : rien, sans dire pourquoi.
-    return { choices: [], matchingCount: 0 };
+    return EMPTY_SEARCH;
   }
 }
 
 // confirm : le dépassement du seuil d'alerte du budget, à confirmer avant de retenir (BUD-02).
 export type SlotVendorState = { ok: true } | { ok: false; error: string } | { ok: false; confirm: string };
-
-export async function retainSlotVendorAction(input: unknown): Promise<SlotVendorState> {
-  const t = await getTranslations("BudgetVendors");
-  const allowed = await access();
-  if (!allowed) return { ok: false, error: t("unauthorized") };
-  const parsed = slotSchema.extend({ vendorId: z.uuid(), confirmed: z.boolean().default(false) }).safeParse(input);
-  if (!parsed.success) return { ok: false, error: t("notFound") };
-  const { confirmed, ...target } = parsed.data;
-  try {
-    const existing = (await listVendorCandidates(allowed.organizationId, target.eventId)).find((candidate) => candidate.vendorSlotId === target.slotId && candidate.vendorId === target.vendorId);
-    const confirm = await engagementAlert({ organizationId: allowed.organizationId, eventId: target.eventId, vendorSlotId: target.slotId, amountCents: existing?.quoteAmountCents ?? null, ...(existing ? { candidateId: existing.id } : {}), confirmed });
-    if (confirm) return { ok: false, confirm };
-    await retainVendorForSlot({ organizationId: allowed.organizationId, userId: allowed.userId, ...target });
-  } catch {
-    return { ok: false, error: t("notFound") };
-  }
-  refresh(target.eventId, target.slotId);
-  return { ok: true };
-}
-
-// « Comparer » : le prestataire entre dans la comparaison du poste, sans être retenu.
-export async function compareSlotVendorAction(input: unknown): Promise<SlotVendorState> {
-  const t = await getTranslations("BudgetVendors");
-  const allowed = await access();
-  if (!allowed) return { ok: false, error: t("unauthorized") };
-  const parsed = slotSchema.extend({ vendorId: z.uuid() }).safeParse(input);
-  if (!parsed.success) return { ok: false, error: t("notFound") };
-  try {
-    await compareVendorForSlot({ organizationId: allowed.organizationId, ...parsed.data });
-  } catch {
-    return { ok: false, error: t("notFound") };
-  }
-  refresh(parsed.data.eventId, parsed.data.slotId);
-  return { ok: true };
-}
 
 // --- La comparaison du poste, dans sa fenêtre (M14 B) ---
 
