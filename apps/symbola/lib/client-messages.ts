@@ -52,6 +52,8 @@ export const SERVER_ONLY_NAMESPACES = [
   "ImportDoublons",
   "ImportBilan",
   "ImportWithdraw",
+  // Lot 71e : l'écran et le bilan des PDF de prestataires retenus et de programme, rendus côté serveur.
+  "ImportPdf",
 ] as const;
 
 const SERVER_ONLY = new Set<string>(SERVER_ONLY_NAMESPACES);

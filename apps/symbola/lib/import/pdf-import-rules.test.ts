@@ -179,3 +179,10 @@ describe("CHR-08 — Le programme repris d'un PDF n'invente aucune heure (lot 71
     expect(programDayKind("2027-03-28", "2027-03-27")).toBe("nextDay");
   });
 });
+
+describe("UX-10 — Heures à la française (lot 71e, C-60)", () => {
+  it("« 12 h 15 », « 12 h », « 0 h 30 » ; « 12:15 » en anglais", async () => {
+    const { clockLabel } = await import("./pdf-import-rules");
+    expect([clockLabel("12:15", "fr"), clockLabel("12:00:00", "fr"), clockLabel("00:30", "fr"), clockLabel("12:15", "en"), clockLabel(null, "fr")]).toEqual(["12 h 15", "12 h", "0 h 30", "12:15", ""]);
+  });
+});

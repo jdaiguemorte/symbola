@@ -100,7 +100,6 @@ import { getDayReport, listKeyMoments } from "@/modules/events/service";
 import { getGuestEventSummary, getGuestModuleState } from "@/modules/guests/service";
 import { AddKeyMomentForm, EditKeyMomentForm } from "./key-moments";
 import { ProgramImportForm } from "./program-import-form";
-import { VendorsImportForm } from "./vendors-import-form";
 import { DayReminderCard } from "./day-reminder-card";
 import { dayReportSections, reportHandovers } from "./bilan/day-report-view";
 import { dayReportWords } from "./bilan/report-words";
@@ -141,6 +140,7 @@ export default async function EventDetailPage({
   const { id } = await params;
   const query = await searchParams;
   const t = await getTranslations("Events");
+  const tImportPdf = await getTranslations("ImportPdf");
   const tTrash = await getTranslations("Trash");
   const tHelp = await getTranslations("Help");
   const tCommon = await getTranslations("Common");
@@ -1034,8 +1034,15 @@ export default async function EventDetailPage({
               </p>
             ) : null}
             <progress aria-labelledby="vendor-progress-label" value={slotCompletion.complete} max={Math.max(slotCompletion.total, 1)} />
-            {/* Lot 67e (HUB-14, PRE-02 ; R07) : reprendre d'un PDF les prestataires retenus de l'évènement. */}
-            {vendorsAvailable ? <VendorsImportForm eventId={event.id} open={query.reprendre === "1"} takeoverId={query.reprise && isValidId(query.reprise) ? query.reprise : null} /> : null}
+            {/* Lot 67e (HUB-14, PRE-02 ; R07), lot 71e : reprendre d'un PDF les prestataires retenus, par
+                l'assistant commun des imports (journal, bilan, retrait d'ensemble). */}
+            {vendorsAvailable && !event.isDemo ? (
+              <p>
+                <Link className="button-link" href={`/import?type=event_vendors&evenement=${event.id}#import-form`}>
+                  {tImportPdf("fromEvent.vendors")}
+                </Link>
+              </p>
+            ) : null}
             {vendorSlots.length === 0 ? <p>{t("noVendorSlots")}</p> : null}
             {vendorSlots.length > 0 ? (
               <BudgetVendorsTable
@@ -1281,16 +1288,22 @@ export default async function EventDetailPage({
         <section className="card" aria-labelledby="program-title">
           <div className="section-head">
             <h2 id="program-title">{t("programTitle")}</h2>
-            {/* Lot 63b (HUB-14) : importer depuis l'écran (tableur ou PDF de l'ancien logiciel). */}
+            {/* Lot 63b (HUB-14) : importer depuis l'écran (un tableur) ; lot 71e : un PDF de logiciel de
+                planning, par l'assistant commun des imports. */}
             <Link className="button-link" href={`${tabHref("programme")}&importer=1#importer-programme`} scroll={false}>
               {t("importHere")}
             </Link>
+            {!event.isDemo ? (
+              <Link className="button-link" href={`/import?type=program&evenement=${event.id}#import-form`}>
+                {tImportPdf("fromEvent.program")}
+              </Link>
+            ) : null}
             <SettingsLink href="/events/modeles-programme" back="event" label={t("programTemplatesSettings")} />
           </div>
           <ProgramShiftProposal eventId={event.id} proposal={shiftProposal} />
           {/* Lot 65g (CHR-08 ; recette staging du 22/11/2026) : « Importer » ouvre l'import en tête de la
               carte, au-dessus de la diffusion, au lieu de le déplier plus bas. */}
-          {query.importer === "1" ? <ProgramImportForm eventId={event.id} open takeoverId={query.reprise && isValidId(query.reprise) ? query.reprise : null} /> : null}
+          {query.importer === "1" ? <ProgramImportForm eventId={event.id} open /> : null}
           {/* Lot 62c (UX-13) : en tête de la carte, la diffusion à gauche, les PDF et l'agenda à droite. */}
           <div className="program-head">
           {/* Lot 37b (CHR-07, DAT-14 ; D8, D10) : clients et prestataires lisent la dernière version diffusée. */}

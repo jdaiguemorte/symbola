@@ -4,8 +4,6 @@
 // séquences s'enregistrent ensemble (saveProgramAction), plus ligne par ligne.
 import { offerUndo } from "@/lib/undo";
 import { revalidatePath } from "next/cache";
-import { taskListViewer } from "@/lib/event-visibility";
-import { markTakeoverPdfStepDone } from "@/lib/takeover/flow";
 import { pendingPreparedEmailIds, withPreparer } from "@/lib/prepared-emails";
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
@@ -36,10 +34,7 @@ import {
 } from "@/modules/events/service";
 import { MailQuotaExceededError } from "@symbola/mail";
 import type { ProgramImportResult, RecipientsReview } from "@symbola/contracts";
-import { appDatabase } from "@symbola/db/client";
-import { looksLikePdf } from "@symbola/import-engine";
-import { EmailVariableMissingError, isModuleEnabled, RecipientsNotConfirmedError } from "@/modules/hub/service";
-import { listVendorImportCandidates } from "@/modules/vendors/service";
+import { EmailVariableMissingError, RecipientsNotConfirmedError } from "@/modules/hub/service";
 import { getPlannerAuthContext } from "@/lib/auth-context";
 import { emailVariableMissingMessage } from "../../email-errors";
 import { isEventsModuleEnabled, isValidId } from "../module-access";
@@ -272,29 +267,11 @@ export async function importProgramAction(_prev: ProgramImportState, formData: F
   if (file.size > PROGRAM_IMPORT_MAX_BYTES) return { error: t("programImportTooLarge") };
   const apply = formData.get("intent") === "apply";
   const skipLines = formData.getAll("skip").map(Number).filter((line) => Number.isInteger(line) && line > 0);
-  // Lot 63b (CHR-08) : poste choisi pour chaque intervenant du PDF (« none » : garder en texte).
-  const speakerSlots: Record<number, string | null> = {};
-  for (const [key, value] of formData.entries()) {
-    const match = /^speaker-(\d{1,3})$/.exec(key);
-    if (!match || typeof value !== "string") continue;
-    if (value === "none") speakerSlots[Number(match[1])] = null;
-    else if (isValidId(value)) speakerSlots[Number(match[1])] = value;
-  }
   try {
     const bytes = new Uint8Array(await file.arrayBuffer());
-    // Le carnet signale un intervenant qui n'est pas encore sur l'évènement (module souscrit seulement).
-    const catalogVendors = looksLikePdf(bytes) && (await isModuleEnabled(appDatabase(), auth.organizationId, "vendors")) ? await listVendorImportCandidates(auth.organizationId) : [];
-    const result = await importEventProgram({ organizationId: auth.organizationId, eventId, bytes, apply: apply ? { skipLines } : null, speakerSlots, catalogVendors });
-    if (result.status === "applied") {
-      revalidatePath(`/events/${eventId}`);
-      // Lot 71b (HUB-14) : ouvert depuis la page de reprise, il coche sa ligne (provisoire, paquet 71e).
-      const takeoverId = String(formData.get("takeoverId") ?? "");
-      const session = await getPlannerAuthContext();
-      if (isValidId(takeoverId) && session.status === "authenticated" && session.user.organizationId === auth.organizationId) {
-        const user = { id: session.user.id, role: session.user.role, organizationId: auth.organizationId };
-        if (await markTakeoverPdfStepDone({ organizationId: auth.organizationId, userId: user.id, viewer: await taskListViewer({ user }) }, { takeoverId, kind: "program", eventId })) revalidatePath(`/reprise/${takeoverId}`);
-      }
-    }
+    // Lot 71e (HUB-14) : un PDF de programme passe par l'assistant commun (importEventProgram le refuse).
+    const result = await importEventProgram({ organizationId: auth.organizationId, eventId, bytes, apply: apply ? { skipLines } : null });
+    if (result.status === "applied") revalidatePath(`/events/${eventId}`);
     return { result };
   } catch (error) {
     if (error instanceof EventNotFoundError) return { error: t("eventNotFound") };

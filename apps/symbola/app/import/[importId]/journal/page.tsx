@@ -16,6 +16,9 @@ import { takeoverRemoval } from "@/lib/import/apply";
 import { getImportAnswers } from "@/modules/hub/service";
 import { ImportWithdraw } from "./withdraw";
 import { BudgetBilan } from "./budget-bilan";
+import { PdfBilan } from "./pdf-bilan";
+import { getImportDirectory } from "@/lib/import/pdf-imports";
+import { getUnallocatedTotals } from "@/modules/budget/service";
 
 function count(value: string | undefined): number | null {
   const number = Number(value);
@@ -52,7 +55,7 @@ export default async function ImportJournalPage({
   searchParams,
 }: {
   params: Promise<{ importId: string }>;
-  searchParams: Promise<{ annule?: string; gardes?: string; utilises?: string; retrait?: string }>;
+  searchParams: Promise<{ annule?: string; gardes?: string; utilises?: string; retrait?: string; telephones?: string; fiches?: string }>;
 }) {
   const auth = await requirePlanner();
   const organizationId = auth.user.organizationId;
@@ -72,6 +75,7 @@ export default async function ImportJournalPage({
   const tTakeover = await getTranslations("Takeover");
   const tHelp = await getTranslations("Help");
   const tBilan = await getTranslations("ImportBilan");
+  const tPdf = await getTranslations("ImportPdf");
   // Lot 71b (HUB-14) : le bilan d'un import de reprise ramène à sa page.
   const back = await takeoverBackLink(organizationId, importId);
   const locale = (await getLocale()) as Locale;
@@ -81,6 +85,12 @@ export default async function ImportJournalPage({
   const removal = await takeoverRemoval(organizationId, importId);
   const budgetFigures = view.entityType === "budget_lines" && view.result?.figures?.kind === "budget" ? view.result : null;
   const undone = count(query.annule);
+  // Lot 71e (HUB-14) : le bilan d'un PDF de prestataires retenus ou de programme.
+  const pdfFigures = (view.entityType === "event_vendors" || view.entityType === "program") && (view.result?.figures?.kind === "event_vendors" || view.result?.figures?.kind === "program") ? view.result : null;
+  const pdfEventId = pdfFigures ? view.targetEventId : null;
+  const directory = pdfFigures && view.entityType === "program" && view.status === "applied" ? await getImportDirectory(organizationId, importId) : null;
+  const unallocated = pdfFigures && pdfEventId && view.entityType === "event_vendors" ? await getUnallocatedTotals(organizationId, pdfEventId) : null;
+  const added = count(query.telephones) !== null ? { phones: count(query.telephones) ?? 0, created: count(query.fiches) ?? 0 } : null;
 
   const itemTitle = (item: UndoPreviewItem): string => {
     const values = (item.written ?? item.previous ?? {}) as Record<string, unknown>;
@@ -158,7 +168,15 @@ export default async function ImportJournalPage({
           <Link href={finishHref}>‹ {t(`finishBack.${view.entityType}`)}</Link>
         </p>
       ) : null}
-      <h1>{budgetFigures && eventName && view.status === "applied" ? tBilan("title", { event: eventName }) : view.status === "applied" ? t("finishTitle") : t("journalEntryTitle", { fileName: view.fileName })}</h1>
+      <h1>
+        {pdfFigures && eventName && view.status === "applied"
+          ? tPdf(`bilan.title.${view.entityType === "program" ? "program" : "event_vendors"}`, { event: eventName, count: view.result?.created ?? 0 })
+          : budgetFigures && eventName && view.status === "applied"
+            ? tBilan("title", { event: eventName })
+            : view.status === "applied"
+              ? t("finishTitle")
+              : t("journalEntryTitle", { fileName: view.fileName })}
+      </h1>
       <ScreenHelp title={tHelp("importUndo.title")} body={tHelp("importUndo.body")} />
       {query.retrait ? <p role="alert">{tBilan(`takeoverFailed.${query.retrait === "expired" || query.retrait === "in_use" ? query.retrait : "failed"}`)}</p> : null}
       {undone !== null ? (
@@ -167,7 +185,17 @@ export default async function ImportJournalPage({
         </p>
       ) : null}
 
-      {budgetFigures ? (
+      {pdfFigures ? (
+        <PdfBilan
+          view={view}
+          author={author?.email ?? null}
+          back={back}
+          eventId={pdfEventId}
+          directory={directory}
+          unallocatedCents={unallocated?.remainingCents ?? null}
+          added={added}
+        />
+      ) : budgetFigures ? (
         <BudgetBilan
           view={view}
           eventName={eventName}
@@ -236,7 +264,7 @@ export default async function ImportJournalPage({
         </section>
       ) : null}
 
-      {!filteredList && !budgetFigures && createdItems.length > 0 ? (
+      {!filteredList && !budgetFigures && !pdfFigures && createdItems.length > 0 ? (
         <details id="elements-crees">
           <summary>{t("finishCount", { count: createdItems.length, label: t("finishFigure.created", { count: createdItems.length }) })}</summary>
           <ul>
@@ -246,7 +274,7 @@ export default async function ImportJournalPage({
           </ul>
         </details>
       ) : null}
-      {!filteredList && !budgetFigures && updatedItems.length > 0 ? (
+      {!filteredList && !budgetFigures && !pdfFigures && updatedItems.length > 0 ? (
         <details id="elements-maj">
           <summary>{t("finishCount", { count: updatedItems.length, label: t("finishFigure.updated", { count: updatedItems.length }) })}</summary>
           <ul>
@@ -256,7 +284,7 @@ export default async function ImportJournalPage({
           </ul>
         </details>
       ) : null}
-      {view.result && view.result.rejected + view.result.unchanged > 0 ? (
+      {view.result && !pdfFigures && view.result.rejected + view.result.unchanged > 0 ? (
         <details id="lignes-ignorees">
           <summary>{t("finishCount", { count: view.result.rejected + view.result.unchanged, label: t("finishFigure.ignored", { count: view.result.rejected + view.result.unchanged }) })}</summary>
           <p>{t("finishIgnoredDetail", { rejected: view.result.rejected, unchanged: view.result.unchanged })}</p>

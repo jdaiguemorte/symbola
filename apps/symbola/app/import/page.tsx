@@ -11,7 +11,7 @@ import { taskListViewer } from "@/lib/event-visibility";
 import { getImportWizard } from "@/lib/import/wizard";
 import { importEventNames } from "@/lib/takeover/flow";
 import { takeoverKindOfEntity } from "@/lib/takeover/page-rules";
-import { availableImportEntityTypes } from "./access";
+import { availableImportEntityTypes, availablePdfImportEntityTypes } from "./access";
 import { NewImportForm } from "./new-import-form";
 import { eventNames, getEvent } from "@/modules/events/service";
 import { isEventsModuleEnabled, isValidId } from "@/app/events/module-access";
@@ -44,6 +44,9 @@ export default async function ImportPage({ searchParams }: { searchParams: Promi
   const others = available.filter((type) => !(MAIN_CHOICES as readonly string[]).includes(type));
   const query = await searchParams;
   const requested = query.type;
+  // Lot 71e : un PDF de prestataires retenus ou de programme, pour un mariage seulement.
+  const pdfTypes = await availablePdfImportEntityTypes(organizationId);
+  const pdfRequested = pdfTypes.find((type) => type === requested) ?? null;
 
   // Lot 71b : l'import d'une ligne de reprise (de l'organisation, visible de la personne), de la sorte
   // de sa ligne ; sinon la même réponse qu'une reprise inexistante (SEC-13).
@@ -51,12 +54,16 @@ export default async function ImportPage({ searchParams }: { searchParams: Promi
   const takeover = takeoverId ? await getTakeover(db, organizationId, takeoverId, await taskListViewer(auth)) : null;
   if (takeoverId && !takeover) notFound();
   const takeoverKind = takeover && requested ? takeoverKindOfEntity(requested) : null;
-  if (takeover && (!takeoverKind || !available.includes(requested as ImportEntityType))) notFound();
+  if (takeover && (!takeoverKind || !(available.includes(requested as ImportEntityType) || pdfRequested !== null))) notFound();
   const takeoverEvent = takeover?.eventId ? await getEvent(organizationId, takeover.eventId) : null;
   const takeoverNames = takeoverEvent ? eventNames(takeoverEvent.clients, takeoverEvent.name) : null;
 
   const group = requested && Object.hasOwn(SCREEN_GROUPS, requested) ? SCREEN_GROUPS[requested]!.filter((type) => available.includes(type)) : [];
-  const direct = available.find((type) => type === requested) ?? null;
+  const pdfEvent = pdfRequested && !takeover && query.evenement && isValidId(query.evenement) ? await getEvent(organizationId, query.evenement).catch(() => null) : null;
+  const pdfTarget = pdfRequested ? (takeover ? takeoverEvent : pdfEvent) : null;
+  // Un PDF sans mariage (ou d'un mariage d'une autre organisation) : comme un objet inexistant.
+  if (pdfRequested && (!pdfTarget || pdfTarget.isDemo)) notFound();
+  const direct = available.find((type) => type === requested) ?? pdfRequested ?? null;
   const chosen: string | null = requested === OTHER && others.length > 0 ? OTHER : group.length > 0 ? requested! : direct;
   const formTypes: ImportEntityType[] = chosen === OTHER ? others : group.length > 0 ? group : direct ? [direct] : [];
   const formTitle = takeoverKind
@@ -73,7 +80,7 @@ export default async function ImportPage({ searchParams }: { searchParams: Promi
   // reprise, c'est son mariage.
   const fromEvent =
     !takeover && (direct === "budget_lines" || direct === "tasks") && query.evenement && isValidId(query.evenement) ? await getEvent(organizationId, query.evenement).catch(() => null) : null;
-  const target = takeover && (direct === "budget_lines" || direct === "tasks") ? takeoverEvent : fromEvent;
+  const target = pdfTarget ?? (takeover && (direct === "budget_lines" || direct === "tasks") ? takeoverEvent : fromEvent);
   const [journal, limits]: [ImportSummary[], ImportLimits] = await Promise.all([listImports(db, organizationId), getImportLimits(db)]);
   const eventsEnabled = await isEventsModuleEnabled(organizationId);
   const forEvent = await importEventNames(organizationId, journal);

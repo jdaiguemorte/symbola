@@ -196,3 +196,12 @@ export function programFigures(rows: readonly ProgramImportRow[], directory: num
 export function programDirectory(program: Pick<ProgramExport, "speakers">): { role: string; company: string | null; contact: string | null; phone: string | null }[] {
   return program.speakers.map(({ role, company, contact, phone }) => ({ role, company, contact, phone }));
 }
+
+// Heures à la française (C-60) : « 12 h 15 », « 12 h », « 0 h 30 » ; en anglais, « 12:15 ».
+export function clockLabel(time: string | null, locale: "fr" | "en"): string {
+  if (!time) return "";
+  const [hours = "0", minutes = "00"] = time.split(":");
+  if (locale === "en") return `${hours.padStart(2, "0")}:${minutes.slice(0, 2)}`;
+  const h = String(Number(hours));
+  return minutes.startsWith("00") ? `${h} h` : `${h} h ${minutes.slice(0, 2)}`;
+}

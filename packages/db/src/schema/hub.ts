@@ -706,6 +706,8 @@ export type ImportResult = {
   // Lot 71d : « Ce que vous avez choisi » (choix de « Doublons »), sans valeur personnelle autre que les
   // intitulés de postes et les noms de prestataires du fichier, déjà dans le budget.
   choices?: { splits: string[]; removedSlots: string[]; sameVendors: { name: string; vendorName: string }[]; createdVendors: string[] };
+  // Lot 71e (R10) : le fichier nommait un autre couple, et la planner a répondu « C'est bien ce mariage ».
+  coupleConfirmed?: true;
 };
 
 // IMP-05 — un élément écrit par un import confirmé : de quoi l'annuler

@@ -300,9 +300,10 @@ async function applyToModules(
       return importContactRows({ organizationId, userId, rows });
     // Lot 71a : ces deux sortes passent par l'assistant commun au paquet 71e ; d'ici là, la route
     // d'envoi ne les accepte pas (IMPORT_FILE_ENTITY_TYPES).
+    // Lot 71e : ces deux sortes s'écrivent par lib/import/pdf-imports.ts.
     case "event_vendors":
     case "program":
-      throw new Error("sorte d'import pas encore prise par l'assistant commun");
+      throw new Error("un PDF s'écrit par son propre parcours");
   }
 }
 
@@ -607,6 +608,11 @@ async function undoItems(
     });
   }
   return outcomes;
+}
+
+// Lot 71e : ce qu'un import vient d'écrire, retiré quand son journal ne peut pas s'écrire.
+export async function undoImportedItems(organizationId: string, userId: string, items: ImportedItem[]): Promise<void> {
+  await undoItems(organizationId, userId, items, () => true);
 }
 
 export type UndoPreviewItem = AppliedImportItem & { modified: boolean; usedElsewhere: boolean };
