@@ -8,6 +8,7 @@ import { createOrganization, createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
 import { addDefaultVendorSlots, createProspect, createProspectSource, createTaskTemplate } from "../modules/events/service";
 import { changeEventStatus, expectEventStep, readyOrganization, signIn as signInByLink } from "./helpers";
+import { submitNewEvent } from "./new-event";
 
 async function expectNoAxeViolation(page: Page) {
   const result = await new AxeBuilder({ page }).analyze();
@@ -58,7 +59,9 @@ test("L12-EVT-12 / L12-EVT-13 / L12-EVT-15 / EVT-01 — statut en boutons, rétr
   // une carte le propose.
   await expect(page.getByRole("button", { name: "Appliquer le modèle" })).toBeVisible();
   await page.goto(`/events/${event.id}`);
-  await expect(page.getByRole("heading", { name: "Prochaine étape : appliquer le rétroplanning" })).toBeVisible();
+  // Lot 72e (C-24) : signé sans tâches, la suite de la Synthèse propose de créer la liste.
+  await expect(page.locator("[data-suite]")).toContainText("Créer la liste des tâches de Inès.");
+  await expect(page.locator("[data-suite]").getByRole("button", { name: "Partir du rétroplanning" })).toBeVisible();
   await expectNoAxeViolation(page);
 
   // Lieux saisis une fois, proposés ensuite dans le programme.
@@ -109,7 +112,7 @@ test("L12-HUB-13 — un clic sur une date libre de l'agenda crée un évènement
 
   await page.getByRole("radio", { name: /^Signé, en préparation/ }).check();
   await page.getByLabel(/^Nom de l'évènement/).fill("Léa");
-  await page.getByRole("button", { name: "Créer l'évènement" }).click();
+  await submitNewEvent(page);
   await expect(page).toHaveURL(/\/events\/[0-9a-f-]{36}$/);
   await expectEventStep(page, "Signé, en préparation");
 });

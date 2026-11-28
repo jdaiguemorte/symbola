@@ -16,7 +16,8 @@ import { setUnallocatedTotals, updateBudgetLine } from "../modules/budget/servic
 import { addEventVendorSlot, addProgramItem, addVendorCandidate, createProspect, setEventIdentity, updateVendorCandidate } from "../modules/events/service";
 import { markTakeoverStepImported, settleTakeoverStep } from "../modules/hub/service";
 import { enterTakeoverEvent, type TakeoverActor } from "../lib/takeover/flow";
-import { readyOrganization, signIn } from "./helpers";
+import { readyOrganization, signIn, eventInfoWindow, saveEventInfo } from "./helpers";
+import { reportMeasure } from "./mesure";
 
 const expect = baseExpect.configure({ timeout: 20_000 });
 
@@ -94,23 +95,23 @@ test.describe("EVT-02 — La fiche d'un mariage repris (lot 71f)", () => {
     await expect(main).not.toContainText("tout est à jour");
     await expect(main).not.toContainText("Champs importés");
     await expect(main).not.toContainText(/0,00\s€ de réel/);
-    await expect(page.getByRole("heading", { name: "Prochaine action" })).toHaveCount(0);
-    const health = page.getByRole("region", { name: "Santé de l'évènement" });
+    // Lot 72e : « À compléter » est la seule suite ; la santé devient « Où en est le mariage ».
+    await expect(page.locator("[data-suite]")).toHaveCount(0);
+    const health = page.getByRole("region", { name: "Où en est le mariage" });
     await expect(health).toContainText("Pas encore de tâches : pas d'avis");
     await expect(health.locator("[data-health='good']")).toHaveCount(0);
     await expect(health).toContainText(/21\s650,50\s€ de réel/);
     await expect(health).toContainText("Selon votre fichier");
     await expect(health).toContainText("3 retenus · 1 contrat signé");
-    const identity = page.getByRole("region", { name: "Fiche d'identité" });
+    const identity = page.getByRole("region", { name: "Informations" });
     await expect(identity).toContainText("Signé le");
-    await expect(identity).toContainText("non renseigné");
-    await expect(identity).toContainText("non renseignée");
+    await expect(identity.locator('[data-key="source"]')).toContainText("non renseigné");
     await expectNoSideScroll(page);
     await expectNoAxeViolation(page);
 
     // Critère 7 : le mariage créé dans Symbola n'a ni marque, ni bloc, ni interrupteur.
     await page.goto(`/events/${setup.maxime}`);
-    await expect(page.getByRole("heading", { name: "Prochaine action" })).toBeVisible();
+    await expect(page.locator("[data-suite]")).toHaveCount(1);
     await expect(page.locator(".takeover-origin")).toHaveCount(0);
     await expect(checklist(page)).toHaveCount(0);
     await expect(page.getByRole("link", { name: "D'où viennent ces valeurs ?" })).toHaveCount(0);
@@ -121,10 +122,11 @@ test.describe("EVT-02 — La fiche d'un mariage repris (lot 71f)", () => {
     const setup = await agency(page);
     await page.goto(`/events/${setup.lea.eventId}`);
     await point(page, "guests").getByRole("link", { name: /Saisir/ }).click();
-    const panel = page.getByRole("dialog").or(page.locator(".side-panel")).first();
-    await panel.getByLabel("Invités estimés").fill("120");
-    await panel.getByRole("button", { name: "Enregistrer la fiche" }).click();
-    await expect(panel.getByText("Fiche enregistrée.")).toBeVisible();
+    // Lot 72e : « Saisir » ouvre « Modifier les informations » à la rubrique des invités.
+    const panel = eventInfoWindow(page);
+    await expect(panel.getByRole("button", { name: "Invités et budget", exact: true })).toHaveAttribute("aria-current", "step");
+    await panel.getByLabel("Invités prévus").fill("120");
+    await saveEventInfo(page);
     // La fiche se relit sans rechargement : le point passe en bas, coché.
     await expect(checklist(page)).toContainText("6 points · 1 fait");
     await expect(page.locator(".takeover-point").last()).toHaveAttribute("data-point", "guests");
@@ -148,7 +150,7 @@ test.describe("EVT-02 — La fiche d'un mariage repris (lot 71f)", () => {
       await sql.end();
     }
     await page.goto(`/events/${setup.lea.eventId}`);
-    const identity = page.getByRole("region", { name: "Fiche d'identité" });
+    const identity = page.getByRole("region", { name: "Informations" });
     await expect(identity.locator(".provenance-mark")).toHaveCount(0);
     await identity.getByRole("link", { name: "D'où viennent ces valeurs ?" }).click();
     await expect(identity.locator(".provenance-mark")).toHaveText(["vous, à la reprise", "Fichier : fiche-lea-hugo.pdf"]);
@@ -244,6 +246,7 @@ test.describe("EVT-02 — La fiche d'un mariage repris (lot 71f)", () => {
       series.push(Math.round(times[Math.ceil(times.length * 0.95) - 1]!));
     }
     const median = [...series].sort((a, b) => a - b)[1]!;
+    reportMeasure(testInfo, { mesure: "Lot 71f — NFR-02, liste de 200 évènements, marque et filtre « Origine » (médiane des 95e centiles de 3 séries)", valeur: median, seuil: 300, detail: `séries : ${series.join(", ")} ms` });
     expect(median, `95e centiles : ${series.join(", ")} ms`).toBeLessThan(300);
   });
 });

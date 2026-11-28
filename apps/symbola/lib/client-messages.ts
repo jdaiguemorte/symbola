@@ -47,14 +47,23 @@ export const SERVER_ONLY_NAMESPACES = [
   "Organizations",
   "Manifest",
   "Loading",
+  // Lot 72e : la Synthèse d'un évènement (suite, « Où en est le mariage », « Informations ») est rendue par le
+  // serveur ; seule la fenêtre « Modifier les informations » (EventInfoWindow) lit ses textes au navigateur.
+  "EventOverview",
   // Lot 71d : les nombres, « Doublons », le bilan et le retrait d'un import, rendus côté serveur.
   "ImportFigures",
   "ImportDoublons",
   "ImportBilan",
   "ImportWithdraw",
+  // Lot 74b : les échéances déjà passées de « Nouvel évènement » ; la seule page /events/new les passe à sa
+  // fenêtre (createTranslator), elles ne partent pas avec les autres pages.
+  "PastDue",
   // Lot 74g : les 38 rubriques et « Vos données », lus côté serveur ; l'accueil des Paramètres reçoit ses
   // textes en propriétés, sa recherche les siens (« SettingsSearch »).
   "SettingsMenu",
+  // Lot 73d : la fenêtre de création et la fiche d'un prestataire reçoivent leurs textes de l'écran.
+  "VendorCreate",
+  "VendorSheet",
   // Lot 74d : la ligne « Découvrir cet écran », rendue côté serveur et passée en propriétés aux seuls
   // écrans qui la proposent.
   "TourLine",

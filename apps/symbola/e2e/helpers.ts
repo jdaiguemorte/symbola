@@ -433,3 +433,29 @@ export async function answerSheetQuestions(page: Page, options: { source?: strin
   await page.getByRole("group", { name: "Actions de l'étape" }).getByRole("button", { name: "Continuer" }).click();
   await expect(page).toHaveURL(/\/confirmation$/, { timeout: 30_000 });
 }
+
+// Lot 72e (EVT-03 ; C-26) — « Modifier les informations » : une fenêtre à cinq rubriques et un seul
+// « Enregistrer », ouverte depuis « Informations » de la Synthèse.
+export function eventInfoWindow(page: Page): Locator {
+  return page.getByRole("dialog", { name: /^Les informations de « / });
+}
+
+export type EventInfoRubric = "Date et lieux" | "Mariés" | "Invités et budget" | "Style et notes" | "Type et origine";
+
+export async function openEventInfo(page: Page, rubric?: EventInfoRubric): Promise<Locator> {
+  await page.locator("#event-tab-panel").getByRole("link", { name: "Modifier les informations" }).click();
+  const window = eventInfoWindow(page);
+  await expect(window).toBeVisible();
+  if (rubric) await window.getByRole("navigation", { name: "Rubriques des informations" }).getByRole("button", { name: rubric, exact: true }).click();
+  return window;
+}
+
+export async function openEventInfoRubric(page: Page, rubric: EventInfoRubric): Promise<void> {
+  await eventInfoWindow(page).getByRole("navigation", { name: "Rubriques des informations" }).getByRole("button", { name: rubric, exact: true }).click();
+}
+
+export async function saveEventInfo(page: Page): Promise<void> {
+  const window = eventInfoWindow(page);
+  await window.getByRole("button", { name: "Enregistrer", exact: true }).click();
+  await expect(window).toBeHidden();
+}

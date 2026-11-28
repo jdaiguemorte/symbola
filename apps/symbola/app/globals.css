@@ -20,12 +20,15 @@
 @import "./styles/lot-71b-reprise.css";
 @import "./styles/lot-74a-assistant.css";
 @import "./styles/lot-72d-entete.css";
+@import "./styles/lot-72e-synthese.css";
 @import "./styles/lot-71c-questions.css";
 @import "./styles/lot-73b-carnet.css";
 @import "./styles/lot-73c-rattacher.css";
+@import "./styles/lot-73d-fiche.css";
 @import "./styles/lot-74d-visites.css";
 @import "./styles/lot-71f-fiche-reprise.css";
 @import "./styles/lot-71d-doublons-bilan.css";
+@import "./styles/lot-74b-premier-mariage.css";
 @source "../../../packages/ui/src";
 
 @theme {

@@ -60,6 +60,7 @@ import eventTypesFile from "./event-types.json";
 import taskCategoriesFile from "./task-categories.json";
 import onboardingFile from "./onboarding.json";
 import appointmentTypesFileJson from "./appointment-types.json";
+import publicHolidaysFile from "./public-holidays.json";
 
 export type StarterLocale = "fr" | "en";
 
@@ -336,6 +337,18 @@ export function starterDocumentStyle(locale: StarterLocale): StarterDocumentStyl
 
 export function starterQuoteTerms(locale: StarterLocale): string {
   return documentStyle.quoteTerms[locale];
+}
+
+// Lot 74b (B7) : les jours fériés, non comptés comme jours ouvrés quand les tâches déjà passées d'un
+// mariage créé sont redatées (dates fixes « MM-JJ » et écarts au dimanche de Pâques).
+const publicHolidaysSchema = z.object({
+  version: z.literal(1),
+  fr: z.object({ fixed: z.array(z.string().regex(/^\d{2}-\d{2}$/)), easterOffsets: z.array(z.number().int()) }),
+});
+const publicHolidays = publicHolidaysSchema.parse(publicHolidaysFile);
+
+export function starterPublicHolidays(): { fixed: string[]; easterOffsets: number[] } {
+  return { fixed: [...publicHolidays.fr.fixed], easterOffsets: [...publicHolidays.fr.easterOffsets] };
 }
 
 const retroplanningSchema = z.object({

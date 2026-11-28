@@ -25,6 +25,14 @@ import type { ContactChoice } from "@/app/contacts/actions";
 import { ContactPicker } from "@/app/contacts/contact-picker";
 import { SameDayNotice } from "../same-day-notice";
 import { EVENT_STANDINGS, type EventStanding } from "./new-event-standing";
+import { DEFAULT_PAST_DUE_SPREAD, pastDueOutcomes, type PastDueSpread, type PastDueTaskAnswer } from "@symbola/contracts";
+import { formatShortCalendarDate, type Locale } from "@symbola/i18n";
+import { useLocale } from "next-intl";
+import { PastDueStep, type PastDueItem } from "./past-due-step";
+import { usePastDueTranslator, type PastDueMessages } from "./past-due-messages";
+
+// Lot 74b (B7) : un modèle de rétroplanning proposé à la création, ses tâches dans l'ordre du modèle.
+export type NewEventTemplate = { id: string; name: string; eventTypeId: string | null; items: PastDueItem[] };
 
 const STANDING_KEYS: Record<EventStanding, { title: "standingEnquiry" | "standingSigned"; hint: "standingEnquiryHint" | "standingSignedHint" }> = {
   enquiry: { title: "standingEnquiry", hint: "standingEnquiryHint" },
@@ -37,6 +45,10 @@ export function NewEventForm({
   initialContact = null,
   initialDate = "",
   initialStanding = null,
+  templates = [],
+  today = "",
+  holidays = [],
+  pastDueMessages,
 }: {
   eventTypes: Pick<EventType, "id" | "label" | "audience">[];
   // Lot 16 (ADR 0045) : les libellés des clients suivent le type choisi.
@@ -46,7 +58,15 @@ export function NewEventForm({
   initialDate?: string;
   // Lot 74a (R3) : réglé par la fin de l'assistant ; jamais choisi d'avance ailleurs (M13).
   initialStanding?: EventStanding | null;
+  // Lot 74b (B7) : les modèles de rétroplanning de l'organisation, le jour (Paris) et les jours fériés de la
+  // période de répartition.
+  templates?: NewEventTemplate[];
+  today?: string;
+  holidays?: readonly string[];
+  // Lot 74b (NFR-02) : les textes de l'étape 2, passés par la seule page /events/new.
+  pastDueMessages: PastDueMessages;
 }) {
+  const tPast = usePastDueTranslator(pastDueMessages);
   const t = useTranslations("Events");
   const tFeedback = useTranslations("Feedback");
   const tCommon = useTranslations("Common");
@@ -62,6 +82,21 @@ export function NewEventForm({
   const eventType = eventTypes.find((type) => type.id === eventTypeId);
   const labels = clientLabels[eventType?.audience ?? "couple"];
   const validation = useFieldValidation(newEventFieldsSchema, state.fieldErrors);
+  const locale = useLocale() as Locale;
+  // Lot 74b (B7) : le rétroplanning annoncé pour « Signé, en préparation » avec une date : celui du type,
+  // un autre, ou aucun (« Changer ») ; les échéances déjà passées sont comptées avant la création.
+  const [standing, setStanding] = useState<EventStanding | null>(initialStanding);
+  const [templateChoice, setTemplateChoice] = useState<string>("default");
+  const [step, setStep] = useState<1 | 2>(1);
+  const [answers, setAnswers] = useState<Record<string, PastDueTaskAnswer>>({});
+  const [spread, setSpread] = useState<PastDueSpread>(DEFAULT_PAST_DUE_SPREAD);
+  const [headingName, setHeadingName] = useState("");
+  const typeTemplate = templates.find((template) => template.eventTypeId === eventTypeId);
+  const template = templateChoice === "none" ? undefined : templateChoice === "default" ? typeTemplate : templates.find((candidate) => candidate.id === templateChoice);
+  const announced = standing === "signed" && eventDate !== "" && today !== "" ? template : undefined;
+  const pastCount = announced ? pastDueOutcomes(announced.items, { eventDate, today, answers: {}, spread, holidays: new Set() }).filter((outcome) => outcome.past).length : 0;
+  const twoSteps = pastCount > 0;
+  const showsStep2 = twoSteps && step === 2;
 
   // L'évènement est créé : on ouvre sa fiche, et le message de retour (« Évènement créé · Avec 42 tâches
   // et son budget · Voir ses tâches ») reste, car il est monté par le gabarit, au-dessus des écrans.
@@ -72,29 +107,50 @@ export function NewEventForm({
     handled.current = created;
     feedback?.show({
       title: tFeedback("eventCreated"),
-      detail: created.tasks > 0 ? tFeedback(created.budget ? "eventCreatedTasksBudget" : "eventCreatedTasks", { count: created.tasks }) : undefined,
+      // Lot 74b (B7) : le compte de l'étape des échéances passées (« 3 faites · 5 à faire · 0 à dater »).
+      detail:
+        created.tasks > 0
+          ? [tFeedback(created.budget ? "eventCreatedTasksBudget" : "eventCreatedTasks", { count: created.tasks }), created.pastDue ? tFeedback("eventCreatedPastDue", created.pastDue) : null].filter(Boolean).join(" · ")
+          : undefined,
       ...(created.tasks > 0 ? { action: { kind: "link" as const, label: tFeedback("seeTasks"), href: `/events/${created.id}?onglet=taches` } } : {}),
     });
     router.push(created.href);
   }, [state.created, feedback, router, tFeedback]);
 
   return (
-    <form ref={formRef} action={formAction} noValidate onSubmit={validation.onSubmit} onInput={validation.onInput}>
+    <form
+      ref={formRef}
+      action={formAction}
+      noValidate
+      onSubmit={(event) => {
+        if (!validation.onSubmit(event)) return;
+        // « Continuer » : l'étape 2 s'ouvre, rien n'est encore créé.
+        if (twoSteps && step === 1) {
+          event.preventDefault();
+          setHeadingName(String(new FormData(event.currentTarget).get("name") ?? "").trim());
+          setStep(2);
+        }
+      }}
+      onInput={validation.onInput}
+    >
       {/* Lot 39b (UX-09) : la saisie est gardée et se reprend sur tout appareil. */}
       <DraftKeeper formKey="event-new" submission={state} saved={Boolean(state.created)} />
       <ErrorSummary errors={validation.errors} labels={{ standing: t("standingLegend"), name: t("newName") }} fieldId={validation.fieldId} summaryKey="summaryEvent" />
+      {twoSteps ? <p className="meta new-event-step">{tPast("step", { step: showsStep2 ? 2 : 1 })}</p> : null}
+      {/* Lot 74b : l'étape 1 reste dans le formulaire (ses champs partent avec « Créer l'évènement »). */}
+      <div hidden={showsStep2}>
       <RequiredLegend text={tCommon("requiredLegend")} />
       <fieldset className="standing-choice" aria-describedby={validation.errorFor("standing") ? validation.errorId("standing") : undefined}>
         <legend>
           {t("standingLegend")}
           <RequiredMark />
         </legend>
-        {EVENT_STANDINGS.map((standing, index) => (
-          <label key={standing} className="standing-option">
-            <input type="radio" name="standing" value={standing} defaultChecked={initialStanding === standing} {...(index === 0 ? validation.fieldProps("standing") : {})} />
+        {EVENT_STANDINGS.map((option, index) => (
+          <label key={option} className="standing-option">
+            <input type="radio" name="standing" value={option} defaultChecked={initialStanding === option} onChange={() => setStanding(option)} {...(index === 0 ? validation.fieldProps("standing") : {})} />
             <span>
-              <strong>{t(STANDING_KEYS[standing].title)}</strong>
-              <span className="meta">{t(STANDING_KEYS[standing].hint)}</span>
+              <strong>{t(STANDING_KEYS[option].title)}</strong>
+              <span className="meta">{t(STANDING_KEYS[option].hint)}</span>
             </span>
           </label>
         ))}
@@ -142,8 +198,70 @@ export function NewEventForm({
       ) : (
         <input type="hidden" name="eventTypeId" value={eventTypeId} />
       )}
+      {/* Lot 74b (B7, C-67) : le rétroplanning annoncé avec son compte, jamais une case cochée d'avance. */}
+      {standing === "signed" && eventDate !== "" ? (
+        <div className="new-event-template">
+          <p>
+            {announced
+              ? tPast("announce", { name: announced.name, count: announced.items.length, past: pastCount })
+              : tPast("announceNone")}
+          </p>
+          {twoSteps ? <p className="meta">{tPast("announceNext")}</p> : null}
+          <input type="hidden" name="template" value={announced ? announced.id : "none"} />
+          {templates.length > 0 ? (
+            <details className="new-event-template-change">
+              <summary>{tPast("change")}</summary>
+              <fieldset>
+                <legend className="sr-only">{tPast("changeLegend")}</legend>
+                {templates.map((candidate) => (
+                  <label key={candidate.id} className="checkbox">
+                    <input type="radio" name="templateChoice" value={candidate.id} checked={template?.id === candidate.id} onChange={() => setTemplateChoice(candidate.id)} />
+                    {tPast("templateOption", { name: candidate.name, count: candidate.items.length })}
+                  </label>
+                ))}
+                <label className="checkbox">
+                  <input type="radio" name="templateChoice" value="none" checked={!template} onChange={() => setTemplateChoice("none")} />
+                  {tPast("noTemplate")}
+                </label>
+              </fieldset>
+              {template ? (
+                <details>
+                  <summary>{tPast("seeTasks")}</summary>
+                  <ol className="new-event-template-tasks">
+                    {template.items.map((item) => (
+                      <li key={item.id}>
+                        {item.label} <span className="meta">{tPast("offset", { days: item.offsetDays })}</span>
+                      </li>
+                    ))}
+                  </ol>
+                </details>
+              ) : null}
+            </details>
+          ) : null}
+        </div>
+      ) : null}
+      </div>
+      {showsStep2 && announced ? (
+        <PastDueStep
+          items={announced.items}
+          eventDate={eventDate}
+          today={today}
+          holidays={holidays}
+          heading={[headingName, formatShortCalendarDate(eventDate, locale)].filter(Boolean).join(", ")}
+          answers={answers}
+          onAnswer={setAnswers}
+          spread={spread}
+          onSpread={setSpread}
+          messages={pastDueMessages}
+        />
+      ) : null}
+      {showsStep2 ? (
+        <button type="button" className="button-link" onClick={() => setStep(1)}>
+          {tPast("back")}
+        </button>
+      ) : null}
       <button type="submit" className="button-primary" disabled={pending}>
-        {t("createEvent")}
+        {twoSteps && step === 1 ? tPast("continue") : t("createEvent")}
       </button>
       {state.error ? <p role="alert">{state.error}</p> : null}
     </form>

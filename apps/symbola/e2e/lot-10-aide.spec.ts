@@ -8,7 +8,7 @@ import { createAppConnection } from "@symbola/db/client";
 import { createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
 import { createProspect, createProspectSource } from "../modules/events/service";
-import { clickAdminMenuLink, clickMenuLink, readyOrganization, signIn as signInByLink, skipTour, tourDialog } from "./helpers";
+import { clickAdminMenuLink, clickMenuLink, readyOrganization, signIn as signInByLink, skipTour, tourDialog, openEventInfo, saveEventInfo } from "./helpers";
 import { recordHelpProgress } from "../modules/hub/service";
 
 // Visite lancée d'office : sans la préférence posée par la configuration.
@@ -167,12 +167,11 @@ test("HUB-11 / AIDE-06 — tutoriel dans le panneau latéral : coché seul, gard
 
   await panel.getByRole("link", { name: "Aller à l'écran de l'étape" }).click();
   await page.waitForLoadState("networkidle");
-  await page.getByRole("link", { name: "Modifier les informations" }).click();
-  await page.getByLabel("Date de l'évènement", { exact: true }).fill("2029-05-19");
-  await page.getByRole("button", { name: "Changer la date" }).click();
-  await expect(page.getByText("Date mise à jour.")).toBeVisible();
-  // Le panneau d'édition passait devant le tutoriel (sur téléphone, il occupe l'écran) : on le ferme.
-  await page.getByRole("link", { name: "Fermer le panneau" }).click();
+  // Lot 72e (C-26) : la date d'une demande se change dans « Modifier les informations », qui se ferme
+  // à l'enregistrement et rend le tutoriel visible.
+  const info = await openEventInfo(page, "Date et lieux");
+  await info.getByLabel("Date de l'évènement", { exact: true }).fill("2029-05-19");
+  await saveEventInfo(page);
 
   // Fin : le modèle est gardé, l'exemple disparaît, retour à l'écran de départ.
   await expect(panel.getByRole("heading", { name: "Garder ou supprimer", level: 3 })).toBeVisible({ timeout: 15_000 });

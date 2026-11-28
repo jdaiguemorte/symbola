@@ -21,7 +21,8 @@ export async function ProspectExchanges({ organizationId, eventId, isOption, loc
     <section className="card stack" aria-labelledby="prospect-exchanges-title">
       <h2 id="prospect-exchanges-title">{t("title")}</h2>
       <div className="row-wrap">
-        <Link href={`/events/${eventId}/ecrire`} className="button-link button-link-primary">
+        {/* Lot 72e (P-08) : la suite de la Synthèse porte l'action principale (le devis) ; « Répondre » est secondaire. */}
+        <Link href={`/events/${eventId}/ecrire`} className="button-link">
           {t("reply")}
         </Link>
         <Link href={`/events/${eventId}/questionnaires`} className="button-link">

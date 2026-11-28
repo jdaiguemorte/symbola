@@ -44,6 +44,7 @@ import {
   type VendorCandidateStatus,
 } from "@symbola/contracts";
 import { addDays, daysBetween, dueDateFor } from "./schedule";
+import { pastDueOutcomes, type PastDueOutcome, type PastDueSpread, type PastDueTaskAnswer } from "@symbola/contracts";
 import { isVisibleCategory } from "./task-categories";
 import { shiftedTimes } from "./program";
 import { ensureMainKeyMoment, followEventDate, keyMomentOfEvent } from "./main-moment";
@@ -82,6 +83,8 @@ export async function findEvents(
     prospectSourceId?: string | undefined;
     // Lot 71f (P-06) : le filtre « Origine » de la liste.
     origin?: "created" | "takeover" | undefined;
+    // Lot 72e (J13) : un seul évènement.
+    eventId?: string | undefined;
   },
 ): Promise<{ event: EventRecord; clients: EventClientRow[] }[]> {
   const db = appDatabase();
@@ -107,6 +110,7 @@ export async function findEvents(
     }
 
     const conditions = [];
+    if (filters.eventId) conditions.push(eq(events.id, filters.eventId));
     if (filters.statusIn && filters.statusIn.length > 0) {
       conditions.push(inArray(events.status, filters.statusIn));
     }
@@ -727,18 +731,24 @@ export async function updateEventDateRow(
   return await withOrganization(db, organizationId, async (tx) => {
     const [current] = await tx.select().from(events).where(eq(events.id, eventId));
     if (!current) return null;
-    const undoneTasks = await countUndoneTasks(tx, eventId);
-    // Sans tâche à décaler, les échéances suivent directement la nouvelle date.
-    const tasksScheduledFor = undoneTasks === 0 ? eventDate : current.tasksScheduledFor;
-    const [updated] = await tx
-      .update(events)
-      .set({ eventDate, tasksScheduledFor, updatedAt: new Date() })
-      .where(eq(events.id, eventId))
-      .returning();
-    if (!updated) throw new Error("mise à jour de la date échouée");
-    await followEventDate(tx, eventId, current.eventDate, eventDate);
-    return recalculationFor(updated, undoneTasks);
+    return writeEventDate(tx, current, eventDate);
   });
+}
+
+// La nouvelle date d'un évènement, dans la transaction de l'appelant (lot 72e : aussi depuis « Modifier les
+// informations », avec les autres rubriques).
+async function writeEventDate(tx: Tx, current: EventRow, eventDate: string | null): Promise<TaskRecalculation> {
+  const undoneTasks = await countUndoneTasks(tx, current.id);
+  // Sans tâche à décaler, les échéances suivent directement la nouvelle date.
+  const tasksScheduledFor = undoneTasks === 0 ? eventDate : current.tasksScheduledFor;
+  const [updated] = await tx
+    .update(events)
+    .set({ eventDate, tasksScheduledFor, updatedAt: new Date() })
+    .where(eq(events.id, current.id))
+    .returning();
+  if (!updated) throw new Error("mise à jour de la date échouée");
+  await followEventDate(tx, current.id, current.eventDate, eventDate);
+  return recalculationFor(updated, undoneTasks);
 }
 
 // Historique et événement interne d'un changement de statut (hors événement fictif).
@@ -855,12 +865,17 @@ export async function resolveTaskRecalculationRow(
 // PRD-EVT-04 — tâches d'un événement.
 export type ApplyTaskTemplateResult =
   | { status: "applied"; tasks: EventTaskRow[] }
-  | { status: "event_not_found" | "template_not_found" | "date_required" | "recalculation_pending" | "past_due_unanswered" };
+  | { status: "event_not_found" | "template_not_found" | "date_required" | "recalculation_pending" | "past_due_unanswered" | "past_due_invalid" };
 
 // Lot 71c (CHR-01, CHR-02 ; décision I3) : « Partir d'un modèle » sur un mariage repris. Les tâches du
 // modèle dont l'échéance est déjà passée ne sont pas mises en retard sans la planner : gardées à leur
 // date, redatées (une date pour toutes), ou dites faites (date de fin non renseignée, sans auteur).
-export type TemplatePastDueAnswer = { answer: "keep" | "redate" | "done"; date?: string };
+// Lot 74b (B7, L74-D2) : pour un mariage créé, une réponse par tâche (« Déjà fait », « À faire ») et la
+// répartition des tâches à faire ; une tâche sans réponse est créée « à dater ». Les jours fériés viennent
+// du fichier de données (service.ts).
+export type TemplatePastDueAnswer =
+  | { answer: "keep" | "redate" | "done"; date?: string }
+  | { answer: "per_task"; tasks: Readonly<Record<string, PastDueTaskAnswer>>; spread: PastDueSpread; holidays: readonly string[] };
 
 // Les tâches du modèle dont l'échéance tomberait avant aujourd'hui, pour un mariage repris ; 0 sinon.
 export async function countTemplatePastDueRows(organizationId: string, eventId: string, today: string): Promise<Map<string, number>> {
@@ -915,7 +930,19 @@ export async function applyTaskTemplateRows(
     const past = (item: (typeof items)[number]) => event.origin === "takeover" && today !== null && dueDateFor(eventDate, item.offsetDays) < today;
     const answer = pastDue?.answer ?? null;
     if (event.origin === "takeover" && items.some(past)) {
-      if (!answer || (answer.answer === "redate" && (!answer.date || (today !== null && answer.date < today)))) return { status: "past_due_unanswered" };
+      if (!answer || answer.answer === "per_task" || (answer.answer === "redate" && (!answer.date || (today !== null && answer.date < today)))) return { status: "past_due_unanswered" };
+    }
+    // Lot 74b (B7) : un mariage créé, une réponse par tâche. Une réponse qui ne porte pas sur une tâche de ce
+    // modèle (une autre organisation, un autre modèle) refuse tout.
+    let outcomes: Map<string, PastDueOutcome> | null = null;
+    if (answer?.answer === "per_task" && event.origin !== "takeover" && today !== null) {
+      const ids = new Set(items.map((item) => item.id));
+      if (Object.keys(answer.tasks).some((id) => !ids.has(id))) return { status: "past_due_invalid" };
+      const computed = pastDueOutcomes(
+        items.map((item) => ({ id: item.id, offsetDays: item.offsetDays })),
+        { eventDate, today, answers: answer.tasks, spread: answer.spread, holidays: new Set(answer.holidays) },
+      );
+      outcomes = new Map(computed.map((outcome) => [outcome.id, outcome]));
     }
     const importedAt = new Date();
     const start = await nextTaskPosition(tx, eventId);
@@ -926,18 +953,24 @@ export async function applyTaskTemplateRows(
             .values(
               items.map((item, index) => {
                 const redated = past(item) && answer?.answer === "redate" && answer.date;
-                const done = past(item) && answer?.answer === "done";
+                const outcome = outcomes?.get(item.id);
+                const done = (past(item) && answer?.answer === "done") || outcome?.kind === "done";
+                // Lot 74b : sans réponse (ou « Laisser à dater »), la date de l'évènement, date technique.
+                const undated = outcome?.kind === "undated";
+                const spreadDate = outcome?.kind === "dated" && outcome.past ? outcome.dueDate : null;
                 return {
                   organizationId,
                   eventId,
                   label: item.label,
-                  dueDate: redated ? answer.date! : dueDateFor(eventDate, item.offsetDays),
+                  dueDate: redated ? redated : undated ? eventDate : (spreadDate ?? dueDateFor(eventDate, item.offsetDays)),
+                  ...(undated ? { dueDateKnown: false } : {}),
                   // DAT-07 : la tâche garde sa date relative, sauf redatée par la planner.
                   offsetDays: redated ? null : item.offsetDays,
                   responsible: item.responsible,
                   assigneeUserId: item.responsible === "planner" ? actorId : null,
                   position: start + index,
-                  // Faite avant la reprise : date de fin non renseignée, sans auteur (P-01).
+                  // Faite avant la reprise (ou avant la création, lot 74b) : date de fin non renseignée, sans
+                  // auteur (P-01). La tâche répartie ou « à dater » garde son écart au jour J (DAT-07).
                   ...(done ? { doneAt: importedAt, doneDateKnown: false } : {}),
                 };
               }),
@@ -969,7 +1002,7 @@ export async function findEventTasks(organizationId: string, eventId: string): P
 // réalisés ; échéance au plus tard `until` (date sans heure) si fournie.
 export async function findOrganizationTasks(
   organizationId: string,
-  options: { until: string | null; includeDone: boolean },
+  options: { until: string | null; includeDone: boolean; eventId?: string | undefined },
 ): Promise<EventTaskRow[]> {
   const db = appDatabase();
   return await withOrganization(db, organizationId, (tx) =>
@@ -980,6 +1013,7 @@ export async function findOrganizationTasks(
       .where(
         and(
           notInArray(events.status, ["cancelled", "closed"]),
+          options.eventId ? eq(eventTasks.eventId, options.eventId) : undefined,
           options.until ? lte(eventTasks.dueDate, options.until) : undefined,
           options.includeDone ? undefined : isNull(eventTasks.doneAt),
         ),
@@ -1092,7 +1126,8 @@ export async function updateEventTaskRow(input: {
         doneAt,
         ...(input.categoryId !== undefined ? { categoryId: input.categoryId } : {}),
         ...(input.priority !== undefined ? { priority: input.priority } : {}),
-        ...(moved ? { fixedAt: current.fixedAt ?? new Date() } : {}),
+        // Lot 74b (B7, critère 6) : redatée à la main, une tâche « à dater » redevient ordinaire.
+        ...(moved ? { fixedAt: current.fixedAt ?? new Date(), dueDateKnown: true } : {}),
         assigneeUserId,
         ...(input.note !== undefined ? { note: input.note } : {}),
         updatedAt: new Date(),
@@ -2060,17 +2095,85 @@ export async function updateVenueRow(organizationId: string, eventId: string, ve
   return withOrganization(appDatabase(), organizationId, async (tx) => {
     const [event] = await tx.select({ id: events.id }).from(events).where(eq(events.id, eventId));
     if (!event) return false;
-    const [first] = await tx.select().from(eventPlaces).where(eq(eventPlaces.eventId, eventId)).orderBy(asc(eventPlaces.position), asc(eventPlaces.createdAt)).limit(1);
-    if (!first) {
-      await insertVenuePlace(tx, organizationId, eventId, venue.venueName, venue.venueCity);
-    } else if (venue.venueName || venue.venueCity) {
-      await tx
-        .update(eventPlaces)
-        .set({ label: venue.venueName ?? first.label, city: venue.venueCity, updatedAt: new Date() })
-        .where(eq(eventPlaces.id, first.id));
-    }
+    await writeVenue(tx, organizationId, eventId, venue);
     await tx.update(events).set({ updatedAt: new Date() }).where(eq(events.id, eventId));
     return true;
+  });
+}
+
+// Le lieu de réception est le premier lieu de l'évènement (lot 34b) ; dans la transaction de l'appelant.
+async function writeVenue(tx: Tx, organizationId: string, eventId: string, venue: { venueName: string | null; venueCity: string | null }): Promise<void> {
+  const [first] = await tx.select().from(eventPlaces).where(eq(eventPlaces.eventId, eventId)).orderBy(asc(eventPlaces.position), asc(eventPlaces.createdAt)).limit(1);
+  if (!first) {
+    await insertVenuePlace(tx, organizationId, eventId, venue.venueName, venue.venueCity);
+  } else if (venue.venueName || venue.venueCity) {
+    if (first.label === (venue.venueName ?? first.label) && first.city === venue.venueCity) return;
+    await tx
+      .update(eventPlaces)
+      .set({ label: venue.venueName ?? first.label, city: venue.venueCity, updatedAt: new Date() })
+      .where(eq(eventPlaces.id, first.id));
+  }
+}
+
+// Lot 72e (EVT-03, EVT-05 ; C-26, D7, M1) — « Modifier les informations » : toutes les rubriques en une
+// transaction, tout ou rien. Les contrôles passent avant toute écriture : la version lue à l'ouverture
+// (rien n'écrase une modification faite entre-temps), le type et la source de l'organisation (une clé
+// étrangère seule ne voit pas la RLS). La date ne s'écrit que si l'appelant la donne (une demande, un
+// report) ; les notes, que si la personne a le droit de les lire (le service les chiffre avant).
+export type EventDetailsRowPatch = {
+  eventDate?: string | null;
+  timeZone: string;
+  venueName: string | null;
+  venueCity: string | null;
+  busyRule: { startDayOffset: number; startTime: string; endDayOffset: number; endTime: string } | null;
+  guestsEstimated: number | null;
+  guestsConfirmed: number | null;
+  wantedBudgetCents: number | null;
+  style: string | null;
+  notes?: { notes: string | null; notesSealed: string | null; notesConfidentialBy: string | null };
+  eventTypeId: string;
+  prospectSourceId: string | null;
+};
+
+export type EventDetailsRowOutcome =
+  | { kind: "saved"; recalculation: TaskRecalculation | null }
+  | { kind: "not_found" }
+  | { kind: "conflict" }
+  | { kind: "refused"; field: "eventTypeId" | "prospectSourceId" };
+
+export async function updateEventDetailsRow(organizationId: string, eventId: string, patch: EventDetailsRowPatch, options: { userId: string; version?: string | undefined }): Promise<EventDetailsRowOutcome> {
+  return withOrganization(appDatabase(), organizationId, async (tx) => {
+    const [current] = await tx.select().from(events).where(eq(events.id, eventId)).for("update");
+    if (!current) return { kind: "not_found" };
+    if (options.version !== undefined && String(current.updatedAt.getTime()) !== options.version) return { kind: "conflict" };
+    const [type] = await tx.select({ id: eventTypes.id }).from(eventTypes).where(eq(eventTypes.id, patch.eventTypeId));
+    if (!type) return { kind: "refused", field: "eventTypeId" };
+    if (patch.prospectSourceId !== null) {
+      const [source] = await tx.select({ id: prospectSources.id }).from(prospectSources).where(and(eq(prospectSources.id, patch.prospectSourceId), eq(prospectSources.organizationId, organizationId)));
+      if (!source) return { kind: "refused", field: "prospectSourceId" };
+    }
+    await tx
+      .update(events)
+      .set({
+        timeZone: patch.timeZone,
+        busyStartDayOffset: patch.busyRule?.startDayOffset ?? null,
+        busyStartTime: patch.busyRule?.startTime ?? null,
+        busyEndDayOffset: patch.busyRule?.endDayOffset ?? null,
+        busyEndTime: patch.busyRule?.endTime ?? null,
+        guestsEstimated: patch.guestsEstimated,
+        guestsConfirmed: patch.guestsConfirmed,
+        wantedBudgetCents: patch.wantedBudgetCents,
+        style: patch.style,
+        ...(patch.notes ?? {}),
+        eventTypeId: patch.eventTypeId,
+        prospectSourceId: patch.prospectSourceId,
+        updatedAt: new Date(),
+        updatedBy: options.userId,
+      })
+      .where(eq(events.id, eventId));
+    await writeVenue(tx, organizationId, eventId, { venueName: patch.venueName, venueCity: patch.venueCity });
+    const recalculation = patch.eventDate !== undefined && patch.eventDate !== current.eventDate ? await writeEventDate(tx, current, patch.eventDate) : null;
+    return { kind: "saved", recalculation };
   });
 }
 
@@ -2206,7 +2309,8 @@ export async function countTasksByEvent(organizationId: string, eventIds: string
         eventId: sql<string>`${eventTasks.eventId}`,
         done: sql<number>`count(*) filter (where ${eventTasks.doneAt} is not null)::int`,
         total: sql<number>`count(*)::int`,
-        late: sql<number>`count(*) filter (where ${eventTasks.doneAt} is null and ${eventTasks.dueDate} < ${today}::date)::int`,
+        // Lot 74b (B7) : une tâche « à dater » n'est jamais en retard.
+        late: sql<number>`count(*) filter (where ${eventTasks.doneAt} is null and ${eventTasks.dueDateKnown} and ${eventTasks.dueDate} < ${today}::date)::int`,
       })
       .from(eventTasks)
       .where(and(inArray(eventTasks.eventId, eventIds), isNull(eventTasks.deletedAt)))

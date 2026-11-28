@@ -25,6 +25,7 @@ import {
   listReadyFollowUps,
   listStandaloneTasks,
   taskDueState,
+  eventsWithClientLink,
   closingDue,
   listEventClosings,
 } from "@/modules/events/service";
@@ -47,7 +48,10 @@ export type TodayModules = { events: boolean; quotes: boolean; budget: boolean; 
 export type TodaySource = keyof TodayModules;
 
 export type TodayWords = {
+  // Lot 74b (page 23) : une tâche des mariés, avant l'ouverture de leur espace (« Avec les mariés ») ; après
+  // (« Attend les mariés »), clientTaskWaiting (absent : le même mot).
   clientTask: string;
+  clientTaskWaiting?: string;
   amount: (label: string, amount: string) => string;
   decision: (title: string) => string;
   paymentDeclaration: (label: string, amount: string) => string;
@@ -119,30 +123,37 @@ type Context = {
   money: (cents: number) => string;
   locale: Locale;
   delays: { prospectFollowUpDays: number; quoteFollowUpDays: number };
+  // Lot 72e (J13) : un seul évènement.
+  eventId?: string | undefined;
 };
 
-async function eventItems({ organizationId, words, locale, today, now, events, names, delays }: Context): Promise<TodayItem[]> {
+async function eventItems({ organizationId, words, locale, today, now, events, names, delays, eventId }: Context): Promise<TodayItem[]> {
   const items: TodayItem[] = [];
-  for (const task of await listOrganizationTasks({ organizationId, today, horizonDays: TODAY_HORIZON_DAYS })) {
+  // Lot 74b (B7) : une tâche « à dater » n'a pas d'échéance, elle n'est pas un point du jour.
+  const tasks = (await listOrganizationTasks({ organizationId, today, horizonDays: TODAY_HORIZON_DAYS, ...(eventId ? { eventId } : {}) })).filter((task) => task.dueState?.kind !== "undated");
+  const portals = await eventsWithClientLink(organizationId, tasks.filter((task) => task.responsible === "clients").map((task) => task.eventId));
+  for (const task of tasks) {
     const mine = task.responsible === "planner";
+    const portalOpen = portals.has(task.eventId);
     items.push({
       key: `task:${task.id}`,
       kind: mine ? "task" : "client_task",
       eventId: task.eventId,
       eventNames: task.event.names,
       title: task.label,
-      detail: mine ? undefined : words.clientTask,
+      detail: mine ? undefined : portalOpen ? (words.clientTaskWaiting ?? words.clientTask) : words.clientTask,
       dueOn: task.dueDate,
       since: null,
-      actor: mine ? { kind: "you" } : { kind: "client" },
+      actor: mine ? { kind: "you" } : { kind: "client", portalOpen },
       href: `/events/${task.eventId}?onglet=taches&tache=${task.id}`,
       action: mine ? { kind: "check_task", eventId: task.eventId, taskId: task.id } : { kind: "open" },
       // Lot 70c (D3, M3) : la ligne type ; une tâche confiée aux mariés garde « Fait ».
       task: { ...task, event: { id: task.event.id, names: task.event.names } },
     });
   }
-  // Lot 53 (CHR-10, D6) : les tâches hors évènement (TVA, assurance…) apparaissent comme les autres.
-  for (const task of await listStandaloneTasks(organizationId, { until: addDaysTo(today, TODAY_HORIZON_DAYS) })) {
+  // Lot 53 (CHR-10, D6) : les tâches hors évènement (TVA, assurance…) apparaissent comme les autres (pas sur
+  // la fiche d'un évènement, lot 72e).
+  for (const task of eventId ? [] : await listStandaloneTasks(organizationId, { until: addDaysTo(today, TODAY_HORIZON_DAYS) })) {
     items.push({
       key: `standalone-task:${task.id}`,
       kind: "task",
@@ -642,11 +653,15 @@ export async function loadTodayItems(
   locale: Locale,
   now: Date = new Date(),
   timeoutMs: number = TODAY_SOURCE_TIMEOUT_MS,
+  // Lot 72e (EVT-02, J13) : la suite d'une fiche — les mêmes lignes, restreintes à l'évènement, toutes
+  // personnes confondues ; les évènements et les tâches ne sont lus que pour lui.
+  scope: { eventId?: string } = {},
 ): Promise<{ items: TodayItem[]; today: string; events: EventSummary[]; unavailable: TodaySource[] }> {
   const today = parisToday(now);
   const unavailable: TodaySource[] = [];
+  const eventId = scope.eventId;
   // Lot 58 (PAR-09, étape 5) : un évènement archivé sort d'« Aujourd'hui ».
-  const listed = modules.events ? await settleWithin(() => listEvents({ organizationId, archived: "exclude", withTaskProgress: true }), timeoutMs, "events") : { ok: true as const, value: [] };
+  const listed = modules.events ? await settleWithin(() => listEvents({ organizationId, archived: "exclude", withTaskProgress: true, ...(eventId ? { eventId } : {}) }), timeoutMs, "events") : { ok: true as const, value: [] };
   if (!listed.ok) unavailable.push("events");
   const events = listed.ok ? listed.value : [];
   const namesOf = new Map(events.map((event) => [event.id, eventNames(event.clients, event.name)]));
@@ -660,6 +675,7 @@ export async function loadTodayItems(
     money: (cents) => formatAmount(cents, locale),
     locale,
     delays: await getFollowUpDelays(appDatabase(), organizationId),
+    eventId,
   };
   const sources: [TodaySource, boolean, (context: Context) => Promise<TodayItem[]>][] = [
     ["events", modules.events && listed.ok, async (current) => [...(await eventItems(current)), ...(await preparedEmailItems(current, modules))]],
@@ -680,7 +696,8 @@ export async function loadTodayItems(
   // Lot 72a (HUB-08, GC-02 ; critère 6) : les alertes du radar deviennent des lignes ; radar coupé, lent
   // ou en panne, aucune ligne (ARC-07) ; l'appelant les filtre par la visibilité comme les autres.
   if (words.watch && modules.events && listed.ok) items.push(...(await radarItems(organizationId, words.watch, now, timeoutMs)));
-  const kept = await withoutQuotedOptions(items, organizationId, modules.quotes, timeoutMs);
+  const quoted = await withoutQuotedOptions(items, organizationId, modules.quotes, timeoutMs);
+  const kept = eventId ? quoted.filter((item) => item.eventId === eventId) : quoted;
   // Lot 72a (UX-13, J7 ; critère 4) : qui appeler, en une lecture des fiches de prestataires.
   const vendorIds = [...new Set(kept.flatMap((item) => (item.actor.kind === "vendor" && item.actor.vendorId ? [item.actor.vendorId] : [])))];
   const cards = modules.vendors && vendorIds.length > 0 ? await settleWithin(() => getVendorContacts(organizationId, vendorIds), timeoutMs, "vendors:contacts") : { ok: true as const, value: [] };

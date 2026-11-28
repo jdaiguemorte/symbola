@@ -180,6 +180,8 @@ test("SC-S5 — le fichier de test antivirus, puis un fichier au type falsifié 
   const { vendor } = await createVendor(organizationId, { name: "Maison Verdier", typeId: null, city: "Lille" });
   await loginAndSetupMfa(page, owner.email);
   await page.goto(`/prestataires/${vendor.id}`);
+  // Lot 73d : l'envoi d'un fichier est replié sous « Ajouter un fichier » (bloc « Paiement et fichiers »).
+  await page.getByText("Ajouter un fichier", { exact: true }).click();
   const file = page.getByLabel("Fichier", { exact: true });
   await file.setInputFiles({ name: "plaquette.pdf", mimeType: "application/pdf", buffer: Buffer.from(EICAR_TEST_STRING) });
   await page.getByRole("button", { name: "Joindre" }).click();
@@ -187,7 +189,7 @@ test("SC-S5 — le fichier de test antivirus, puis un fichier au type falsifié 
   await file.setInputFiles({ name: "rib.pdf", mimeType: "application/pdf", buffer: Buffer.from("ceci n'est pas un PDF") });
   await page.getByRole("button", { name: "Joindre" }).click();
   await expect(page.locator("main").getByRole("alert")).toHaveText("Format non supporté : PDF ou image uniquement.");
-  await expect(page.getByText("Aucun fichier.")).toBeVisible();
+  await expect(page.getByText("aucun : la plaquette et le RIB s'ajoutent ici")).toBeVisible();
 });
 
 test("SC-S6 — demandes de lien en rafale, puis envoi au-delà du plafond : limitation, plafond, alerte au planner", async ({ page }) => {

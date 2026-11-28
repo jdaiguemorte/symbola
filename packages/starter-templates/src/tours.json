@@ -145,12 +145,12 @@
         {
           "target": "event-overview",
           "title": {
-            "fr": "Les prochaines actions",
-            "en": "The next actions"
+            "fr": "La suite",
+            "en": "The next step"
           },
           "body": {
-            "fr": "Ce qu'il faut faire ensuite et qui doit agir, puis les quatorze prochains jours.",
-            "en": "What to do next and who must act, then the next fourteen days."
+            "fr": "Une seule suite, selon où en est le mariage : le devis à envoyer, les tâches à créer, ou ses points des quatorze prochains jours.",
+            "en": "A single next step, depending on where the wedding stands: the quote to send, the tasks to create, or its items for the next fourteen days."
           }
         },
         {
