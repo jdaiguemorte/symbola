@@ -3,7 +3,7 @@
 // seulement par une couleur. Deux fiches qui n'ont en commun qu'un mot du nom (le prénom,
 // « Benjamin » et « Benjamin Dupuy ») sont « À vérifier », et « Ce sont deux prestataires » par
 // défaut : jamais une fusion silencieuse. Règles pures.
-import { normalizeLabel } from "@symbola/import-engine";
+import { normalizeLabel, textSimilarity } from "@symbola/import-engine";
 
 export type VendorCompareRecord = { name: string | null; type: string | null; city: string | null; email: string | null; phone: string | null };
 export type VendorCompareField = keyof VendorCompareRecord;
@@ -40,4 +40,51 @@ export function vendorMatchNeedsCheck(lines: VendorCompareLine[]): boolean {
   const name = line("name");
   if (name?.file && name.existing && onlyOneNameInCommon(name.file, name.existing)) return true;
   return Boolean(line("type")?.different && line("city")?.different);
+}
+
+// Lot 71d (HUB-14, PRE-01 ; spécification du lot 71, § 5.4 ; maquette 08) — le prestataire nommé par une
+// ligne de budget face au carnet. Même nom (casse, accents et ponctuation près) : retrouvé, jamais
+// doublé. Tous les mots de l'un dans l'autre (« Élodie Beauté », « Élodie Perrot · Beauté »), ou des
+// noms très proches : un doublon possible, que la planner tranche. Sinon : pas au carnet.
+const POSSIBLE_SIMILARITY = 0.75;
+
+const nameKey = (name: string) => normalizeLabel(name).join(" ");
+
+export type CarnetVendorMatch = { kind: "found"; vendorId: string } | { kind: "possible"; vendorId: string } | { kind: "none" };
+
+export function findCarnetVendor(name: string, carnet: readonly { id: string; name: string }[]): CarnetVendorMatch {
+  const key = nameKey(name);
+  if (key === "") return { kind: "none" };
+  const same = carnet.find((vendor) => nameKey(vendor.name) === key);
+  if (same) return { kind: "found", vendorId: same.id };
+  const words = new Set(normalizeLabel(name));
+  const scored = carnet
+    .map((vendor) => {
+      const other = new Set(normalizeLabel(vendor.name));
+      const [shorter, longer] = words.size <= other.size ? [words, other] : [other, words];
+      const contained = shorter.size >= 2 && [...shorter].every((word) => longer.has(word));
+      return { id: vendor.id, score: contained ? 1 : textSimilarity(name, vendor.name) };
+    })
+    .filter((entry) => entry.score >= POSSIBLE_SIMILARITY)
+    .sort((a, b) => b.score - a.score);
+  // Deux fiches aussi proches l'une que l'autre : aucune n'est proposée d'office.
+  if (scored.length === 0 || (scored.length > 1 && scored[0]!.score === scored[1]!.score)) return { kind: "none" };
+  return { kind: "possible", vendorId: scored[0]!.id };
+}
+
+// « Ce qui les rapproche », en mots : les mots des deux noms (tels qu'écrits au carnet), le même métier,
+// la même ville ; et si le téléphone peut être comparé (le budget n'en a pas).
+export type VendorLikeness = { sharedWords: string[]; sameType: boolean; sameCity: boolean; phoneComparable: boolean };
+
+export function vendorLikeness(file: VendorCompareRecord, carnet: VendorCompareRecord): VendorLikeness {
+  const fileWords = new Set(normalizeLabel(file.name ?? ""));
+  const sharedWords = (carnet.name ?? "")
+    .split(/[^\p{L}\p{N}'’-]+/u)
+    .filter((word) => word !== "" && normalizeLabel(word).length === 1 && fileWords.has(normalizeLabel(word)[0]!));
+  const lines = compareVendorRecords(file, carnet);
+  const sameAs = (key: VendorCompareField) => {
+    const line = lines.find((entry) => entry.key === key);
+    return Boolean(line?.file && line.existing && !line.different);
+  };
+  return { sharedWords, sameType: sameAs("type"), sameCity: sameAs("city"), phoneComparable: Boolean(file.phone && carnet.phone) };
 }

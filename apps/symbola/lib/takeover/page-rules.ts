@@ -104,12 +104,20 @@ export function takeoverKindOfEntity(entityType: string): TakeoverStepKind | nul
 }
 
 // Le nom de ce qu'un import a écrit, pour le nombre d'une ligne faite (« 7 fiches », « 14 lignes »).
-// Provisoire jusqu'au paquet 71d, qui donne une seule fonction de compte pour « Vérifier », le bilan et
-// cette page.
 const FIGURE_KEYS: Record<string, string> = { vendors: "vendors", budget_lines: "budgetLines", tasks: "tasks", event_sheets: "events", events: "events" };
 
 export function importFigureKey(entityType: string): string {
   return FIGURE_KEYS[entityType] ?? "rows";
+}
+
+// Lot 71d (HUB-14, C-58 ; critère 5) : le nombre d'une ligne faite est celui du bilan, compté par
+// importFigures et gardé au journal (« 14 lignes » d'un budget). Un import d'avant le lot garde son
+// ancien compte (créés et mis à jour).
+export function importFigureCount(result: { created: number; updated: number; figures?: Record<string, unknown> }): number {
+  const figures = result.figures;
+  if (figures?.kind === "budget" && typeof figures.lines === "number") return figures.lines;
+  if (figures?.kind === "rows" && typeof figures.rows === "number") return figures.rows;
+  return result.created + result.updated;
 }
 
 const DAY_MS = 24 * 60 * 60 * 1000;

@@ -42,7 +42,8 @@ describe("IMP-11 — Assistant linéaire", () => {
 
   it("HUB-14 (lot 67a) — un rapprochement proposé sans décision : étape non terminée, comptée « à décider » et non « nouveau »", () => {
     const matches = { rows: [row(0, "proposed"), row(1, "proposed"), row(2, null), row(3, "refused")], vendorTypes: [] } as never;
-    const steps = importWizardSteps({ ...base, entityType: "budget_lines", mapping: [field(0)], matches, reviewed: { matches: true } });
+    // Lot 71d : un budget a son propre compte (« N choix à faire ») ; la règle se lit sur des tâches.
+    const steps = importWizardSteps({ ...base, entityType: "tasks", mapping: [field(0)], matches, reviewed: { matches: true } });
     const step = steps.find((entry) => entry.key === "matches");
     expect(step).toMatchObject({ done: false, summary: { values: { undecided: 2, creations: 2, updates: 0 } } });
     expect(nextImportStep(steps)).toBe("matches");
@@ -50,7 +51,7 @@ describe("IMP-11 — Assistant linéaire", () => {
 
   it("HUB-14 (lot 67a) — une fois tout décidé, l'étape est terminée sans « Continuer » de plus", () => {
     const matches = { rows: [row(0, "accepted"), row(1, "refused")], vendorTypes: [] } as never;
-    const steps = importWizardSteps({ ...base, entityType: "budget_lines", mapping: [field(0)], matches, reviewed: { matches: true } });
+    const steps = importWizardSteps({ ...base, entityType: "tasks", mapping: [field(0)], matches, reviewed: { matches: true } });
     expect(steps.find((entry) => entry.key === "matches")).toMatchObject({ done: true, summary: { values: { undecided: 0, creations: 1, updates: 1 } } });
   });
 
@@ -90,5 +91,18 @@ describe("HUB-14 — L'étape « Questions » (lot 71c)", () => {
     steps = importWizardSteps({ ...budget, matches: { rows: [row(0, null)] } as never, questions: { asked: 2, missing: 0 } });
     expect(steps.find((step) => step.key === "questions")).toMatchObject({ done: true, summary: { key: "questions", values: { asked: 2, missing: 0 } } });
     expect(nextImportStep(steps)).toBe("confirm");
+  });
+});
+
+// Lot 71d (HUB-14 ; spécification du lot 71, § 5.4, critère 4 ; maquette 08) : la frise d'un budget dit
+// combien de choix restent à « Doublons », et l'étape n'est faite qu'une fois chacun tranché.
+describe("HUB-14 — « Doublons » d'un budget dans la frise (lot 71d)", () => {
+  it("un poste sans ligne ou un doublon possible à trancher garde l'étape ouverte ; tranchés, elle est faite", () => {
+    const matches = { rows: [row(0, "accepted")], vendorTypes: [] } as never;
+    const open = importWizardSteps({ ...base, entityType: "budget_lines", mapping: [field(0)], matches, reviewed: { matches: true }, doublonsPending: 2 });
+    expect(open.find((step) => step.key === "matches")).toMatchObject({ done: false, summary: { key: "doublons", values: { pending: 2 } } });
+    expect(nextImportStep(open)).toBe("matches");
+    const done = importWizardSteps({ ...base, entityType: "budget_lines", mapping: [field(0)], matches, reviewed: { matches: true }, doublonsPending: 0 });
+    expect(nextImportStep(done)).toBe("confirm");
   });
 });

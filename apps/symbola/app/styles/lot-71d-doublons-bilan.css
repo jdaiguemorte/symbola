@@ -1,0 +1,75 @@
+/* Lot 71d (HUB-14, BUD-01, UX-07 ; maquette 08 du lot 68) — « Doublons » d'un budget, « Vérifier », le
+   bilan et le retrait d'un import. Jetons de DESIGN.md seulement (ADR 0057), aucun style en ligne (CSP).
+   Le seul marquage d'un cas douteux est « À vérifier » (fond d'alerte, avec le mot) ; les montants en
+   chiffres de même largeur, alignés à droite (C-56). Sur téléphone, les tableaux défilent dans leur cadre
+   et les choix passent l'un sous l'autre ; chaque bouton garde 44 px. */
+@layer components {
+  .doublons section + section {
+    @apply mt-8;
+  }
+  .doublons-table th[scope="row"] .meta,
+  .doublons-table th[scope="row"] {
+    @apply flex flex-col;
+  }
+  .doublons-pending {
+    @apply bg-attention-soft;
+  }
+  .doublons-split {
+    @apply m-0 flex list-none flex-col gap-1 p-0;
+  }
+  .doublons-place {
+    @apply flex flex-wrap items-center gap-2;
+  }
+  /* Un formulaire d'un seul bouton est compact (40 px) ailleurs ; ici chaque choix garde 44 px. */
+  .doublons-place select,
+  .doublons .row-actions form button[type="submit"],
+  .doublons .doublons-table form button[type="submit"] {
+    @apply min-h-11;
+  }
+  .doublons-unused ul {
+    @apply m-0 flex list-none flex-col gap-2 p-0;
+  }
+  .doublons-unused li {
+    @apply flex flex-col gap-2 rounded-md border border-line p-3 sm:flex-row sm:items-center sm:justify-between;
+  }
+  .doublons-vendor {
+    @apply mt-4 flex flex-col gap-3 p-4;
+  }
+  .doublons-compare td strong {
+    @apply font-semibold;
+  }
+  .doublons-vendor button[aria-pressed="true"],
+  .doublons-unused button[aria-pressed="true"] {
+    @apply border-ink font-medium;
+  }
+  .doublons-remaining {
+    @apply mb-4 rounded-md border border-attention bg-attention-soft p-3;
+  }
+  .doublons-left {
+    @apply ml-3;
+  }
+  .import-figures {
+    @apply m-0 flex list-none flex-col gap-1 p-0;
+  }
+  .import-figure-amount,
+  .verify-table .amount {
+    @apply tabular-nums;
+  }
+  .verify-table .amount {
+    @apply text-right whitespace-nowrap;
+  }
+  .verify-table .verify-slot th {
+    @apply pt-3 font-medium;
+  }
+  .verify-more {
+    @apply mt-3;
+  }
+  .budget-verify,
+  .import-bilan,
+  .import-withdraw {
+    @apply flex flex-col gap-3;
+  }
+  .import-withdraw .button-danger {
+    @apply self-start;
+  }
+}
