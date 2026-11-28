@@ -235,11 +235,11 @@ export default async function VendorPage({ params, searchParams }: { params: Pro
         <ul className="vendor-sheet-alerts" aria-label={tSheet("alerts.label")}>
           {alerts.map((alert) =>
             alert.kind === "iban" ? (
-              <li key="iban" className="notice notice-attention" role="alert">
+              <li key="iban" className="notice notice-attention">
                 <span className="vendor-sheet-alert-icon" aria-hidden="true">
                   !
                 </span>
-                <span>
+                <span role="alert">
                   <strong>{tSheet("alerts.iban")}</strong>{" "}
                   {tRecords(vendor.bank.pendingCheck!.changedBy === "vendor" ? "bankCheckByVendor" : "bankCheckByPlanner", { date: day(vendor.bank.pendingCheck!.changedAt.slice(0, 10)) })}{" "}
                   {vendor.phone ? tRecords("bankCheckCall", { phone: vendor.phone }) : tRecords("bankCheckCallNoPhone")}
