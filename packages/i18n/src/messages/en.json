@@ -1338,7 +1338,7 @@
     },
     "programImport": {
       "title": "Import a schedule",
-      "body": "A schedule kept in a spreadsheet (CSV or XLSX) imports into the event schedule: columns day or key moment, start, end, sequence, location, responsible, note. The review screen shows the sequences read and the issues row by row; nothing is written before \"Import\". Missing key moments are created; a cell starting with =, +, - or @ stays text."
+      "body": "A schedule kept in a spreadsheet (CSV or XLSX) is imported here: day or key moment, start, end, item, place, person in charge, note columns; nothing is written before \"Import\". A schedule PDF from planning software is imported with \"Import a schedule (PDF)\": no end time is ever guessed. While an end is missing, \"To complete\" says so at the top of the tab: enter the end time, or say the moment is a point in time. Sharing an incomplete schedule first opens a window that says so; recipients read \"end time to come\". A cell starting with =, +, - or @ stays as text."
     },
     "settlement": {
       "title": "Pay the deposit",
@@ -14423,5 +14423,22 @@
       "tooLarge": "The file is too large.",
       "infected": "The file was blocked by the antivirus. It was not kept."
     }
+  },
+  "ProgramGaps": {
+    "endPending": "end time to come",
+    "title": "{count, plural, one {To complete: # end time not provided.} other {To complete: # end times not provided.}}",
+    "body": "Your file did not give them. Enter them, or say a moment is a point in time.",
+    "notShared": "The schedule is not shared yet.",
+    "goFirst": "Go to the first",
+    "endMissing": "end not provided",
+    "endLabel": "End time",
+    "endFor": "End time of \"{label}\"",
+    "saveEnd": "Save",
+    "point": "Point in time",
+    "pointFor": "\"{label}\" is a point in time",
+    "dialogTitle": "The schedule isn't complete",
+    "dialogBody": "{count, plural, one {# end time is not provided.} other {# end times are not provided.}} The couple and the vendors would see these moments without an end, marked \"end time to come\".",
+    "completeFirst": "Complete first",
+    "publishAnyway": "Share anyway"
   }
 }

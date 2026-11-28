@@ -1338,7 +1338,7 @@
     },
     "programImport": {
       "title": "Importer un chrono",
-      "body": "Un chrono tenu dans un tableur (CSV ou XLSX) s'importe dans le programme : colonnes jour ou temps fort, début, fin, séquence, lieu, responsable, note. L'écran de contrôle montre les séquences lues et les écarts ligne par ligne ; rien n'est écrit avant « Importer ». Les temps forts manquants sont créés ; une cellule qui commence par =, +, - ou @ reste du texte."
+      "body": "Un chrono tenu dans un tableur (CSV ou XLSX) s'importe ici : colonnes jour ou temps fort, début, fin, séquence, lieu, responsable, note ; rien n'est écrit avant « Importer ». Le PDF de programme d'un logiciel de planning se reprend par « Reprendre un programme (PDF) » : aucune heure de fin n'est déduite. Tant qu'une fin manque, « À compléter » le dit en tête de l'onglet : saisissez l'heure de fin, ou dites que le moment est ponctuel. Diffuser un programme incomplet passe d'abord par une fenêtre qui le dit ; les destinataires lisent « heure de fin à venir ». Une cellule qui commence par =, +, - ou @ reste du texte."
     },
     "settlement": {
       "title": "Régler l'acompte",
@@ -14423,5 +14423,22 @@
       "tooLarge": "Le fichier est trop gros.",
       "infected": "Le fichier a été bloqué par l'antivirus. Il n'a pas été conservé."
     }
+  },
+  "ProgramGaps": {
+    "endPending": "heure de fin à venir",
+    "title": "{count, plural, one {À compléter : # heure de fin non renseignée.} other {À compléter : # heures de fin non renseignées.}}",
+    "body": "Votre fichier ne les donnait pas. Saisissez-les, ou indiquez qu'un moment est ponctuel.",
+    "notShared": "Le programme n'est pas encore partagé.",
+    "goFirst": "Aller à la première",
+    "endMissing": "fin non renseignée",
+    "endLabel": "Heure de fin",
+    "endFor": "Heure de fin de « {label} »",
+    "saveEnd": "Enregistrer",
+    "point": "Ponctuel",
+    "pointFor": "« {label} » est ponctuel",
+    "dialogTitle": "Le programme n'est pas complet",
+    "dialogBody": "{count, plural, one {# heure de fin est non renseignée.} other {# heures de fin sont non renseignées.}} Les mariés et les prestataires verraient ces moments sans fin, marqués « heure de fin à venir ».",
+    "completeFirst": "Compléter d'abord",
+    "publishAnyway": "Diffuser quand même"
   }
 }

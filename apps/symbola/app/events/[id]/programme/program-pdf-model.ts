@@ -21,6 +21,8 @@ export type ProgramPdfLabels = {
   // Lot 30b (CHR-06) : durées et responsable de chaque séquence.
   words: SpanWords;
   responsible: (name: string) => string;
+  // Lot 71e (R13) : une fin attendue d'un programme repris, jamais déduite de la séquence suivante.
+  endPending?: string;
 };
 
 export type ProgramPdfRow = {
@@ -91,7 +93,9 @@ export function buildProgramPdfModel(input: {
   const rowsOf = (items: EventProgram["items"]) => {
     const spans = new Map(programSpans(items).map((span) => [span.id, span]));
     return programForVariant(items, input.variant).map((item) => ({
-      ...timeOf(spans.get(item.id)!),
+      ...((item as { endPending?: true }).endPending && labels.endPending
+        ? { time: `${clock(spans.get(item.id)!.start)} · ${labels.endPending}`, hours: clock(spans.get(item.id)!.start), duration: labels.endPending }
+        : timeOf(spans.get(item.id)!)),
       label: item.label,
       responsible: item.responsible ? labels.responsible(item.responsible) : null,
       location: item.location ?? "",
@@ -144,6 +148,7 @@ export function vendorPdfProgram(program: VendorProgramView, slotLabel: string, 
         participants: detail ? [{ vendorSlotId: null, label: slotLabel }] : [],
         keyMomentId: null,
         hiddenFromClients: false,
+        ...(line.endPending ? { endPending: true as const } : {}),
       };
     }),
     overlaps: [],

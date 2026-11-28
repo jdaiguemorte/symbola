@@ -54,6 +54,7 @@ export const SERVER_ONLY_NAMESPACES = [
   "ImportWithdraw",
   // Lot 71e : l'écran et le bilan des PDF de prestataires retenus et de programme, rendus côté serveur.
   "ImportPdf",
+  "ProgramGaps",
 ] as const;
 
 const SERVER_ONLY = new Set<string>(SERVER_ONLY_NAMESPACES);

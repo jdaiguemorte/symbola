@@ -20,6 +20,9 @@ import {
   type ProgramExport,
 } from "@symbola/import-engine";
 import { planningSoftwareProfile } from "@symbola/starter-templates";
+import { and, eq } from "drizzle-orm";
+import { imports } from "@symbola/db/schema/hub";
+import { withOrganization } from "@symbola/db/with-organization";
 import { findImport, insertImport, updateDraftMatching } from "./import-repository";
 import { getImportLimits, sanitizeFileName } from "./imports";
 
@@ -166,4 +169,17 @@ export async function savePdfImportDecisions(
     speakerSlots: [...speakerSlots.values()].sort((a, b) => a.index - b.index),
   };
   return updateDraftMatching(db, input.organizationId, input.importId, { ...(row.matching ?? { matches: [], rowEvents: [] }), pdf: merged }, now);
+}
+
+// Lot 71e (CHR-08 ; R13) : un programme de ce mariage a-t-il été repris d'un PDF (import encore appliqué) ?
+// Ses fins manquantes sont alors « à compléter », et « heure de fin à venir » pour les destinataires.
+export async function eventHasAppliedPdfImport(db: AppDatabase, organizationId: string, eventId: string, entityType: PdfImportEntityType): Promise<boolean> {
+  return withOrganization(db, organizationId, async (tx) => {
+    const [row] = await tx
+      .select({ id: imports.id })
+      .from(imports)
+      .where(and(eq(imports.targetEventId, eventId), eq(imports.entityType, entityType), eq(imports.status, "applied")))
+      .limit(1);
+    return Boolean(row);
+  });
 }

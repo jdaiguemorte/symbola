@@ -68,6 +68,7 @@ async function renderPdfBuffer(input: PdfInput & { locale: "fr" | "en" }): Promi
       empty: t("noProgramItems"),
       words: await programSpanWords(input.locale),
       responsible: (name) => t("programResponsibleLine", { name }),
+      endPending: (await getTranslations({ locale: input.locale, namespace: "ProgramGaps" }))("endPending"),
     },
   });
 

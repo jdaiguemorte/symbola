@@ -16,6 +16,9 @@ import { appDatabase } from "@symbola/db/client";
 import { clientTermForEvent, getEvent, getEventProgram, getEventProgramPublication, listProgramRecipients, proposeProgramShift, getEventStatusDates, closingDue, eventNames, getTaskRecalculation, previewTaskRecalculation, getActiveEventsTrial, listEventActivity, getEventProspectRequest, listEventDecisions, listEventDocuments, listEventDayContacts, listDayDocumentChoices, listEventLinks, listLinkProfiles, listEventTasks, periodRange, listEventVendorSlots, listVendorCandidates, listVendorFollowUps, listEventPlaces, listTaskTemplates, countTemplatePastDue, listLossReasons, listProgramTemplates, listProspectSources, summarizeVendorSlots, type EventVendorSlot, getEventIdentityState, getDayOfLeadDays, canPostpone } from "@/modules/events/service";
 import { getEventBudget, getUnallocatedTotals, listBudgetLines } from "@/modules/budget/service";
 import { getEventSignedOn } from "@/modules/events/service";
+import { missingEndItems, programAwaitsEnds } from "@/modules/events/service";
+import { clockLabel } from "@/lib/import/pdf-import-rules";
+import { ProgramGaps, type ProgramGapRow } from "./program-gaps";
 import { taskListViewer } from "@/lib/event-visibility";
 import { loadEventChecklist, slotPlannedAmounts } from "@/lib/takeover/checklist";
 import { completeSlots } from "@/lib/takeover/checklist-rules";
@@ -308,6 +311,30 @@ export default async function EventDetailPage({
   const shiftedItem = tab === "programme" && query.decalage && isValidId(query.decalage) ? program.items.find((item) => item.id === query.decalage) : undefined;
   const shiftPlan = shiftedItem && query.depuis && /^([01]\d|2[0-3]):[0-5]\d$/.test(query.depuis) ? proposeProgramShift(program.items, shiftedItem.id, query.depuis, shiftedItem.startTime) : null;
   const shiftProposal: ShiftProposalView | null = shiftPlan ? { ...shiftPlan, duration: durationText(Math.abs(shiftPlan.minutes), spanWords) } : null;
+  // Lot 71e (CHR-06, R12, R13) : les fins manquantes d'un programme repris, « à compléter ».
+  const programGapRows: ProgramGapRow[] =
+    tab === "programme" && !event.isDemo && (await programAwaitsEnds(organizationId, id))
+      ? missingEndItems(program.items).map((item) => {
+          const moment = (program.moments ?? []).find((entry) => entry.id === item.keyMomentId);
+          return { id: item.id, label: item.label, startTime: item.startTime, day: moment ? { name: moment.name, date: moment.date } : null };
+        })
+      : [];
+  const tGaps = programGapRows.length > 0 ? await getTranslations("ProgramGaps") : null;
+  const programIncomplete =
+    tGaps && programGapRows.length > 0
+      ? {
+          title: tGaps("dialogTitle"),
+          body: tGaps("dialogBody", { count: programGapRows.length }),
+          list: [...new Map(programGapRows.map((row) => [row.day?.name ?? "", row.day?.name ?? ""])).keys()].map((day) =>
+            `${day ? `${day} : ` : ""}${programGapRows
+              .filter((row) => (row.day?.name ?? "") === day)
+              .map((row) => `${row.label} (${clockLabel(row.startTime, locale === "en" ? "en" : "fr")})`)
+              .join(", ")}`,
+          ),
+          completeFirst: tGaps("completeFirst"),
+          publishAnyway: tGaps("publishAnyway"),
+        }
+      : null;
   // Lot 37b (CHR-07, DAT-14 ; D8) : la diffusion du programme — dernière version, ce qui a changé
   // depuis, et les versions diffusées avec leur auteur (adresse de l'équipe).
   // Le client approuve une version diffusée (D10) : l'onglet Mariés propose la décision seulement alors.
@@ -1301,6 +1328,7 @@ export default async function EventDetailPage({
             <SettingsLink href="/events/modeles-programme" back="event" label={t("programTemplatesSettings")} />
           </div>
           <ProgramShiftProposal eventId={event.id} proposal={shiftProposal} />
+          <ProgramGaps eventId={event.id} rows={programGapRows} published={Boolean(publication?.latest)} />
           {/* Lot 65g (CHR-08 ; recette staging du 22/11/2026) : « Importer » ouvre l'import en tête de la
               carte, au-dessus de la diffusion, au lieu de le déplier plus bas. */}
           {query.importer === "1" ? <ProgramImportForm eventId={event.id} open /> : null}
@@ -1341,7 +1369,7 @@ export default async function EventDetailPage({
                   <p className="muted">{program.items.length === 0 ? t("programPublishEmpty") : t("programNoChanges")}</p>
                 )
               ) : null}
-              <ProgramPublishForm eventId={event.id} nextNumber={(publication.latest?.number ?? 0) + 1} canPublish={publication.canPublish} />
+              <ProgramPublishForm eventId={event.id} nextNumber={(publication.latest?.number ?? 0) + 1} canPublish={publication.canPublish} incomplete={programIncomplete} />
               {publication.versions.length > 0 ? (
                 <details className="program-versions">
                   <summary>{t("programVersionsTitle", { count: publication.versions.length })}</summary>

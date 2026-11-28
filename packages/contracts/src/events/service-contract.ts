@@ -713,7 +713,9 @@ export type EventProgram = {
 
 // Lot 37b (CHR-07, DAT-14 ; D8, ADR 0071) — une séquence d'une version diffusée : la copie figée,
 // jamais de note interne.
-export type PublishedProgramItem = Omit<ProgramItem, "eventId" | "internalNote" | "keyMomentId">;
+// Lot 71e (R13) : `endPending`, une fin attendue d'un programme repris : les destinataires lisent « heure de
+// fin à venir » (jamais une fin déduite).
+export type PublishedProgramItem = Omit<ProgramItem, "eventId" | "internalNote" | "keyMomentId"> & { endPending?: true };
 
 export type ProgramVersionSummary = {
   number: number;
@@ -754,8 +756,8 @@ export type PublishedProgramView = {
 // séquences en entier (sans autre intervenant) et le déroulé du jour en titres et horaires.
 export type VendorProgramView = {
   version: { number: number; publishedAt: string } | null;
-  ownItems: { id: string; startTime: string; endTime: string | null; label: string; location: string | null; responsible: string | null }[];
-  outline: { id: string; startTime: string; endTime: string | null; label: string; own: boolean }[];
+  ownItems: { id: string; startTime: string; endTime: string | null; label: string; location: string | null; responsible: string | null; endPending?: true }[];
+  outline: { id: string; startTime: string; endTime: string | null; label: string; own: boolean; endPending?: true }[];
   isNew: boolean;
   // Lot 51 (JRJ-05 ; D3) : le dernier décalage du jour J validé qui concerne ce poste, affiché en tête.
   dayShift?: { minutes: number; validatedAt: string } | null;

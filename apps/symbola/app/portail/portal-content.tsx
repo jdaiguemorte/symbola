@@ -45,6 +45,8 @@ export async function PortalContent({ access, preview = false, banner }: { acces
   const { organizationId, linkId } = access;
   const t = await getTranslations("ClientSpace");
   const tLink = await getTranslations("LinkPortal");
+  // Lot 71e (R13) : une fin attendue d'un programme repris.
+  const tGaps = await getTranslations("ProgramGaps");
   const tEvents = await getTranslations("Events");
   const tHelp = await getTranslations("Help");
   const locale = (await getLocale()) as Locale;
@@ -347,7 +349,7 @@ export async function PortalContent({ access, preview = false, banner }: { acces
               {view.program.items.map((item) => (
                 <li key={item.id}>
                   <strong>
-                    {item.endTime ? `${item.startTime} – ${item.endTime}` : item.startTime} — {item.label}
+                    {item.endTime ? `${item.startTime} – ${item.endTime}` : item.endPending ? `${item.startTime} · ${tGaps("endPending")}` : item.startTime} — {item.label}
                   </strong>
                   {item.location ? ` — ${item.location}` : ""}
                   {item.participants.length > 0 ? ` — ${tEvents("programParticipants")} : ${item.participants.map((participant) => participant.label).join(", ")}` : ""}

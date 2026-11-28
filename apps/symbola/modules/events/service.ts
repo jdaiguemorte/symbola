@@ -268,6 +268,8 @@ import { buildDayReport, saveDayReport } from "./day-report";
 import { insertLeadIfNone, deleteEventTeamMember, deleteMemberFromAllTeams, findEventLeads, findEventTeam, findTeamEventIds, findTeamRole, seesAllEvents, upsertEventTeamMember, type EventViewer } from "./team";
 import { importProgram } from "./program-import";
 import { previewImportedProgram, writeImportedProgram, type ImportedProgramPreview } from "./program-pdf-import";
+import { completeProgramItem, missingEndItems, programAwaitsEnds, ProgramGapInvalidError } from "./program-gaps";
+export { completeProgramItem, missingEndItems, programAwaitsEnds, ProgramGapInvalidError } from "./program-gaps";
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 import {
@@ -2057,7 +2059,7 @@ export async function publishEventProgram(input: PublishEventProgramInput): Prom
   // Lot 58 (PAR-09, étape 5) : un évènement archivé est en lecture seule.
   await assertEventWritableRow(input.organizationId, input.eventId);
   const program = await getEventProgram(input.organizationId, input.eventId);
-  const items = publishedProgramItems(program.items);
+  const items = publishedProgramItems(program.items, { awaitEnds: await programAwaitsEnds(input.organizationId, input.eventId) });
   if (items.length === 0) throw new ProgramPublishError("empty");
   const result = await insertProgramVersion({ organizationId: input.organizationId, eventId: input.eventId, userId: input.userId, items, now: input.now ?? new Date() });
   if (result.status !== "published") throw result.status === "event_not_found" ? new EventNotFoundError() : new ProgramPublishError("unchanged");
@@ -2067,7 +2069,7 @@ export async function publishEventProgram(input: PublishEventProgramInput): Prom
 // La diffusion vue de la fiche : la dernière version, la liste des versions et ce qui a changé depuis.
 export async function getEventProgramPublication(organizationId: string, eventId: string): Promise<ProgramPublication> {
   const [program, versions, latest] = await Promise.all([getEventProgram(organizationId, eventId), findProgramVersions(organizationId, eventId), findLatestProgramVersion(organizationId, eventId)]);
-  const current = publishedProgramItems(program.items);
+  const current = publishedProgramItems(program.items, { awaitEnds: await programAwaitsEnds(organizationId, eventId) });
   const changes = programChanges(latest?.items ?? null, current);
   return { latest: versions[0] ?? null, versions, changes, canPublish: current.length > 0 && hasProgramChanges(changes) };
 }
@@ -4160,7 +4162,7 @@ export async function publishAndNotifyDayShift(input: {
 }): Promise<{ sent: number; notSent: number }> {
   const { organizationId, eventId } = input;
   const program = await getEventProgram(organizationId, eventId);
-  const published = await insertProgramVersion({ organizationId, eventId, userId: input.userId, items: publishedProgramItems(program.items), now: input.now });
+  const published = await insertProgramVersion({ organizationId, eventId, userId: input.userId, items: publishedProgramItems(program.items, { awaitEnds: await programAwaitsEnds(organizationId, eventId) }), now: input.now });
   const version = published.status === "published" ? published.version.number : ((await findLatestProgramVersion(organizationId, eventId))?.number ?? null);
   if (version !== null) await setDayShiftVersion(organizationId, input.shiftId, version);
   const found = await findEventById(organizationId, eventId);

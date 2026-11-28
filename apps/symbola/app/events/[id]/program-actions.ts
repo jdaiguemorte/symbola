@@ -15,6 +15,8 @@ import {
   ProgramItemInvalidError,
   KeyMomentNotFoundError,
   importEventProgram,
+  completeProgramItem,
+  ProgramGapInvalidError,
   ProgramItemNotFoundError,
   ProgramBatchLineError,
   PROGRAM_BATCH_MAX_LINES,
@@ -277,4 +279,24 @@ export async function importProgramAction(_prev: ProgramImportState, formData: F
     if (error instanceof EventNotFoundError) return { error: t("eventNotFound") };
     throw error;
   }
+}
+
+// Lot 71e (CHR-06 ; R12) — « Heure de fin » ou « Ponctuel » sur un moment sans fin d'un programme repris.
+// Session, organisation et module vérifiés ici ; le moment doit être de ce mariage (SEC-13).
+export async function completeProgramItemAction(formData: FormData): Promise<void> {
+  const t = await getTranslations("Events");
+  const auth = await authorize(t);
+  if ("error" in auth) return;
+  const eventId = String(formData.get("eventId") ?? "");
+  const itemId = String(formData.get("itemId") ?? "");
+  if (!isValidId(eventId) || !isValidId(itemId)) return;
+  const endTime = String(formData.get("endTime") ?? "").slice(0, 5);
+  const change = formData.get("intent") === "point" ? ({ timing: "point" } as const) : endTime ? { endTime } : null;
+  if (!change) return;
+  try {
+    await completeProgramItem(auth.organizationId, eventId, itemId, change);
+  } catch (error) {
+    if (!(error instanceof ProgramGapInvalidError)) throw error;
+  }
+  revalidatePath(`/events/${eventId}`);
 }

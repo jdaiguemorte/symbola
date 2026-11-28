@@ -376,6 +376,7 @@ export type Metier = "wedding_planner" | "event_agency" | "autre";
 import { moduleEnabledByDefault, type ModuleKey } from "./module-registry";
 // Lot 71e (HUB-14) : les PDF des prestataires retenus et du programme, au journal commun.
 export {
+  eventHasAppliedPdfImport,
   getPdfImportDraft,
   isPdfImportEntityType,
   PDF_IMPORT_ENTITY_TYPES,
