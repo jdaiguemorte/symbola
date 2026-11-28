@@ -4623,9 +4623,6 @@
     "progressShort": "Tutorials {completed}/{total}",
     "resumeTutorial": "Resume: {title}",
     "collapse": "Collapse the help bar",
-    "inviteKicker": "Discover in {minutes} minutes",
-    "inviteStart": "Start the tutorial",
-    "inviteLater": "Later",
     "tours": "Tours seen: {seen} of {total}",
     "resumeLabel": "Pick up where you left off"
   },
@@ -4676,12 +4673,12 @@
         "description": "Details, logo, colour, texts and IBAN: documents that look like you, with a sample PDF."
       }
     },
-    "intro": "Every screen has its own page: what it is for, its guided tour and frequently asked questions. On the screen itself, “? › Replay the tour” starts the tour again.",
+    "intro": "Each screen has its page: what it is for and frequently asked questions. Screens with a guided tour suggest it the first few times they open; after that, “? › Replay this screen's tour” starts it again.",
     "progressTitle": "Tutorials done: {completed} of {total}",
     "nextSuggestion": "Suggested next step: {title} ({minutes} minutes).",
     "continue": "Continue getting started",
     "allDone": "Well done, you have followed every tutorial. They stay available here to review.",
-    "autoTours": "Start the guided tour and suggest tutorials the first time a screen opens",
+    "autoTours": "Suggest a screen's tour the first time it opens",
     "tutorialKind": "Tutorial · {minutes} min",
     "stateInProgress": "In progress · step {step}",
     "stateNew": "To discover",
@@ -6491,15 +6488,23 @@
     "panel": "Help: {screen}",
     "close": "Close help",
     "center": "Help center",
-    "replay": "Replay the tour",
+    "replay": "Replay this screen's tour",
+    "replayMeta": "{count, plural, one {# bubble} other {# bubbles}}, 1 minute",
+    "replayStart": "Start",
     "tour": {
       "dialog": "Tour: {screen}",
-      "progress": "{number} of {total}",
+      "progress": "Screen tour · {number} of {total}",
       "previous": "Previous",
       "next": "Next",
       "finish": "Finish",
-      "skip": "Skip the tour"
+      "close": "Close the tour"
     }
+  },
+  "TourLine": {
+    "label": "Suggested tour",
+    "lead": "First time on this screen? A one-minute tour shows the essentials.",
+    "start": "Discover this screen in 1 minute",
+    "close": "Stop suggesting this tour"
   },
   "AdminMenu": {
     "brand": "Operations",

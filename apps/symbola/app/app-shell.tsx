@@ -59,8 +59,7 @@ import { OfflineGuard } from "./offline-guard";
 import { SettingsNav, type SettingsGroup } from "./settings-nav";
 import { CLOSURE_PATH, YOUR_DATA_PATH, settingsMenu, showsClosure, yourDataLines } from "./settings-menu";
 import { cookies, headers } from "next/headers";
-import { HelpBar, type TutorialInvite } from "./help-bar";
-import { AUTO_TOURS_COOKIE } from "@/lib/help/preferences";
+import { HelpBar } from "./help-bar";
 import { SIDEBAR_COLLAPSED_COOKIE, isSidebarCollapsed } from "./sidebar-preference";
 import { SearchBox } from "./search-box";
 import { QuickCreate } from "./creation-rapide/quick-create";
@@ -283,7 +282,6 @@ export async function AppShell({ children }: { children: ReactNode }) {
     completed: number;
     total: number;
     tutorial: { title: string; href: string } | null;
-    invites: TutorialInvite[];
     // Lot 63f (HUB-11 ; ADR 0104) : le tutoriel en cours dans son panneau latéral, les titres pour
     // « Tutoriel terminé » sur l'écran de départ, et le tutoriel conseillé ensuite.
     panel: TutorialPanelState | null;
@@ -341,25 +339,6 @@ export async function AppShell({ children }: { children: ReactNode }) {
             href: tutorialHref(inProgressKey),
           }
         : null,
-      // Préférence « ouvrir automatiquement » (centre d'aide) : vaut aussi
-      // pour ces invitations.
-      invites:
-        (await cookies()).get(AUTO_TOURS_COOKIE)?.value === "0"
-          ? []
-          : available
-              .filter(
-                (candidate) =>
-                  !progress.some(
-                    (entry) => entry.itemKey === `tutorial:${candidate.key}`,
-                  ),
-              )
-              .map((candidate) => ({
-                key: candidate.key,
-                screen: candidate.screen,
-                title: tHelpCenter(`items.${candidate.key}.title`),
-                minutes: candidate.minutes,
-                href: tutorialHref(candidate.key),
-              })),
     };
   }
   const isAdmin = auth.user.role === "admin";
@@ -772,7 +751,7 @@ export async function AppShell({ children }: { children: ReactNode }) {
             ) : null}
             {/* L'invitation à un tutoriel s'affiche dans la page, plus en surimpression. */}
             {helpBar ? (
-              <HelpBar tutorial={helpBar.tutorial} invites={helpBar.invites} />
+              <HelpBar tutorial={helpBar.tutorial} />
             ) : null}
             {helpBar ? <TutorialPanel panel={helpBar.panel} done={helpBar.done} suggestion={helpBar.suggestion} /> : null}
             <NetworkStatus />

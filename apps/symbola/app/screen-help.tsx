@@ -22,7 +22,7 @@ export function ScreenHelp({ title, body }: { title: string; body: string }) {
 
   useEffect(() => {
     if (!declare || !withdraw) return;
-    declare(id, { title, body, steps: [] });
+    declare(id, { title, body });
     return () => withdraw(id);
   }, [declare, withdraw, id, title, body]);
 

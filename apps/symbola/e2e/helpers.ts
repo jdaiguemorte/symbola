@@ -221,17 +221,16 @@ export async function closeHelp(page: Page, screen: string): Promise<void> {
   await expect(panel).toHaveCount(0);
 }
 
-// Lot 63f (HUB-11, ADR 0104) — la visite guidée d'un écran (« Visite : <écran> »), lancée d'office
-// à la première ouverture.
+// Lot 63f (HUB-11, ADR 0104), revu au lot 74d — la visite guidée d'un écran (« Visite : <écran> »).
 export function tourDialog(page: Page, screen: string) {
   return page.getByRole("dialog", { name: `Visite : ${screen}` });
 }
 
-// Passe la visite lancée d'office.
+// Ferme la visite ouverte (lot 74d : la croix « Fermer la visite » de chaque bulle).
 export async function skipTour(page: Page, screen: string): Promise<void> {
   const dialog = tourDialog(page, screen);
   await expect(dialog).toBeVisible();
-  await dialog.getByRole("button", { name: "Passer la visite" }).click();
+  await dialog.getByRole("button", { name: "Fermer la visite" }).click();
   await expect(dialog).toHaveCount(0);
 }
 

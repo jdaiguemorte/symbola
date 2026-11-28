@@ -44,11 +44,17 @@ test("HUB-11 — visites des modules Devis et Budget, relancées depuis « ? »"
   test.setTimeout(90_000);
   await newPlanner(page, "tours");
 
+  // Lot 74d (D2, C-69) : le catalogue vide ne propose pas sa visite et ne l'ouvre pas ; le « ? » la lance.
   await page.goto("/devis/catalogue");
   const catalog = tourDialog(page, "Catalogue des prestations");
+  await expect(page.getByRole("button", { name: "Aide sur cet écran" })).toBeVisible();
+  await expect(catalog).toHaveCount(0);
+  await expect(page.getByRole("complementary", { name: "Visite proposée" })).toHaveCount(0);
+  await page.getByRole("button", { name: "Aide sur cet écran" }).click();
+  await helpPanel(page, "Catalogue des prestations").getByRole("button", { name: "Lancer" }).click();
   await expect(catalog.getByRole("heading", { name: "Le catalogue", level: 2 })).toBeVisible();
   await expectNoAxeViolation(page);
-  // Trois étapes, chacune sur un élément de l'écran.
+  // Trois bulles, chacune sur un élément de l'écran.
   await catalog.getByRole("button", { name: "Suivant" }).click();
   await expect(catalog.getByRole("heading", { name: "Nouvel article", level: 2 })).toBeVisible();
   await catalog.getByRole("button", { name: "Suivant" }).click();
@@ -58,14 +64,13 @@ test("HUB-11 — visites des modules Devis et Budget, relancées depuis « ? »"
   await page.reload();
   await expect(page.getByRole("button", { name: "Aide sur cet écran" })).toBeVisible();
   await expect(catalog).toHaveCount(0);
-  await page.getByRole("button", { name: "Aide sur cet écran" }).click();
-  await helpPanel(page, "Catalogue des prestations").getByRole("button", { name: "Revoir la visite" }).click();
-  await expect(catalog.getByRole("heading", { name: "Le catalogue", level: 2 })).toBeVisible();
-  await skipTour(page, "Catalogue des prestations");
 
+  // Un écran rempli : la ligne « Découvrir » propose la visite, qui s'ouvre à « Découvrir cet écran ».
   await page.goto("/budget/parametres");
   // Lot 74g : la répartition est le second bloc de « Budget : postes de départ et répartition ».
   const budget = tourDialog(page, "Budget : postes de départ et répartition");
+  await expect(budget).toHaveCount(0);
+  await page.getByRole("complementary", { name: "Visite proposée" }).getByRole("button", { name: "Découvrir cet écran en 1 minute" }).click();
   await expect(budget.getByRole("heading", { name: "Le seuil d'alerte", level: 2 })).toBeVisible();
   await budget.getByRole("button", { name: "Suivant" }).click();
   await expect(budget.getByRole("heading", { name: "Vos répartitions", level: 2 })).toBeVisible();
@@ -74,6 +79,7 @@ test("HUB-11 — visites des modules Devis et Budget, relancées depuis « ? »"
   await page.reload();
   await expect(page.getByRole("button", { name: "Aide sur cet écran" })).toBeVisible();
   await expect(budget).toHaveCount(0);
+  await expect(page.getByRole("complementary", { name: "Visite proposée" })).toHaveCount(0);
 });
 
 test("AIDE-02 — essai guidé du module Devis : devis fictif signé et facturé, supprimé avec l'essai", async ({ page }) => {
@@ -81,13 +87,10 @@ test("AIDE-02 — essai guidé du module Devis : devis fictif signé et facturé
   await newPlanner(page, "essai-devis");
 
   await page.goto("/events");
-  await skipTour(page, "Liste des évènements");
   // Lot 20 (décision 2) : l'essai se lance depuis l'aide de l'écran.
   await page.getByRole("button", { name: "Aide sur cet écran" }).click();
   await helpPanel(page, "Liste des évènements").getByRole("button", { name: "Démarrer l'essai" }).click();
   await expect(page).toHaveURL(/\/events\/[0-9a-f-]{36}$/);
-  // La visite de la fiche se lance d'elle-même ; ce parcours la passe.
-  await skipTour(page, "Fiche de l'évènement");
   const trialUrl = page.url();
   await expect(page.getByText(/Composez un devis fictif/)).toBeVisible();
   await page.waitForLoadState("networkidle");

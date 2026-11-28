@@ -1,7 +1,7 @@
 "use client";
 
-// Lot 10 (AIDE-05) — préférence « Ouvrir les visites automatiquement »,
-// gardée dans ce navigateur.
+// Lot 10 (AIDE-05), revu au lot 74d — préférence « Proposer la visite d'un écran à sa première
+// ouverture », gardée dans ce navigateur.
 import { useState } from "react";
 import { setAutoToursAction } from "./actions";
 

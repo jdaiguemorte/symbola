@@ -6,7 +6,7 @@ import { getOrganizationProfile } from "@/modules/hub/service";
 import { listCatalogItems } from "@/modules/quotes/service";
 import { requirePlanner } from "@/lib/guards";
 import { PageTour } from "@/app/page-tour";
-import { loadPageTour } from "@/lib/help/page-tour";
+import { loadPageTour, onEmptyScreen } from "@/lib/help/page-tour";
 import { isQuotesModuleEnabled } from "../module-access";
 import { formatRate } from "../quote-display";
 import { formatDecimal } from "../decimal-input";
@@ -42,7 +42,7 @@ export default async function QuoteCatalogPage({ searchParams }: { searchParams:
     <main>
       <h1>{tMenu("rubrics.catalog.label")}</h1>
       <PageTour
-        {...await loadPageTour(auth.user.id, "quotes", (await searchParams).visite)}
+        {...onEmptyScreen(await loadPageTour(auth.user.id, "quotes", (await searchParams).visite), items.length === 0)}
         helpTitle={tHelp("quotesCatalog.title")}
         helpBody={tHelp("quotesCatalog.body")}
       />

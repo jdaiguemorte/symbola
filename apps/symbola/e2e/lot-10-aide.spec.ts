@@ -1,6 +1,6 @@
-// HUB-11 (lot 63f, ADR 0104 : la visite guidée remplace les repères du lot 13) — visite de la fiche
-// d'un évènement : étapes dans l'ordre, la zone de chaque étape claire, Échap ; centre d'aide (état
-// des visites, préférence de lancement automatique, AIDE-07). En taille
+// HUB-11 (lot 63f, ADR 0104 : la visite guidée remplace les repères du lot 13 ; revu au lot 74d, D2) —
+// visite de la fiche d'un évènement, proposée par la ligne « Découvrir » : étapes dans l'ordre, la zone
+// de chaque étape claire, Échap ; centre d'aide (état des visites, préférence, AIDE-07). En taille
 // ordinateur et en 375 px, axe-core.
 import { randomUUID } from "node:crypto";
 import AxeBuilder from "./axe";
@@ -36,14 +36,17 @@ test("HUB-11 / AIDE-07 — visite de la fiche d'un évènement, et centre d'aide
   // Lot 33 : lien magique et fournisseur d'identité (e2e/helpers.ts).
   await signInByLink(page, email);
   await expect(page).toHaveURL("/");
-  // La visite de l'accueil se lance d'elle-même ; on la passe.
+  // La visite de l'accueil se lance d'elle-même ; on la ferme.
   await skipTour(page, "Aujourd'hui");
 
-  // Fiche d'un évènement : cinq étapes, la première sur l'en-tête (lot 72d : frise, action, menu, onglets), éclairé.
+  // Lot 74d (D2, B11) : la fiche ne lance plus sa visite d'elle-même ; la ligne « Découvrir » la propose.
   await page.goto(`/events/${eventId}`);
   const tour = tourDialog(page, "Fiche de l'évènement");
-  await expect(tour).toContainText("1 sur 5");
-  await expect(tour.getByRole("heading", { name: "L'en-tête", level: 2 })).toBeFocused();
+  await expect(tour).toHaveCount(0);
+  const line = page.getByRole("complementary", { name: "Visite proposée" });
+  await line.getByRole("button", { name: "Découvrir cet écran en 1 minute" }).click();
+  await expect(tour).toContainText(/Visite de l'écran · 1 sur [34]/);
+  await expect(tour.getByRole("heading", { name: "L'en-tête et la frise", level: 2 })).toBeFocused();
   const spotOn = async (target: string) => {
     const zone = (await page.locator(`[data-tour='${target}']`).boundingBox())!;
     const spot = (await page.locator(".tour-spot").boundingBox())!;
@@ -52,16 +55,18 @@ test("HUB-11 / AIDE-07 — visite de la fiche d'un évènement, et centre d'aide
   await expect.poll(() => spotOn("event-header")).toBe(true);
   await expectNoAxeViolation(page);
   await tour.getByRole("button", { name: "Suivant" }).click();
-  await expect(tour.getByRole("heading", { name: "La synthèse", level: 2 })).toBeVisible();
-  await expect.poll(() => spotOn("event-overview")).toBe(true);
+  await expect(tour.getByRole("heading", { name: "Les onglets", level: 2 })).toBeVisible();
+  await expect.poll(() => spotOn("event-tabs")).toBe(true);
   await page.keyboard.press("Escape");
   await expect(tour).toHaveCount(0);
   await expect(page.locator(".tour-spot")).toHaveCount(0);
+  await expect(line).toHaveCount(0);
 
-  // Rechargée, la fiche ne relance pas la visite d'elle-même.
+  // Rechargée, la fiche ne relance pas la visite d'elle-même, ni la ligne : la visite est vue.
   await page.reload();
   await expect(page.getByRole("button", { name: "Aide sur cet écran" })).toHaveAttribute("aria-expanded", "false");
   await expect(tour).toHaveCount(0);
+  await expect(line).toHaveCount(0);
 
   // Centre d'aide : état des visites, préférence.
   await clickMenuLink(page, "Aide");
@@ -69,7 +74,8 @@ test("HUB-11 / AIDE-07 — visite de la fiche d'un évènement, et centre d'aide
   await expect(events.getByRole("link", { name: /Fiche de l'évènement/ })).toContainText("Visite faite");
   await expect(events.getByRole("link", { name: /Liste des évènements/ })).toContainText("À découvrir");
   await expectNoAxeViolation(page);
-  await page.getByLabel("Lancer la visite guidée et proposer les tutoriels à la première ouverture d'un écran").uncheck();
+  // Lot 74d (critère 6) : coupée, la préférence retire la ligne « Découvrir ».
+  await page.getByLabel("Proposer la visite d'un écran à sa première ouverture").uncheck();
   await expect
     .poll(async () => (await page.context().cookies()).find((cookie) => cookie.name === "symbola_visites_auto")?.value)
     .toBe("0");
@@ -77,6 +83,7 @@ test("HUB-11 / AIDE-07 — visite de la fiche d'un évènement, et centre d'aide
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Évènements");
   await expect(page.getByRole("button", { name: "Aide sur cet écran" })).toHaveAttribute("aria-expanded", "false");
   await expect(tourDialog(page, "Liste des évènements")).toHaveCount(0);
+  await expect(page.getByRole("complementary", { name: "Visite proposée" })).toHaveCount(0);
 });
 
 test("L10-HUB-11 — l'Admin voit la prise en main de chaque compte d'équipe", async ({ page }) => {
@@ -111,7 +118,7 @@ test("L10-HUB-11 — l'Admin voit la prise en main de chaque compte d'équipe", 
 // HUB-11, HUB-10 (lot 63f, ADR 0104 ; maquette M10) — le tutoriel s'ouvre dans un panneau latéral qui
 // reste pendant la navigation dans l'exemple : ses étapes se cochent seules, « Étape suivante » mène
 // au bon écran, et la fin ramène à l'écran d'où il a été lancé, qui conseille le suivant.
-test("HUB-11 / AIDE-06 — tutoriel dans le panneau latéral : proposé à la première visite, coché seul, gardé, retour à l'écran de départ", async ({ page }) => {
+test("HUB-11 / AIDE-06 — tutoriel dans le panneau latéral : coché seul, gardé, retour à l'écran de départ", async ({ page }) => {
   test.setTimeout(120_000);
   const email = `planner-tutoriel-${randomUUID()}@symbola.test`;
   const { sql, db } = createAppConnection();
@@ -127,13 +134,12 @@ test("HUB-11 / AIDE-06 — tutoriel dans le panneau latéral : proposé à la pr
   await signInByLink(page, email);
   await expect(page).toHaveURL("/");
 
-  // Première visite de l'écran des modèles : le tutoriel est proposé.
+  // Lot 74d (B11) : l'écran des modèles ne porte plus l'invitation « Découvrir en N minutes » ; le
+  // tutoriel se lance depuis « Tutoriels » ou l'aide, et ramène à l'écran d'où il part.
   await page.goto("/events/modeles");
-  const invite = page.getByRole("region", { name: "À quoi sert un modèle de rétroplanning ?" });
-  await expect(invite).toContainText("Découvrir en 3 minutes");
-  await expectNoAxeViolation(page);
-  await invite.getByRole("link", { name: "Commencer le tutoriel" }).click();
-  await expect(page).toHaveURL(/\/aide\/tutoriels\/retroplanning-template\?depuis=%2Fevents%2Fmodeles$/);
+  await expect(page.getByText("Découvrir en 3 minutes")).toHaveCount(0);
+  await expect(page.getByRole("link", { name: "Commencer le tutoriel" })).toHaveCount(0);
+  await page.goto("/aide/tutoriels/retroplanning-template?depuis=%2Fevents%2Fmodeles");
   await expect(page.getByText("Étape 1 sur 6")).toBeVisible();
   await expectNoAxeViolation(page);
   await page.getByRole("button", { name: "Continuer" }).click();

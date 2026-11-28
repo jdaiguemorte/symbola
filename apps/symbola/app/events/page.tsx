@@ -68,7 +68,6 @@ export default async function EventsListPage({
   // que la planner revient ici, sans attendre la purge horaire.
   await purgeOrganizationsDemoData([organizationId]);
   const trial = await getActiveEventsTrial(organizationId);
-  const tour = await loadPageTour(auth.user.id, "events", visite);
 
   const isPastTab = tab === "termines";
   // Lot 58 (PAR-09, étape 5 ; ADR 0097) : un évènement archivé sort des listes courantes et se retrouve
@@ -87,6 +86,8 @@ export default async function EventsListPage({
   const years = yearOptions(allEvents.map((event) => event.eventDate), parisToday());
   const yearFilter = parseYear(year, years);
   const counts = tabCounts(allEvents.map((event) => event.status));
+  // Lot 74d (C-69) : la ligne « Découvrir » ne paraît pas sur la liste vide.
+  const tour = await loadPageTour(auth.user.id, "events", visite, { empty: counts.upcoming + counts.past === 0 });
   // Lot 32b (EVT-07, D11) : liste ou calendrier ; charge par mois ; jours à deux évènements.
   const calendarView = !isPastTab && !isArchivedTab && affichage === "calendrier";
   const load = isPastTab || isArchivedTab ? [] : monthlyLoad(allEvents, parisToday().slice(0, 7));

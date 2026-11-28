@@ -15,7 +15,8 @@ import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { formatCalendarDate, formatMonth, formatShortCalendarDate, parisToday, type Locale } from "@symbola/i18n";
 import { PageHeader } from "@/app/ui/page-header";
-import { ScreenHelp } from "@/app/screen-help";
+import { PageTour } from "@/app/page-tour";
+import { loadPageTour } from "@/lib/help/page-tour";
 import { eventNames, listEvents, listTasks } from "@/modules/events/service";
 import type { TaskListItem } from "@symbola/contracts";
 import { listTakeovers } from "@/modules/hub/service";
@@ -53,7 +54,7 @@ import {
 } from "@/lib/tasks/task-screen";
 import { GroupBySelect, TaskFiltersPhoneButtons, TaskScreenFilters, type ScreenFilterValues } from "./task-screen-filters";
 
-type SearchParams = TaskScreenQuery & { tache?: string; nouvelle?: string; copie?: string; tout?: string };
+type SearchParams = TaskScreenQuery & { tache?: string; nouvelle?: string; copie?: string; tout?: string; visite?: string };
 
 // Lot 70d (NFR-02, ADR 0115) : la liste montre d'abord les 100 premières tâches (les plus urgentes, ou les
 // dernières faites) ; « Afficher les N suivantes » montre le reste. Une agence de 500 tâches ne rend plus
@@ -189,6 +190,7 @@ export default async function TasksPage({ searchParams }: { searchParams: Promis
   const panel = panelFromQuery(query, isValidId);
   const memberAssign = activeMembers.map((member) => ({ value: `member:${member.id}`, label: member.me ? tLine("you") : member.name, initials: member.initials ?? nameInitials(member.name) }));
   const isNew = empty === "new";
+  const tour = await loadPageTour(auth.user.id, "tasks", query.visite, { empty: Boolean(empty) });
 
   const listTools = (
     <>
@@ -221,7 +223,8 @@ export default async function TasksPage({ searchParams }: { searchParams: Promis
           )
         }
       />
-      <ScreenHelp title={tHelp("allTasks.title")} body={tHelp("allTasks.body")} />
+      {/* Lot 74d (B17, C-06) : « Tâches » a sa visite, proposée par la ligne, jamais sur l'écran vide. */}
+      <PageTour {...tour} helpTitle={tHelp("allTasks.title")} helpBody={tHelp("allTasks.body")} />
       {toCheck.map((event) => (
         <section key={event.id} className="notice task-to-check" aria-label={t("toCheckLabel", { event: eventNames(event.clients, event.name) })}>
           <p>

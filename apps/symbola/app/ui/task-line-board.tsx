@@ -315,7 +315,7 @@ export function TaskLineBoard({
           <div className="task-board-options">
             {tools}
             {lines.length > 0 ? (
-              <button type="button" className="button-ghost task-select-button" onClick={() => setSelecting(true)}>
+              <button type="button" className="button-ghost task-select-button" data-tour="tasks-select" onClick={() => setSelecting(true)}>
                 {t("select")}
               </button>
             ) : null}

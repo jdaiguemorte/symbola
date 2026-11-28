@@ -1,7 +1,7 @@
-// HUB-11 (lot 63f, ADR 0104 : la visite guidée remplace les repères du lot 13) — la visite de
-// l'écran se lance d'office à la première ouverture : fond assombri, zone claire, bulle « Précédent,
-// Suivant, Passer la visite » ; clavier (focus dans la bulle, piégé, rendu ; Échap) ; relancée par
-// « ? › Revoir la visite » ; en bas de l'écran sur téléphone. AIDE-03 — l'aide est consultable et cherchable depuis le
+// HUB-11 (lot 63f, ADR 0104 : la visite guidée remplace les repères du lot 13 ; revu au lot 74d, D2) —
+// la visite de l'accueil se lance d'elle-même une fois : fond assombri, zone claire, bulle « Précédent,
+// Suivant » et sa croix « Fermer la visite » ; clavier (focus dans la bulle, piégé, rendu ; Échap) ;
+// relancée par « ? › Revoir la visite de cet écran › Lancer » ; en bas de l'écran sur téléphone. AIDE-03 — l'aide est consultable et cherchable depuis le
 // hub. (AIDE-04, liste des premiers pas : retirée au lot 13, L13-HUB-15.)
 import { randomUUID } from "node:crypto";
 import AxeBuilder from "./axe";
@@ -35,11 +35,12 @@ test("HUB-11 / AIDE-03 — visite guidée de l'accueil, aide consultable", async
   const { email, password } = await createTestUser();
   await loginAndSetupMfa(page, email, password);
 
-  // HUB-11 : la visite se lance d'office à la première ouverture ; le focus est dans la bulle.
+  // HUB-11, lot 74d (D2, B10) : la visite de l'accueil se lance d'elle-même une fois, après l'assistant ;
+  // trois bulles, posées sur l'état vide d'un espace neuf ; le focus est dans la bulle.
   const tour = tourDialog(page, "Aujourd'hui");
   await expect(tour).toBeVisible();
-  await expect(tour).toContainText("1 sur 4");
-  await expect(tour.getByRole("heading", { name: "Votre priorité du jour", level: 2 })).toBeFocused();
+  await expect(tour).toContainText("Visite de l'écran · 1 sur 3");
+  await expect(tour.getByRole("heading", { name: "Votre journée, ici", level: 2 })).toBeFocused();
   // La zone expliquée reste claire : le cadre est posé sur elle.
   const zone = await page.locator("[data-tour='home-first']").boundingBox();
   const spot = await page.locator(".tour-spot").boundingBox();
@@ -48,34 +49,36 @@ test("HUB-11 / AIDE-03 — visite guidée de l'accueil, aide consultable", async
   expect(Math.abs(spot!.y + 6 - zone!.y)).toBeLessThan(2);
   let violations = await new AxeBuilder({ page }).analyze();
   expect(violations.violations, JSON.stringify(violations.violations, null, 2)).toEqual([]);
-  // Sur téléphone, la bulle est ancrée en bas de l'écran, sans découpe.
+  // Sur téléphone, la bulle est collée en bas de l'écran (au-dessus de la barre du bas).
   const viewport = page.viewportSize()!;
   if (viewport.width < 768) {
     const bubble = (await tour.boundingBox())!;
-    expect(Math.round(bubble.y + bubble.height)).toBe(viewport.height);
+    expect(bubble.y + bubble.height).toBeLessThanOrEqual(viewport.height + 1);
+    expect(bubble.y + bubble.height).toBeGreaterThan(viewport.height - 120);
   }
 
-  // « Suivant », « Précédent » ; le focus reste dans la bulle (Tab ne sort pas).
+  // « Suivant », « Précédent » ; le focus reste dans la bulle (Tab ne sort pas) ; la croix à chaque bulle.
   await expect(tour.getByRole("button", { name: "Précédent" })).toHaveCount(0);
+  await expect(tour.getByRole("button", { name: "Fermer la visite" })).toBeVisible();
   await tour.getByRole("button", { name: "Suivant" }).click();
-  await expect(tour.getByRole("heading", { name: "Un point, une ligne", level: 2 })).toBeVisible();
+  await expect(tour.getByRole("heading", { name: "Commencez ici", level: 2 })).toBeVisible();
   await tour.getByRole("button", { name: "Précédent" }).click();
-  await expect(tour.getByRole("heading", { name: "Votre priorité du jour", level: 2 })).toBeVisible();
+  await expect(tour.getByRole("heading", { name: "Votre journée, ici", level: 2 })).toBeVisible();
   for (let index = 0; index < 6; index += 1) {
     await page.keyboard.press("Tab");
     expect(await tour.evaluate((element) => element.contains(document.activeElement))).toBe(true);
   }
-  for (let index = 0; index < 3; index += 1) await tour.getByRole("button", { name: "Suivant" }).click();
-  await expect(tour).toContainText("4 sur 4");
-  // Dernière étape : le « ? », d'où la visite se relance.
+  for (let index = 0; index < 2; index += 1) await tour.getByRole("button", { name: "Suivant" }).click();
+  await expect(tour).toContainText("3 sur 3");
+  // Dernière bulle : le « ? », d'où la visite se relance ; « Passer la visite » n'existe plus.
   await expect(tour.getByRole("heading", { name: "L'aide de chaque écran", level: 2 })).toBeVisible();
-  // Lot 69 (C-02) : à la dernière étape, « Passer la visite » n'a plus de sens ; « Terminer » reste.
   await expect(tour.getByRole("button", { name: "Passer la visite" })).toHaveCount(0);
+  await expect(tour.getByRole("button", { name: "Fermer la visite" })).toBeVisible();
   await tour.getByRole("button", { name: "Terminer" }).click();
   await expect(tour).toHaveCount(0);
 
-  // Déjà vue, elle ne revient pas d'elle-même ; « ? › Revoir la visite » la relance, Échap la ferme
-  // et le focus revient au « ? ».
+  // Déjà vue, elle ne revient pas d'elle-même ; « ? › Revoir la visite de cet écran › Lancer » la
+  // relance, Échap la ferme et le focus revient au « ? ».
   await page.reload();
   const help = page.getByRole("button", { name: "Aide sur cet écran" });
   await expect(help).toBeVisible();
@@ -83,23 +86,27 @@ test("HUB-11 / AIDE-03 — visite guidée de l'accueil, aide consultable", async
   await help.click();
   const panel = helpPanel(page, "Aujourd'hui");
   await expect(panel).toBeVisible();
-  await panel.getByRole("button", { name: "Revoir la visite" }).click();
-  await expect(tour.getByRole("heading", { name: "Votre priorité du jour", level: 2 })).toBeFocused();
+  await expect(panel).toContainText("Revoir la visite de cet écran");
+  await expect(panel).toContainText("3 bulles, 1 minute");
+  await panel.getByRole("button", { name: "Lancer" }).click();
+  await expect(tour.getByRole("heading", { name: "Votre journée, ici", level: 2 })).toBeFocused();
   await page.keyboard.press("Escape");
   await expect(tour).toHaveCount(0);
   await expect(help).toBeFocused();
 
-  // Un écran sans visite : le même « ? » ouvre le même tiroir, avec le seul texte d'aide de l'écran.
-  await page.goto("/taches");
+  // Un écran sans visite : le même « ? » ouvre le même tiroir, avec le seul texte d'aide de l'écran ;
+  // il ne promet aucune visite (C-06).
+  await page.goto("/contacts");
   await help.click();
   await expect(help).toHaveAttribute("aria-expanded", "true");
-  const tasksPanel = helpPanel(page, "Les tâches de tous vos évènements");
-  await expect(tasksPanel).toContainText("en une seule liste");
-  await expect(tasksPanel.getByRole("button", { name: "Revoir la visite" })).toHaveCount(0);
+  const contactsPanel = page.getByRole("complementary", { name: /^Aide : / });
+  await expect(contactsPanel).toBeVisible();
+  await expect(contactsPanel).not.toContainText("Revoir la visite");
+  await expect(contactsPanel.getByRole("button", { name: "Lancer" })).toHaveCount(0);
   violations = await new AxeBuilder({ page }).analyze();
   expect(violations.violations, JSON.stringify(violations.violations, null, 2)).toEqual([]);
   await help.click();
-  await expect(tasksPanel).toHaveCount(0);
+  await expect(contactsPanel).toHaveCount(0);
   await page.goto("/");
 
   // Lot 13 (L13-HUB-15) : plus de liste « premiers pas » ni de barre d'aide
