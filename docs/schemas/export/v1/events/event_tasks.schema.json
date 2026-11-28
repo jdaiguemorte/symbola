@@ -250,6 +250,9 @@
     "doneDateKnown": {
       "type": "boolean"
     },
+    "dueDateKnown": {
+      "type": "boolean"
+    },
     "doneByUserId": {
       "anyOf": [
         {
@@ -296,6 +299,7 @@
     "assigneeUserId",
     "doneByKind",
     "doneDateKnown",
+    "dueDateKnown",
     "doneByUserId",
     "note"
   ],

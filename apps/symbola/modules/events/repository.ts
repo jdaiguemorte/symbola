@@ -44,6 +44,7 @@ import {
   type VendorCandidateStatus,
 } from "@symbola/contracts";
 import { addDays, daysBetween, dueDateFor } from "./schedule";
+import { pastDueOutcomes, type PastDueOutcome, type PastDueSpread, type PastDueTaskAnswer } from "@symbola/contracts";
 import { isVisibleCategory } from "./task-categories";
 import { shiftedTimes } from "./program";
 import { ensureMainKeyMoment, followEventDate, keyMomentOfEvent } from "./main-moment";
@@ -864,12 +865,17 @@ export async function resolveTaskRecalculationRow(
 // PRD-EVT-04 — tâches d'un événement.
 export type ApplyTaskTemplateResult =
   | { status: "applied"; tasks: EventTaskRow[] }
-  | { status: "event_not_found" | "template_not_found" | "date_required" | "recalculation_pending" | "past_due_unanswered" };
+  | { status: "event_not_found" | "template_not_found" | "date_required" | "recalculation_pending" | "past_due_unanswered" | "past_due_invalid" };
 
 // Lot 71c (CHR-01, CHR-02 ; décision I3) : « Partir d'un modèle » sur un mariage repris. Les tâches du
 // modèle dont l'échéance est déjà passée ne sont pas mises en retard sans la planner : gardées à leur
 // date, redatées (une date pour toutes), ou dites faites (date de fin non renseignée, sans auteur).
-export type TemplatePastDueAnswer = { answer: "keep" | "redate" | "done"; date?: string };
+// Lot 74b (B7, L74-D2) : pour un mariage créé, une réponse par tâche (« Déjà fait », « À faire ») et la
+// répartition des tâches à faire ; une tâche sans réponse est créée « à dater ». Les jours fériés viennent
+// du fichier de données (service.ts).
+export type TemplatePastDueAnswer =
+  | { answer: "keep" | "redate" | "done"; date?: string }
+  | { answer: "per_task"; tasks: Readonly<Record<string, PastDueTaskAnswer>>; spread: PastDueSpread; holidays: readonly string[] };
 
 // Les tâches du modèle dont l'échéance tomberait avant aujourd'hui, pour un mariage repris ; 0 sinon.
 export async function countTemplatePastDueRows(organizationId: string, eventId: string, today: string): Promise<Map<string, number>> {
@@ -924,7 +930,19 @@ export async function applyTaskTemplateRows(
     const past = (item: (typeof items)[number]) => event.origin === "takeover" && today !== null && dueDateFor(eventDate, item.offsetDays) < today;
     const answer = pastDue?.answer ?? null;
     if (event.origin === "takeover" && items.some(past)) {
-      if (!answer || (answer.answer === "redate" && (!answer.date || (today !== null && answer.date < today)))) return { status: "past_due_unanswered" };
+      if (!answer || answer.answer === "per_task" || (answer.answer === "redate" && (!answer.date || (today !== null && answer.date < today)))) return { status: "past_due_unanswered" };
+    }
+    // Lot 74b (B7) : un mariage créé, une réponse par tâche. Une réponse qui ne porte pas sur une tâche de ce
+    // modèle (une autre organisation, un autre modèle) refuse tout.
+    let outcomes: Map<string, PastDueOutcome> | null = null;
+    if (answer?.answer === "per_task" && event.origin !== "takeover" && today !== null) {
+      const ids = new Set(items.map((item) => item.id));
+      if (Object.keys(answer.tasks).some((id) => !ids.has(id))) return { status: "past_due_invalid" };
+      const computed = pastDueOutcomes(
+        items.map((item) => ({ id: item.id, offsetDays: item.offsetDays })),
+        { eventDate, today, answers: answer.tasks, spread: answer.spread, holidays: new Set(answer.holidays) },
+      );
+      outcomes = new Map(computed.map((outcome) => [outcome.id, outcome]));
     }
     const importedAt = new Date();
     const start = await nextTaskPosition(tx, eventId);
@@ -935,18 +953,24 @@ export async function applyTaskTemplateRows(
             .values(
               items.map((item, index) => {
                 const redated = past(item) && answer?.answer === "redate" && answer.date;
-                const done = past(item) && answer?.answer === "done";
+                const outcome = outcomes?.get(item.id);
+                const done = (past(item) && answer?.answer === "done") || outcome?.kind === "done";
+                // Lot 74b : sans réponse (ou « Laisser à dater »), la date de l'évènement, date technique.
+                const undated = outcome?.kind === "undated";
+                const spreadDate = outcome?.kind === "dated" && outcome.past ? outcome.dueDate : null;
                 return {
                   organizationId,
                   eventId,
                   label: item.label,
-                  dueDate: redated ? answer.date! : dueDateFor(eventDate, item.offsetDays),
+                  dueDate: redated ? redated : undated ? eventDate : (spreadDate ?? dueDateFor(eventDate, item.offsetDays)),
+                  ...(undated ? { dueDateKnown: false } : {}),
                   // DAT-07 : la tâche garde sa date relative, sauf redatée par la planner.
                   offsetDays: redated ? null : item.offsetDays,
                   responsible: item.responsible,
                   assigneeUserId: item.responsible === "planner" ? actorId : null,
                   position: start + index,
-                  // Faite avant la reprise : date de fin non renseignée, sans auteur (P-01).
+                  // Faite avant la reprise (ou avant la création, lot 74b) : date de fin non renseignée, sans
+                  // auteur (P-01). La tâche répartie ou « à dater » garde son écart au jour J (DAT-07).
                   ...(done ? { doneAt: importedAt, doneDateKnown: false } : {}),
                 };
               }),
@@ -1102,7 +1126,8 @@ export async function updateEventTaskRow(input: {
         doneAt,
         ...(input.categoryId !== undefined ? { categoryId: input.categoryId } : {}),
         ...(input.priority !== undefined ? { priority: input.priority } : {}),
-        ...(moved ? { fixedAt: current.fixedAt ?? new Date() } : {}),
+        // Lot 74b (B7, critère 6) : redatée à la main, une tâche « à dater » redevient ordinaire.
+        ...(moved ? { fixedAt: current.fixedAt ?? new Date(), dueDateKnown: true } : {}),
         assigneeUserId,
         ...(input.note !== undefined ? { note: input.note } : {}),
         updatedAt: new Date(),
@@ -2284,7 +2309,8 @@ export async function countTasksByEvent(organizationId: string, eventIds: string
         eventId: sql<string>`${eventTasks.eventId}`,
         done: sql<number>`count(*) filter (where ${eventTasks.doneAt} is not null)::int`,
         total: sql<number>`count(*)::int`,
-        late: sql<number>`count(*) filter (where ${eventTasks.doneAt} is null and ${eventTasks.dueDate} < ${today}::date)::int`,
+        // Lot 74b (B7) : une tâche « à dater » n'est jamais en retard.
+        late: sql<number>`count(*) filter (where ${eventTasks.doneAt} is null and ${eventTasks.dueDateKnown} and ${eventTasks.dueDate} < ${today}::date)::int`,
       })
       .from(eventTasks)
       .where(and(inArray(eventTasks.eventId, eventIds), isNull(eventTasks.deletedAt)))

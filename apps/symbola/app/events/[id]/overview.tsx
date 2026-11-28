@@ -36,7 +36,7 @@ export async function EventProgress(props: {
   const budget = budgetAvailable ? await listBudgetLines(organizationId, eventId) : null;
   const pending = decisions.filter((decision) => decision.status === "pending").sort((a, b) => a.requestedAt.localeCompare(b.requestedAt));
   const facts = progressFacts({
-    tasks: { done: props.tasks.filter((task) => task.done).length, total: props.tasks.length, late: props.tasks.filter((task) => !task.done && task.dueDate < today).length },
+    tasks: { done: props.tasks.filter((task) => task.done).length, total: props.tasks.length, late: props.tasks.filter((task) => !task.done && task.dueDateKnown !== false && task.dueDate < today).length },
     vendors: props.vendors,
     decisions: { pending: pending.length, since: pending[0] ? parisToday(new Date(pending[0].requestedAt)) : null },
   });

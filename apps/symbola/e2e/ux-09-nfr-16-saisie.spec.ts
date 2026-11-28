@@ -12,6 +12,7 @@ import { createAppConnection } from "@symbola/db/client";
 import { createProspect, createProspectSource } from "../modules/events/service";
 import { getFormDraft } from "../modules/hub/service";
 import { readyOrganization, signIn, eventInfoWindow, saveEventInfo } from "./helpers";
+import { submitNewEvent } from "./new-event";
 
 async function expectNoAxeViolation(page: Page) {
   const result = await new AxeBuilder({ page }).analyze();
@@ -57,7 +58,7 @@ test("UX-09 — SC-01 étape 7 : un prospect commencé se reprend ailleurs, à l
   await expect(page.locator('input[name="firstName1"]')).toHaveValue("Léa");
   await expect(page.locator('input[name="eventDate"]')).toHaveValue("2027-06-12");
 
-  await page.getByRole("button", { name: "Créer l'évènement" }).click();
+  await submitNewEvent(page);
   await expect(page).toHaveURL(/\/events\/[0-9a-f-]{36}/);
   expect(await getFormDraft(setup.organizationId, setup.ownerId, "event-new")).toBeNull();
   await page.goto("/events/new");
