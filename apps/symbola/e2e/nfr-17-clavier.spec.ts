@@ -9,7 +9,7 @@
 // En taille ordinateur, où le menu est affiché : c'est là que le clavier sert.
 import { expect, test, type Page } from "@playwright/test";
 import { atelier40c, type Atelier40c } from "./atelier-40c";
-import { feedback, signIn } from "./helpers";
+import { feedback, signIn, eventInfoWindow } from "./helpers";
 
 let setup: Atelier40c;
 
@@ -79,10 +79,11 @@ test("NFR-17 — Échap ferme la palette et le panneau d'édition, sans piéger 
   await expect(search).toHaveAttribute("aria-expanded", "false");
 
   await page.goto(`/events/${setup.eventId}`);
-  const edit = page.getByRole("link", { name: "Modifier les informations" });
+  // Lot 72e : la fenêtre « Modifier les informations » s'ouvre au clavier et Échap la ferme (sans changement).
+  const edit = page.locator("#event-tab-panel").getByRole("link", { name: "Modifier les informations" });
   await edit.focus();
   await page.keyboard.press("Enter");
-  const form = page.getByRole("form", { name: "Fiche d'identité" });
+  const form = eventInfoWindow(page);
   await expect(form).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(form).toHaveCount(0);

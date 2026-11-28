@@ -11,12 +11,12 @@ const REGISTRY = fileURLToPath(new URL("../../../privacy.registry.yaml", import.
 
 // Champ du registre → formulaire (fichier, nom du champ) où il se saisit.
 const NOTICED: Record<string, { file: string; name: string }> = {
-  "events.events.style": { file: "app/events/[id]/client-contact-forms.tsx", name: "style" },
-  "events.events.notes": { file: "app/events/[id]/client-contact-forms.tsx", name: "notes" },
+  "events.events.style": { file: "app/events/[id]/info-window.tsx", name: "style" },
+  "events.events.notes": { file: "app/events/[id]/info-window.tsx", name: "notes" },
   "events.program_items.internal_note": { file: "app/events/[id]/program-editor.tsx", name: "internalNote" },
   "events.event_decisions.note": { file: "app/events/[id]/decision-forms.tsx", name: "note" },
   "budget.vendor_payments.refusal_reason": { file: "app/budget/[eventId]/declaration-refusal-form.tsx", name: "reason" },
-  "vendors.vendors.internal_note": { file: "app/prestataires/vendor-form.tsx", name: "internalNote" },
+  "vendors.vendors.internal_note": { file: "app/prestataires/vendor-create-dialog.tsx", name: "internalNote" },
   "events.event_vendor_candidate_notes.body": { file: "app/events/[id]/vendor-candidates.tsx", name: "body" },
   "events.event_vendor_slots.brief": { file: "app/events/[id]/vendor-candidates.tsx", name: "brief" },
   "events.event_task_comments.body": { file: "app/events/[id]/task-extra-forms.tsx", name: "body" },
@@ -37,7 +37,7 @@ const NOTICED: Record<string, { file: string; name: string }> = {
   "quotes.payment_references.reminders_suspension_reason": { file: "app/devis/[quoteId]/proposal-forms.tsx", name: "reason" },
   // Lot 48a (DAT-08) : notes confidentielles (chiffrées) d'une fiche, d'un évènement, d'un contact.
   "vendors.vendors.internal_note_sealed": { file: "app/prestataires/[id]/vendor-records.tsx", name: "note" },
-  "events.events.notes_sealed": { file: "app/events/[id]/client-contact-forms.tsx", name: "notes" },
+  "events.events.notes_sealed": { file: "app/events/[id]/info-window.tsx", name: "notes" },
   // Lot 58 (PAR-09, PRE-08) : leçons et frais propres de la clôture, commentaire d'une évaluation.
   "events.event_closings.lessons": { file: "app/events/[id]/cloture/closing-forms.tsx", name: "lessons" },
   "events.event_closings.own_expenses": { file: "app/events/[id]/cloture/closing-forms.tsx", name: "expenseLabel" },

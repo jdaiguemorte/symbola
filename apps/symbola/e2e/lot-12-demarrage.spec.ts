@@ -59,7 +59,9 @@ test("L12-EVT-12 / L12-EVT-13 / L12-EVT-15 / EVT-01 — statut en boutons, rétr
   // une carte le propose.
   await expect(page.getByRole("button", { name: "Appliquer le modèle" })).toBeVisible();
   await page.goto(`/events/${event.id}`);
-  await expect(page.getByRole("heading", { name: "Prochaine étape : appliquer le rétroplanning" })).toBeVisible();
+  // Lot 72e (C-24) : signé sans tâches, la suite de la Synthèse propose de créer la liste.
+  await expect(page.locator("[data-suite]")).toContainText("Créer la liste des tâches de Inès.");
+  await expect(page.locator("[data-suite]").getByRole("button", { name: "Partir du rétroplanning" })).toBeVisible();
   await expectNoAxeViolation(page);
 
   // Lieux saisis une fois, proposés ensuite dans le programme.

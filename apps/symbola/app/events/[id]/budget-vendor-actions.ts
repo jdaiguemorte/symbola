@@ -14,7 +14,7 @@ import { getPlannerAuthContext } from "@/lib/auth-context";
 import { changeRetainedVendor, countWorkedWithByVendor, getVendorComparison, listLastVendorReminders, listVendorCandidates, selectVendorCandidate, updateVendorCandidate, type VendorReminderChannel } from "@/modules/events/service";
 import { isEventsModuleEnabled } from "../module-access";
 import { isVendorsModuleEnabled } from "@/app/prestataires/module-access";
-import { createAndRetainVendor, searchSlotVendors, type SlotVendorSearch } from "@/lib/vendors/slot-retention";
+import { searchSlotVendors, type SlotVendorSearch } from "@/lib/vendors/slot-retention";
 import { documentStateView, shortDayMonth } from "@/app/prestataires/book-row";
 import { engagementAlert } from "./engagement-alert";
 
@@ -195,32 +195,6 @@ export async function setSlotCandidateDismissedAction(input: unknown): Promise<S
   if (!candidate || ENGAGED_CANDIDATE_STATUSES.includes(candidate.status)) return { ok: false, error: t("notFound") };
   const back: VendorCandidateStatus = candidate.quoteAmountCents !== null || candidate.hasQuoteFile ? "quote_received" : candidate.contactedOn ? "contacted" : "shortlisted";
   await updateVendorCandidate({ organizationId: allowed.organizationId, candidateId, status: dismissed ? "dismissed" : back });
-  refresh(eventId, slotId);
-  return { ok: true };
-}
-
-const newVendorSchema = slotSchema.extend({
-  name: z.string().trim().min(1).max(200),
-  typeId: z.uuid().nullable(),
-  email: z.email().max(320).nullable(),
-  phone: z.string().trim().max(40).nullable(),
-  city: z.string().trim().max(120).nullable(),
-  // Lot 65b : la fiche créée entre dans la comparaison ; « retain » la retient.
-  retain: z.boolean().default(false),
-});
-
-export async function createSlotVendorAction(input: unknown): Promise<SlotVendorState> {
-  const t = await getTranslations("BudgetVendors");
-  const allowed = await access();
-  if (!allowed) return { ok: false, error: t("unauthorized") };
-  const parsed = newVendorSchema.safeParse(input);
-  if (!parsed.success) return { ok: false, error: t("newVendorInvalid") };
-  const { eventId, slotId, retain, ...vendor } = parsed.data;
-  try {
-    await createAndRetainVendor({ organizationId: allowed.organizationId, userId: allowed.userId, eventId, slotId, retain, vendor });
-  } catch {
-    return { ok: false, error: t("notFound") };
-  }
   refresh(eventId, slotId);
   return { ok: true };
 }

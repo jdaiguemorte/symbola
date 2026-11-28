@@ -55,6 +55,8 @@ import { documentStateView, shortDayMonth, unclassifiedNotice } from "./book-row
 import { latestBookImport } from "./book-import";
 import { BookBoard, SelectToggle, type BookRowData, type BookRowLabels } from "./book-board";
 import { BookHeaderMenu, FiltersPanel } from "./book-controls";
+import { VendorCreateDialog } from "./vendor-create-dialog";
+import { vendorCreateLabels } from "./vendor-create-labels";
 
 // Types « à classer » (sans famille) et fiches sans type, sur la carte.
 const UNCLASSIFIED_COLOR = "#78716c";
@@ -260,7 +262,8 @@ export default async function VendorBookPage({ searchParams }: { searchParams: P
                 {view === "liste" && results.length > 0 ? <SelectToggle /> : null}
               </>
             )}
-            <Link className={`button-link${notice ? "" : " button-link-primary"}`} href={`/prestataires/nouveau${target ? queryString(query) : ""}`} data-tour="vendor-new">
+            {/* Lot 73d (critère 1) : la fenêtre unique de création, ouverte sur le carnet. */}
+            <Link className={`button-link${notice ? "" : " button-link-primary"}`} href={`/prestataires${queryString(query, { nouveau: "1" })}`} scroll={false} data-tour="vendor-new">
               {t("newVendor")}
             </Link>
             <BookHeaderMenu importHref="/import?type=vendors#import-form" csvHref={exportHref("csv")} pdfHref={exportHref("pdf")} settingsHref={settingsPanelHref("/prestataires/parametres", "vendors")} />
@@ -275,7 +278,7 @@ export default async function VendorBookPage({ searchParams }: { searchParams: P
           <h2 id="vendor-book-empty">{t("emptyScreen.title")}</h2>
           <p>{t("emptyScreen.body")}</p>
           <div className="row-wrap">
-            <Link href="/prestataires/nouveau" className="button-link button-link-primary">
+            <Link href="/prestataires?nouveau=1" scroll={false} className="button-link button-link-primary">
               {t("newVendor")}
             </Link>
             <Link href="/reprise?ligne=vendor_book" className="button-link">
@@ -614,6 +617,7 @@ export default async function VendorBookPage({ searchParams }: { searchParams: P
           </section>
         </>
       )}
+      {query.nouveau === "1" ? <VendorCreateDialog options={{ labels: await vendorCreateLabels(), types, families, tags, tagGroups, slot: null }} closeHref={`/prestataires${queryString(query, { nouveau: null })}`} /> : null}
     </main>
   );
 }

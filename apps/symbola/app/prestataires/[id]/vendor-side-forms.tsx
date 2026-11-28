@@ -23,7 +23,7 @@ export function VendorFileForm({ vendorId }: { vendorId: string }) {
         {t("fileChoose")}
         <input type="file" name="file" accept="application/pdf,image/*" />
       </label>
-      <button type="submit" disabled={pending}>
+      <button type="submit" className="button-secondary" disabled={pending}>
         {t("fileAttach")}
       </button>
       {state.error ? <p role="alert">{state.error}</p> : null}
@@ -46,7 +46,7 @@ export function VendorLocationForm({ vendorId, latitude, longitude }: { vendorId
         {t("longitude")}
         <input id="vendor-longitude" type="text" inputMode="decimal" name="longitude" defaultValue={longitude ?? ""} />
       </label>
-      <button type="submit" disabled={pending}>
+      <button type="submit" className="button-secondary" disabled={pending}>
         {t("savePoint")}
       </button>
       {state.error ? <p role="alert">{state.error}</p> : null}
