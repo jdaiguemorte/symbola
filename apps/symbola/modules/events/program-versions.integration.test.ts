@@ -103,7 +103,9 @@ describe("CHR-07 — Diffusion du chrono par destinataire, par lien et en PDF ; 
       { id: w.cocktail, startTime: "17:00", endTime: "19:00", label: "Vin d'honneur", own: true },
       { id: w.dinner, startTime: "20:00", endTime: null, label: "Dîner", own: true },
     ]);
-    const text = JSON.stringify(program);
+    // Les identifiants (UUID tirés au hasard) sont retirés avant la recherche : « 2400 » peut y
+    // figurer par hasard et faisait échouer ce test de temps en temps.
+    const text = JSON.stringify(program).replace(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/g, "");
     for (const hidden of ["Alliances", "Marge", "1 800", "2400", "240000", "Studio Lumière", "Photographe", "Officiant", "Jardin des Tilleuls", "Camille"]) expect(text).not.toContain(hidden);
 
     // Le client lit la version diffusée entière, toujours sans note interne.

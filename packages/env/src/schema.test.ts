@@ -18,7 +18,10 @@ const validEnv = {
 function vapidPair(): { VAPID_PUBLIC_KEY: string; VAPID_PRIVATE_KEY: string } {
   const ecdh = createECDH("prime256v1");
   ecdh.generateKeys();
-  return { VAPID_PUBLIC_KEY: ecdh.getPublicKey().toString("base64url"), VAPID_PRIVATE_KEY: ecdh.getPrivateKey().toString("base64url") };
+  // `getPrivateKey()` rend 31 octets quand la clé commence par un octet nul (environ un tirage sur
+  // 256) : on la complète à 32, sinon le schéma la refuse et le test échoue au hasard.
+  const privateKey = Buffer.concat([Buffer.alloc(32), ecdh.getPrivateKey()]).subarray(-32);
+  return { VAPID_PUBLIC_KEY: ecdh.getPublicKey().toString("base64url"), VAPID_PRIVATE_KEY: privateKey.toString("base64url") };
 }
 
 describe("SOC-03 — Validation des variables d'environnement (Zod)", () => {
