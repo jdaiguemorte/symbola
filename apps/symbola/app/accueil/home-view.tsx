@@ -19,7 +19,6 @@ import { contactParts, eventPointsWord, type HomeState, type TodayCard } from "@
 import { isActiveEvent } from "@/lib/today/load";
 import type { FirstStepsLine } from "@/lib/onboarding/first-steps";
 import { HOME_SCOPE_WORDS, type HomeScope } from "@/lib/today/agency";
-import type { ChecklistItem } from "@/lib/onboarding/checklist";
 import { NoteReminderButton } from "./note-reminder";
 import { TodayCardFrame, WhenExpanded } from "./today-card-client";
 import { FirstStepsHideButton } from "./first-steps-hide";
@@ -324,45 +323,53 @@ export async function MyEventsView({ events, ranked, today, locale }: { events: 
   );
 }
 
-// « Pour bien démarrer » en une ligne, en bas de l'écran (C-18, J5) : « 1 sur 2 · reste : … », l'étape
-// suivante, « Masquer » (pour de bon, pour cette personne). Dans l'état vide, les étapes sont listées.
-export async function FirstStepsView({ line, items, listed }: { line: FirstStepsLine; items: ChecklistItem[]; listed: boolean }) {
+// Lot 72b (HUB-11, AIDE-04 ; maquette 13 ; C-18, J5) — « Pour bien démarrer » en une ligne, en bas de
+// l'accueil, avec « Masquer » (pour de bon, pour cette personne).
+// Lot 74f (HUB-11 ; maquette 28 ; C-10) : les étapes du parcours des tutoriels : « 1 étape faite sur 4 »,
+// « Ensuite : le rétroplanning, 3 minutes », « Continuer » et « Voir le parcours » ; sur l'accueil vide, les
+// étapes qui restent, en liste.
+export async function FirstStepsView({ line, listed }: { line: FirstStepsLine; listed: boolean }) {
   const t = await getTranslations("Onboarding.checklist");
+  const tTutorials = await getTranslations("TutorialsPage");
   const tToday = await getTranslations("Today");
-  const remaining = line.remaining.map((key) => t(`short.${key}`)).join(", ");
+  const stage = (key: string) => tTutorials(`stages.${line.path}.${key}`);
   return (
     <section className="card first-steps-line" aria-labelledby="first-steps-title">
       <p className="first-steps-summary">
         <strong id="first-steps-title">{t("title")}</strong>
         <span>
           {" · "}
-          {t("count", { done: line.done, total: line.total })}
+          {t("steps", { done: line.done, total: line.total })}
         </span>
         {listed ? null : (
           <span>
             {" · "}
-            {t("remaining", { steps: remaining })}
+            {line.next.minutes > 0 ? t("next", { stage: stage(line.next.key), minutes: line.next.minutes }) : t("nextNoMinutes", { stage: stage(line.next.key) })}
           </span>
         )}
       </p>
       {listed ? null : (
         <div className="first-steps-actions">
-          <Link href={line.next.href} className="button-link">
-            {t(`action.${line.next.key}`)}
+          <Link href={line.href} className="button-link">
+            {t("continue")}
           </Link>
+          <Link href="/tutoriels">{t("seeJourney")}</Link>
           <FirstStepsHideButton labels={{ hide: t("hide"), hidden: t("hiddenMessage"), shown: t("shownMessage"), undo: tToday("undo.action"), failed: t("hideFailed") }} />
         </div>
       )}
       {listed ? (
-        <ol className="first-steps-list">
-          {items
-            .filter((item) => !item.done)
-            .map((item) => (
+        <>
+          <ol className="first-steps-list">
+            {line.remaining.map((item) => (
               <li key={item.key}>
-                <Link href={item.href}>{t(`items.${item.key}`)}</Link>
+                <Link href={item === line.next ? line.href : "/tutoriels"}>{stage(item.key)}</Link>
               </li>
             ))}
-        </ol>
+          </ol>
+          <p className="first-steps-more">
+            <Link href="/tutoriels">{t("seeJourney")}</Link>
+          </p>
+        </>
       ) : null}
     </section>
   );

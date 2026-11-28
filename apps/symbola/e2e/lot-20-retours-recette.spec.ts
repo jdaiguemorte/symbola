@@ -44,15 +44,12 @@ test("Lot 20 — centre d'aide, aide des écrans de réglage, rétroplanning", a
   test.setTimeout(120_000);
   await newPlanner(page);
 
-  // L20-HUB-26 : le bouton « Voir le parcours des tutoriels » est sous la barre de progression.
+  // L20-HUB-26 ; lot 74f (maquette 27) : « Voir tout le parcours » est sous « Pour bien démarrer », et les
+  // articles ne sont plus des vignettes : ils se trouvent par sujet (AIDE-16 : l'image reste sur l'article).
   await page.goto("/aide");
-  const progress = (await page.locator(".help-progress progress").boundingBox())!;
-  const journey = (await page.getByRole("link", { name: "Voir le parcours des tutoriels" }).boundingBox())!;
-  expect(journey.y).toBeGreaterThanOrEqual(progress.y + progress.height);
-
-  // AIDE-16 : chaque fiche a une image, jamais un « ? ».
-  expect(await page.locator(".help-tile").count()).toBeGreaterThan(10);
-  await expect(page.locator(".help-tile:not(:has(img))")).toHaveCount(0);
+  const start = page.getByRole("region", { name: "Pour bien démarrer" });
+  await expect(start.getByRole("link", { name: "Voir tout le parcours" })).toHaveAttribute("href", "/tutoriels");
+  await expect(page.locator("main img")).toHaveCount(0);
   await expectNoAxeViolation(page);
 
   // AIDE-14 : le « ? » des écrans de réglage ouvre leur aide, sans quitter l'écran.

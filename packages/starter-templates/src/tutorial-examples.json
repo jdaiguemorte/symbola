@@ -254,6 +254,44 @@
         "fr": "Lille",
         "en": "Lille"
       }
+    },
+    "complete-takeover": {
+      "kind": {
+        "fr": "Mariage",
+        "en": "Wedding"
+      },
+      "daysFromToday": 150,
+      "withPlanning": false,
+      "clients": [
+        {
+          "firstName": {
+            "fr": "Juliette",
+            "en": "Juliette"
+          },
+          "lastName": {
+            "fr": "Martin (exemple)",
+            "en": "Martin (example)"
+          }
+        },
+        {
+          "firstName": {
+            "fr": "Romain",
+            "en": "Romain"
+          },
+          "lastName": {
+            "fr": "Petit (exemple)",
+            "en": "Petit (example)"
+          }
+        }
+      ],
+      "venueName": {
+        "fr": "Domaine des Tilleuls (fictif)",
+        "en": "Lime Tree Estate (fictional)"
+      },
+      "venueCity": {
+        "fr": "Angers",
+        "en": "Angers"
+      }
     }
   },
   "taskTemplate": {

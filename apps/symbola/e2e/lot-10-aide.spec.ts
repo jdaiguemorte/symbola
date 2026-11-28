@@ -63,13 +63,11 @@ test("HUB-11 / AIDE-07 — visite de la fiche d'un évènement, et centre d'aide
   await expect(page.getByRole("button", { name: "Aide sur cet écran" })).toHaveAttribute("aria-expanded", "false");
   await expect(tour).toHaveCount(0);
 
-  // Centre d'aide : état des visites, préférence.
+  // Centre d'aide : les visites des écrans, la préférence (lot 74f : un interrupteur pour les visites seules).
   await clickMenuLink(page, "Aide");
-  const events = page.getByRole("region", { name: "Évènements" });
-  await expect(events.getByRole("link", { name: /Fiche de l'évènement/ })).toContainText("Visite faite");
-  await expect(events.getByRole("link", { name: /Liste des évènements/ })).toContainText("À découvrir");
+  await expect(page.getByRole("region", { name: "Pour découvrir" })).toContainText("Les visites des écrans");
   await expectNoAxeViolation(page);
-  await page.getByLabel("Lancer la visite guidée et proposer les tutoriels à la première ouverture d'un écran").uncheck();
+  await page.getByLabel("Proposer la visite d'un écran à sa première ouverture").uncheck();
   await expect
     .poll(async () => (await page.context().cookies()).find((cookie) => cookie.name === "symbola_visites_auto")?.value)
     .toBe("0");
@@ -102,7 +100,8 @@ test("L10-HUB-11 — l'Admin voit la prise en main de chaque compte d'équipe", 
   // 20 organisations par page : on la retrouve par son nom.
   await page.goto(`/exploitation/prise-en-main?q=${encodeURIComponent(organizationName)}`);
   const row = page.getByRole("row", { name: new RegExp(ownerEmail) });
-  await expect(row).toContainText("1 sur 11");
+  // Lot 74f (L74-D8) : douze tutoriels, « Compléter un mariage repris » compris.
+  await expect(row).toContainText("1 sur 12");
   await expect(row).toContainText("Saisir son catalogue de prestations");
   await expect(row).toContainText("À quoi sert un modèle de rétroplanning ? · étape 2");
   await expectNoAxeViolation(page);
@@ -180,8 +179,9 @@ test("HUB-11 / AIDE-06 — tutoriel dans le panneau latéral : proposé à la pr
   await expectNoAxeViolation(page);
   await expect(page.getByText("Séminaire express (exemple)").first()).toBeVisible();
   await expect(page.getByRole("region", { name: "À quoi sert un modèle de rétroplanning ?" })).toHaveCount(0);
-  await page.goto("/aide");
-  await expect(page.getByRole("heading", { name: "Tutoriels faits : 1 sur 11" })).toBeVisible();
+  // Lot 74f : le tutoriel est fait dans le parcours (« Son rétroplanning » : 1 tutoriel sur 2).
+  await page.goto("/tutoriels");
+  await expect(page.getByRole("listitem").filter({ hasText: "À quoi sert un modèle de rétroplanning ?" }).first()).toContainText("Fait");
 });
 
 // HUB-11 (lot 63f, ADR 0104) — « Quitter le tutoriel » supprime l'exemple et ramène à l'écran de départ.

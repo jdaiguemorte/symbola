@@ -27,6 +27,7 @@
 @import "./styles/lot-73d-fiche.css";
 @import "./styles/lot-71f-fiche-reprise.css";
 @import "./styles/lot-71d-doublons-bilan.css";
+@import "./styles/lot-74f-centre-aide.css";
 @import "./styles/lot-72f-liste.css";
 @import "./styles/lot-74b-premier-mariage.css";
 @import "./styles/lot-74h-patron.css";
@@ -916,57 +917,9 @@
   }
 }
 
-/* Lot 10 (AIDE-07) — centre d'aide. */
+/* Lot 13 (AIDE-12) — centre d'aide par écran : les articles (lot 74f : plus de vignettes, voir
+   styles/lot-74f-centre-aide.css). */
 @layer components {
-  /* Lot 20 (L20-HUB-26) : titre, barre, bouton et case l'un sous l'autre ; le
-     bouton se collait au bout de la barre de progression. */
-  .help-progress {
-    @apply grid justify-items-start gap-4;
-  }
-  .help-progress > h2 {
-    @apply m-0;
-  }
-  .help-progress progress {
-    @apply w-full max-w-md;
-  }
-}
-
-/* Lot 13 (AIDE-12) — centre d'aide par écran : vignettes et fiches. */
-@layer components {
-  .help-search {
-    @apply my-4 max-w-xl;
-  }
-  .help-search input {
-    @apply w-full;
-  }
-  .help-group {
-    @apply mt-6;
-  }
-  .help-tiles {
-    @apply m-0 grid list-none grid-cols-1 gap-4 p-0 sm:grid-cols-2 lg:grid-cols-3;
-  }
-  .help-tile {
-    @apply flex h-full flex-col gap-2 overflow-hidden rounded-lg border border-line bg-surface text-ink no-underline;
-  }
-  .help-tile:hover,
-  .help-tile:focus-visible {
-    @apply border-primary;
-  }
-  .help-tile img {
-    @apply block aspect-[16/10] h-auto w-full border-b border-line bg-ground object-cover object-top;
-  }
-  .help-tile-text {
-    @apply flex flex-col gap-1 px-4;
-  }
-  .help-tile-title {
-    @apply font-semibold;
-  }
-  .help-tile-body {
-    @apply line-clamp-3 text-label text-ink-muted;
-  }
-  .help-tile .badge {
-    @apply mx-4 mb-4 self-start;
-  }
   .help-screen {
     @apply max-w-4xl;
   }
@@ -1738,42 +1691,8 @@
   }
 }
 
-/* Lot 13 (AIDE-10) — page Tutoriels : parcours en tuiles. */
+/* Lot 13 (AIDE-10) — page Tutoriels (lot 74f : le parcours, voir styles/lot-74f-centre-aide.css). */
 @layer components {
-  .tutorials-progress progress {
-    @apply w-full;
-  }
-  .tutorials-stage {
-    @apply mt-6 flex flex-col gap-3;
-  }
-  .tutorials-stage-head {
-    @apply flex flex-wrap items-baseline gap-3;
-  }
-  .tutorials-stage-head h2 {
-    @apply m-0 text-heading;
-  }
-  .tutorial-tiles {
-    @apply m-0 grid list-none grid-cols-1 gap-3 p-0 sm:grid-cols-2 lg:grid-cols-3;
-  }
-  .tutorial-tile {
-    @apply relative flex min-h-32 flex-col items-start gap-2 rounded-lg border border-line bg-surface p-4 text-ink no-underline hover:border-ink;
-  }
-  .tutorial-tile strong {
-    @apply pr-8 text-body leading-snug;
-  }
-  .tutorial-tile-done {
-    @apply border-primary bg-primary-soft;
-  }
-  .tutorial-tile-current {
-    @apply border-2 border-primary;
-    box-shadow: 0 0 0 4px var(--color-primary-soft);
-  }
-  .tutorial-tile-next {
-    @apply border-dashed border-primary;
-  }
-  .tutorial-tile-check {
-    @apply absolute top-3 right-3 inline-flex h-7 w-7 items-center justify-center rounded-full bg-primary font-bold text-on-primary;
-  }
   .tutorial-conflict {
     @apply mx-auto mt-8 max-w-xl;
   }

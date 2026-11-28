@@ -75,16 +75,20 @@ test("HUB-09 / PAR-01 — une wedding planner répond aux questions, une par éc
   await expect(page.getByRole("link", { name: "Créer un nouveau mariage" })).toHaveAttribute("href", "/events/new");
   await expectNoAxeViolation(page);
 
-  // Prise en main (lot 63a) : l'indispensable seulement, même avec un tableur.
+  // Lot 74f (HUB-11 ; D6, C-10) : « Pour bien démarrer » est le parcours « Je reprends mes mariages en cours »,
+  // choisi par la réponse « Oui, j'ai des mariages en cours » : la reprise d'abord.
   await page.goto("/");
   await expect(page.getByRole("region", { name: "Votre espace n'est pas tout à fait prêt" })).toHaveCount(0);
   const checklist = page.getByRole("region", { name: "Pour bien démarrer" });
-  await expect(checklist.getByRole("listitem").first()).toHaveText("Régler l'essentiel : société, adresse, TVA");
-  await expect(checklist.getByRole("listitem")).toHaveCount(2);
-  await expect(checklist).toContainText("0 sur 2");
-  // Lot 63f (ADR 0103) : « Régler l'essentiel » ouvre l'assistant, une question par écran.
-  await expect(checklist.getByRole("link", { name: "Régler l'essentiel : société, adresse, TVA" })).toHaveAttribute("href", "/demarrage/essentiel");
+  await expect(checklist.getByRole("listitem").first()).toHaveText("Reprendre un mariage en cours");
+  await expect(checklist.getByRole("listitem")).toHaveCount(5);
+  await expect(checklist).toContainText("0 étape faite sur 5");
+  await expect(checklist.getByRole("link", { name: "Reprendre un mariage en cours" })).toHaveAttribute("href", "/reprise");
   await expectNoAxeViolation(page);
+  // « Régler l'essentiel » est la marche de l'étape « Devis et factures » (lot 63f, ADR 0103 : l'assistant).
+  await page.goto("/tutoriels");
+  await expect(page.getByRole("heading", { level: 2, name: "Votre parcours : je reprends mes mariages en cours" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Régler l'essentiel : société, adresse, TVA" })).toHaveAttribute("href", "/demarrage/essentiel");
 });
 
 test("HUB-09 — une agence répond au métier : les types de son métier sont proposés, et revenir sur une réponse reste possible", async ({ page }) => {

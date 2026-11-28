@@ -504,7 +504,8 @@
           "q": "Je passe de la franchise à la TVA : que faire ?",
           "a": "Changez le régime ici : les nouveaux devis et factures appliquent le taux ; les documents déjà émis ne changent pas."
         }
-      ]
+      ],
+      "keywords": "SIRET, SIREN, numéro d'entreprise, raison sociale, adresse, régime de TVA"
     },
     "admin": {
       "title": "Vue d'ensemble de la console",
@@ -580,6 +581,13 @@
           "q": "Où saisir la source ou un second client ?",
           "a": "Sur la fiche de l'évènement, onglet Mariés : « Source et clients »."
         }
+      ],
+      "keywords": "créer un mariage, nouvel évènement, ajouter un mariage, nouvelle demande",
+      "steps": [
+        "Ouvrez « Évènements », puis « Nouvel évènement ».",
+        "Dites où il en est : une demande en cours, ou un mariage déjà signé.",
+        "Donnez le nom des mariés et la date, même approximative.",
+        "La fiche s'ouvre avec son rétroplanning de départ."
       ]
     },
     "eventsDetail": {
@@ -796,6 +804,13 @@
           "q": "Que devient mon fichier ?",
           "a": "Il est vérifié par l'antivirus puis oublié : seules ses lignes sont gardées, le temps de finir l'import."
         }
+      ],
+      "keywords": "importer des contacts, reprendre un tableur, fichier Excel ou CSV, faire entrer ses clients, carnet de prestataires",
+      "steps": [
+        "Ouvrez « Reprendre et importer », puis choisissez ce que contient le fichier : contacts, prestataires ou listes.",
+        "Déposez votre fichier : Excel ou CSV, une ligne par contact.",
+        "Vérifiez les colonnes que Symbola a reconnues (« NOM Prénom », « tel portable »…).",
+        "Rien n'est écrit avant « Importer » ; un doublon possible vous est montré."
       ]
     },
     "importColumns": {
@@ -1006,7 +1021,8 @@
     },
     "vendorNew": {
       "title": "Nouveau prestataire",
-      "body": "Une seule fenêtre, la même au carnet et depuis un poste du budget : le nom, le métier (obligatoire ; « À classer » si vous ne le savez pas encore), le contact, le téléphone, l'e-mail et la ville. Le reste (adresse, SIRET, site et réseaux, étiquettes, tarifs, note) est derrière « Plus de détails », et se complète aussi plus tard sur la fiche. Un nom proche d'une fiche du carnet est signalé, sans empêcher la création. Depuis un poste, choisissez comment l'ajouter : en comparaison, ou retenu. L'adresse place le prestataire sur la carte."
+      "body": "Une seule fenêtre, la même au carnet et depuis un poste du budget : le nom, le métier (obligatoire ; « À classer » si vous ne le savez pas encore), le contact, le téléphone, l'e-mail et la ville. Le reste (adresse, SIRET, site et réseaux, étiquettes, tarifs, note) est derrière « Plus de détails », et se complète aussi plus tard sur la fiche. Un nom proche d'une fiche du carnet est signalé, sans empêcher la création. Depuis un poste, choisissez comment l'ajouter : en comparaison, ou retenu. L'adresse place le prestataire sur la carte.",
+      "keywords": "ajouter un prestataire, nouveau prestataire, créer une fiche prestataire"
     },
     "search": {
       "title": "Recherche",
@@ -1126,7 +1142,8 @@
           "q": "Puis-je ouvrir l'archive dans un tableur ?",
           "a": "Oui : chaque table a son fichier CSV (séparateur point-virgule, UTF-8). Les fichiers JSON sont la référence : ils gardent les liens entre les tables."
         }
-      ]
+      ],
+      "keywords": "exporter mes données, copie de toutes mes données, sauvegarde, archive"
     },
     "organizationImport": {
       "title": "Reprendre un export Symbola",
@@ -1138,7 +1155,8 @@
     },
     "contactsList": {
       "title": "Contacts",
-      "body": "Chaque personne n'existe qu'une fois dans votre espace : un couple qui revient pour un second évènement garde sa fiche, ses coordonnées et son historique. Cherchez par nom, adresse ou téléphone ; une adresse e-mail n'appartient qu'à un contact. Un foyer relie des personnes (un couple, une famille) ; une entreprise, ses interlocuteurs, avec son SIREN et son numéro de TVA. « Ajouter un contact » ouvre sa fiche à remplir dans un panneau ; « Importer des contacts » reprend votre fichier (CSV ou Excel). Les contacts d'essai n'apparaissent pas ici."
+      "body": "Chaque personne n'existe qu'une fois dans votre espace : un couple qui revient pour un second évènement garde sa fiche, ses coordonnées et son historique. Cherchez par nom, adresse ou téléphone ; une adresse e-mail n'appartient qu'à un contact. Un foyer relie des personnes (un couple, une famille) ; une entreprise, ses interlocuteurs, avec son SIREN et son numéro de TVA. « Ajouter un contact » ouvre sa fiche à remplir dans un panneau ; « Importer des contacts » reprend votre fichier (CSV ou Excel). Les contacts d'essai n'apparaissent pas ici.",
+      "keywords": "carnet d'adresses, clients, couples, foyers"
     },
     "contactDetail": {
       "title": "Fiche d'un contact",
@@ -1206,7 +1224,8 @@
           "q": "Le client voit-il le plan ou les contraintes ?",
           "a": "Non. Le plan se compose dans l'équipe ; les contraintes ne sortent jamais, ni vers le client ni dans une synthèse."
         }
-      ]
+      ],
+      "keywords": "plan de table, placer les invités, tables"
     },
     "catererSummary": {
       "title": "Envoyer la synthèse au traiteur",
@@ -1238,7 +1257,8 @@
     },
     "appointmentAvailability": {
       "title": "Mes disponibilités",
-      "body": "Ma semaine : une ligne par jour ; l'interrupteur ouvre ou ferme le jour, « + Plage » ajoute une seconde plage, « Copier lundi sur les jours ouverts » recopie le lundi ; un seul « Enregistrer ». Puis vos jours fermés et vos agendas : reliez votre agenda Google, Apple ou Outlook par son adresse secrète iCal ; seules les heures occupées sont lues, toutes les quinze minutes, jamais le contenu. Si un agenda ne se lit plus, aucun créneau n'est proposé jusqu'à ce qu'il soit relu."
+      "body": "Ma semaine : une ligne par jour ; l'interrupteur ouvre ou ferme le jour, « + Plage » ajoute une seconde plage, « Copier lundi sur les jours ouverts » recopie le lundi ; un seul « Enregistrer ». Puis vos jours fermés et vos agendas : reliez votre agenda Google, Apple ou Outlook par son adresse secrète iCal ; seules les heures occupées sont lues, toutes les quinze minutes, jamais le contenu. Si un agenda ne se lit plus, aucun créneau n'est proposé jusqu'à ce qu'il soit relu.",
+      "keywords": "disponibilités, horaires des rendez-vous, agenda relié, jours fermés"
     },
     "eventsPipeline": {
       "title": "Suivre vos demandes en colonnes",
@@ -1538,6 +1558,13 @@
           "q": "Le mariage saisi reçoit-il un rétroplanning ?",
           "a": "Non : il est « Signé, en préparation », et ses tâches viennent de votre liste. Sans liste, vous pourrez partir d'un modèle depuis la fiche."
         }
+      ],
+      "keywords": "reprendre un mariage en cours, mariage suivi dans un autre outil, reprise",
+      "steps": [
+        "Ouvrez « Reprendre un mariage en cours » depuis « Évènements » ou l'accueil.",
+        "Déposez les fichiers dans l'ordre proposé : fiche, budget, prestataires, liste « à faire », programme.",
+        "Chaque fichier est relu avec vous ; rien n'est écrit avant votre accord.",
+        "La fiche du mariage dit ensuite ce qui reste à compléter."
       ]
     },
     "companyMentions": {
@@ -1563,10 +1590,7 @@
   },
   "Aide": {
     "title": "Aide",
-    "search": "Rechercher dans l'aide",
-    "noResults": "Aucun article ne correspond à votre recherche.",
     "link": "Aide",
-    "tutorialsCount": "Tutoriels faits : {completed} sur {total}",
     "tutorialsLink": "Tutoriels"
   },
   "EventVendorsImport": {
@@ -4675,27 +4699,20 @@
       "documents": {
         "title": "Personnaliser vos devis et factures",
         "description": "Coordonnées, logo, couleur, textes et IBAN : vos documents à votre image, avec un exemple en PDF."
+      },
+      "complete-takeover": {
+        "title": "Compléter un mariage repris",
+        "description": "Sur un mariage d'exemple repris d'un tableur, complétez ce que les fichiers ne disaient pas : invités, tâches."
       }
     },
-    "intro": "Chaque écran a sa fiche : à quoi il sert, sa visite guidée et les questions fréquentes. Sur l'écran lui-même, « ? › Revoir la visite » relance la visite.",
-    "progressTitle": "Tutoriels faits : {completed} sur {total}",
-    "nextSuggestion": "Prochaine étape conseillée : {title} ({minutes} minutes).",
-    "continue": "Continuer ma prise en main",
-    "allDone": "Bravo, vous avez suivi tous les tutoriels. Ils restent disponibles ici pour les revoir.",
-    "autoTours": "Lancer la visite guidée et proposer les tutoriels à la première ouverture d'un écran",
-    "tutorialKind": "Tutoriel · {minutes} min",
-    "stateInProgress": "En cours · étape {step}",
-    "stateNew": "À découvrir",
-    "openTutorials": "Voir le parcours des tutoriels",
-    "stateSeen": "Visite faite",
-    "results": "Écrans trouvés : {count}",
     "groups": {
       "events": "Évènements",
       "vendors": "Prestataires",
       "quotes": "Devis et factures",
       "budget": "Budget",
       "company": "Mon entreprise et mon compte",
-      "data": "Import et données personnelles",
+      "import": "Reprise et import",
+      "data": "Vos données et données personnelles",
       "admin": "Exploitation de la suite",
       "clients": "Votre espace",
       "appointments": "Rendez-vous"
@@ -4754,7 +4771,8 @@
     "dayFuture": "dans {days, plural, one {# jour} other {# jours}}",
     "dayPast": "il y a {days, plural, one {# jour} other {# jours}}",
     "openFullScreen": "Rechercher",
-    "closeFullScreen": "Fermer la recherche"
+    "closeFullScreen": "Fermer la recherche",
+    "articleDetail": "Article de l'aide"
   },
   "AdminOnboarding": {
     "title": "Prise en main des organisations",
@@ -5091,6 +5109,34 @@
         {
           "title": "Terminer",
           "body": "Vos devis et factures sont à votre image. Vous retrouverez ces réglages dans Paramètres › Ventes › Documents."
+        }
+      ]
+    },
+    "complete-takeover": {
+      "steps": [
+        {
+          "title": "Comprendre",
+          "body": "Un mariage repris d'un tableur arrive avec ce que disaient vos fichiers ; le reste est à compléter sur sa fiche : le nombre d'invités, les tâches, les montants. Créons un mariage d'exemple, comme repris d'un tableur, pour le faire."
+        },
+        {
+          "title": "Créer l'exemple",
+          "body": "Symbola crée le mariage fictif de Juliette et Romain, sans tâches ni nombre d'invités."
+        },
+        {
+          "title": "Regarder la fiche",
+          "body": "La Synthèse de l'exemple montre ce qui manque : ici, le nombre d'invités et le rétroplanning."
+        },
+        {
+          "title": "Le nombre d'invités",
+          "body": "Sur la Synthèse, « Modifier les informations », puis saisissez les « Invités estimés » : la fiche s'enregistre seule."
+        },
+        {
+          "title": "Les tâches",
+          "body": "Dans l'onglet Rétroplanning, choisissez un modèle et cliquez « Appliquer le modèle », ou ajoutez une tâche."
+        },
+        {
+          "title": "Terminer",
+          "body": "Vous savez compléter un mariage repris. Sur un vrai mariage repris, la fiche liste les points restants dans « À compléter après la reprise ». L'exemple va être supprimé."
         }
       ]
     }
@@ -6121,24 +6167,15 @@
     },
     "checklist": {
       "title": "Pour bien démarrer",
-      "items": {
-        "essentials": "Régler l'essentiel : société, adresse, TVA",
-        "first_vendor": "Ajouter un premier prestataire"
-      },
-      "count": "{done} sur {total}",
-      "remaining": "reste : {steps}",
       "hide": "Masquer",
       "hiddenMessage": "« Pour bien démarrer » est masqué.",
       "shownMessage": "« Pour bien démarrer » est revenu.",
       "hideFailed": "« Pour bien démarrer » n'a pas pu être masqué. Réessayez.",
-      "short": {
-        "essentials": "régler l'essentiel",
-        "first_vendor": "un premier prestataire"
-      },
-      "action": {
-        "essentials": "Compléter",
-        "first_vendor": "Ajouter"
-      }
+      "steps": "{done, plural, one {# étape faite} other {# étapes faites}} sur {total}",
+      "next": "Ensuite : {stage}, {minutes} minutes",
+      "nextNoMinutes": "Ensuite : {stage}",
+      "continue": "Continuer",
+      "seeJourney": "Voir le parcours"
     }
   },
   "Setup": {
@@ -6585,32 +6622,91 @@
   },
   "TutorialsPage": {
     "title": "Tutoriels",
-    "intro": "Apprenez Symbola en le faisant, dans l'ordre conseillé. Chaque tutoriel crée un exemple fictif, puis vous propose de le supprimer.",
-    "progress": "Tutoriels faits : {done} sur {total}",
-    "remaining": "environ {minutes} min restantes",
-    "inProgress": "En cours : {title} (étape {step})",
+    "intro": "Apprenez Symbola en le faisant, sur un exemple qui ne contacte personne et s'efface à la fin.",
+    "remaining": "environ {minutes} minutes restantes",
+    "inProgress": "Étape {step}",
     "resume": "Reprendre",
     "stageNumber": "Étape {number}",
-    "stageCount": "{done}/{total}",
     "minutes": "{minutes} min",
-    "stages": {
-      "activity": "Préparer votre activité",
-      "templates": "Préparer vos modèles",
-      "first_event": "Votre premier évènement",
-      "sales": "Vendre et facturer",
-      "clients": "Avec les mariés",
-      "other": "Autres tutoriels"
-    },
-    "states": {
-      "done": "Fait",
-      "current": "En cours",
-      "next": "Conseillé ensuite",
-      "todo": "À faire"
-    },
     "conflictTitle": "Un tutoriel est déjà en cours",
     "conflictBody": "Vous en êtes à l’étape {step} de « {title} ». Un seul tutoriel à la fois : terminez-le d’abord, ou abandonnez-le (son exemple fictif sera supprimé) pour commencer « {next} ».",
     "conflictFinish": "Le terminer d’abord",
-    "conflictAbandon": "L’abandonner et commencer celui-ci"
+    "conflictAbandon": "L’abandonner et commencer celui-ci",
+    "currentLabel": "En cours",
+    "journeyTitle": "Votre parcours : {path}",
+    "paths": {
+      "takeover": "je reprends mes mariages en cours",
+      "scratch": "je pars de zéro"
+    },
+    "chosenBy": {
+      "answer": "Choisi d'après votre réponse au démarrage",
+      "choice": "Choisi par vous",
+      "default": "Proposé en attendant votre réponse au démarrage"
+    },
+    "journeyMeta": "{done, plural, one {# étape faite} other {# étapes faites}} sur {total}",
+    "change": {
+      "open": "Changer de parcours",
+      "title": "Votre parcours",
+      "intro": "Ce que vous avez déjà fait reste fait dans l'autre parcours.",
+      "submit": "Valider",
+      "cancel": "Annuler",
+      "invalid": "Choisissez l'un des deux parcours.",
+      "options": {
+        "takeover": {
+          "title": "Je reprends mes mariages en cours",
+          "body": "La reprise d'abord, puis compléter un mariage repris."
+        },
+        "scratch": {
+          "title": "Je pars de zéro",
+          "body": "Un mariage, son rétroplanning, ses prestataires."
+        }
+      }
+    },
+    "stages": {
+      "takeover": {
+        "takeover": "Reprendre un mariage en cours",
+        "complete": "Compléter un mariage repris",
+        "vendors": "Vos prestataires",
+        "templates": "Le rétroplanning et le programme",
+        "sales": "Devis et factures",
+        "first_event": "Créer votre premier mariage"
+      },
+      "scratch": {
+        "first_event": "Créer votre premier mariage",
+        "templates": "Son rétroplanning",
+        "vendors": "Ses prestataires",
+        "sales": "Devis et factures",
+        "takeover": "Reprendre un mariage en cours",
+        "complete": "Compléter un mariage repris"
+      }
+    },
+    "stageBody": {
+      "takeover": "Carnet, fiche, budget, prestataires retenus, liste « à faire », programme : fichier par fichier, rien d'écrit avant votre accord.",
+      "complete": "Ce que les fichiers ne disaient pas : le nombre d'invités, les tâches, les montants, les heures du programme.",
+      "first_event": "Le mariage, ses mariés et sa date : sa fiche s'ouvre avec son rétroplanning de départ.",
+      "templates": "Les modèles de vos prochains mariages.",
+      "vendors": "Le carnet, les fiches à classer, les devis à comparer.",
+      "sales": "Votre fiche entreprise, votre catalogue, un devis signé, l'acompte puis le solde."
+    },
+    "states": {
+      "done": "Fait",
+      "doneOn": "Fait le {date}",
+      "current": "En cours",
+      "next": "Ensuite",
+      "todo": "À faire"
+    },
+    "gestures": {
+      "takeover": "Ouvrir la reprise d'un mariage",
+      "takeover_complete": "Compléter la fiche de mon mariage repris",
+      "first_event": "Créer mon premier mariage",
+      "first_vendor": "Ajouter un premier prestataire",
+      "essentials": "Régler l'essentiel : société, adresse, TVA"
+    },
+    "stageMeta": "{count, plural, one {# tutoriel} other {# tutoriels}} · {minutes} min",
+    "start": "Commencer · {minutes} min",
+    "doOnMine": "Le faire sur mon mariage",
+    "review": "Revoir le tutoriel",
+    "others": "Autres tutoriels"
   },
   "HelpUi": {
     "toggle": "Aide sur cet écran",
@@ -14912,6 +15008,52 @@
     },
     "notifications": {
       "thisPhone": "Ce téléphone"
+    }
+  },
+  "HelpHome": {
+    "intro": "Posez votre question avec vos mots, ou parcourez par sujet.",
+    "search": {
+      "label": "Votre question",
+      "placeholder": "Par exemple : importer mes contacts, qu'est-ce que le SIRET…",
+      "submit": "Chercher",
+      "clear": "Effacer la recherche"
+    },
+    "settingsLabel": "Réglages de l'aide",
+    "autoTours": "Proposer la visite d'un écran à sa première ouverture",
+    "topics": {
+      "title": "Par sujet",
+      "count": "{count, plural, one {# article} other {# articles}}"
+    },
+    "topic": {
+      "back": "‹ Aide"
+    },
+    "start": {
+      "title": "Pour bien démarrer",
+      "path": "Votre parcours : {path} · {done, plural, one {# étape faite} other {# étapes faites}} sur {total}",
+      "next": "Étape {number} : {stage}",
+      "minutes": "{minutes} min",
+      "seeAll": "Voir tout le parcours",
+      "allDone": "Votre parcours est fait. Les tutoriels restent là pour les revoir."
+    },
+    "discover": {
+      "title": "Pour découvrir",
+      "tours": "Les visites des écrans",
+      "toursCount": "{count, plural, one {# écran} other {# écrans}}",
+      "example": "Ouvrir un mariage d'exemple",
+      "exampleOpen": "Revoir le mariage d'exemple",
+      "exampleDays": "30 jours",
+      "tutorials": "Les tutoriels",
+      "tutorialsMeta": "{count}, de {min} à {max} min"
+    },
+    "answers": {
+      "count": "{count, plural, one {# article répond} other {# articles répondent}} à « {query} »",
+      "understood": "compris : {words}",
+      "bestLabel": "La meilleure réponse · {topic}",
+      "openScreen": "Ouvrir l'écran",
+      "readArticle": "Lire l'article en entier",
+      "others": "Autres réponses · {count}",
+      "noneTitle": "Aucun article ne répond à « {query} »",
+      "noneHint": "Essayez un mot du menu (« Évènements », « Prestataires »…), ou parcourez par sujet."
     }
   }
 }

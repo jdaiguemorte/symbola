@@ -8,6 +8,8 @@ import { appDatabase } from "@symbola/db/client";
 import { foldSearchText, searchWords } from "@symbola/db/search";
 import { globalSearch, isModuleEnabled } from "@/modules/hub/service";
 import { TUTORIALS, tutorialHref } from "@/lib/help/catalog";
+import { articleHref } from "@/lib/help/articles";
+import { searchHelpCenter } from "@/lib/help/help-center";
 import { SCREENS } from "./screens";
 import { STATUS_LABEL_KEYS } from "@/app/events/event-status";
 import { dayDistance, dayPhrase } from "./search-day";
@@ -138,6 +140,15 @@ export async function runSearch(input: { organizationId: string; role: string; t
     return words.every((word) => folded.includes(word));
   };
   const help: SearchItem[] = [];
+  // Lot 74f (HUB-12 ; § 6.6) : d'abord les articles de l'aide, par le moteur du centre d'aide (une phrase
+  // comprise, les mots voisins), pour les modules et le rôle de la personne ; puis tutoriels et écrans.
+  const answer = await searchHelpCenter(
+    { audience: "team", isOwner: input.role === "owner", modules: { hub: true, ...modules, guests: false, floorplans: false } },
+    input.term,
+  );
+  for (const article of [answer.best, ...answer.others]) {
+    if (article) help.push({ title: article.title, detail: t("articleDetail"), href: articleHref(article) });
+  }
   for (const tutorial of TUTORIALS) {
     if (!available(tutorial.module)) continue;
     const title = tHelpCenter(`items.${tutorial.key}.title`);

@@ -33,7 +33,7 @@ import { TodayScrollKeeper } from "./accueil/today-card-client";
 import { NamesPrompt } from "./accueil/names-prompt";
 import { SetupNotReadyLine } from "./accueil/setup-line";
 import { resumedThisSession } from "@/lib/onboarding/resume";
-import { loadOnboardingChecklist } from "@/lib/onboarding/checklist";
+import { loadJourney } from "@/lib/help/journey-loader";
 import { firstStepsLine } from "@/lib/onboarding/first-steps";
 import { homeState, todayCard } from "@/lib/today/home";
 import { onboardingSuggestsTakeover } from "@symbola/starter-templates";
@@ -77,7 +77,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   // Dégradation propre (ARC-06) : un module non souscrit n'apporte rien à la liste.
   const db = appDatabase();
   // NFR-02 : les lectures indépendantes de l'accueil partent ensemble.
-  const [eventsEnabled, quotes, budget, guests, appointments, vendors, setup, checklist, mailQuota] = await Promise.all([
+  const [eventsEnabled, quotes, budget, guests, appointments, vendors, setup, mailQuota] = await Promise.all([
     isModuleEnabled(db, organizationId, "events"),
     isModuleEnabled(db, organizationId, "quotes"),
     isModuleEnabled(db, organizationId, "budget"),
@@ -90,7 +90,6 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
     // Lot 33b (HUB-09, PAR-01) : le questionnaire d'accueil se reprend d'ici tant qu'il n'est pas
     // fini (Propriétaire), puis la liste de prise en main guide les premiers pas de l'équipe.
     getSetupState(db, organizationId),
-    loadOnboardingChecklist(organizationId),
     // Lot 24b (SEC-22, décision D5) : plafond d'e-mails de l'heure atteint.
     organizationMailQuota(organizationId),
   ]);
@@ -231,7 +230,18 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   // ligne « Pour bien démarrer » de la personne.
   const state = homeState({ eventsEnabled: modules.events, events, points: ranked.points });
   const card = todayCard(ranked, { quotes: modules.quotes, events: modules.events });
-  const firstSteps = firstStepsLine(checklist, auth.user.firstStepsHidden);
+  // Lot 74f (HUB-11 ; maquette 28 ; C-10) : « Pour bien démarrer » est le parcours des tutoriels, le même que
+  // dans « Aide » et « Tutoriels » ; il n'est lu que si la ligne n'est pas masquée.
+  const firstSteps = auth.user.firstStepsHidden
+    ? null
+    : firstStepsLine(
+        await loadJourney({
+          organizationId,
+          userId: auth.user.id,
+          viewer: { audience: "team", isOwner: auth.user.role === "owner", modules: { hub: true, events: modules.events, budget: modules.budget, quotes: modules.quotes, vendors: modules.vendors, guests: modules.events && modules.guests, appointments: modules.appointments, floorplans: false } },
+        }),
+        false,
+      );
   const soonDays = modules.events ? await getTaskSoonDays(organizationId) : 7;
   // « Tout afficher » ouvert, ou une tâche du reste ouverte depuis la carte allongée : la carte reste entière
   // derrière le panneau, et « Fermer » la rend telle quelle (critère 3).
@@ -251,7 +261,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
       {state.kind === "empty" ? (
         <>
           <EmptyHome takeoverFirst={onboardingSuggestsTakeover(profile.replacedTools)} />
-          {firstSteps && checklist ? <FirstStepsView line={firstSteps} items={checklist} listed /> : null}
+          {firstSteps ? <FirstStepsView line={firstSteps} listed /> : null}
         </>
       ) : (
         <>
@@ -283,7 +293,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
               />
             </div>
           ) : null}
-          {firstSteps && checklist ? <FirstStepsView line={firstSteps} items={checklist} listed={false} /> : null}
+          {firstSteps ? <FirstStepsView line={firstSteps} listed={false} /> : null}
         </>
       )}
       {openTask ? (

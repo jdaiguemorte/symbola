@@ -32,25 +32,26 @@ async function account(role: "owner" | "member" | "admin") {
   return { email, password };
 }
 
-test("AIDE-12 — une vignette par écran avec sa capture, une fiche avec capture, étapes de la visite et questions", async ({ page }) => {
+test("AIDE-12 — les articles par sujet, un article avec capture, étapes de la visite et questions", async ({ page }) => {
   const owner = await account("owner");
   await login(page, owner.email, owner.password);
 
+  // Lot 74f (C-07) : les sujets en lignes, avec leur nombre d'articles ; un sujet liste ses articles.
   await page.goto("/aide");
-  const events = page.getByRole("region", { name: "Évènements" });
-  const tile = events.getByRole("link", { name: /Fiche de l'évènement/ });
+  const topics = page.getByRole("region", { name: "Par sujet" });
+  await expect(topics.getByRole("link", { name: /Devis et factures \d+ articles/ })).toBeVisible();
+  await expect(topics.getByRole("link", { name: /Vos données et données personnelles/ })).toBeVisible();
+  await topics.getByRole("link", { name: /^Évènements \d+ articles/ }).click();
+  await expect(page).toHaveURL(/\/aide\/sujets\/events$/);
+  const tile = page.getByRole("link", { name: /Fiche de l'évènement/ });
   await expect(tile).toBeVisible();
-  await expect(tile.locator("img")).toHaveAttribute("src", "/aide/captures/eventsDetail.jpg");
-  await expect(page.getByRole("region", { name: "Devis et factures" })).toBeVisible();
-  await expect(page.getByRole("region", { name: "Import et données personnelles" }).getByRole("link", { name: /Données personnelles/ })).toBeVisible();
   await expectNoAxeViolation(page);
 
   // La recherche porte aussi sur les questions fréquentes.
-  await page.getByLabel("Rechercher dans l'aide").fill("perdu");
-  await expect(tile).toBeVisible();
-  await expect(events.getByRole("link", { name: /Modèles de rétroplanning/ })).toHaveCount(0);
-  await page.getByLabel("Rechercher dans l'aide").fill("");
+  await page.goto("/aide?q=perdu");
+  await expect(page.locator(".help-answers")).toContainText("Fiche de l'évènement");
 
+  await page.goto("/aide/sujets/events");
   await tile.click();
   await expect(page).toHaveURL(/\/aide\/ecrans\/eventsDetail$/);
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Aide : Fiche de l'évènement");
@@ -72,26 +73,33 @@ test("AIDE-12 — une vignette par écran avec sa capture, une fiche avec captur
 test("AIDE-12 — chaque public ne voit que ses écrans", async ({ page }) => {
   const member = await account("member");
   await login(page, member.email, member.password);
-  await page.goto("/aide");
+  await page.goto("/aide/sujets/events");
   await expect(page.getByRole("link", { name: /Liste des évènements/ })).toBeVisible();
-  // Les données personnelles sont réservées à la titulaire.
-  await expect(page.getByRole("link", { name: /Données personnelles/ })).toHaveCount(0);
+  // Les données personnelles sont réservées à la titulaire : ni dans le sujet, ni par la recherche, ni par
+  // l'adresse de l'article (lot 74f).
+  await page.goto("/aide/sujets/data");
+  await expect(page.getByRole("link", { name: /^Données personnelles/ })).toHaveCount(0);
+  await page.goto("/aide?q=" + encodeURIComponent("données personnelles d'une personne"));
+  await expect(page.locator(".help-answers").getByRole("heading", { name: "Données personnelles", exact: true })).toHaveCount(0);
   const response = await page.goto("/aide/ecrans/privacySearch");
   expect(response?.status()).toBe(404);
 });
 
-test("AIDE-12 — l'Admin ne voit que l'aide de la console, sans capture d'organisation", async ({ page }) => {
+test("AIDE-12 — l'Admin ne voit que l'aide de la console, sans article d'organisation", async ({ page }) => {
   const admin = await account("admin");
   await login(page, admin.email, admin.password);
   await page.goto("/aide");
-  const console = page.getByRole("region", { name: "Exploitation de la suite" });
-  await expect(console.getByRole("link", { name: /Comptes et assistance/ })).toBeVisible();
-  // Lot 20 (AIDE-16) : jamais de capture d'organisation, seulement
-  // l'illustration générique.
-  await expect(console.locator("img").first()).toBeVisible();
-  await expect(console.locator('img:not([src="/aide/illustration-ecran.svg"])')).toHaveCount(0);
-  await expect(page.getByRole("region", { name: "Évènements" })).toHaveCount(0);
+  const topics = page.getByRole("region", { name: "Par sujet" });
+  await expect(topics.getByRole("link")).toHaveCount(1);
+  await topics.getByRole("link", { name: /Exploitation de la suite/ }).click();
+  await expect(page.getByRole("link", { name: /Comptes et assistance/ })).toBeVisible();
+  // Lot 20 (AIDE-16), lot 74f : jamais d'image ni d'article d'organisation ; ni parcours ni exemple.
+  await expect(page.locator("main img")).toHaveCount(0);
   await expectNoAxeViolation(page);
+  expect((await page.goto("/aide/sujets/events"))?.status()).toBe(404);
+  await page.goto("/aide?q=" + encodeURIComponent("importer mes contacts"));
+  await expect(page.getByRole("region", { name: "Pour bien démarrer" })).toHaveCount(0);
+  await expect(page.locator(".help-answers")).not.toContainText("Reprendre et importer");
   const response = await page.goto("/aide/ecrans/eventsList");
   expect(response?.status()).toBe(404);
 });

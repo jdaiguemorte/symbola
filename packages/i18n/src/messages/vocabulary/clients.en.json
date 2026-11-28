@@ -103,11 +103,6 @@
       }
     }
   },
-  "TutorialsPage": {
-    "stages": {
-      "clients": "With the client"
-    }
-  },
   "Home": {
     "agendaLegendConfirmed": "Confirmed event"
   },

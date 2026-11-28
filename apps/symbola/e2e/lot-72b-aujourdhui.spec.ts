@@ -122,7 +122,8 @@ test.describe("HUB-08, UX-01 — L'écran « Aujourd'hui » (lot 72b)", () => {
     await expect(page.getByText(/tout est à jour|rien ne presse/i)).toHaveCount(0);
     // Ni le bandeau de la fiche entreprise, ni « Risques » : « Pour bien démarrer » porte l'étape.
     await expect(page.getByText("Votre fiche entreprise n'est pas encore complète.")).toHaveCount(0);
-    await expect(page.getByRole("region", { name: /^Pour bien démarrer/ })).toContainText("0 sur 2");
+    // Lot 74f (C-10) : les étapes du parcours « Je pars de zéro ».
+    await expect(page.getByRole("region", { name: /^Pour bien démarrer/ })).toContainText("0 étape faite sur 4");
     await expectNoAxeViolation(page);
     await expectPhoneRules(page);
   });
@@ -246,8 +247,9 @@ test.describe("HUB-08, UX-01 — L'écran « Aujourd'hui » (lot 72b)", () => {
     await signIn(page, context.email);
     await page.goto("/");
     const line = page.getByRole("region", { name: /^Pour bien démarrer/ });
-    await expect(line).toContainText(/\d sur 2/);
-    await expect(line).toContainText("reste :");
+    // Lot 74f (C-10) : les étapes du parcours, puis l'étape suivante.
+    await expect(line).toContainText(/\d étapes? faites? sur 4/);
+    await expect(line).toContainText("Ensuite :");
     await line.getByRole("button", { name: "Masquer" }).click();
     await expect(line).toHaveCount(0);
     const undo = feedback(page).filter({ hasText: "« Pour bien démarrer » est masqué" });

@@ -349,6 +349,7 @@ export async function AppShell({ children }: { children: ReactNode }) {
           : available
               .filter(
                 (candidate) =>
+                  candidate.invite !== false &&
                   !progress.some(
                     (entry) => entry.itemKey === `tutorial:${candidate.key}`,
                   ),

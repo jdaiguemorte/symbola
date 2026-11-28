@@ -109,22 +109,23 @@ test("HUB-11 / AIDE-03 — visite guidée de l'accueil, aide consultable", async
   await expect(page.getByRole("heading", { name: "Commencez par votre premier mariage" })).toBeVisible();
   await expect(page.getByRole("complementary", { name: "Barre d'aide" })).toHaveCount(0);
 
-  // AIDE-03, AIDE-12 : le centre d'aide présente chaque écran en vignette,
-  // groupée par rubrique, et se cherche (l'aide, pas les données).
+  // AIDE-03, AIDE-12 ; lot 74f (C-07) : le centre d'aide se range par sujet et se cherche (l'aide, pas les
+  // données).
   await clickMenuLink(page, "Aide");
   await expect(page.getByRole("heading", { name: "Aide", level: 1 })).toBeVisible();
-  await expect(page.getByRole("region", { name: "Évènements" }).getByRole("link", { name: /Liste des évènements/ })).toBeVisible();
+  await expect(page.getByRole("region", { name: "Par sujet" }).getByRole("link", { name: /Évènements/ })).toBeVisible();
   violations = await new AxeBuilder({ page }).analyze();
   expect(violations.violations, JSON.stringify(violations.violations, null, 2)).toEqual([]);
 
   // L'aide de la console d'Administration n'est pas proposée à l'équipe.
-  await expect(page.getByRole("heading", { name: "Exploitation de la suite" })).toHaveCount(0);
-  await page.getByLabel("Rechercher dans l'aide").fill("TVA");
+  await expect(page.getByRole("link", { name: /Exploitation de la suite/ })).toHaveCount(0);
+  await page.getByLabel("Votre question").fill("TVA");
+  await page.getByRole("button", { name: "Chercher", exact: true }).click();
   // Lot 74g : « Entreprise et TVA » est devenu « Fiche de l'entreprise ».
-  await expect(page.getByRole("link", { name: /Fiche de l'entreprise/ })).toBeVisible();
-  await expect(page.getByRole("link", { name: /Liste des évènements/ })).toHaveCount(0);
-  await expect(page.locator(".help-search").getByRole("status")).toContainText("Écrans trouvés");
+  await expect(page.getByRole("heading", { level: 2, name: "Fiche de l'entreprise" })).toBeVisible();
+  await expect(page.getByRole("status")).toContainText("à « TVA »");
 
-  await page.getByLabel("Rechercher dans l'aide").fill("xyznotfound");
-  await expect(page.getByText("Aucun article ne correspond à votre recherche.")).toBeVisible();
+  await page.getByLabel("Votre question").fill("xyznotfound");
+  await page.getByRole("button", { name: "Chercher", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Aucun article ne répond à « xyznotfound »" })).toBeVisible();
 });

@@ -39,4 +39,12 @@ describe("NFR-02 — Le navigateur ne reçoit que les textes de ses composants",
     expect(sent).toHaveProperty("Events");
     expect(sent).toHaveProperty("Login");
   });
+
+  it("lot 74f — les étapes de chaque tutoriel restent au serveur ; le panneau garde ses libellés communs", () => {
+    const sent = clientMessages(frMessages) as unknown as { Tutorials: Record<string, unknown> };
+    expect(sent.Tutorials).not.toHaveProperty("event-page");
+    expect(sent.Tutorials).not.toHaveProperty("complete-takeover");
+    for (const key of ["check", "checkHint", "doneTitle", "doneBody", "doneBodyKept"]) expect(typeof sent.Tutorials[key]).toBe("string");
+    expect(sent).not.toHaveProperty("HelpHome");
+  });
 });

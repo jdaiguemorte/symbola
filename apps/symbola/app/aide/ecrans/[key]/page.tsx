@@ -1,16 +1,14 @@
-// Lot 13 (AIDE-12, ADR 0033), revu au lot 63f (ADR 0104) — fiche d'aide d'un écran : la capture
+// Lot 13 (AIDE-12, ADR 0033), revu au lot 63f (ADR 0104) — l'article d'aide d'un écran (lot 74f : « article ») : la capture
 // réelle (visite guidée ouverte), ce qu'on y fait, les étapes de sa visite, puis les questions
 // fréquentes. Un écran que la personne ne peut pas ouvrir (autre
-// public, module non souscrit) n'a pas de fiche pour elle.
+// public, module non souscrit) n'a pas d'article pour elle (ARC-06, SEC-13).
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { starterTour } from "@symbola/starter-templates";
-import { appDatabase } from "@symbola/db/client";
-import { isModuleEnabled } from "@/modules/hub/service";
 import { requireSignedIn } from "@/lib/guards";
-import type { HelpModule } from "@/lib/help/catalog";
-import { captureSrc, screensFor, type HelpAudience, type HelpScreen } from "@/lib/help/screens";
+import { loadHelpViewer } from "@/lib/help/help-center";
+import { captureSrc, screensFor, type HelpScreen } from "@/lib/help/screens";
 
 type Faq = { q: string; a: string }[];
 
@@ -28,25 +26,9 @@ export default async function HelpScreenPage({ params }: { params: Promise<{ key
   const auth = await requireSignedIn();
   const { key } = await params;
 
-  const organizationId = auth.user.organizationId;
-  const isTeam = Boolean(organizationId) && (auth.user.role === "owner" || auth.user.role === "member");
-  const audience: HelpAudience = isTeam ? "team" : "admin";
-  let modules: Record<HelpModule, boolean> = { hub: true, events: false, budget: false, quotes: false, vendors: false, guests: false, appointments: false, floorplans: false };
-  if (isTeam && organizationId) {
-    const db = appDatabase();
-    const [events, budget, quotes, vendors, appointments] = await Promise.all([
-      isModuleEnabled(db, organizationId, "events"),
-      isModuleEnabled(db, organizationId, "budget"),
-      isModuleEnabled(db, organizationId, "quotes"),
-      isModuleEnabled(db, organizationId, "vendors"),
-      isModuleEnabled(db, organizationId, "appointments"),
-    ]);
-    // Lot 49 : les écrans du module Invités, s'il est ouvert avec le module Évènements.
-    const guests = events && (await isModuleEnabled(db, organizationId, "guests"));
-    const floorplans = (events || vendors) && (await isModuleEnabled(db, organizationId, "floorplans"));
-    modules = { hub: true, events, budget, quotes, vendors, guests, appointments, floorplans };
-  }
-  const screen = screensFor({ audience, isOwner: auth.user.role === "owner", modules }).find((candidate) => candidate.key === key);
+  // Lot 74f : le même lecteur que la page « Aide » et sa recherche (public, rôle, modules souscrits).
+  const viewer = await loadHelpViewer(auth.user);
+  const screen = screensFor(viewer).find((candidate) => candidate.key === key);
   if (!screen) notFound();
 
   const t = await getTranslations("HelpCenter");

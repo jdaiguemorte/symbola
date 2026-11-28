@@ -1,0 +1,222 @@
+/* Lot 74f (HUB-11, HUB-12, UX-10 ; pages 27 et 28 des maquettes du lot 68 ; C-07, C-10) — le centre d'aide en
+   deux écrans (la recherche, « Pour bien démarrer », « Pour découvrir », les sujets en lignes), la réponse de la
+   recherche, et la page Tutoriels en étapes. Rien de coupé : aucune ligne n'est tronquée. Jetons de DESIGN.md
+   seulement ; « Chercher » est le seul bouton plein de l'aide. */
+@layer components {
+  .help-home {
+    @apply flex max-w-3xl flex-col gap-6;
+  }
+  .help-home > h1,
+  .help-home-intro {
+    @apply m-0;
+  }
+  .help-search-form {
+    @apply flex w-full flex-wrap items-stretch gap-2;
+  }
+  .help-search-field {
+    @apply relative min-w-0 flex-1;
+  }
+  .help-search-field input {
+    @apply min-h-11 w-full pr-12 text-body;
+  }
+  .help-search-form button.help-search-clear {
+    @apply absolute top-1/2 right-1 inline-flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border-0 bg-transparent p-0 text-heading text-ink-muted shadow-none hover:bg-ground hover:text-ink;
+  }
+  .help-search-form > button[type="submit"] {
+    @apply min-h-11;
+  }
+
+  /* Les lignes : sujets, autres réponses, « Pour découvrir ». */
+  .help-rows {
+    @apply m-0 flex list-none flex-col divide-y divide-line overflow-hidden rounded-lg border border-line bg-surface p-0;
+  }
+  .help-rows > li {
+    @apply m-0;
+  }
+  .help-row,
+  .help-row-details > summary {
+    @apply flex min-h-11 w-full flex-wrap items-baseline justify-between gap-x-4 gap-y-1 px-4 py-3 text-left text-ink no-underline;
+  }
+  a.help-row:hover,
+  a.help-row:focus-visible,
+  .help-row-details > summary:hover {
+    @apply bg-ground;
+  }
+  .help-row-title {
+    @apply font-semibold;
+  }
+  .help-row-article {
+    @apply flex-col items-start;
+  }
+  .help-row-body {
+    @apply text-label text-ink-muted;
+  }
+  /* « Ouvrir un mariage d'exemple » est un formulaire : une ligne, pas un bouton plein. */
+  .help-rows button.help-row-button {
+    @apply rounded-none border-0 bg-transparent font-normal text-ink shadow-none hover:bg-ground;
+  }
+  .help-row-details {
+    @apply block p-0;
+  }
+  .help-row-details > summary {
+    @apply cursor-pointer list-none;
+  }
+  .help-row-details > summary::-webkit-details-marker {
+    display: none;
+  }
+  .help-row-details > ul {
+    @apply m-0 flex list-none flex-col gap-2 px-4 pb-3;
+  }
+
+  .help-start {
+    @apply flex flex-col items-start gap-2;
+  }
+  .help-start > h2,
+  .help-start > p,
+  .help-discover > h2,
+  .help-topics > h2 {
+    @apply m-0;
+  }
+  .help-discover,
+  .help-topics {
+    @apply flex flex-col gap-3;
+  }
+  .help-start-path {
+    @apply text-label text-ink-muted;
+  }
+  .help-start-next {
+    @apply flex flex-wrap items-baseline gap-x-3;
+  }
+  .help-home-settings {
+    @apply flex flex-col gap-3;
+  }
+  .help-shortcuts > summary {
+    @apply cursor-pointer text-primary underline;
+  }
+  /* Les raccourcis clavier : sur ordinateur seulement (C-81). */
+  @media (max-width: 767px) {
+    .help-shortcuts {
+      display: none;
+    }
+  }
+
+  /* La réponse. */
+  .help-answers {
+    @apply flex flex-col gap-4;
+  }
+  .help-answers-count {
+    @apply m-0 flex flex-wrap items-baseline gap-x-3 gap-y-1;
+  }
+  .help-answers-none h2 {
+    @apply m-0 text-heading;
+  }
+  .help-answers-none [role="status"] {
+    @apply flex flex-col gap-2;
+  }
+  .help-answers-none p {
+    @apply m-0;
+  }
+  .help-best {
+    @apply flex flex-col gap-2;
+  }
+  .help-best > h2,
+  .help-best > p {
+    @apply m-0;
+  }
+  .help-best-steps {
+    @apply m-0 flex flex-col gap-1 pl-6;
+  }
+  .help-best-actions {
+    @apply flex flex-wrap items-center gap-4;
+  }
+  .help-others {
+    @apply flex flex-col gap-2;
+  }
+  .help-others > h3 {
+    @apply m-0 text-heading;
+  }
+
+  /* Tutoriels : le parcours en étapes numérotées (formes de la page de reprise, volet 2). */
+  .tutorials-page {
+    @apply flex max-w-3xl flex-col gap-4;
+  }
+  .tutorials-current {
+    @apply flex flex-col items-start gap-1;
+  }
+  .tutorials-current > p {
+    @apply m-0;
+  }
+  .tutorials-journey {
+    @apply flex flex-col gap-4;
+  }
+  .tutorials-journey-head {
+    @apply flex flex-col items-start gap-2;
+  }
+  .tutorials-journey-head > h2,
+  .tutorials-journey-head > p {
+    @apply m-0;
+  }
+  .tutorials-stages {
+    @apply m-0 flex list-none flex-col gap-3 p-0;
+  }
+  .tutorials-stage {
+    @apply flex gap-3 rounded-lg border border-line bg-surface p-4;
+  }
+  .tutorials-stage-next,
+  .tutorials-stage-current {
+    @apply border-primary;
+  }
+  .tutorials-stage-mark {
+    @apply inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-line font-semibold text-ink;
+  }
+  .tutorials-stage-done .tutorials-stage-mark {
+    @apply border-primary bg-primary text-on-primary;
+  }
+  .tutorials-stage-body {
+    @apply flex min-w-0 flex-1 flex-col gap-2;
+  }
+  .tutorials-stage-body > h3,
+  .tutorials-stage-body > p {
+    @apply m-0;
+  }
+  .tutorials-stage-list,
+  .tutorials-stage-gestures {
+    @apply m-0 flex list-none flex-col gap-1 p-0;
+  }
+  .tutorials-stage-list > li {
+    @apply flex flex-wrap items-baseline justify-between gap-x-3;
+  }
+  .tutorials-stage-state {
+    @apply flex flex-wrap items-center gap-2;
+  }
+  .tutorials-stage-actions {
+    @apply flex flex-wrap items-center gap-3;
+  }
+  .tutorials-others {
+    @apply flex flex-col gap-2;
+  }
+  .tutorials-others > h2 {
+    @apply m-0;
+  }
+  .tutorials-paths {
+    @apply m-0 flex flex-col gap-2 border-0 p-0;
+  }
+  .tutorials-path-choice {
+    @apply flex items-start gap-3 rounded-md border border-line p-3;
+  }
+  .tutorials-path-choice > span {
+    @apply flex flex-col gap-1;
+  }
+}
+
+/* « Pour bien démarrer » sur l'accueil vide : « Voir le parcours » sous les étapes. */
+@layer components {
+  .first-steps-more {
+    @apply m-0 basis-full;
+  }
+  /* Une cible de 44 px au doigt, comme les autres liens de la ligne. */
+  .first-steps-more a,
+  .first-steps-actions > a:not(.button-link) {
+    @apply inline-flex min-h-11 items-center;
+  }
+}
