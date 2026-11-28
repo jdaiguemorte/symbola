@@ -497,8 +497,8 @@
       ]
     },
     "settings": {
-      "title": "Company and VAT",
-      "body": "Your company record (SIREN, address, legal form, trade) and your VAT regime: they appear on your quotes and invoices. The trade sets the vocabulary and starter templates. Other settings are filed by section in the left menu. Fill in the postal code and city before your first invoice and, if you are VAT-registered, say whether you opted for VAT on an accrual basis. Identity, address and printed contact details are saved together, with “Save company details”.",
+      "title": "Company details",
+      "body": "Your company's details (company number, address, legal form, business) and your VAT scheme: they appear on your quotes and invoices. The business sets the vocabulary and the starting templates. Fill in the postcode and town before your first invoice and, if you charge VAT, say whether you opted for VAT on debits. Identity, address and printed contact details are saved together, with “Save details”.",
       "faq": [
         {
           "q": "I am moving from the VAT exemption to charging VAT: what do I do?",
@@ -1539,6 +1539,18 @@
           "a": "No: it is \"Signed, in preparation\", and its tasks come from your list. Without a list, you can start from a template on its page."
         }
       ]
+    },
+    "companyMentions": {
+      "title": "Document notices and logo",
+      "body": "Professional liability insurance, the consumer mediator and your terms and conditions, printed on every quote, and the logo at the top of your documents. A quote that cannot be sent without one of these notices brings you here, to the right block."
+    },
+    "settingsHome": {
+      "title": "Settings",
+      "body": "Everything that can be set, in groups that follow the order of the work: your company, your own settings, the event, how it unfolds, its budget, its quotes, its messages, appointments. Each section says in one sentence what it sets; “owner” marks what only the owner changes. “Search settings” filters the sections by name. What is not a setting (data copy, trash, history, storage, closing the workspace) is in “Your data”, at the bottom of the page."
+    },
+    "yourData": {
+      "title": "Your data",
+      "body": "The copy of all your data, restoring a Symbola copy, the trash, the history of actions and sent emails, personal data requests, storage and accounting. Each line opens its screen, with the same rights as before: the owner sees everything, the team what is open to it. “Take over and import” brings in a wedding under way, contacts or a vendor book. “Close the workspace” stands alone, at the bottom."
     },
     "importQuestions": {
       "title": "The import's questions",
@@ -6154,67 +6166,264 @@
     "documentsColorInvalid": "This colour is not valid."
   },
   "SettingsMenu": {
-    "groupCompany": "My company",
-    "company": "Company and VAT",
-    "account": "My account",
-    "groupEvents": "Events",
-    "budgetLines": "Budget lines",
-    "sourcesReasons": "Sources and reasons",
-    "retroplanning": "Retroplanning",
-    "program": "Wedding-day schedule",
-    "allocation": "Budget allocation",
-    "followUp": "Prospect follow-ups",
-    "groupSales": "Sales",
-    "catalog": "Catalogue",
-    "quotes": "Quotes and invoices",
-    "eReporting": "E-reporting",
-    "groupData": "Vendors and data",
-    "vendorTypes": "Vendor types",
-    "vendorTags": "Tags",
-    "vendorTravel": "Travel estimates",
-    "import": "Import and take over",
-    "privacy": "Personal data",
-    "eventTypes": "Event types",
-    "documents": "Documents",
     "privacyAlerts": "{count, plural, one {# privacy request needs attention} other {# privacy requests need attention}}",
-    "activityLog": "Activity log",
-    "accountingArchive": "Accounting archive",
-    "team": "Team",
-    "quoteTemplates": "Quote templates",
-    "contractTemplates": "Contract templates",
-    "export": "Export my data",
-    "organizationImport": "Restore an export",
-    "organizationClosure": "Close the workspace",
-    "storage": "Storage",
-    "emailTemplates": "Email templates",
-    "messageTemplates": "Message templates",
-    "trash": "Trash",
-    "dietaryOptions": "Diets and allergies",
-    "mealTypes": "Meal types",
-    "groupAppointments": "Appointments",
-    "appointmentTypes": "Types and booking page",
-    "appointmentAvailability": "My availability and calendars",
-    "pipelineStages": "Pipeline stages",
-    "contactForm": "Contact form",
-    "questionnaires": "Questionnaires",
-    "vendorCoordination": "Suppliers by link",
-    "dayChecklists": "Event-day checklists",
-    "proposalTemplates": "Proposal templates",
-    "paymentReminders": "Quote and payment reminders",
-    "vendorDocuments": "Vendor documents",
-    "notifications": "Notifications",
-    "automations": "Automations",
-    "riskRadar": "Risk radar",
-    "clientTerms": "Client terms",
-    "accountingExports": "Accounting exports",
-    "eventTemplates": "Event templates",
-    "subscription": "My subscription",
-    "senderAddress": "Sending address",
-    "emailDeliveries": "Email log",
+    "homeTitle": "Settings",
+    "homeIntro": "What is set once for the whole agency, and your own settings. {rubrics, plural, one {# section} other {# sections}} in {groups, plural, one {# group} other {# groups}}.",
+    "allSettings": "All settings",
+    "otherGroups": "Other groups",
+    "back": "Settings",
+    "backTo": "Back to {name}",
+    "groupMenu": "Sections of the {group} group",
+    "yourData": "Your data",
+    "yourDataHint": "These are not settings: the copy of your data, the trash, the history, storage, closing the workspace.",
+    "yourDataOpen": "Open “Your data”",
+    "yourDataIntro": "These are not settings: your data, its copy, its history. Opened from the Settings home and from your account menu.",
+    "open": "Open",
+    "openNamed": "Open “{name}”",
+    "importTitle": "Bring data in",
+    "importBody": "A wedding already under way, your contacts, your vendor book: the “Take over and import” page.",
+    "importLink": "Take over and import",
+    "closureTitle": "Close the workspace",
+    "closureBody": "All of {organization}'s data is erased after 30 days' notice. Make a copy of your data first.",
+    "closureLink": "Close the workspace…",
+    "allModules": "All modules",
+    "allModulesHint": "What is open, what can be",
+    "yourDataMenuHint": "Copy, trash, history, storage",
+    "groups": {
+      "company": {
+        "label": "Your company",
+        "hint": "What your documents and clients see of you"
+      },
+      "you": {
+        "label": "You",
+        "hint": "Your own settings; each team member has their own"
+      },
+      "events": {
+        "label": "Events",
+        "hint": "What every new event starts with"
+      },
+      "planning": {
+        "label": "Tasks, schedule and event day",
+        "hint": "Templates for how a wedding unfolds"
+      },
+      "budgetVendors": {
+        "label": "Budget and vendors",
+        "hint": "Budget lines and the vendor book"
+      },
+      "sales": {
+        "label": "Quotes and invoices",
+        "hint": "What gets printed and numbered"
+      },
+      "messages": {
+        "label": "Messages and automations",
+        "hint": "What goes out in your name, and what Symbola does on its own"
+      },
+      "appointments": {
+        "label": "Appointments",
+        "hint": "Your booking page"
+      }
+    },
+    "rubrics": {
+      "companySheet": {
+        "label": "Company details",
+        "hint": "Identity, address, contact details, VAT, business"
+      },
+      "companyMentions": {
+        "label": "Document notices and logo",
+        "hint": "Insurance, mediator, terms and conditions, logo"
+      },
+      "team": {
+        "label": "Team and access",
+        "hint": "Invite, change a role, remove access"
+      },
+      "subscription": {
+        "label": "Subscription and modules",
+        "hint": "Your plan, the modules you use"
+      },
+      "profile": {
+        "label": "Your profile and sign-in",
+        "hint": "Name, signature, sessions, security"
+      },
+      "notifications": {
+        "label": "Your notifications",
+        "hint": "What is sent to you, how and when"
+      },
+      "eventTypes": {
+        "label": "Event types and client terms",
+        "hint": "Wedding, christening… and “couple”, “parents”"
+      },
+      "sourcesReasons": {
+        "label": "Sources and reasons",
+        "hint": "Where your enquiries come from, why they are lost"
+      },
+      "pipeline": {
+        "label": "Enquiries: stages and contact form",
+        "hint": "The stages of an enquiry, the form on your website"
+      },
+      "eventTemplates": {
+        "label": "Event templates",
+        "hint": "A typical event, with no personal data"
+      },
+      "questionnaires": {
+        "label": "Client questionnaires",
+        "hint": "The questions asked of the couple"
+      },
+      "guestOptions": {
+        "label": "Guests: diets and meals",
+        "hint": "The choices offered in guests' replies"
+      },
+      "busyRanges": {
+        "label": "Busy times in the calendar",
+        "hint": "The hours an event blocks, by type"
+      },
+      "taskCategories": {
+        "label": "Tasks: categories and due dates",
+        "hint": "Categories, priority, what counts as “Soon”"
+      },
+      "retroplanning": {
+        "label": "Retroplanning: templates",
+        "hint": "Tasks created in one go, from D-365 to D+30"
+      },
+      "program": {
+        "label": "Event-day schedule: templates",
+        "hint": "The typical running order of the day"
+      },
+      "dayChecklists": {
+        "label": "Event day: checklists",
+        "hint": "What the team ticks off on site"
+      },
+      "budget": {
+        "label": "Budget: starting lines and allocation",
+        "hint": "The lines of every new wedding and their share"
+      },
+      "vendorTypes": {
+        "label": "Vendors: trades and families",
+        "hint": "Florist, caterer… and the fields of each trade"
+      },
+      "vendorTags": {
+        "label": "Vendors: tags",
+        "hint": "“Favourite”, “Organic”…"
+      },
+      "vendorDocuments": {
+        "label": "Vendors: insurance and documents",
+        "hint": "Which documents to ask for, when to warn before they expire"
+      },
+      "vendorTravel": {
+        "label": "Vendors: travel",
+        "hint": "Estimated travel times"
+      },
+      "vendorCoordination": {
+        "label": "Vendors by link",
+        "hint": "Briefs, run sheets, follow-up"
+      },
+      "catalog": {
+        "label": "Service catalogue",
+        "hint": "Your services and their prices"
+      },
+      "quoteSettings": {
+        "label": "Numbering, due dates and payment",
+        "hint": "Series, deposits, bank details, terms"
+      },
+      "quoteDocuments": {
+        "label": "Look of quotes and invoices",
+        "hint": "Layout, wording, PDF preview"
+      },
+      "quoteTemplates": {
+        "label": "Quote templates",
+        "hint": "Standard quotes"
+      },
+      "contractTemplates": {
+        "label": "Contract templates",
+        "hint": "Standard contracts"
+      },
+      "proposalTemplates": {
+        "label": "Proposal templates",
+        "hint": "The page sent with a quote"
+      },
+      "messageTemplates": {
+        "label": "Message templates: what you send",
+        "hint": "The messages you prepare from an event"
+      },
+      "emailTemplates": {
+        "label": "Automatic emails: what Symbola sends",
+        "hint": "Access, signature, appointments, reminders"
+      },
+      "senderAddress": {
+        "label": "Sending address and replies",
+        "hint": "Where emails are sent from, where replies arrive"
+      },
+      "automations": {
+        "label": "Automations: on or off",
+        "hint": "Each automation, its time, its log"
+      },
+      "riskRadar": {
+        "label": "Risk radar: rules and thresholds",
+        "hint": "What the radar checks every morning"
+      },
+      "followUp": {
+        "label": "Prospects: follow-up delay",
+        "hint": "When an enquiry with no news is flagged to you"
+      },
+      "paymentReminders": {
+        "label": "Payments and proposals: reminders",
+        "hint": "The reminders sent to the client"
+      },
+      "appointmentTypes": {
+        "label": "Appointments: types and booking page",
+        "hint": "Durations, places, link to share"
+      },
+      "appointmentAvailability": {
+        "label": "Availability and calendars",
+        "hint": "Your hours, your linked calendars"
+      }
+    },
+    "data": {
+      "export": {
+        "label": "Copy of all your data",
+        "hint": "A file to download, free, at any time"
+      },
+      "organizationImport": {
+        "label": "Restore a Symbola copy",
+        "hint": "Into an empty workspace only"
+      },
+      "trash": {
+        "label": "Trash",
+        "hint": "What was deleted less than 30 days ago, ready to restore"
+      },
+      "activityLog": {
+        "label": "Activity history",
+        "hint": "Who did what, and when"
+      },
+      "emailDeliveries": {
+        "label": "Sent email history",
+        "hint": "Sent, delivered, refused; 13 months"
+      },
+      "privacy": {
+        "label": "Personal data requests",
+        "hint": "Access, copy or erasure requested by a person"
+      },
+      "storage": {
+        "label": "Storage",
+        "hint": "The space taken by your files"
+      },
+      "accounting": {
+        "label": "Accounting: exports, archive, e-invoicing",
+        "hint": "For your accountant"
+      },
+      "accountingArchive": {
+        "label": "Accounting archive",
+        "hint": "Records kept for ten years"
+      },
+      "eReporting": {
+        "label": "E-invoicing",
+        "hint": "Transmissions under the reform"
+      }
+    }
+  },
+  "SettingsSearch": {
     "search": "Search settings",
     "searchCount": "{count, plural, =0 {No setting has that name.} one {# setting found} other {# settings found}}",
-    "busyRanges": "Busy times",
-    "taskCategories": "Task categories"
+    "ownerTag": "owner"
   },
   "SettingsLists": {
     "hint": "Each change is saved when you leave the field.",

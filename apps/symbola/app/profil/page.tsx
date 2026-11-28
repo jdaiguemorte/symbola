@@ -20,6 +20,8 @@ export default async function ProfilePage() {
   const auth = await requireSignedIn();
 
   const t = await getTranslations("Profile");
+
+  const tMenu = await getTranslations("SettingsMenu");
   const tSignature = await getTranslations("MySignature");
   const tHelp = await getTranslations("Help");
   // Lot 33 (ADR 0067) : mot de passe, clés d'accès et double authentification dans le centre de
@@ -45,7 +47,7 @@ export default async function ProfilePage() {
 
   return (
     <main>
-      <h1>{t("title")}</h1>
+      <h1>{tMenu("rubrics.profile.label")}</h1>
       <ScreenHelp title={tHelp("profile.title")} body={tHelp("profile.body")} />
       {/* Lot 70a (CHR-02 ; A1) : le nom sous lequel l'équipe voit la personne, pour une personne de l'équipe. */}
       {auth.user.role !== "admin" ? <NamesForm {...await getUserNames(appDatabase(), auth.user.id)} /> : null}

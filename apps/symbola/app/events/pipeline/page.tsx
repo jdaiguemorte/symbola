@@ -60,7 +60,7 @@ export default async function PipelinePage() {
       {auth.user.role === "owner" ? (
         <nav className="row-wrap" aria-label={t("viewsLabel")}>
           <Link href="/events/parametres/etapes">{t("stagesSettings")}</Link>
-          <Link href="/events/parametres/contact">{t("contactSettings")}</Link>
+          <Link href="/events/parametres/etapes#contact">{t("contactSettings")}</Link>
         </nav>
       ) : null}
       <PipelineBoard stages={pipeline.stages.map((stage) => ({ id: stage.id, label: stage.label }))} cards={cards} lossReasons={reasons.map((reason) => ({ id: reason.id, label: reason.label, isFreeText: reason.isFreeText }))} />

@@ -3,34 +3,7 @@
    redéfinir ici. Ce fichier est chargé avant globals.css : à précision égale, une règle de
    globals.css l'emporte. Mêmes jetons que globals.css (DESIGN.md), aucun style en ligne (CSP). */
 @layer components {
-  /* Menu des Paramètres (décision D2) : groupes repliables, celui de la rubrique ouverte déplié, et
-     « Chercher un réglage ». Le titre d'un groupe est un bouton (aria-expanded) ; son chevron est
-     dessiné en CSS. */
-  .settings-nav .settings-nav-search input {
-    @apply min-h-11 px-3 text-label;
-  }
-  .settings-nav .settings-nav-none {
-    @apply m-0 px-2 text-label text-ink-muted;
-  }
-  .settings-nav button.settings-nav-title {
-    @apply min-h-11 w-full justify-start rounded-md border-0 bg-transparent px-2 py-0 text-left text-label font-bold text-ink hover:bg-ground;
-  }
-  .settings-nav button.settings-nav-title::after {
-    content: "";
-    @apply mr-1 ml-auto size-2 shrink-0 rotate-45 border-r-2 border-b-2 border-ink-muted transition-transform;
-  }
-  .settings-nav button.settings-nav-title[aria-expanded="true"]::after {
-    @apply -rotate-135;
-  }
-  .settings-nav button.settings-nav-title .nav-count {
-    @apply ml-auto;
-  }
-  .settings-nav button.settings-nav-title .nav-count + * {
-    @apply ml-0;
-  }
-  .settings-nav ul[hidden] {
-    @apply hidden;
-  }
+  /* Menu des Paramètres (décision D2), repris au lot 74g : le menu du groupe (settings-nav.tsx). */
   .settings-nav .settings-nav-group ul {
     @apply mt-1 gap-0;
   }

@@ -33,6 +33,7 @@ export default async function AutomationsPage() {
   const organizationId = auth.user.organizationId;
   const isOwner = auth.user.role === "owner";
   const t = await getTranslations("Automations");
+  const tMenu = await getTranslations("SettingsMenu");
   const tHelp = await getTranslations("Help");
   const format = await getFormatter();
   const db = appDatabase();
@@ -44,7 +45,7 @@ export default async function AutomationsPage() {
   const when = (iso: string) => format.dateTime(new Date(iso), { dateStyle: "medium", timeStyle: "short", timeZone: "Europe/Paris" });
   return (
     <main>
-      <h1>{t("title")}</h1>
+      <h1>{tMenu("rubrics.automations.label")}</h1>
       <ScreenHelp title={tHelp("automations.title")} body={tHelp("automations.body")} />
       <p>{t("intro")}</p>
       <p className="notice" role="note">

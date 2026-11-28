@@ -43,7 +43,7 @@ test.describe("HUB-04 — Équipe : inviter un Comptable, visibilité des évèn
     const t = await team();
     await signIn(page, t.owner);
     await page.goto("/parametres/equipe");
-    await expect(page.getByRole("heading", { name: "Équipe", level: 1 })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Équipe et accès", level: 1 })).toBeVisible();
     await expect(page.getByRole("cell", { name: "Comptable" })).toBeVisible();
     await expectNoAxeViolation(page);
     const invited = `expert-${randomUUID()}@symbola.test`;

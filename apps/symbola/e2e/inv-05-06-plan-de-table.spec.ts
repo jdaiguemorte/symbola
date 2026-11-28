@@ -184,7 +184,9 @@ test("ARC-07 (lot 50) — sans le module Invités, le plan de table répond « i
   await expect(page.getByText("Le plan de table est indisponible : le module Invités n'est pas ouvert pour votre organisation.")).toBeVisible();
   const download = await page.request.get(`/events/${org.eventId}/invites/plan/synthese?temps=${randomUUID()}&format=csv&version=nominative`);
   expect(download.status()).toBe(404);
+  // Lot 74g : les types de repas sont un bloc de « Invités : régimes et repas », indisponible sans le module.
   await page.goto("/events/parametres/repas");
-  await expect(page.getByText("Les types de repas sont indisponibles : le module Invités n'est pas ouvert pour votre organisation.")).toBeVisible();
+  await expect(page).toHaveURL(/\/events\/parametres\/regimes#repas$/);
+  await expect(page.getByText("Le module Invités n'est pas activé pour votre organisation.")).toBeVisible();
   await expectAccessible(page);
 });

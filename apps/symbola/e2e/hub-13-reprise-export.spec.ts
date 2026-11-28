@@ -44,7 +44,7 @@ test("HUB-13 — exporter, télécharger, puis reprendre l'archive dans un espac
 
   // 1. L'atelier d'origine : export et téléchargement. Son espace a des données : pas de dépôt.
   await signIn(page, sourceEmail, /\/$/);
-  await openSettingsTab(page, "Exporter mes données");
+  await openSettingsTab(page, "Copie de toutes vos données");
   await page.waitForLoadState("networkidle");
   await page.getByRole("form", { name: "Préparer un export" }).getByRole("button", { name: "Préparer l'export" }).click();
   const history = page.getByRole("region", { name: "Vos derniers exports" });
@@ -52,14 +52,14 @@ test("HUB-13 — exporter, télécharger, puis reprendre l'archive dans un espac
   const downloading = page.waitForEvent("download");
   await history.getByRole("link", { name: /^Télécharger l'archive/ }).click();
   const archive = (await (await downloading).path())!;
-  await openSettingsTab(page, "Reprendre un export");
+  await openSettingsTab(page, "Reprendre une copie Symbola");
   await expect(page.getByRole("note")).toContainText("Cet espace a déjà des données");
   await expect(page.getByRole("button", { name: "Reprendre l'archive" })).toHaveCount(0);
   await logout(page);
 
   // 2. Le nouvel espace, vide : dépôt de l'archive, reprise en arrière-plan, bilan.
   await signIn(page, targetEmail, /\/$/);
-  await openSettingsTab(page, "Reprendre un export");
+  await openSettingsTab(page, "Reprendre une copie Symbola");
   await expect(page).toHaveURL(/\/parametres\/reprise$/);
   await expect(page.getByRole("heading", { level: 1, name: "Reprendre un export Symbola" })).toBeVisible();
   await expect(page.getByText("Aucune reprise pour l'instant.")).toBeVisible();
@@ -83,8 +83,11 @@ test("HUB-13 — exporter, télécharger, puis reprendre l'archive dans un espac
 test("HUB-13 (D6) — une Planner n'a ni la rubrique, ni l'écran, ni la route d'envoi", async ({ page }) => {
   const { plannerEmail } = await ateliers();
   await signIn(page, plannerEmail, /\/$/);
+  // Lot 74g : la reprise est dans « Vos données », réservée à la titulaire comme avant.
   await clickMenuLink(page, "Paramètres");
-  await expect(page.getByRole("navigation", { name: "Rubriques des paramètres" }).getByRole("link", { name: "Reprendre un export" })).toHaveCount(0);
+  await page.getByRole("link", { name: "Ouvrir « Vos données »" }).click();
+  await expect(page.getByRole("heading", { level: 1, name: "Vos données" })).toBeVisible();
+  await expect(page.getByRole("main").getByRole("link", { name: "Ouvrir « Reprendre une copie Symbola »" })).toHaveCount(0);
   await page.goto("/parametres/reprise");
   await expect(page.getByText("Seule la Propriétaire du compte peut reprendre un export.")).toBeVisible();
   await expect(page.getByRole("button", { name: "Reprendre l'archive" })).toHaveCount(0);

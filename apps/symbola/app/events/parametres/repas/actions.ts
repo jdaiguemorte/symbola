@@ -11,7 +11,7 @@ import { guestErrorKey } from "@/app/events/[id]/invites/form-schemas";
 
 export type MealTypeState = { error?: string; success?: string };
 
-const PATH = "/events/parametres/repas";
+const PATH = "/events/parametres/regimes";
 
 async function failure(error: unknown): Promise<MealTypeState> {
   const key = guestErrorKey(error);

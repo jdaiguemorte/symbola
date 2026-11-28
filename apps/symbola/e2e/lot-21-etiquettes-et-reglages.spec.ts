@@ -79,20 +79,24 @@ test("L21-HUB-28 — le menu des réglages défile seul, sans faire défiler l'�
   await loginAndSetupMfa(page, email, password);
   await page.goto("/prestataires/parametres");
 
+  // Lot 74g (G7) : le menu du groupe (sept rubriques et les autres groupes) tient dans la fenêtre ; il ne
+  // défile pas avec l'écran, plus long que la fenêtre.
   const nav = page.getByRole("navigation", { name: "Rubriques des paramètres" });
   await expect(nav).toBeVisible();
-  const sizes = await nav.evaluate((element) => ({ scrollHeight: element.scrollHeight, clientHeight: element.clientHeight }));
-  expect(sizes.scrollHeight).toBeGreaterThan(sizes.clientHeight);
-
-  const box = (await nav.boundingBox())!;
-  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
-  await page.mouse.wheel(0, 600);
-  await expect.poll(() => nav.evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
-  expect(await page.evaluate(() => window.scrollY)).toBe(0);
-  // La dernière rubrique devient visible sans aller au bas de l'écran.
+  const inWindow = async () => {
+    const box = (await nav.boundingBox())!;
+    expect(box.y).toBeGreaterThanOrEqual(0);
+    expect(box.y + box.height).toBeLessThanOrEqual(640);
+  };
+  await inWindow();
+  // L'écran défile ; le menu reste tenu dans la fenêtre. Plus haut que la fenêtre, il défile seul.
+  await page.mouse.move(800, 400);
   await page.mouse.wheel(0, 2000);
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(0);
+  await inWindow();
+  await nav.getByRole("link").last().scrollIntoViewIfNeeded();
   await expect(nav.getByRole("link").last()).toBeInViewport();
-  expect(await page.evaluate(() => window.scrollY)).toBe(0);
+  await inWindow();
 });
 
 async function newPlanner(page: Page, prepare?: (organizationId: string) => Promise<void>) {
@@ -109,18 +113,18 @@ async function newPlanner(page: Page, prepare?: (organizationId: string) => Prom
   await loginAndSetupMfa(page, email, password);
 }
 
-test("L21-HUB-29 — chaque groupe du menu des réglages a son icône et un titre en casse normale", async ({ page }) => {
+// Lot 74g (G1, G2) : les groupes sont sur l'accueil des Paramètres, chacun avec sa phrase.
+test("L21-HUB-29 — chaque groupe des Paramètres a un titre en casse normale et sa phrase", async ({ page }) => {
   test.setTimeout(60_000);
   await newPlanner(page);
   await page.goto("/parametres");
-  const nav = page.getByRole("navigation", { name: "Rubriques des paramètres" });
-  const titles = nav.locator(".settings-nav-title");
+  const titles = page.locator(".settings-home-group > h2");
   expect(await titles.count()).toBeGreaterThanOrEqual(3);
   await expect(titles.filter({ hasText: "Évènements" })).toBeVisible();
   for (const title of await titles.all()) {
-    await expect(title.locator("svg")).toHaveCount(1);
     expect(await title.evaluate((element) => getComputedStyle(element).textTransform)).toBe("none");
   }
+  await expect(page.locator(".settings-home-group-hint")).toHaveCount(await titles.count());
   await expectNoAxeViolation(page);
 });
 
