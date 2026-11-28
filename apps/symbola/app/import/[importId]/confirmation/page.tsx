@@ -7,7 +7,8 @@ import { normalizeVendorImportValues, type ImportValue } from "@symbola/import-e
 import { planningSoftwareProfile } from "@symbola/starter-templates";
 import { ScreenHelp } from "@/app/screen-help";
 import { ActionBar } from "@/app/ui/action-bar";
-import { getImportPreview, type PreviewRow } from "@/lib/import/apply";
+import { getBudgetImportPlan, getImportPreview, type PreviewRow } from "@/lib/import/apply";
+import { BudgetVerify } from "./budget-verify";
 import { getImportGapsView } from "@/lib/import/gaps";
 import { contactRowTitle, rowEventReference } from "@/lib/import/matching";
 import Link from "next/link";
@@ -97,13 +98,16 @@ export default async function ImportConfirmationPage({
   const stage = wizard.questions?.answers?.eventStage;
   const sheetStatus = (row: PreviewRow) => (stage && !chosen.has(row.rowIndex) ? eventStatusForStage(stage) : typeof row.values.status === "string" ? row.values.status : "option");
   const previousStep = wizard.steps.filter((step) => step.key !== "confirm").at(-1)?.key ?? "columns";
+  // Lot 71d (HUB-14, C-58) : un budget montre ce qui va être écrit, avec les nombres du bilan.
+  const budgetPlan = preview.entityType === "budget_lines" ? await getBudgetImportPlan(organizationId, importId, { locale: locale === "en" ? "en" : "fr" }) : null;
 
   return (
     <main className="import-assistant">
       <ImportHeader wizard={wizard} current="confirm" abandon={wantsAbandon(await searchParams)} />
       <ScreenHelp title={tHelp("importConfirm.title")} body={tHelp("importConfirm.body")} />
 
-      <section aria-labelledby="effects-title" className="card">
+      {budgetPlan ? <BudgetVerify plan={budgetPlan} rejectedCount={preview.rejectedCount} /> : null}
+      <section aria-labelledby="effects-title" className="card" hidden={budgetPlan !== null}>
         <h2 id="effects-title">{t("effectsTitle")}</h2>
         <dl className="effects">
           <div>
@@ -158,13 +162,13 @@ export default async function ImportConfirmationPage({
             ))}
           </ul>
         </section>
-      ) : preview.counts.creations > 0 ? (
+      ) : preview.counts.creations > 0 && !budgetPlan ? (
         <section aria-labelledby="preview-creations">
           <h2 id="preview-creations">{t("previewCreationsTitle", { count: preview.counts.creations })}</h2>
           {sample(preview.creations)}
         </section>
       ) : null}
-      {preview.counts.updates > 0 ? (
+      {preview.counts.updates > 0 && !budgetPlan ? (
         <section aria-labelledby="preview-updates">
           <h2 id="preview-updates">{t("previewUpdatesTitle", { count: preview.counts.updates })}</h2>
           {sample(preview.updates)}
@@ -228,7 +232,7 @@ export default async function ImportConfirmationPage({
       <ActionBar label={t("actionBarLabel")} backHref={importStepHref(importId, previousStep)} backLabel={t("back")}>
         {preview.blockers.length === 0 ? (
           <button type="submit" form="confirm-form">
-            {t(`importButton.${preview.entityType}`, { count: total })}
+            {budgetPlan ? t("importButton.budget_lines", { count: budgetPlan.figures.lines }) : t(`importButton.${preview.entityType}`, { count: total })}
           </button>
         ) : null}
       </ActionBar>
