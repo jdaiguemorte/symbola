@@ -170,6 +170,19 @@ export async function readyOrganization(db: Parameters<typeof createOrganization
   return organization;
 }
 
+// Lot 72d (E2) : « Clôturer l'évènement… », au bout de la frise (sur téléphone, dans « Les étapes »).
+export async function closeEventFromTimeline(page: Page): Promise<void> {
+  const header = page.locator("#event-header");
+  await expect(header.getByRole("heading", { level: 1 })).toBeVisible();
+  const wide = header.locator(".event-timeline-wide").getByRole("link", { name: "Clôturer l'évènement…" });
+  if (await wide.isVisible()) {
+    await wide.click();
+    return;
+  }
+  await header.getByRole("button", { name: "Les étapes" }).click();
+  await page.locator(".event-steps-sheet").getByRole("link", { name: "Clôturer l'évènement…" }).click();
+}
+
 // Lot 13 (L13-EVT-19), revu au lot 72d (E1, E2) : la frise se lit ; une demande passe en « Signé, en
 // préparation » par « Le contrat est signé… » (sur téléphone, dans « Les étapes »), à la date du jour.
 export async function changeEventStatus(page: Page, status: "Confirmé"): Promise<void> {
