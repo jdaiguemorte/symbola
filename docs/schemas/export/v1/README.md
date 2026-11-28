@@ -19,7 +19,7 @@ Le format est décrit dans `docs/export/format-v1.md`.
 | `email_templates` | `id`, `kind`, `locale`, `subject`, `body`, `buttonLabel`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [email_templates.schema.json](hub/email_templates.schema.json) |
 | `message_templates` | `id`, `eventTypeId`, `name`, `locale`, `version`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy`, `deletedAt`, `deletedBy` | [message_templates.schema.json](hub/message_templates.schema.json) |
 | `message_template_versions` | `id`, `templateId`, `version`, `subject`, `body`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [message_template_versions.schema.json](hub/message_template_versions.schema.json) |
-| `automations` | `id`, `key`, `enabled`, `days`, `resumedAt`, `lastRunOn`, `sendTime`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [automations.schema.json](hub/automations.schema.json) |
+| `automations` | `id`, `key`, `enabled`, `days`, `resumedAt`, `pausedAt`, `pausedBy`, `lastRunOn`, `sendTime`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [automations.schema.json](hub/automations.schema.json) |
 | `risk_rules` | `id`, `rule`, `enabled`, `thresholdDays`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [risk_rules.schema.json](hub/risk_rules.schema.json) |
 | `relation_mail_settings` | `sender`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [relation_mail_settings.schema.json](hub/relation_mail_settings.schema.json) |
 | `email_branding` | `font`, `footerLine`, `senderName`, `signatureElements`, `automaticSignerUserId`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [email_branding.schema.json](hub/email_branding.schema.json) |

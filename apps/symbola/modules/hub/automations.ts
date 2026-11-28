@@ -35,13 +35,15 @@ function assertKey(key: string): asserts key is AutomationKey {
 }
 
 // sendTime : l'heure propre de l'automatisme (« HH:MM »), null : l'heure par défaut (lot 66a).
-export type AutomationGate = { key: AutomationKey; enabled: boolean; days: number | null; resumedAt: Date | null; sendTime: string | null };
+// Lot 74h (G10) : pausedAt et pausedBy disent quand et par qui l'automatisme a été coupé (nuls s'il est en
+// marche, ou coupé avant le lot 74h, L74-D6).
+export type AutomationGate = { key: AutomationKey; enabled: boolean; days: number | null; resumedAt: Date | null; sendTime: string | null; pausedAt: Date | null; pausedBy: string | null };
 
 export async function getAutomationGate(organizationId: string, key: AutomationKey): Promise<AutomationGate> {
   assertKey(key);
   const starter = starterAutomations()[key] ?? { enabled: true, days: null };
   const [row] = await inOrganization(organizationId, (tx) => tx.select().from(automations).where(and(eq(automations.organizationId, organizationId), eq(automations.key, key))));
-  return { key, enabled: row?.enabled ?? starter.enabled, days: row?.days ?? starter.days, resumedAt: row?.resumedAt ?? null, sendTime: fromDatabaseTime(row?.sendTime) };
+  return { key, enabled: row?.enabled ?? starter.enabled, days: row?.days ?? starter.days, resumedAt: row?.resumedAt ?? null, sendTime: fromDatabaseTime(row?.sendTime), pausedAt: row?.pausedAt ?? null, pausedBy: row?.pausedBy ?? null };
 }
 
 export async function listAutomationGates(organizationId: string): Promise<AutomationGate[]> {
@@ -49,7 +51,7 @@ export async function listAutomationGates(organizationId: string): Promise<Autom
   const starter = starterAutomations();
   return AUTOMATION_KEYS.map((key) => {
     const row = rows.find((candidate) => candidate.key === key);
-    return { key, enabled: row?.enabled ?? starter[key]?.enabled ?? true, days: row?.days ?? starter[key]?.days ?? null, resumedAt: row?.resumedAt ?? null, sendTime: fromDatabaseTime(row?.sendTime) };
+    return { key, enabled: row?.enabled ?? starter[key]?.enabled ?? true, days: row?.days ?? starter[key]?.days ?? null, resumedAt: row?.resumedAt ?? null, sendTime: fromDatabaseTime(row?.sendTime), pausedAt: row?.pausedAt ?? null, pausedBy: row?.pausedBy ?? null };
   });
 }
 
@@ -62,18 +64,21 @@ export function automationCovers(gate: AutomationGate, dueAt: Date | string): bo
   return due.getTime() >= gate.resumedAt.getTime();
 }
 
-export async function setAutomationEnabled(organizationId: string, key: string, enabled: boolean, now: Date = new Date()): Promise<AutomationGate> {
+// actorId : le membre qui coupe ou remet en marche (lot 74h, G10) ; la coupure garde sa date et son auteur,
+// la remise en marche les efface. Couper un automatisme déjà coupé ne change ni la date ni l'auteur.
+export async function setAutomationEnabled(organizationId: string, key: string, enabled: boolean, now: Date = new Date(), actorId: string | null = null): Promise<AutomationGate> {
   assertKey(key);
   const current = await getAutomationGate(organizationId, key);
   // Remise en route : la date borne ce que l'automatisme peut faire ; rester actif ne la change pas.
   const resumedAt = enabled && !current.enabled ? now : current.resumedAt;
+  const paused = enabled ? { pausedAt: null, pausedBy: null } : current.enabled ? { pausedAt: now, pausedBy: actorId } : { pausedAt: current.pausedAt, pausedBy: current.pausedBy };
   await inOrganization(organizationId, async (tx) => {
     await tx
       .insert(automations)
-      .values({ organizationId, key, enabled, days: current.days, resumedAt })
-      .onConflictDoUpdate({ target: [automations.organizationId, automations.key], set: { enabled, resumedAt, updatedAt: now } });
+      .values({ organizationId, key, enabled, days: current.days, resumedAt, ...paused, updatedBy: actorId })
+      .onConflictDoUpdate({ target: [automations.organizationId, automations.key], set: { enabled, resumedAt, ...paused, updatedAt: now, updatedBy: actorId } });
   });
-  return { ...current, enabled, resumedAt };
+  return { ...current, enabled, resumedAt, ...paused };
 }
 
 export async function setAutomationDays(organizationId: string, key: string, days: number): Promise<AutomationGate> {

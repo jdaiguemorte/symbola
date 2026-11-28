@@ -1611,6 +1611,13 @@
       "when": 1795833841081,
       "tag": "0244_lot74a_hub_onboarding_answers",
       "breakpoints": true
+    },
+    {
+      "idx": 230,
+      "version": "7",
+      "when": 1795859028035,
+      "tag": "0246_lot74h_hub_automations_paused",
+      "breakpoints": true
     }
   ]
 }

@@ -138,6 +138,8 @@ const LOT_73A = ["0235_lot73a_events_candidate_retained_at", "0234_lot73a_vendor
 // Lot 74a : réponses « mariages en cours » et « TVA à dire » de l'assistant de démarrage (0244, hub) ; la plus
 // récente.
 const LOT_74A = ["0244_lot74a_hub_onboarding_answers"];
+// Lot 74h : date et auteur de la coupure d'un automatisme (0246, hub) ; la plus récente.
+const LOT_74H = ["0246_lot74h_hub_automations_paused"];
 // Lot 71a : reprise d'un mariage (0218, 0219, hub), origine et dates non renseignées (0220), contrat
 // déclaré (0221), forme des moments (0222, events), total à répartir (0223, budget) ; les plus récentes.
 const LOT_71A = [
@@ -245,6 +247,22 @@ afterAll(async () => {
 // Lot 47 : chaque test remonte la chaîne des annulations, qui s'allonge à chaque lot ; la limite par
 // défaut (5 s) ne suffit plus sur un poste chargé.
 describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)", { timeout: 60_000 }, () => {
+  it("lot 74h (HUB-28, GC-02 ; G10) — 0246 s'annule et se rejoue sur une base vide ; l'automatisme coupé le reste, sans date ni auteur", async () => {
+    await migrateAll();
+    const [organization] = await target<{ id: string }[]>`insert into hub.organizations (name) values ('Atelier 0246') returning id`;
+    const organizationId = organization!.id;
+    const [row] = await target<{ paused_at: Date | null; paused_by: string | null }[]>`insert into hub.automations (organization_id, key, enabled) values (${organizationId}, 'risk_radar', true) returning paused_at, paused_by`;
+    expect(row).toEqual({ paused_at: null, paused_by: null });
+    await target`update hub.automations set enabled = false, paused_at = now(), paused_by = gen_random_uuid() where organization_id = ${organizationId}`;
+
+    await rollbackNewerThan(LOT_74H[0]!);
+    await rollback(LOT_74H[0]!);
+    for (const column of ["paused_at", "paused_by"]) expect(await hasColumn("hub", "automations", column)).toBe(false);
+    expect(await target`select enabled from hub.automations where organization_id = ${organizationId}`).toEqual([{ enabled: false }]);
+    await migrateAll();
+    expect(await hasColumn("hub", "automations", "paused_at")).toBe(true);
+  });
+
   it("lot 74a (HUB-09 ; B3, B5, L74-D4) — 0244 s'annule et se rejoue sur une base vide ; « mariages en cours » n'accepte que oui ou non, le drapeau de TVA est faux d'office", async () => {
     await migrateAll();
     const [organization] = await target<{ id: string }[]>`insert into hub.organizations (name) values ('Atelier 0244') returning id`;
