@@ -140,7 +140,8 @@ test.describe("HUB-14 — L'assistant qui demande (lot 71c)", () => {
 
     await expect(page).toHaveURL(/\/confirmation$/, { timeout: 30_000 });
     // Aucune ligne rejetée faute de mariage.
-    await expect(page.getByRole("region", { name: "Ce que va faire l'import" }).getByRole("definition").last()).toHaveText("0");
+    // Lot 71d : « Vérifier : ce qui va être écrit » dit ce qui ne sera pas repris.
+    await expect(page.getByText("Non repris : rien.")).toBeVisible();
     await page.getByRole("button", { name: "Importer 14 lignes de budget" }).click();
     // Le mariage est créé avec sa reprise : la confirmation ramène à sa page, le budget fait.
     await expect(page).toHaveURL(/\/reprise\/[0-9a-f-]{36}\?importe=/, { timeout: 30_000 });

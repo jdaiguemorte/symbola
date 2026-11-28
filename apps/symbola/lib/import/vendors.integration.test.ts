@@ -121,7 +121,7 @@ describe("IMP-07 — Importer ses prestataires depuis l'export Excel", () => {
     const planner = await createPlanner();
     const importId = await preparedImport(planner);
     const result = await confirmImport({ ...planner, importId });
-    expect(result).toEqual({ status: "applied", result: { created: 25, updated: 0, unchanged: 0, rejected: 0 } });
+    expect(result).toEqual({ status: "applied", result: { created: 25, updated: 0, unchanged: 0, rejected: 0, figures: { kind: "rows", rows: 25 } } });
     // Lot 15 : placement sur la carte en tâche de fond.
     await runImportJobsUntilIdle([planner.organizationId]);
 

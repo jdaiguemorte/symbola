@@ -4,7 +4,7 @@
 // modules/budget/import.ts). Si le journal ne peut pas être écrit après les
 // modules, leurs écritures sont annulées : rien d'un import n'est gardé sans
 // pouvoir être annulé.
-import type { ImportAnswers, ImportApplyResult, ImportApplyRow, ImportCellValue, ImportedItem, ImportEntityType, ImportUndoItem, ImportUndoOutcome } from "@symbola/contracts";
+import type { ImportAnswers, ImportApplyResult, ImportApplyRow, ImportCellValue, ImportedItem, ImportEntityType, ImportFigures, ImportUndoItem, ImportUndoOutcome } from "@symbola/contracts";
 import { appNameCase } from "@symbola/import-engine";
 import { parisToday } from "@symbola/i18n";
 import { eventStatusForStage } from "@symbola/contracts";
@@ -12,9 +12,11 @@ import { createImportPendingEvent } from "@/lib/takeover/flow";
 import { applyPastDueAnswer } from "./question-rules";
 import { getImportQuestions } from "./questions";
 import { appDatabase, type AppDatabase } from "@symbola/db/client";
+import { withOrganization, type OrganizationTransaction } from "@symbola/db/with-organization";
 import {
   findModifiedImportedBudgetElements,
   importBudgetLineRows,
+  listBudgetLines,
   importUnallocatedTotals,
   removeEventBudgetData,
   undoImportedBudgetElements,
@@ -41,12 +43,19 @@ import {
   getOrganizationProfile,
   importContactRows,
   importedContactValues,
+  deleteTakeover,
+  getTakeover,
+  listImportFilesOfElements,
+  listTakeoverAppliedImports,
+  releaseTakeoverStepsOfImport,
+  type TakeoverImport,
   recordAppliedImport,
   recordImportUndo,
   undoImportedHubElements,
   TakeoverEventTakenError,
   type AppliedImportItem,
   type AppliedImportView,
+  type ImportMatching,
   type ImportResult,
 } from "@/modules/hub/service";
 import {
@@ -60,8 +69,11 @@ import {
   arrangeVendorTags,
   findModifiedImportedVendorsElements,
   getVendor,
+  getVendorsByIds,
   importedVendorsToPlace,
+  importNamedVendors,
   importVendorRows,
+  listVendorTypes,
   undoImportedVendorsElements,
   type VendorTypeChoiceInput,
   type VendorTypeTarget,
@@ -69,7 +81,11 @@ import {
 import { getImportGapsView } from "./gaps";
 import { getImportMatchesView, loadVendorTypeCatalog, parseWorkingSetRows, type MatchesRowView, type VendorTypeCatalog } from "./matching";
 import type { ImportVendorTypeTarget, TakeoverViewer } from "@/modules/hub/service";
-import { starterBudgetImportPaymentLabels, type StarterLocale } from "@symbola/starter-templates";
+import { starterBudgetImportPaymentLabels, starterVendorTypeSynonymGroups, type StarterLocale } from "@symbola/starter-templates";
+import { matchImportVendorType } from "@/lib/vendors/event-vendors-import-rules";
+import { pendingBudgetDoublons } from "./budget-doublons";
+import { budgetWritePlan, type BudgetPlan } from "./budget-plan";
+import { vendorLinkKey, type BudgetVendorLink } from "@/modules/events/service";
 import { organizationTagCatalog } from "@/lib/vendors/tag-catalog";
 
 // Couleur d'un type « à classer » (sans famille) sur la carte.
@@ -162,6 +178,8 @@ export async function getImportPreview(organizationId: string, importId: string)
   const blockers: PreviewBlocker[] = [];
   if (gaps.columns.some((column) => column.decision === "undecided")) blockers.push("columns_undecided");
   if (importable.some((row) => row.match?.status === "proposed")) blockers.push("matches_undecided");
+  // Lot 71d (R17, C-57) : un poste sans ligne, ou un doublon possible du carnet, attend sa décision.
+  else if (matches.entityType === "budget_lines" && (await pendingBudgetDoublons(organizationId, importId)).length > 0) blockers.push("matches_undecided");
   if (updates.length + creations.length === 0) blockers.push("nothing_to_import");
 
   if (matches.entityType === "catalog_items" && creations.some((row) => row.values.vatRate === null || row.values.vatRate === undefined)) {
@@ -246,6 +264,9 @@ async function applyToModules(
     typeColumnHeader?: string | null;
     // Lot 63b : libellés des échéances créées par un budget importé.
     paymentLabels?: { deposit: string; balance: string };
+    // Lot 71d : fiches du carnet des prestataires, postes sans ligne retirés de ce mariage.
+    vendorLinks?: BudgetVendorLink[];
+    removeSlotIds?: string[];
   },
 ): Promise<ImportApplyResult> {
   switch (entityType) {
@@ -255,7 +276,16 @@ async function applyToModules(
     case "tasks":
       return importTaskRows({ organizationId, rows });
     case "budget_lines":
-      return importBudgetLineRows({ organizationId, userId, rows, answers: options.answers, takeover: options.takeover, ...(options.paymentLabels ? { paymentLabels: options.paymentLabels } : {}) });
+      return importBudgetLineRows({
+        organizationId,
+        userId,
+        rows,
+        answers: options.answers,
+        takeover: options.takeover,
+        ...(options.paymentLabels ? { paymentLabels: options.paymentLabels } : {}),
+        ...(options.vendorLinks ? { vendorLinks: options.vendorLinks } : {}),
+        ...(options.removeSlotIds ? { removeSlotIds: options.removeSlotIds } : {}),
+      });
     case "catalog_items":
       return importCatalogItemRows({ organizationId, rows, defaultVatRateBasisPoints: options.defaultVatRateBasisPoints });
     case "payment_methods":
@@ -303,6 +333,58 @@ function withoutSource(answers: ImportAnswers): ImportAnswers {
   const rest = { ...answers };
   delete rest.prospectSourceId;
   return rest;
+}
+
+// Lot 71d (HUB-14, BUD-01, C-58) — ce qu'un budget va écrire : les lignes importables, chacune sous son
+// poste (celui que « Doublons » a retenu, ou un nouveau poste), ses échéances et son prestataire. Un même
+// calcul pour « Vérifier » (avant) et pour le journal (à l'écriture) : le bilan redit ces nombres.
+export async function getBudgetImportPlan(organizationId: string, importId: string, options: { now?: Date; locale?: StarterLocale } = {}): Promise<(BudgetPlan & { fileName: string }) | null> {
+  const matches = await getImportMatchesView(organizationId, importId);
+  const set = await withHubDb((db) => getImportWorkingSet(db, organizationId, importId));
+  if (!matches || !set || matches.entityType !== "budget_lines") return null;
+  const answers = await withHubDb((db) => getImportAnswers(db, organizationId, importId));
+  const rows = matches.rows.filter(isImportable);
+  const slotLabels = new Map(rows.flatMap((row) => row.options.map((option) => [option.id, option.label ?? ""] as const)));
+  const sameIds = (set.matching?.vendorLinks ?? []).filter((link) => link.decision === "same" && link.vendorId).map((link) => link.vendorId!);
+  const carnetNames = new Map(sameIds.length > 0 ? (await getVendorsByIds(organizationId, sameIds)).map((vendor) => [vendor.id, vendor.name] as const) : []);
+  const plan = budgetWritePlan({
+    rows: rows.map((row) => ({ rowIndex: row.rowIndex, lineNumber: row.lineNumber, values: row.values, slotId: row.match?.status === "accepted" ? row.match.candidateId : null })),
+    slotLabels,
+    answers,
+    vendorLinks: set.matching?.vendorLinks,
+    carnetNames,
+    paymentLabels: starterBudgetImportPaymentLabels(options.locale ?? "fr"),
+    today: parisToday(options.now ?? new Date()),
+  });
+  return { ...plan, fileName: matches.fileName };
+}
+
+// Lot 71d : les fiches du carnet des prestataires nommés (retrouvées, « C'est la même fiche »), et les
+// fiches à créer (« Ce n'est pas la même : créer une fiche »), créées ici avec le métier de leur poste.
+async function budgetVendorLinks(
+  organizationId: string,
+  links: NonNullable<ImportMatching["vendorLinks"]>,
+  slotOf: (name: string) => string | null,
+): Promise<{ links: BudgetVendorLink[]; items: ImportedItem[] }> {
+  const kept = links.filter((link) => (link.decision === "found" || link.decision === "same") && link.vendorId);
+  const carnet = new Map(kept.length > 0 ? (await getVendorsByIds(organizationId, kept.map((link) => link.vendorId!))).map((vendor) => [vendor.id, vendor.name] as const) : []);
+  const result: BudgetVendorLink[] = kept.flatMap((link) => (carnet.has(link.vendorId!) ? [{ name: link.name, vendorId: link.vendorId!, vendorName: carnet.get(link.vendorId!)! }] : []));
+  const toCreate = links.filter((link) => link.decision === "create");
+  if (toCreate.length === 0) return { links: result, items: [] };
+  const types = await listVendorTypes(organizationId);
+  const synonyms = starterVendorTypeSynonymGroups();
+  const created = await importNamedVendors(
+    organizationId,
+    toCreate.map((link) => {
+      const slot = slotOf(link.name);
+      return { name: link.name, typeId: slot ? matchImportVendorType(slot, types, synonyms) : null };
+    }),
+  );
+  for (const link of toCreate) {
+    const vendorId = created.idByName.get(link.name.trim());
+    if (vendorId) result.push({ name: link.name, vendorId, vendorName: link.name.trim() });
+  }
+  return { links: result, items: created.items };
 }
 
 export async function confirmImport(input: {
@@ -364,7 +446,20 @@ export async function confirmImport(input: {
     eventId: row.event?.eventId ?? null,
   }));
 
-  const applied = await applyToModules(input.organizationId, input.userId, preview.entityType, rows, {
+  // Lot 71d (HUB-14, C-58) : un budget écrit ce que « Vérifier » a annoncé ; les nombres sont comptés
+  // sur ce plan, avant d'écrire, et gardés au journal.
+  let budgetPlan: BudgetPlan | null = null;
+  let budgetWrite: { links: BudgetVendorLink[]; items: ImportedItem[]; removeSlotIds: string[] } | null = null;
+  if (preview.entityType === "budget_lines") {
+    budgetPlan = await getBudgetImportPlan(input.organizationId, input.importId, { now, locale: input.locale ?? "fr" });
+    const slotOf = (name: string) => budgetPlan?.lines.find((line) => line.vendorKey === vendorLinkKey(name))?.slotLabel ?? null;
+    const vendors = await budgetVendorLinks(input.organizationId, set.matching?.vendorLinks ?? [], slotOf);
+    budgetWrite = { ...vendors, removeSlotIds: (set.matching?.unusedSlots ?? []).filter((entry) => entry.decision === "remove").map((entry) => entry.slotId) };
+  }
+
+  let applied: ImportApplyResult;
+  try {
+    applied = await applyToModules(input.organizationId, input.userId, preview.entityType, rows, {
     defaultProspectSourceId,
     defaultVatRateBasisPoints: (await defaultVatRate(input.organizationId)) ?? 0,
     // Le statut des fiches est déjà posé ligne par ligne (ci-dessus).
@@ -373,7 +468,15 @@ export async function confirmImport(input: {
     vendorTypeChoices: catalog ? (matches.vendorTypes ?? []).map(({ label, typeId, target }) => ({ label, typeId, target: vendorTypeTarget(target, catalog) })) : [],
     typeColumnHeader: typeColumn ? set.headers[typeColumn.columnIndex] || null : null,
     paymentLabels: starterBudgetImportPaymentLabels(input.locale ?? "fr"),
+    ...(budgetWrite ? { vendorLinks: budgetWrite.links, removeSlotIds: budgetWrite.removeSlotIds } : {}),
   });
+  } catch (error) {
+    // Les fiches créées juste avant pour ce budget sont retirées : rien de l'import n'est gardé.
+    if (budgetWrite && budgetWrite.items.length > 0) await undoItems(input.organizationId, input.userId, budgetWrite.items, () => true);
+    throw error;
+  }
+  // Les fiches créées pour ce budget, écrites avant ses lignes : retirées après elles.
+  if (budgetWrite && budgetWrite.items.length > 0) applied.items.unshift(...budgetWrite.items);
 
   // Lot 71a (C-56) : le total engagé et le réglé d'une fiche PDF vont au total « à répartir » de son
   // évènement (module budget), au journal du même import.
@@ -396,11 +499,14 @@ export async function confirmImport(input: {
   const updatedRows = new Set(
     applied.items.filter((item) => item.action === "updated" && item.rowIndex !== null && !createdRows.has(item.rowIndex)).map((item) => item.rowIndex),
   );
+  const figures: ImportFigures = budgetPlan ? budgetPlan.figures : { kind: "rows", rows: rows.length };
   const result: ImportResult = {
     created: createdRows.size,
     updated: updatedRows.size,
     unchanged: applied.unchanged,
     rejected: matches.rows.length - rows.length,
+    figures,
+    ...(budgetPlan ? { choices: budgetChoices(matches.rows, set.matching, budgetWrite?.links ?? []) } : {}),
   };
   // Lot 21 (L21-PRE-19, ADR 0050) : les étiquettes créées par l'import se rangent
   // toutes seules (étiquettes de départ reconnues, paliers, familles des
@@ -449,17 +555,31 @@ export async function confirmImport(input: {
   return { status: "applied", result };
 }
 
+// Lot 71d : « Ce que vous avez choisi » à « Doublons », gardé au journal pour le bilan.
+function budgetChoices(rows: MatchesRowView[], matching: ImportMatching | null, links: BudgetVendorLink[]): NonNullable<ImportResult["choices"]> {
+  const label = (value: unknown) => (typeof value === "string" ? value.trim() : "");
+  const splits = [...new Set(rows.filter((row) => row.match?.placement === "split" && row.match.status === "accepted").map((row) => label(row.values.slotLabel)))].filter(Boolean);
+  const slotLabels = new Map(rows.flatMap((row) => row.options.map((option) => [option.id, option.label ?? ""] as const)));
+  const removedSlots = (matching?.unusedSlots ?? []).filter((entry) => entry.decision === "remove").map((entry) => slotLabels.get(entry.slotId) ?? "").filter(Boolean);
+  const sameVendors = (matching?.vendorLinks ?? []).filter((link) => link.decision === "same").map((link) => ({ name: link.name, vendorName: links.find((entry) => entry.name === link.name)?.vendorName ?? link.name }));
+  const createdVendors = (matching?.vendorLinks ?? []).filter((link) => link.decision === "create").map((link) => link.name);
+  return { splits, removedSlots, sameVendors, createdVendors };
+}
+
 // —— Annulation ————————————————————————————————————————————————————————
 
 type UndoableItem = Pick<ImportedItem, "module" | "kind" | "elementId" | "action" | "previous" | "written">;
 
 // Parcourt les éléments à l'envers de leur écriture, module par module (les
 // lignes de budget avant leurs postes, les événements avant leurs sources).
+// Lot 71d (I10) : `outer`, la transaction de « Retirer toute la reprise… » (modules events, budget,
+// vendors) : tout part ensemble, ou rien.
 async function undoItems(
   organizationId: string,
   userId: string,
   items: UndoableItem[],
   force: (item: UndoableItem, index: number) => boolean,
+  outer?: OrganizationTransaction,
 ): Promise<ImportUndoOutcome[]> {
   const outcomes: ImportUndoOutcome[] = new Array(items.length);
   let index = items.length - 1;
@@ -471,13 +591,14 @@ async function undoItems(
       const item = items[position]!;
       return { kind: item.kind, elementId: item.elementId, action: item.action, previous: item.previous, written: item.written ?? {}, force: force(item, position) };
     });
+    if (outer && module !== "events" && module !== "budget" && module !== "vendors") throw new Error("module hors du retrait d'ensemble");
     const groupOutcomes =
       module === "events"
-        ? await undoImportedEventsElements(organizationId, userId, undo)
+        ? await undoImportedEventsElements(organizationId, userId, undo, outer)
         : module === "budget"
-          ? await undoImportedBudgetElements(organizationId, userId, undo)
+          ? await undoImportedBudgetElements(organizationId, userId, undo, outer)
           : module === "vendors"
-            ? await undoImportedVendorsElements(organizationId, undo)
+            ? await undoImportedVendorsElements(organizationId, undo, outer)
             : module === "hub"
               ? await undoImportedHubElements(organizationId, undo)
               : await undoImportedQuotesElements(organizationId, undo);
@@ -490,7 +611,54 @@ async function undoItems(
 
 export type UndoPreviewItem = AppliedImportItem & { modified: boolean; usedElsewhere: boolean };
 
-export type UndoPreview = AppliedImportView & { pendingItems: UndoPreviewItem[] };
+// Lot 71d (HUB-14 ; spécification du lot 71, § 5.4, critère 6 ; maquette 08) — ce que le retrait
+// enlève (« Partent ») et ce qu'il laisse (« Restent ») : les fiches du carnet qu'il n'a pas créées (et
+// l'import d'où elles viennent), les postes retirés de ce mariage, remis « à trouver », les éléments
+// modifiés à la main depuis (gardés, sauf la case), ceux qu'un autre module utilise (toujours gardés).
+export type UndoSummary = {
+  leaving: { budgetLines: number; newSlots: string[]; paidPayments: number; duePayments: number; vendors: number; createdFiches: number; tasks: number; events: number; others: number };
+  staying: { carnetFiches: number; carnetSources: string[]; restoredSlots: string[]; modified: number; usedElsewhere: number };
+};
+
+export type UndoPreview = AppliedImportView & { pendingItems: UndoPreviewItem[]; summary: UndoSummary };
+
+const valuesOf = (item: Pick<AppliedImportItem, "written" | "previous">) => (item.written ?? item.previous ?? {}) as Record<string, unknown>;
+
+export function undoSummary(items: readonly UndoPreviewItem[], context: { carnetSources?: string[] } = {}): UndoSummary {
+  const leaving: UndoSummary["leaving"] = { budgetLines: 0, newSlots: [], paidPayments: 0, duePayments: 0, vendors: 0, createdFiches: 0, tasks: 0, events: 0, others: 0 };
+  const staying: UndoSummary["staying"] = { carnetFiches: 0, carnetSources: context.carnetSources ?? [], restoredSlots: [], modified: 0, usedElsewhere: 0 };
+  const createdFiches = new Set(items.filter((item) => item.module === "vendors" && item.kind === "vendor" && item.action === "created").map((item) => item.elementId));
+  const linkedFiches = new Set<string>();
+  for (const item of items) {
+    const values = valuesOf(item);
+    if (item.module === "events" && item.kind === "event_vendor_candidate" && typeof values.vendorId === "string" && !createdFiches.has(values.vendorId)) linkedFiches.add(values.vendorId);
+    if (item.usedElsewhere) {
+      staying.usedElsewhere += 1;
+      continue;
+    }
+    if (item.module === "events" && item.kind === "event_vendor_slot" && item.action === "updated" && values.notRequired === true) {
+      staying.restoredSlots.push(String((item.previous as Record<string, unknown> | null)?.label ?? values.label ?? ""));
+      continue;
+    }
+    if (item.modified) {
+      staying.modified += 1;
+      continue;
+    }
+    if (item.kind === "budget_line") {
+      leaving.budgetLines += 1;
+      const payments = Array.isArray(values.payments) ? (values.payments as { paidOn?: string | null }[]) : [];
+      leaving.paidPayments += payments.filter((payment) => payment.paidOn).length;
+      leaving.duePayments += payments.filter((payment) => !payment.paidOn).length;
+    } else if (item.kind === "event_vendor_slot" && item.action === "created") leaving.newSlots.push(String(values.label ?? ""));
+    else if (item.kind === "event_vendor_candidate") leaving.vendors += 1;
+    else if (item.kind === "vendor" && item.action === "created") leaving.createdFiches += 1;
+    else if (item.kind === "task") leaving.tasks += 1;
+    else if (item.kind === "event") leaving.events += 1;
+    else if (item.kind !== "event_vendor_slot") leaving.others += 1;
+  }
+  staying.carnetFiches = linkedFiches.size;
+  return { leaving, staying };
+}
 
 async function modifiedFlags(organizationId: string, items: AppliedImportItem[]): Promise<boolean[]> {
   const flags = new Array<boolean>(items.length).fill(false);
@@ -528,8 +696,8 @@ async function eventsWithQuotes(organizationId: string, eventIds: string[]): Pro
   return result;
 }
 
-export async function getUndoPreview(organizationId: string, importId: string): Promise<UndoPreview | null> {
-  const view = await withHubDb((db) => getAppliedImport(db, organizationId, importId));
+export async function getUndoPreview(organizationId: string, importId: string, now: Date = new Date()): Promise<UndoPreview | null> {
+  const view = await withHubDb((db) => getAppliedImport(db, organizationId, importId, now));
   if (!view) return null;
   const pending = view.items.filter((item) => item.undoOutcome !== "undone" && item.undoOutcome !== "missing");
   const flags = await modifiedFlags(organizationId, pending);
@@ -537,39 +705,47 @@ export async function getUndoPreview(organizationId: string, importId: string): 
   // Lot 36b : un contact créé par l'import, devenu depuis client d'un évènement, est gardé.
   const createdContacts = pending.filter((item) => item.module === "hub" && item.kind === "contact" && item.action === "created").map((item) => item.elementId);
   const linkedContacts = createdContacts.length > 0 ? await listLinkedContactIds(organizationId, createdContacts) : new Set<string>();
-  return {
-    ...view,
-    pendingItems: pending.map((item, index) => ({
-      ...item,
-      modified: flags[index] ?? false,
-      usedElsewhere: withQuotes.has(item.elementId) || (item.module === "hub" && item.kind === "contact" && item.action === "created" && linkedContacts.has(item.elementId)),
-    })),
-  };
+  const pendingItems = pending.map((item, index) => ({
+    ...item,
+    modified: flags[index] ?? false,
+    usedElsewhere: withQuotes.has(item.elementId) || (item.module === "hub" && item.kind === "contact" && item.action === "created" && linkedContacts.has(item.elementId)),
+  }));
+  // Les fiches du carnet que cet import n'a pas créées : l'import qui les a apportées, s'il y en a un.
+  const linked = [...new Set(pendingItems.flatMap((item) => (item.kind === "event_vendor_candidate" && typeof valuesOf(item).vendorId === "string" ? [valuesOf(item).vendorId as string] : [])))];
+  const carnetSources = linked.length > 0 ? await withHubDb((db) => listImportFilesOfElements(db, organizationId, { module: "vendors", kind: "vendor", elementIds: linked, exceptImportId: importId })) : [];
+  return { ...view, pendingItems, summary: undoSummary(pendingItems, { carnetSources }) };
 }
 
 export type UndoImportResult =
   | { status: "done"; outcomes: Record<ImportUndoOutcome, number> }
   | { status: "not_found" }
-  | { status: "expired" };
+  | { status: "expired" }
+  // Lot 71d (I10) : la fiche d'un mariage qui a d'autres imports se retire avec toute la reprise.
+  | { status: "takeover_has_imports" };
 
 // « Quand elle annule un import déjà confirmé, alors les éléments créés sont
 // supprimés et les éléments mis à jour retrouvent leurs valeurs précédentes.
 // Étant donné un élément modifié à la main depuis l'import, alors l'app le
 // signale et ne l'écrase pas sans confirmation » : `forceItemIds` porte les
-// éléments modifiés que la planner a confirmé vouloir annuler.
+// éléments modifiés que la planner a confirmé vouloir annuler. Lot 71d : `forceModified`, la case
+// « Retirer aussi les lignes modifiées depuis » (relue ici, jamais prise du formulaire).
 export async function undoImport(input: {
   organizationId: string;
   userId: string;
   importId: string;
   forceItemIds?: string[];
+  forceModified?: boolean;
+  now?: Date;
 }): Promise<UndoImportResult> {
-  const preview = await getUndoPreview(input.organizationId, input.importId);
+  const now = input.now ?? new Date();
+  const preview = await getUndoPreview(input.organizationId, input.importId, now);
   if (!preview) return { status: "not_found" };
   if (!preview.undoable) return { status: "expired" };
+  if ((await takeoverRemoval(input.organizationId, input.importId, now))?.otherImports.length) return { status: "takeover_has_imports" };
   // Lot 15 : un placement sur la carte en cours s'arrête avant l'annulation.
   await withHubDb((db) => cancelImportJobs(db, input.organizationId, input.importId));
 
-  const force = new Set(input.forceItemIds ?? []);
+  const force = new Set(input.forceModified ? preview.pendingItems.filter((item) => item.modified && !item.usedElsewhere).map((item) => item.id) : (input.forceItemIds ?? []));
   const items = preview.pendingItems.filter((item) => !item.usedElsewhere);
   // Un événement créé puis enrichi d'un budget, annulé avec confirmation :
   // son budget part avec lui.
@@ -586,9 +762,95 @@ export async function undoImport(input: {
     ...items.map((item, position) => ({ itemId: item.id, outcome: outcomes[position] ?? ("missing" as const) })),
     ...preview.pendingItems.filter((item) => item.usedElsewhere).map((item) => ({ itemId: item.id, outcome: "kept_in_use" as const })),
   ];
-  await withHubDb((db) => recordImportUndo(db, { organizationId: input.organizationId, importId: input.importId, outcomes: recorded }));
+  await withHubDb((db) => recordImportUndo(db, { organizationId: input.organizationId, importId: input.importId, outcomes: recorded, now }));
+  // Lot 71d (critère 6) : la ligne de la reprise repasse « à faire » ; un mariage retiré n'est plus le sien.
+  const removedEventIds = items.filter((item, position) => item.kind === "event" && item.action === "created" && outcomes[position] === "undone").map((item) => item.elementId);
+  await withHubDb((db) => releaseTakeoverStepsOfImport(db, { organizationId: input.organizationId, importId: input.importId, removedEventIds, now }));
 
   const counts: Record<ImportUndoOutcome, number> = { undone: 0, kept_modified: 0, kept_in_use: 0, missing: 0 };
   for (const { outcome } of recorded) counts[outcome] += 1;
   return { status: "done", outcomes: counts };
+}
+
+// —— Retirer toute la reprise (lot 71d, décision I10) ———————————————————————————————————
+
+// La fiche d'un mariage (l'import qui a créé le mariage de sa reprise) et les autres imports appliqués
+// de cette reprise, du plus récent au plus ancien ; le carnet de l'agence (prestataires.csv) n'en fait
+// pas partie : il sert à tous les mariages. null : pas la fiche d'un mariage repris.
+export type TakeoverRemoval = {
+  takeoverId: string;
+  eventId: string;
+  sheet: TakeoverImport;
+  otherImports: (TakeoverImport & { undoable: boolean; undoDeadline: Date | null })[];
+  // Les imports qui ont passé leur date limite : le retrait d'ensemble n'est pas proposé.
+  expired: string[];
+};
+
+export async function takeoverRemoval(organizationId: string, importId: string, now: Date = new Date()): Promise<TakeoverRemoval | null> {
+  const view = await withHubDb((db) => getAppliedImport(db, organizationId, importId, now));
+  if (!view || view.status !== "applied" || (view.entityType !== "event_sheets" && view.entityType !== "events")) return null;
+  const takeoverId = await withHubDb((db) => getImportTakeoverId(db, organizationId, importId));
+  if (!takeoverId) return null;
+  const takeover = await withHubDb((db) => getTakeover(db, organizationId, takeoverId));
+  const created = view.items.filter((item) => item.kind === "event" && item.action === "created" && item.undoOutcome === null).map((item) => item.elementId);
+  if (!takeover?.eventId || !created.includes(takeover.eventId)) return null;
+  const list = await withHubDb((db) => listTakeoverAppliedImports(db, organizationId, takeoverId));
+  const sheet = list.find((entry) => entry.id === importId);
+  if (!sheet) return null;
+  const others = [];
+  for (const entry of list.filter((candidate) => candidate.id !== importId && candidate.entityType !== "vendors")) {
+    const applied = await withHubDb((db) => getAppliedImport(db, organizationId, entry.id, now));
+    others.push({ ...entry, undoable: applied?.undoable ?? false, undoDeadline: applied?.undoDeadline ?? null });
+  }
+  const sheetExpired = !view.undoable ? [sheet.fileName] : [];
+  return { takeoverId, eventId: takeover.eventId, sheet, otherImports: others, expired: [...others.filter((entry) => !entry.undoable).map((entry) => entry.fileName), ...sheetExpired] };
+}
+
+export type UndoTakeoverResult = { status: "done"; imports: number } | { status: "not_found" } | { status: "expired"; files: string[] } | { status: "in_use" } | { status: "failed" };
+
+// « Retirer toute la reprise… » : les imports du plus récent au plus ancien, puis la fiche et le mariage,
+// dans une seule transaction ; en cas d'échec, rien n'est retiré. Tout ce que ces imports ont écrit part,
+// lignes modifiées depuis comprises (la case de la fenêtre le dit) ; restent les fiches du carnet venues
+// d'un autre import. Un mariage qui a reçu un devis n'est jamais retiré (ADR 0010). `afterEachImport` :
+// pour les tests, une étape qui échoue au milieu.
+export async function undoTakeover(input: {
+  organizationId: string;
+  userId: string;
+  importId: string;
+  now?: Date;
+  afterEachImport?: (importId: string) => Promise<void>;
+}): Promise<UndoTakeoverResult> {
+  const now = input.now ?? new Date();
+  const removal = await takeoverRemoval(input.organizationId, input.importId, now);
+  if (!removal) return { status: "not_found" };
+  if (removal.expired.length > 0) return { status: "expired", files: removal.expired };
+  const order = [...removal.otherImports.map((entry) => entry.id), removal.sheet.id];
+  const previews: UndoPreview[] = [];
+  for (const id of order) {
+    const preview = await getUndoPreview(input.organizationId, id, now);
+    if (!preview?.undoable) return { status: "expired", files: [preview?.fileName ?? ""] };
+    if (preview.pendingItems.some((item) => item.usedElsewhere || (item.module !== "events" && item.module !== "budget" && item.module !== "vendors"))) return { status: "in_use" };
+    previews.push(preview);
+  }
+  // Une ligne de budget saisie à la main dans ce mariage ne disparaît pas avec un retrait d'imports.
+  const importedLines = new Set(previews.flatMap((preview) => preview.pendingItems.filter((item) => item.kind === "budget_line" && item.action === "created").map((item) => item.elementId)));
+  if ((await listBudgetLines(input.organizationId, removal.eventId)).lines.some((line) => !importedLines.has(line.id))) return { status: "in_use" };
+  for (const id of order) await withHubDb((db) => cancelImportJobs(db, input.organizationId, id));
+  try {
+    await withOrganization(appDatabase(), input.organizationId, async (tx) => {
+      const asDb = tx as unknown as AppDatabase;
+      for (const preview of previews) {
+        const items = preview.pendingItems.map((item) => ({ ...item, module: item.module as ImportedItem["module"], written: item.written ?? {} }));
+        const outcomes = await undoItems(input.organizationId, input.userId, items, () => true, tx);
+        if (outcomes.some((outcome) => outcome !== "undone" && outcome !== "missing")) throw new Error("élément gardé dans un retrait d'ensemble");
+        await recordImportUndo(asDb, { organizationId: input.organizationId, importId: preview.id, outcomes: preview.pendingItems.map((item, position) => ({ itemId: item.id, outcome: outcomes[position] ?? "missing" })), now });
+        if (input.afterEachImport) await input.afterEachImport(preview.id);
+      }
+      await deleteTakeover(asDb, { organizationId: input.organizationId, takeoverId: removal.takeoverId });
+    });
+  } catch (error) {
+    console.error("retrait d'ensemble d'une reprise échoué, rien n'est retiré", { organizationId: input.organizationId, importId: input.importId, error: error instanceof Error ? error.message : "inconnue" });
+    return { status: "failed" };
+  }
+  return { status: "done", imports: order.length };
 }

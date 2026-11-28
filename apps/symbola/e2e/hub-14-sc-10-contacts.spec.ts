@@ -90,8 +90,9 @@ test("SC-10 / HUB-14 — importer 600 contacts : colonnes proposées, prestatair
   await page.goto("/import");
   await page.getByRole("link", { name: "contacts-import-test-600.csv" }).click();
   // Lot 63b (HUB-14, UX-07) : l'annulation est repliée sous le bilan.
-  await page.getByText("Annuler cet import", { exact: true }).click();
-  await page.getByRole("button", { name: "Annuler l'import" }).click();
+  // Lot 71d (C-66) : « Retirer cet import… », danger de niveau 2.
+  await page.getByRole("button", { name: "Retirer cet import…" }).click();
+  await page.getByRole("dialog").getByRole("button", { name: "Retirer l'import" }).click();
   // 700 éléments à défaire : quelques secondes quand toute la suite tourne.
   await expect(page.getByText(/éléments annulés/)).toBeVisible({ timeout: 30_000 });
   await expectNoAxeViolation(page);

@@ -49,7 +49,10 @@ import { withContacts } from "./clients";
 type Tx = Parameters<Parameters<typeof withOrganization>[2]>[0];
 type Values = Record<string, unknown>;
 
-async function inTransaction<T>(organizationId: string, fn: (tx: Tx) => Promise<T>): Promise<T> {
+// Lot 71d (HUB-14, I10) : `outer`, la transaction d'organisation de « Retirer toute la reprise… », qui
+// retire plusieurs imports d'un coup (rien n'est retiré si l'un échoue).
+async function inTransaction<T>(organizationId: string, fn: (tx: Tx) => Promise<T>, outer?: Tx): Promise<T> {
+  if (outer) return fn(outer);
   const db = appDatabase();
   return await withOrganization(db, organizationId, fn);
 }
@@ -505,14 +508,16 @@ async function writeTaskFields(tx: Tx, taskId: string, fields: Values): Promise<
 async function vendorSlotState(tx: Tx, slotId: string): Promise<Values | null> {
   const [slot] = await tx.select().from(eventVendorSlots).where(eq(eventVendorSlots.id, slotId));
   if (!slot) return null;
-  // Lot 28a/28b (PRE-02) : le poste n'a plus de statut ni de prestataire à lui.
-  return { eventId: slot.eventId, label: slot.label, importedFields: slot.importedFields };
+  // Lot 28a/28b (PRE-02) : le poste n'a plus de statut ni de prestataire à lui. Lot 71d (R17) : « Le
+  // retirer de ce mariage » le dit « Non requis ».
+  return { eventId: slot.eventId, label: slot.label, importedFields: slot.importedFields, notRequired: slot.notRequired };
 }
 
 async function vendorCandidateState(tx: Tx, candidateId: string): Promise<Values | null> {
   const [candidate] = await tx.select().from(eventVendorCandidates).where(eq(eventVendorCandidates.id, candidateId));
   if (!candidate) return null;
-  return { vendorSlotId: candidate.vendorSlotId, vendorName: candidate.vendorName, status: candidate.status };
+  // Lot 71d : la fiche du carnet retenue (« C'est la même fiche », ou retrouvée telle quelle).
+  return { vendorSlotId: candidate.vendorSlotId, vendorName: candidate.vendorName, status: candidate.status, vendorId: candidate.vendorId };
 }
 
 const hasValue = (value: unknown) => value !== undefined && value !== null && value !== "";
@@ -542,12 +547,16 @@ async function importedCandidate(
   slotId: string,
   eventId: string,
   items: ImportedItem[],
-  context: { answers: ImportAnswers | null; takeover: boolean },
+  context: { answers: ImportAnswers | null; takeover: boolean; vendorLinks: ReadonlyMap<string, BudgetVendorLink> },
 ): Promise<string | null> {
-  const vendorName = text(row.values.vendorName);
-  if (!vendorName) return null;
+  const fileName = text(row.values.vendorName);
+  if (!fileName) return null;
+  // Lot 71d (HUB-14, PRE-01) : un prestataire du carnet (retrouvé tel quel, « C'est la même fiche » ou
+  // fiche créée) est retenu par sa fiche et sous son nom du carnet ; jamais doublé dans le poste.
+  const link = context.vendorLinks.get(vendorLinkKey(fileName)) ?? null;
+  const vendorName = link?.vendorName ?? fileName;
   const existing = (await tx.select().from(eventVendorCandidates).where(eq(eventVendorCandidates.vendorSlotId, slotId))).find(
-    (candidate) => candidate.vendorName.trim().toLowerCase() === vendorName.toLowerCase(),
+    (candidate) => (link !== null && candidate.vendorId === link.vendorId) || candidate.vendorName.trim().toLowerCase() === vendorName.toLowerCase(),
   );
   if (existing) return existing.id;
   const [last] = await tx.select({ value: max(eventVendorCandidates.position) }).from(eventVendorCandidates).where(eq(eventVendorCandidates.vendorSlotId, slotId));
@@ -559,6 +568,7 @@ async function importedCandidate(
       eventId,
       vendorSlotId: slotId,
       vendorName,
+      vendorId: link?.vendorId ?? null,
       status,
       takeoverContract,
       position: (last?.value ?? -1) + 1,
@@ -569,6 +579,17 @@ async function importedCandidate(
   return candidate.id;
 }
 
+// Lot 71d : la fiche du carnet d'un nom de prestataire du fichier (clé : le nom replié).
+export type BudgetVendorLink = { name: string; vendorId: string; vendorName: string };
+
+export const vendorLinkKey = (name: string): string =>
+  name
+    .normalize("NFD")
+    .replace(/\p{M}/gu, "")
+    .toLocaleLowerCase("fr")
+    .replace(/[^\p{L}\p{N}]+/gu, " ")
+    .trim();
+
 // Postes des lignes de budget importées : existant (rapproché) ou créé, et le
 // prestataire de la ligne ; le module budget écrit ensuite les lignes.
 export async function importVendorSlotsForBudget(input: {
@@ -577,7 +598,12 @@ export async function importVendorSlotsForBudget(input: {
   // Lot 71a : réponses de l'étape « Questions » et import d'une reprise (contrat des prestataires).
   answers?: ImportAnswers | null;
   takeover?: boolean;
+  // Lot 71d (HUB-14, R17) : les fiches du carnet des prestataires nommés, et les postes « à trouver »
+  // sans ligne que la planner a retirés de ce mariage (dits « Non requis », remis « à trouver » au retrait).
+  vendorLinks?: readonly BudgetVendorLink[];
+  removeSlotIds?: readonly string[];
 }): Promise<{ items: ImportedItem[]; slotIdByRow: Map<number, string>; candidateIdByRow: Map<number, string> }> {
+  const vendorLinks = new Map((input.vendorLinks ?? []).map((link) => [vendorLinkKey(link.name), link] as const));
   return inTransaction(input.organizationId, async (tx) => {
     const items: ImportedItem[] = [];
     const slotIdByRow = new Map<number, string>();
@@ -618,8 +644,18 @@ export async function importVendorSlotsForBudget(input: {
         items.push({ rowIndex: row.rowIndex, module: "events", kind: "event_vendor_slot", elementId: slot.id, action: "created", previous: null, written: (await vendorSlotState(tx, slot.id)) ?? {} });
       }
       slotIdByRow.set(row.rowIndex, slotId);
-      const candidateId = await importedCandidate(tx, input.organizationId, row, slotId, row.eventId, items, { answers: input.answers ?? null, takeover: input.takeover ?? false });
+      const candidateId = await importedCandidate(tx, input.organizationId, row, slotId, row.eventId, items, { answers: input.answers ?? null, takeover: input.takeover ?? false, vendorLinks });
       if (candidateId) candidateIdByRow.set(row.rowIndex, candidateId);
+    }
+    const eventIds = new Set(input.rows.map((row) => row.eventId));
+    for (const slotId of input.removeSlotIds ?? []) {
+      const [slot] = await tx.select().from(eventVendorSlots).where(eq(eventVendorSlots.id, slotId));
+      // Un poste d'un autre mariage, déjà « Non requis », ou qui a reçu un prestataire depuis : rien.
+      if (!slot || !eventIds.has(slot.eventId) || slot.notRequired || [...slotIdByRow.values()].includes(slotId)) continue;
+      const [candidate] = await tx.select({ id: eventVendorCandidates.id }).from(eventVendorCandidates).where(eq(eventVendorCandidates.vendorSlotId, slotId)).limit(1);
+      if (candidate) continue;
+      await tx.update(eventVendorSlots).set({ notRequired: true, updatedAt: new Date() }).where(eq(eventVendorSlots.id, slotId));
+      items.push({ rowIndex: null, module: "events", kind: "event_vendor_slot", elementId: slotId, action: "updated", previous: { notRequired: false, label: slot.label }, written: { notRequired: true, label: slot.label } });
     }
     return { items, slotIdByRow, candidateIdByRow };
   });
@@ -771,6 +807,7 @@ async function restoreElement(tx: Tx, organizationId: string, kind: string, id: 
       .update(eventVendorSlots)
       .set({
         ...("importedFields" in previous ? { importedFields: (previous.importedFields as Record<string, string> | null) ?? null } : {}),
+        ...(typeof previous.notRequired === "boolean" ? { notRequired: previous.notRequired } : {}),
         updatedAt: new Date(),
       })
       .where(eq(eventVendorSlots.id, id));
@@ -813,6 +850,7 @@ export async function undoImportedEventsElements(
   organizationId: string,
   userId: string,
   items: ImportUndoItem[],
+  outer?: Tx,
 ): Promise<ImportUndoOutcome[]> {
   return inTransaction(organizationId, async (tx) => {
     const outcomes: ImportUndoOutcome[] = [];
@@ -845,7 +883,7 @@ export async function undoImportedEventsElements(
       outcomes.push("undone");
     }
     return outcomes;
-  });
+  }, outer);
 }
 
 // Événements créés par un import : pour vérifier, avant de les supprimer,
