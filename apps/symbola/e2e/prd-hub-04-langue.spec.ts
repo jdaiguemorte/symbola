@@ -44,8 +44,8 @@ test("PRD-HUB-04-02 — choisir une langue dans le profil s'applique à toute l'
   await page.keyboard.press("Escape");
 
   // Passe en anglais depuis le profil.
-  await openSettingsTab(page, "Mon compte");
-  await expect(page.getByRole("heading", { name: "Mon profil" })).toBeVisible();
+  await openSettingsTab(page, "Votre profil et votre connexion");
+  await expect(page.getByRole("heading", { name: "Votre profil et votre connexion" })).toBeVisible();
   const violations = await new AxeBuilder({ page }).analyze();
   expect(violations.violations, JSON.stringify(violations.violations, null, 2)).toEqual([]);
 

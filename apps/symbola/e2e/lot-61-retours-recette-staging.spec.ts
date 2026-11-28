@@ -40,8 +40,9 @@ async function atelier() {
 
 // Les six rubriques signalées : leur lien dans le menu des réglages, leur adresse, le titre de l'écran.
 const REPORTED = [
-  ["Exports comptables", "/devis/exports-comptables"],
-  ["Relances de devis et de paiement", "/devis/relances"],
+  // Lot 74g : les exports comptables sont dans « Vos données » ; les rubriques portent leur nouveau libellé.
+  ["Comptabilité : exports, archive, facturation électronique", "/devis/exports-comptables"],
+  ["Paiements et propositions : relances", "/devis/relances"],
   ["Modèles de proposition", "/devis/modeles-proposition"],
   ["Modèles de contrat", "/devis/modeles-contrat"],
   ["Modèles de devis", "/devis/modeles"],
@@ -54,12 +55,11 @@ test("UX-13 (L13-HUB-16) — Les rubriques du menu des Paramètres s'ouvrent dan
   await signIn(page, setup.email, /\/$/);
   for (const [name, path] of REPORTED) {
     await page.goto("/parametres");
-    const rubrics = page.getByRole("navigation", { name: "Rubriques des paramètres" });
     await openSettingsRubric(page, name);
     await expect(page).toHaveURL(path, { timeout: 30_000 });
-    // Le menu des réglages reste affiché, la rubrique y est allumée ; le menu principal allume
-    // « Paramètres », plus « Devis et factures » ni « Évènements ».
-    await expect(rubrics.getByRole("link", { name, exact: true })).toHaveAttribute("aria-current", "page");
+    // Le menu principal allume « Paramètres », plus « Devis et factures » ni « Évènements » ; le titre d'une
+    // rubrique est son libellé (lot 74g).
+    if (path !== "/devis/exports-comptables") await expect(page.getByRole("heading", { level: 1 })).toHaveText(name);
     await openMenu(page);
     await expect(mainMenu(page).getByRole("link", { name: "Paramètres", exact: true })).toHaveAttribute("aria-current", "page");
     await expect(mainMenu(page).getByRole("link", { name: "Devis et factures", exact: true })).not.toHaveAttribute("aria-current", "page");
@@ -68,10 +68,10 @@ test("UX-13 (L13-HUB-16) — Les rubriques du menu des Paramètres s'ouvrent dan
   }
   // Les deux rubriques de relances ne se confondent plus : chacune dit son objet et renvoie à l'autre.
   await page.goto("/devis/relances");
-  await expect(page.getByRole("heading", { level: 1, name: "Relances de devis et de paiement" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "Paiements et propositions : relances" })).toBeVisible();
   await page.getByRole("link", { name: "Évènements, Relances des prospects" }).click();
   await expect(page).toHaveURL("/parametres/relances");
-  await expect(page.getByRole("heading", { level: 1, name: "Relances des prospects" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "Prospects : délai avant relance" })).toBeVisible();
   await expect(page.getByRole("link", { name: "Ventes, Relances de devis et de paiement" })).toBeVisible();
   await expectNoAxeViolation(page);
 });

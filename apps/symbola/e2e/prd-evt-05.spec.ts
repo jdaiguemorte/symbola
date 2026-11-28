@@ -7,7 +7,7 @@ import AxeBuilder from "./axe";
 import { createAppConnection } from "@symbola/db/client";
 import { createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
-import { openEventTab, readyOrganization, signIn as signInByLink } from "./helpers";
+import { openEventTab, openSettingsRubric, readyOrganization, signIn as signInByLink } from "./helpers";
 import { createEventByForm } from "./new-event";
 
 async function loginAndSetupMfa(page: Page, email: string, _password: string) {
@@ -50,7 +50,8 @@ test("PRD-EVT-05 — programme du jour J depuis un modèle, chevauchement signal
   await page.getByRole("link", { name: /^Réglages/ }).click();
   // Lot 63c (ADR 0107) : les réglages s'ouvrent dans le panneau ; ses autres rubriques sont sur la page complète.
   await page.getByRole("link", { name: "Ouvrir tous les réglages" }).click();
-  await page.getByRole("navigation", { name: "Rubriques des paramètres" }).getByRole("link", { name: "Programme du jour J", exact: true }).click();
+  // Lot 74g : une rubrique d'un autre groupe s'ouvre depuis l'accueil des Paramètres.
+  await openSettingsRubric(page, "Programme du jour J : modèles");
   await expect(page).toHaveURL(/\/events\/modeles-programme$/);
   await page.waitForLoadState("networkidle");
   await page.getByRole("button", { name: "Charger le modèle de programme de départ" }).click();

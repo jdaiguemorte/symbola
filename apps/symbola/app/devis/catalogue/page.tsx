@@ -18,13 +18,15 @@ export default async function QuoteCatalogPage({ searchParams }: { searchParams:
   const organizationId = auth.user.organizationId;
 
   const t = await getTranslations("Quotes");
+
+  const tMenu = await getTranslations("SettingsMenu");
   const tHelp = await getTranslations("Help");
   const locale = (await getLocale()) as Locale;
 
   if (!(await isQuotesModuleEnabled(organizationId))) {
     return (
       <main>
-        <h1>{t("catalogTitle")}</h1>
+        <h1>{tMenu("rubrics.catalog.label")}</h1>
         <p>{t("moduleUnavailable")}</p>
       </main>
     );
@@ -38,7 +40,7 @@ export default async function QuoteCatalogPage({ searchParams }: { searchParams:
 
   return (
     <main>
-      <h1>{t("catalogTitle")}</h1>
+      <h1>{tMenu("rubrics.catalog.label")}</h1>
       <PageTour
         {...await loadPageTour(auth.user.id, "quotes", (await searchParams).visite)}
         helpTitle={tHelp("quotesCatalog.title")}

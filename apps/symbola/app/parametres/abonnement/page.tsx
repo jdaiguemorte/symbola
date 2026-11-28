@@ -58,6 +58,7 @@ function statusDate(subscription: SubscriptionView): Date | null {
 export default async function SubscriptionPage({ searchParams }: { searchParams: Promise<Query> }) {
   const auth = await requirePlanner({ allowReadOnly: true });
   const t = await getTranslations("Subscription");
+  const tMenu = await getTranslations("SettingsMenu");
   const tPlans = await getTranslations("AdminPlans");
   const tHelp = await getTranslations("Help");
   const locale = (await getLocale()) as Locale;
@@ -68,7 +69,7 @@ export default async function SubscriptionPage({ searchParams }: { searchParams:
 
   const header = (
     <>
-      <PageHeader title={t("title")} subtitle={t("subtitle")} />
+      <PageHeader title={tMenu("rubrics.subscription.label")} subtitle={t("subtitle")} />
       <ScreenHelp title={tHelp("subscription.title")} body={tHelp("subscription.body")} />
     </>
   );

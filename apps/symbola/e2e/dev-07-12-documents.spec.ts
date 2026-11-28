@@ -46,7 +46,7 @@ test("DEV-07 à DEV-11 — régler le logo, l'apparence, les textes et l'IBAN de
   await loginAndSetupMfa(page, atelier.email, atelier.password);
 
   // DEV-07 : coordonnées imprimées, dans Entreprise et TVA.
-  await openSettingsTab(page, "Entreprise et TVA");
+  await openSettingsTab(page, "Fiche de l'entreprise");
   await page.waitForLoadState("networkidle");
   // Lot 62b (UX-12) : la fiche de l'entreprise réunit identité, adresse et coordonnées, un seul bouton.
   const details = page.getByRole("form", { name: "Fiche entreprise" });
@@ -61,8 +61,8 @@ test("DEV-07 à DEV-11 — régler le logo, l'apparence, les textes et l'IBAN de
   await expectNoAxeViolation(page);
 
   // DEV-08 : un fichier qui n'est pas une image est refusé, un PNG devient le logo.
-  await openSettingsTab(page, "Documents");
-  await expect(page.getByRole("heading", { level: 1, name: "Documents" })).toBeVisible();
+  await openSettingsTab(page, "Apparence des devis et factures");
+  await expect(page.getByRole("heading", { level: 1, name: "Apparence des devis et factures" })).toBeVisible();
   await page.waitForLoadState("networkidle");
   const logoField = page.getByLabel("Choisir une image (PNG ou JPEG, 2 Mo au plus)");
   await logoField.setInputFiles({ name: "logo.png", mimeType: "image/png", buffer: Buffer.from("pas une image") });

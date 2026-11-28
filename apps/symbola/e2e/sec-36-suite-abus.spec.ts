@@ -68,7 +68,7 @@ test("SC-S2 — un collaborateur retiré il y a deux minutes rejoue une requête
 
   await loginAndSetupMfa(page, owner.email);
   await page.goto("/parametres/equipe");
-  await expect(page.getByRole("heading", { level: 1, name: "Équipe" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "Équipe et accès" })).toBeVisible();
   await expectNoAxeViolation(page);
   await page.getByRole("link", { name: `Retirer l'accès de ${member.email}` }).click();
   await expect(page.getByRole("heading", { name: `Retirer l'accès de ${member.email} ?` })).toBeVisible();

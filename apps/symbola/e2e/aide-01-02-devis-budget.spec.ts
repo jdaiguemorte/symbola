@@ -64,12 +64,13 @@ test("HUB-11 — visites des modules Devis et Budget, relancées depuis « ? »"
   await skipTour(page, "Catalogue des prestations");
 
   await page.goto("/budget/parametres");
-  const budget = tourDialog(page, "Répartition du budget");
+  // Lot 74g : la répartition est le second bloc de « Budget : postes de départ et répartition ».
+  const budget = tourDialog(page, "Budget : postes de départ et répartition");
   await expect(budget.getByRole("heading", { name: "Le seuil d'alerte", level: 2 })).toBeVisible();
   await budget.getByRole("button", { name: "Suivant" }).click();
   await expect(budget.getByRole("heading", { name: "Vos répartitions", level: 2 })).toBeVisible();
   await expectNoAxeViolation(page);
-  await skipTour(page, "Répartition du budget");
+  await skipTour(page, "Budget : postes de départ et répartition");
   await page.reload();
   await expect(page.getByRole("button", { name: "Aide sur cet écran" })).toBeVisible();
   await expect(budget).toHaveCount(0);

@@ -55,7 +55,7 @@ test("HUB-29, RDV-01, RDV-02 — plages occupées par type et par évènement ; 
 
   // M1, M2 : la règle du type Mariage, modifiée en fenêtre, avec l'aperçu en clair.
   await page.goto("/events/parametres/plages-occupees");
-  await expect(page.getByRole("heading", { level: 1, name: "Plages occupées" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "Plages occupées dans l'agenda" })).toBeVisible();
   const weddingRow = page.getByRole("row", { name: /Mariage/ });
   await expect(weddingRow).toContainText("Le jour même, 8 h → le jour même, 22 h");
   await expectNoAxeViolation(page);

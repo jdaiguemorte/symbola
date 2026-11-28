@@ -57,6 +57,7 @@ export async function createAllocationModelAction(
   }
 
   revalidatePath("/budget/parametres");
+  revalidatePath("/events/parametres");
   return { success: true };
 }
 
@@ -67,6 +68,7 @@ export async function removeAllocationModelAction(formData: FormData): Promise<v
   const modelId = String(formData.get("modelId") ?? "");
   await removeAllocationModel(organizationId, modelId);
   revalidatePath("/budget/parametres");
+  revalidatePath("/events/parametres");
 }
 
 // Lot 28a (BUD-02, décision D4) : seuil d'alerte de l'organisation, en
@@ -82,5 +84,6 @@ export async function setOrganizationAlertThresholdAction(_prevState: Allocation
     throw error;
   }
   revalidatePath("/budget/parametres");
+  revalidatePath("/events/parametres");
   return { success: true };
 }

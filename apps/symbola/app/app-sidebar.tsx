@@ -194,7 +194,7 @@ export function AppSidebar({
       onKeyDown={(event) => {
         if (event.key === "Escape") hideTip();
       }}
-      onScroll={placeTip}
+      onScrollCapture={placeTip}
     >
       <div className="app-sidebar-header">
         {brand}

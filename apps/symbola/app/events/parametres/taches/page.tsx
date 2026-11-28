@@ -16,11 +16,12 @@ export default async function TaskCategoriesSettingsPage() {
   const auth = await requirePlanner();
   const organizationId = auth.user.organizationId;
   const t = await getTranslations("TaskCategories");
+  const tMenu = await getTranslations("SettingsMenu");
   if (!(await isEventsModuleEnabled(organizationId))) {
     const tEvents = await getTranslations("Events");
     return (
       <main>
-        <h1>{t("title")}</h1>
+        <h1>{tMenu("rubrics.taskCategories.label")}</h1>
         <p>{tEvents("moduleUnavailable")}</p>
       </main>
     );
@@ -32,7 +33,7 @@ export default async function TaskCategoriesSettingsPage() {
 
   return (
     <main>
-      <h1>{t("title")}</h1>
+      <h1>{tMenu("rubrics.taskCategories.label")}</h1>
       <ScreenHelp title={tHelp("taskCategories.title")} body={tHelp("taskCategories.body")} />
       <p>{t("intro")}</p>
       <div className="card">

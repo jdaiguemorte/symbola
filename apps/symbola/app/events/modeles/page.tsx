@@ -23,12 +23,14 @@ export default async function TaskTemplatesPage({ searchParams }: { searchParams
   const organizationId = auth.user.organizationId;
 
   const t = await getTranslations("Events");
+
+  const tMenu = await getTranslations("SettingsMenu");
   const tHelp = await getTranslations("Help");
   const tCommon = await getTranslations("Common");
   if (!(await isEventsModuleEnabled(organizationId))) {
     return (
       <ScreenMain>
-        <h1>{t("title")}</h1>
+        <h1>{tMenu("rubrics.retroplanning.label")}</h1>
         <p>{t("moduleUnavailable")}</p>
       </ScreenMain>
     );
@@ -39,7 +41,7 @@ export default async function TaskTemplatesPage({ searchParams }: { searchParams
   return (
     <ScreenMain>
       <PageHeader
-        title={t("taskTemplatesTitle")}
+        title={tMenu("rubrics.retroplanning.label")}
         actions={
           <Link href={`${PATH}?nouveau=1`} scroll={false} className="button-link button-link-primary">
             <Plus aria-hidden="true" />

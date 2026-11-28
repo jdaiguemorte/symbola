@@ -152,7 +152,7 @@ test.describe("UX-05 — La barre du bas et la barre du haut du téléphone (lot
     const sheet = moreSheet(page);
     await expect(sheet).toBeVisible();
     // Le reste de la navigation, dans l'ordre de la maquette, sans répéter les entrées de la barre.
-    await expect(sheet.getByRole("link").filter({ visible: true })).toHaveText([/^Contacts/, /^Rendez-vous/, /^Devis et factures/, /^Encaissements/, /^Tous les modules/, /^Paramètres/, /^Tutoriels/, /^Aide/, /^Camille · Atelier Roussel/]);
+    await expect(sheet.getByRole("link").filter({ visible: true })).toHaveText([/^Contacts/, /^Rendez-vous/, /^Devis et factures/, /^Encaissements/, /^Paramètres/, /^Aide/, /^Camille · Atelier Roussel/, /^Vos données/, /^Tous les modules/]);
     // « Se déconnecter » en dernier, à part, en encre (jamais l'action principale).
     const logoutButton = sheet.getByRole("button", { name: "Se déconnecter" });
     await expect(logoutButton).toBeVisible();

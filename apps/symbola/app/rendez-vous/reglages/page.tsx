@@ -17,11 +17,12 @@ type Query = { ok?: string; erreur?: string; type?: string };
 export default async function AppointmentSettingsPage({ searchParams }: { searchParams: Promise<Query> }) {
   const auth = await appointmentsPlanner();
   const t = await getTranslations("Appointments");
+  const tMenu = await getTranslations("SettingsMenu");
   const tHelp = await getTranslations("Help");
   if (!auth) {
     return (
       <main>
-        <h1>{t("settingsTitle")}</h1>
+        <h1>{tMenu("rubrics.appointmentTypes.label")}</h1>
         <p>{t("moduleUnavailable")}</p>
       </main>
     );
@@ -36,7 +37,7 @@ export default async function AppointmentSettingsPage({ searchParams }: { search
 
   return (
     <main>
-      <PageHeader title={t("settingsTitle")} subtitle={t("settingsSubtitle")} actions={<Link href="/rendez-vous">{t("backToList")}</Link>} />
+      <PageHeader title={tMenu("rubrics.appointmentTypes.label")} subtitle={t("settingsSubtitle")} actions={<Link href="/rendez-vous">{t("backToList")}</Link>} />
       <ScreenHelp title={tHelp("appointmentSettings.title")} body={tHelp("appointmentSettings.body")} />
       <Notice ok={query.ok} error={query.erreur} />
 
