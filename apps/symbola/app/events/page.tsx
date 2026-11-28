@@ -13,6 +13,7 @@ import {
   type EventPhase,
   type EventSummary,
 } from "@/modules/events/service";
+import type { EventTaskProgress } from "@symbola/contracts";
 import { requirePlanner } from "@/lib/guards";
 import { purgeOrganizationsDemoData } from "@/lib/demo-purge";
 import { PageTour } from "../page-tour";
@@ -105,25 +106,32 @@ export default async function EventsListPage({ searchParams }: { searchParams: P
   // AIDE-02 : un essai abandonné depuis plus de 24 h disparaît aussi dès
   // que la planner revient ici, sans attendre la purge horaire.
   await purgeOrganizationsDemoData([organizationId]);
-  const trial = await getActiveEventsTrial(organizationId);
-  const tour = await loadPageTour(auth.user.id, "events", visite);
 
   // Lot 58 (PAR-09, étape 5 ; ADR 0097) : un évènement archivé sort des listes courantes et se retrouve
   // sous « Archivés », tous statuts confondus.
   const period = periodOf(tab);
   const phase = parsePhase(status, period);
   const today = parisToday();
-  // L13-EVT-18 : années et effectifs des périodes depuis tous les évènements.
-  // Lot 52 (EVT-06, D2) : les évènements visibles de la personne (réglage de visibilité).
-  const scope = await visibleEventScope(auth);
-  const allEvents = withinScope(scope, await listEvents({ organizationId, archived: "exclude" }), (event) => event.id);
-  const years = yearOptions(allEvents.map((event) => event.eventDate), today);
-  const yearFilter = parseYear(year, years);
-  const counts = tabCounts(allEvents.map((event) => event.status));
   const calendarView = period === "upcoming" && affichage === "calendrier";
   const keep = keptQuery(query);
 
-  const sources = await listProspectSources(organizationId);
+  // NFR-02 (ADR 0115) : les lectures indépendantes partent ensemble.
+  // L13-EVT-18 : années et effectifs des périodes depuis tous les évènements ; lot 52 (EVT-06, D2) : les
+  // évènements visibles de la personne. Lot 52, 72f : l'équipe, pour savoir si l'on est dans une agence.
+  const [trial, tour, scope, everyEvent, sources, eventTypes, members, takeovers] = await Promise.all([
+    getActiveEventsTrial(organizationId),
+    loadPageTour(auth.user.id, "events", visite),
+    visibleEventScope(auth),
+    listEvents({ organizationId, archived: "exclude" }),
+    listProspectSources(organizationId),
+    listEventTypes(organizationId),
+    calendarView ? Promise.resolve([]) : taskMemberOptions(organizationId, auth.user.id),
+    calendarView ? Promise.resolve([]) : taskListViewer(auth).then((viewer) => listTakeoversInProgress(organizationId, viewer)),
+  ]);
+  const allEvents = withinScope(scope, everyEvent, (event) => event.id);
+  const years = yearOptions(allEvents.map((event) => event.eventDate), today);
+  const yearFilter = parseYear(year, years);
+  const counts = tabCounts(allEvents.map((event) => event.status));
   // PRD-EVT-07 : seule une source de l'organisation est retenue comme filtre.
   const sourceFilter = sources.some((candidate) => candidate.id === source) ? source : undefined;
 
@@ -147,23 +155,24 @@ export default async function EventsListPage({ searchParams }: { searchParams: P
       ).filter((event) => matchesPhase(event, phase));
 
   // Lot 52, 72f : dans une agence (plus d'un membre actif), le planner principal en colonne et en filtre.
-  const members = calendarView ? [] : await taskMemberOptions(organizationId, auth.user.id);
+  // Lot 72a (critère 9) : « Tâches faites », en une requête groupée, pour les seuls évènements de la liste.
   const agency = members.filter((member) => !member.removed).length > 1;
-  const leads = agency ? await listEventLeads(organizationId, filtered.map((event) => event.id)) : new Map<string, string>();
+  const filteredIds = filtered.map((event) => event.id);
+  const [leads, progress] = await Promise.all([
+    agency ? listEventLeads(organizationId, filteredIds) : Promise.resolve(new Map<string, string>()),
+    filteredIds.length > 0 ? taskProgressByEvent(organizationId, filteredIds, today) : Promise.resolve(new Map<string, EventTaskProgress>()),
+  ]);
   const leadIds = new Set(leads.values());
   const plannerFilter = agency ? parsePlanner(query.planner, leadIds) : undefined;
   const memberNames = new Map(members.map((member) => [member.id, member.name]));
   const inPlanner = plannerFilter ? filtered.filter((event) => leads.get(event.id) === plannerFilter) : filtered;
-
-  // Lot 72a (critère 9) : « Tâches faites », en une requête groupée, pour les seuls évènements de la liste.
-  const progress = inPlanner.length > 0 ? await taskProgressByEvent(organizationId, inPlanner.map((event) => event.id), today) : new Map();
-  const withProgress = inPlanner.map((event) => ({ ...event, taskProgress: progress.get(event.id) }));
+  const withProgress = inPlanner.map((event) => ({ ...event, taskProgress: progress.get(event.id) ?? { done: 0, total: 0, late: 0 } }));
 
   // Lot 71f (EVT-07, P-06) : la marque « Repris · 3 fichiers sur 6 » tant que la reprise n'est pas complétée.
-  const takeoverMarks = new Map((await listTakeoversInProgress(organizationId, await taskListViewer(auth))).map((entry) => [entry.eventId, entry]));
+  const takeoverMarks = new Map(takeovers.map((entry) => [entry.eventId, entry]));
 
   // Lot 63c (EVT-01, Q43) : un évènement sans client (un shooting photo) prend le nom de son type.
-  const typeLabels = new Map((await listEventTypes(organizationId)).map((type) => [type.id, type.label]));
+  const typeLabels = new Map(eventTypes.map((type) => [type.id, type.label]));
   function nameOf(event: Pick<EventSummary, "clients" | "eventTypeId" | "name">): string {
     if (event.name) return event.name;
     if (event.clients.length === 0) return (event.eventTypeId ? typeLabels.get(event.eventTypeId) : undefined) ?? t("noClient");

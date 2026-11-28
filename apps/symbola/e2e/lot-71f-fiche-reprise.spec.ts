@@ -182,7 +182,8 @@ test.describe("EVT-02 — La fiche d'un mariage repris (lot 71f)", () => {
     const lea = page.getByRole("row", { name: /Léa & Hugo/ });
     await expect(lea.getByRole("link", { name: /Repris · 6 points à compléter/ })).toHaveAttribute("href", `/reprise/${setup.lea.takeoverId}`);
     await expect(page.getByRole("row", { name: /Léa & Maxime/ }).locator(".takeover-mark")).toHaveCount(0);
-    // Le filtre s'applique dès le choix.
+    // Le filtre s'applique dès le choix. Lot 72f (C-81) : sur téléphone, les filtres sont dans « Filtres ».
+    if (isPhone(page)) await page.getByRole("button", { name: "Filtres" }).click();
     await page.getByLabel("Origine").selectOption("repris");
     await expect(page).toHaveURL(/origine=repris/);
     await expect(page.getByRole("row", { name: /Léa & Hugo/ })).toBeVisible();

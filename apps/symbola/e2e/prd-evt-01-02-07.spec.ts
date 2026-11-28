@@ -122,6 +122,8 @@ test("PRD-EVT-01/02 / EVT-05 — un prospect apparaît dans la liste en Option, 
   await expect(item).toContainText("Une demande en cours");
   // L13-EVT-18 : l'année se choisit dans une liste (jamais 1 ni −1) et les
   // filtres ont tous la même hauteur.
+  // Lot 72f (C-81) : sur téléphone, les filtres sont dans le panneau « Filtres ».
+  if ((page.viewportSize()?.width ?? 1280) < 640) await page.getByRole("button", { name: "Filtres" }).click();
   const years = await page.getByLabel("Année").locator("option").allTextContents();
   expect(years).toContain(String(new Date().getFullYear()));
   expect(years).not.toContain("1");
@@ -137,7 +139,7 @@ test("PRD-EVT-01/02 / EVT-05 — un prospect apparaît dans la liste en Option, 
   await page.getByLabel("Venu par").selectOption({ label: "Salon" });
   await expect(page).toHaveURL(/source=/);
   await expect(item).toBeVisible();
-  await page.getByLabel("Rechercher", { exact: true }).fill(firstName);
+  await page.getByRole("search", { name: "Filtrer les évènements" }).getByLabel("Rechercher").fill(firstName);
   await expect(page).toHaveURL(/search=/);
   await expect(item).toBeVisible();
 
