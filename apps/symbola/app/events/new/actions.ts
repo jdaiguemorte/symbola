@@ -6,7 +6,10 @@ import { getLocale, getTranslations } from "next-intl/server";
 import type { EventClientInput } from "@symbola/contracts";
 import { appDatabase } from "@symbola/db/client";
 import { ContactNotFoundError, isModuleEnabled } from "@/modules/hub/service";
-import { makeCreatorLead, changeEventStatus, countOrganizationRealEvents, createProspect, getActiveEventsTrial, listEventTypes, listTaskTemplates, createTypedDocumentFolders, TaskTemplateNotFoundError } from "@/modules/events/service";
+import { makeCreatorLead, changeEventStatus, countOrganizationRealEvents, createProspect, getActiveEventsTrial, listEventTypes, listTaskTemplates, createTypedDocumentFolders, TaskTemplateNotFoundError, TemplatePastDueInvalidError } from "@/modules/events/service";
+import { templateDueDate, type PastDueAnswers } from "@symbola/contracts";
+import { readPastDueAnswers } from "./past-due-form";
+import { parisToday } from "@symbola/i18n";
 import { getPlannerAuthContext } from "@/lib/auth-context";
 import { isEventsModuleEnabled } from "../module-access";
 import { fieldErrors, formValues, translatedFieldErrors } from "@/lib/forms/field-validation";
@@ -15,10 +18,21 @@ import { parseStanding, statusForStanding } from "./new-event-standing";
 
 // Lot 70b (UX-10) : `fieldErrors`, les erreurs de saisie traduites, sous les champs. Lot 70e : `created`,
 // l'évènement créé, que l'écran ouvre en disant ce qu'il contient (le message de retour).
-export type NewEventFormState = { error?: string; fieldErrors?: Record<string, string>; created?: { id: string; href: string; tasks: number; budget: boolean } };
+// Lot 74b (B7) : `pastDue`, ce que l'étape des échéances passées a donné (faites, redatées, à dater).
+export type NewEventFormState = { error?: string; fieldErrors?: Record<string, string>; created?: { id: string; href: string; tasks: number; budget: boolean; pastDue?: { done: number; todo: number; undated: number } } };
+
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
+
+function pastDueSummary(items: { id: string; offsetDays: number }[], eventDate: string, pastDue: PastDueAnswers): { done: number; todo: number; undated: number } | undefined {
+  const today = parisToday();
+  const past = items.filter((item) => templateDueDate(eventDate, item.offsetDays) < today);
+  if (past.length === 0) return undefined;
+  const done = past.filter((item) => pastDue.answers[item.id] === "done").length;
+  const todo = pastDue.spread === "undated" ? 0 : past.filter((item) => pastDue.answers[item.id] === "todo").length;
+  return { done, todo, undated: past.length - done - todo };
+}
 
 // Lot 70e (EVT-01, EVT-05, PAR-01 ; D8, M13, A10, A13, A14) — « Nouvel évènement », une seule forme :
 // la réponse à « Où en est-il ? » donne le statut (Option ou Confirmé), le nom est demandé, le reste est
@@ -59,8 +73,18 @@ export async function createEventAction(_prevState: NewEventFormState, formData:
   if (contactId1) clients.push({ contactId: contactId1, firstName: "" });
   else if (firstName1) clients.push({ firstName: firstName1, lastName: lastName1 || null });
 
-  // Lot 63c (ADR 0106) : le modèle du type, posé d'emblée pour un évènement signé, daté.
-  const template = confirmed && eventDate ? (await listTaskTemplates(organizationId)).find((candidate) => candidate.eventTypeId === eventType.id) : undefined;
+  // Lot 63c (ADR 0106) : le modèle du type, posé d'emblée pour un évènement signé, daté. Lot 74b (C-67) :
+  // « Changer » en choisit un autre (`template`, un modèle de l'organisation) ou aucun (« none »).
+  const templateChoice = String(formData.get("template") ?? "").trim();
+  const templates = confirmed && eventDate ? await listTaskTemplates(organizationId) : [];
+  const template = templateChoice === "none" ? undefined : templateChoice ? templates.find((candidate) => candidate.id === templateChoice) : templates.find((candidate) => candidate.eventTypeId === eventType.id);
+  if (confirmed && eventDate && templateChoice && templateChoice !== "none" && !template) return { error: t("taskTemplateUnavailable") };
+  // Lot 74b (B7) : chaque réponse porte sur une tâche de ce modèle ; sinon rien n'est créé (une tâche d'un
+  // autre modèle ou d'une autre organisation n'est pas lue).
+  const pastDue = readPastDueAnswers(formData);
+  if (!pastDue) return { error: t("pastDue.invalid") };
+  if (template && Object.keys(pastDue.answers).some((id) => !template.items.some((item) => item.id === id))) return { error: t("pastDue.invalid") };
+  if (!template && Object.keys(pastDue.answers).length > 0) return { error: t("pastDue.invalid") };
 
   let result: { id: string };
   try {
@@ -75,9 +99,11 @@ export async function createEventAction(_prevState: NewEventFormState, formData:
       venueName: null,
       venueCity: null,
       taskTemplateId: template?.id ?? null,
+      pastDue: { tasks: pastDue.answers, spread: pastDue.spread },
     });
   } catch (error) {
     if (error instanceof TaskTemplateNotFoundError) return { error: t("taskTemplateUnavailable") };
+    if (error instanceof TemplatePastDueInvalidError) return { error: t("pastDue.invalid") };
     // Un contact choisi qui n'existe pas (ou plus) dans l'organisation.
     if (error instanceof ContactNotFoundError) return { error: (await getTranslations("Contacts"))("notFound") };
     return { error: await unexpectedActionError(error) };
@@ -95,12 +121,14 @@ export async function createEventAction(_prevState: NewEventFormState, formData:
   const first = example ? (await countOrganizationRealEvents(organizationId)) === 1 : false;
   // Lot 39b (UX-09) : l'évènement est créé, le brouillon de la saisie n'a plus lieu d'être.
   await discardMyFormDraft("event-new");
+  const summary = template && eventDate ? pastDueSummary(template.items, eventDate, pastDue) : undefined;
   return {
     created: {
       id: result.id,
       href: `/events/${result.id}${first ? "?exemple=proposer" : ""}`,
       tasks: template && eventDate ? template.items.length : 0,
       budget: await isModuleEnabled(appDatabase(), organizationId, "budget"),
+      ...(summary ? { pastDue: summary } : {}),
     },
   };
 }
