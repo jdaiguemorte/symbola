@@ -18,12 +18,13 @@ export default async function EventTemplatesPage() {
   const organizationId = auth.user.organizationId;
   if (!(await isEventsModuleEnabled(organizationId))) notFound();
   const t = await getTranslations("EventTemplates");
+  const tMenu = await getTranslations("SettingsMenu");
   const tHelp = await getTranslations("Help");
   const locale = (await getLocale()) as Locale;
   const templates = await listEventTemplates(organizationId);
   return (
     <main>
-      <PageHeader title={t("title")} subtitle={t("subtitle")} />
+      <PageHeader title={tMenu("rubrics.eventTemplates.label")} subtitle={t("subtitle")} />
       <ScreenHelp title={tHelp("eventTemplatesList.title")} body={tHelp("eventTemplatesList.body")} />
       {templates.length === 0 ? <p>{t("empty")}</p> : null}
       <ul className="plain-list stack" aria-label={t("listLabel")}>

@@ -26,7 +26,7 @@ export function AddMealTypeForm() {
         {t("label")}
         <input name="label" required maxLength={60} />
       </label>
-      <button type="submit" disabled={pending}>
+      <button type="submit" className="button-secondary" disabled={pending}>
         {t("add")}
       </button>
       {state.error ? <p role="alert">{state.error}</p> : null}

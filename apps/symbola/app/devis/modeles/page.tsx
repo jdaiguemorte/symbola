@@ -17,13 +17,14 @@ export default async function QuoteTemplatesPage() {
   const auth = await requirePlanner();
   const organizationId = auth.user.organizationId;
   const t = await getTranslations("Quotes");
+  const tMenu = await getTranslations("SettingsMenu");
   const tHelp = await getTranslations("Help");
   const locale = (await getLocale()) as Locale;
 
   if (!(await isQuotesModuleEnabled(organizationId))) {
     return (
       <main>
-        <h1>{t("templatesTitle")}</h1>
+        <h1>{tMenu("rubrics.quoteTemplates.label")}</h1>
         <p>{t("moduleUnavailable")}</p>
       </main>
     );
@@ -34,7 +35,7 @@ export default async function QuoteTemplatesPage() {
 
   return (
     <main>
-      <h1>{t("templatesTitle")}</h1>
+      <h1>{tMenu("rubrics.quoteTemplates.label")}</h1>
       <ScreenHelp title={tHelp("quotesTemplates.title")} body={tHelp("quotesTemplates.body")} />
       <p role="note" className="adapt-warning">
         {t("templateAdaptWarning")}

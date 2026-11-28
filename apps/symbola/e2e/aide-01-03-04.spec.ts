@@ -120,7 +120,8 @@ test("HUB-11 / AIDE-03 — visite guidée de l'accueil, aide consultable", async
   // L'aide de la console d'Administration n'est pas proposée à l'équipe.
   await expect(page.getByRole("heading", { name: "Exploitation de la suite" })).toHaveCount(0);
   await page.getByLabel("Rechercher dans l'aide").fill("TVA");
-  await expect(page.getByRole("link", { name: /Entreprise et TVA/ })).toBeVisible();
+  // Lot 74g : « Entreprise et TVA » est devenu « Fiche de l'entreprise ».
+  await expect(page.getByRole("link", { name: /Fiche de l'entreprise/ })).toBeVisible();
   await expect(page.getByRole("link", { name: /Liste des évènements/ })).toHaveCount(0);
   await expect(page.locator(".help-search").getByRole("status")).toContainText("Écrans trouvés");
 

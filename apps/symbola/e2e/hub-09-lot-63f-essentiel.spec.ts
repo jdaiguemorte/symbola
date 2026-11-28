@@ -94,7 +94,7 @@ test("HUB-09 / HUB-18 / HUB-23 — « L'essentiel » : six questions, une par é
   await expect(page).toHaveURL("/");
 
   // Les réponses sont dans les Paramètres, qui ne servent plus qu'à modifier ensuite.
-  await page.goto("/parametres");
+  await page.goto("/parametres/entreprise");
   await expect(page.getByLabel("SIRET")).toHaveValue("73282932000074");
   await expect(page.getByLabel("Ville")).toHaveValue("Lyon");
   await page.goto("/devis/parametres");

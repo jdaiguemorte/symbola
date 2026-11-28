@@ -77,7 +77,7 @@ test("Lot 18 — menu, « Plus d'options », pastille des tutoriels et estimatio
 
   // L18-PRE-16 : l'écran dit où sert l'estimation et en montre un exemple, recalculé à la saisie.
   await page.goto("/prestataires/parametres/trajet");
-  await expect(page.getByRole("heading", { level: 1, name: "Estimation des trajets" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "Prestataires : trajets" })).toBeVisible();
   await expect(page.getByText(/autour d'un lieu/)).toBeVisible();
   await expect(page.getByText(/40 km à vol d'oiseau → environ 52 km de route, ≈ 52 min/)).toBeVisible();
   await page.getByLabel(/Coefficient de détour/).fill("2");

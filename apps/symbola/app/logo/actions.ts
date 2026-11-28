@@ -11,6 +11,8 @@ export async function removeLogoAction(): Promise<void> {
   const auth = await getPlannerAuthContext();
   if (auth.status !== "authenticated" || !auth.user.organizationId) return;
   await removeOrganizationLogo(appDatabase(), auth.user.organizationId);
-  revalidatePath("/parametres");
+  // Lot 74g : « Entreprise et TVA » est devenu deux rubriques.
+  revalidatePath("/parametres/entreprise");
+  revalidatePath("/parametres/mentions");
   revalidatePath("/devis/parametres/documents");
 }

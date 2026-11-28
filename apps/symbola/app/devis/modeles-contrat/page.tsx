@@ -18,6 +18,7 @@ export default async function ContractTemplatesPage() {
   const auth = await requirePlanner();
   const organizationId = auth.user.organizationId;
   const t = await getTranslations("Contracts");
+  const tMenu = await getTranslations("SettingsMenu");
   const tQuotes = await getTranslations("Quotes");
   const tHelp = await getTranslations("Help");
   const locale = (await getLocale()) as Locale;
@@ -25,7 +26,7 @@ export default async function ContractTemplatesPage() {
   if (!(await isQuotesModuleEnabled(organizationId))) {
     return (
       <main>
-        <h1>{t("templatesTitle")}</h1>
+        <h1>{tMenu("rubrics.contractTemplates.label")}</h1>
         <p>{tQuotes("moduleUnavailable")}</p>
       </main>
     );
@@ -36,7 +37,7 @@ export default async function ContractTemplatesPage() {
 
   return (
     <main className="quote-screen">
-      <h1>{t("templatesTitle")}</h1>
+      <h1>{tMenu("rubrics.contractTemplates.label")}</h1>
       <ScreenHelp title={tHelp("contractTemplates.title")} body={tHelp("contractTemplates.body")} />
       <p role="note" className="adapt-warning">
         {contractTemplateWarning(locale)}

@@ -14,6 +14,7 @@ export default async function NotificationSettingsPage() {
   const auth = await requirePlanner();
   const { organizationId, id: userId } = auth.user;
   const t = await getTranslations("Notifications");
+  const tMenu = await getTranslations("SettingsMenu");
   const tHelp = await getTranslations("Help");
   const locale = (await getLocale()) === "en" ? "en" : "fr";
   const format = await getFormatter();
@@ -27,7 +28,7 @@ export default async function NotificationSettingsPage() {
   }));
   return (
     <main>
-      <h1>{t("settings.title")}</h1>
+      <h1>{tMenu("rubrics.notifications.label")}</h1>
       <ScreenHelp title={tHelp("notificationSettings.title")} body={tHelp("notificationSettings.body")} />
       <p>{t("settings.intro")}</p>
       <section className="card" aria-labelledby="notification-types-title">

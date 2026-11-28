@@ -18,11 +18,12 @@ export default async function BusyRangesSettingsPage() {
   const auth = await requirePlanner();
   const organizationId = auth.user.organizationId;
   const t = await getTranslations("Busy");
+  const tMenu = await getTranslations("SettingsMenu");
   if (!(await isEventsModuleEnabled(organizationId))) {
     const tEvents = await getTranslations("Events");
     return (
       <main>
-        <h1>{t("settingsTitle")}</h1>
+        <h1>{tMenu("rubrics.busyRanges.label")}</h1>
         <p>{tEvents("moduleUnavailable")}</p>
       </main>
     );
@@ -77,7 +78,7 @@ export default async function BusyRangesSettingsPage() {
 
   return (
     <main>
-      <h1>{t("settingsTitle")}</h1>
+      <h1>{tMenu("rubrics.busyRanges.label")}</h1>
       <ScreenHelp title={tHelp("busyRanges.title")} body={tHelp("busyRanges.body")} />
       <p>{t("settingsIntro")}</p>
       <div className="list-table-wrap">

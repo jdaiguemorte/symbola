@@ -44,7 +44,9 @@ export async function POST(request: Request): Promise<Response> {
     }
     throw error;
   }
-  revalidatePath("/parametres");
+  // Lot 74g : « Entreprise et TVA » est devenu deux rubriques.
+  revalidatePath("/parametres/entreprise");
+  revalidatePath("/parametres/mentions");
   revalidatePath("/devis/parametres/documents");
   return uploadResponse({ success: true });
 }

@@ -15,11 +15,12 @@ export default async function DayChecklistTemplatesPage() {
   const auth = await requirePlanner();
   const organizationId = auth.user.organizationId;
   const t = await getTranslations("DayChecklists");
+  const tMenu = await getTranslations("SettingsMenu");
   const tHelp = await getTranslations("Help");
   if (!(await isEventsModuleEnabled(organizationId))) {
     return (
       <main>
-        <h1>{t("title")}</h1>
+        <h1>{tMenu("rubrics.dayChecklists.label")}</h1>
         <p>{t("unavailable")}</p>
       </main>
     );
@@ -27,7 +28,7 @@ export default async function DayChecklistTemplatesPage() {
   const [templates, leadDays] = await Promise.all([listDayChecklistTemplates(organizationId, (await getLocale()) === "en" ? "en" : "fr"), getDayOfLeadDays(organizationId)]);
   return (
     <main>
-      <h1>{t("title")}</h1>
+      <h1>{tMenu("rubrics.dayChecklists.label")}</h1>
       <ScreenHelp title={tHelp("dayChecklists.title")} body={tHelp("dayChecklists.body")} />
       {/* Lot 72d (EVT-02 ; J9) : en tête de l'écran, le délai de « Ouvrir le Jour J » dans l'en-tête de la fiche. */}
       <section className="card">

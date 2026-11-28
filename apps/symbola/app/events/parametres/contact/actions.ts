@@ -35,6 +35,6 @@ export async function saveContactSettingsAction(_previous: ContactSettingsState,
     if (error instanceof ContactFormInvalidError) return { error: t(`invalid.${error.field}`) };
     throw error;
   }
-  revalidatePath("/events/parametres/contact");
+  revalidatePath("/events/parametres/etapes");
   return { saved: true };
 }

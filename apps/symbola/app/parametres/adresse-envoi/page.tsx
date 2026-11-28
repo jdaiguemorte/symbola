@@ -11,11 +11,12 @@ import { SenderAddressForm } from "./sender-address-form";
 export default async function SenderAddressPage() {
   const auth = await requirePlanner();
   const t = await getTranslations("SenderAddress");
+  const tMenu = await getTranslations("SettingsMenu");
   const tHelp = await getTranslations("Help");
   const sender = await getSenderAddress(auth.user.organizationId);
   return (
     <main>
-      <h1>{t("title")}</h1>
+      <h1>{tMenu("rubrics.senderAddress.label")}</h1>
       <ScreenHelp title={tHelp("senderAddress.title")} body={tHelp("senderAddress.body")} />
       <p>{t("intro")}</p>
       <section className="card stack" aria-labelledby="sender-current-title">
