@@ -72,13 +72,17 @@ test("EVT-01, EVT-07, CHR-01 — « Nouvel évènement » sur les trois vues ; u
   await signIn(page, setup.email);
 
   // Un seul en-tête sur les trois vues, avec « Nouvel évènement » au même endroit, une seule entrée (D8).
+  // Lot 72f (C-81) : sur téléphone, la liste et le calendrier laissent « Nouvel évènement » à « Créer » de la barre du
+  // haut, et les vues au menu « ⋯ » ; la vue « Colonnes » garde son en-tête.
+  const phone = (page.viewportSize()?.width ?? 1280) < 640;
   for (const [view, path] of [["Liste", "/events"], ["Colonnes", "/events/pipeline"], ["Calendrier", "/events?affichage=calendrier"]] as const) {
     await page.goto(path);
+    if (phone && view !== "Colonnes") continue;
     await expect(page.getByRole("heading", { level: 1, name: "Évènements" })).toBeVisible();
     await expect(page.getByRole("navigation", { name: "Affichage" }).getByRole("link", { name: view })).toHaveAttribute("aria-current", "page");
     await expect(page.getByRole("link", { name: "Nouvel évènement", exact: true })).toBeVisible();
   }
-  await page.goto("/events");
+  await page.goto(phone ? "/events/pipeline" : "/events");
   await page.getByRole("link", { name: "Nouvel évènement", exact: true }).click();
   await expect(page).toHaveURL(/\/events\/new$/);
   await expectNoAxeViolation(page);
@@ -217,7 +221,9 @@ test("UX-09, UX-13 — Les réglages d'un écran s'ouvrent dans le panneau ; le 
   const setup = await planner();
   await signIn(page, setup.email);
   await page.goto("/events?tab=termines");
-  await page.getByRole("link", { name: /Réglages/ }).first().click();
+  // Lot 72f (G14) : les réglages de la liste des évènements sont au menu « ⋯ », section « Réglages ».
+  await page.getByRole("button", { name: /^Autres actions/ }).click();
+  await page.getByRole("menuitem", { name: "Paramètres des évènements" }).click();
   const panel = page.getByRole("complementary", { name: "Réglages" });
   await expect(panel).toBeVisible();
   await expect(panel.getByRole("heading", { level: 1 })).toBeVisible();

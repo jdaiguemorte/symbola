@@ -4,7 +4,8 @@ import { findPendingOwnershipTransfer, listTeam } from "@symbola/auth";
 import { appDatabase } from "@symbola/db/client";
 import { formatDate, formatDateTime, type Locale } from "@symbola/i18n";
 import { ScreenHelp } from "@/app/screen-help";
-import { PageHeader } from "@/app/ui/page-header";
+import { SettingsHeader } from "@/app/ui/settings-header";
+import { settingsScopeLine } from "@/lib/settings/settings-header-texts";
 import { requireOwner } from "@/lib/guards";
 import { cancelOwnershipTransferAction, removeMemberAction, requestOwnershipTransferAction, setEventVisibilityAction } from "./actions";
 import { InviteMemberForm } from "./invite-form";
@@ -45,10 +46,28 @@ export default async function TeamPage({ searchParams }: { searchParams: Promise
   const visibility = await getEventVisibility(appDatabase(), auth.user.organizationId);
   const transferOutcome = TRANSFER_OUTCOMES.find((outcome) => outcome === query.transfert);
 
+  const tPattern = await getTranslations("SettingsPattern");
+  const scope = await settingsScopeLine({ scope: "agency", editors: "owner", saving: "none", isOwner: true });
   return (
-    <main>
-      <PageHeader title={tMenu("rubrics.team.label")} subtitle={t("subtitle")} />
+    <main className="stack">
+      {/* Lot 74h (D7, G8 ; page 30) : l'en-tête commun ; « Inviter » vient en premier, son bouton est le seul
+          plein de l'écran (il était sous le pli). */}
+      <SettingsHeader title={tMenu("rubrics.team.label")} hint={tPattern("headers.team")} scope={scope} />
       <ScreenHelp title={tHelp("team.title")} body={tHelp("team.body")} />
+      <section className="card" aria-labelledby="invite-title">
+        <h2 id="invite-title">{t("inviteTitle")}</h2>
+        <InviteMemberForm />
+        {pending.length > 0 ? (
+          <>
+            <h3>{t("pendingTitle")}</h3>
+            <ul>
+              {pending.map((invitation) => (
+                <li key={invitation.id}>{t("pendingUntil", { email: invitation.email, date: formatDate(invitation.expiresAt, locale), role: t(`roles.${invitation.role}`) })}</li>
+              ))}
+            </ul>
+          </>
+        ) : null}
+      </section>
       {query.retire === "1" ? <p role="status">{t("removed")}</p> : null}
       {transferOutcome ? <p role={transferOutcome === "sent" || transferOutcome === "cancelled" ? "status" : "alert"}>{t(`transferOutcome.${transferOutcome}`)}</p> : null}
       {query.visibilite === "1" ? <p role="status">{t("visibilitySaved")}</p> : null}
@@ -140,20 +159,6 @@ export default async function TeamPage({ searchParams }: { searchParams: Promise
         </form>
       </section>
 
-      <section className="card" aria-labelledby="invite-title">
-        <h2 id="invite-title">{t("inviteTitle")}</h2>
-        <InviteMemberForm />
-        {pending.length > 0 ? (
-          <>
-            <h3>{t("pendingTitle")}</h3>
-            <ul>
-              {pending.map((invitation) => (
-                <li key={invitation.id}>{t("pendingUntil", { email: invitation.email, date: formatDate(invitation.expiresAt, locale), role: t(`roles.${invitation.role}`) })}</li>
-              ))}
-            </ul>
-          </>
-        ) : null}
-      </section>
     </main>
   );
 }

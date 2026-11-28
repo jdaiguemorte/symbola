@@ -76,7 +76,6 @@
     "trialNoInvite": "Pendant l'essai, aucun lien n'est envoyé : les liens ne se créent que sur un vrai évènement.",
     "trialStepQuote": "Composez un devis fictif, faites-le signer par le client fictif sur la page de signature d'essai, puis émettez ses factures (série DEMO, en filigrane).",
     "tabClients": "Clients",
-    "columnClients": "Clients",
     "clientContactTitle": "Coordonnées des clients",
     "programPdfFileCouple": "programme-clients",
     "taskColumnEvent": "Évènement"

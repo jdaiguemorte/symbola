@@ -1,57 +1,52 @@
 "use client";
 
 // Lot 53 (GC-02, CHR-05 ; D7) — une règle du radar (active, seuil) ; les seuils de la santé du planning.
-import { useActionState } from "react";
+// Lot 74h (D7, G8 ; page 30) : réglages isolés, enregistrés au changement de la case ou à la sortie du
+// champ, « ✓ Enregistré » à côté ; plus de bouton « Enregistrer ». Une valeur hors bornes s'écrit sous
+// le champ et n'est pas envoyée.
 import { useTranslations } from "next-intl";
-import { saveHealthThresholdsAction, saveRiskRuleAction, type RadarFormState } from "./actions";
+import { AutoSettingForm, SettingStatus } from "@/app/ui/auto-setting-form";
+import type { SavedLabels } from "@/app/ui/saved-indicator";
+import { saveHealthThresholdsAction, saveRiskRuleAction } from "./actions";
 
-export function RiskRuleForm({ rule, label, enabled, thresholdDays, disabled }: { rule: string; label: string; enabled: boolean; thresholdDays: number; disabled: boolean }) {
+export function RiskRuleForm({ rule, label, enabled, thresholdDays, disabled, saved, invalid }: { rule: string; label: string; enabled: boolean; thresholdDays: number; disabled: boolean; saved: SavedLabels; invalid: string }) {
   const t = useTranslations("RiskRadar");
-  const [state, formAction, pending] = useActionState<RadarFormState, FormData>(saveRiskRuleAction, {});
   return (
-    <form action={formAction} className="form-inline" aria-label={label}>
+    <AutoSettingForm action={saveRiskRuleAction} labels={saved} ariaLabel={label} className="setting-line-control" invalid={{ thresholdDays: invalid }}>
       <input type="hidden" name="rule" value={rule} />
       <label className="checkbox-row">
         <input type="checkbox" name="enabled" defaultChecked={enabled} disabled={disabled} />
         {t("settings.enabled")}
       </label>
+      <SettingStatus name="enabled" />
       <label>
         {t("settings.threshold")}
-        <input type="number" name="thresholdDays" className="field-short" min={0} max={365} defaultValue={thresholdDays} required disabled={disabled} />
+        <input type="number" name="thresholdDays" className="field-short setting-days" min={0} max={365} defaultValue={thresholdDays} required disabled={disabled} />
       </label>
-      <button type="submit" disabled={pending || disabled} className="button-secondary">
-        {t("settings.save")}
-      </button>
-      {state.error ? <p role="alert">{state.error}</p> : null}
-      {state.success ? <p role="status">{t("settings.saved")}</p> : null}
-    </form>
+      <SettingStatus name="thresholdDays" />
+    </AutoSettingForm>
   );
 }
 
-export function HealthThresholdsForm({ watchPoints, latePoints, milestoneWeight, disabled }: { watchPoints: number; latePoints: number; milestoneWeight: number; disabled: boolean }) {
+export function HealthThresholdsForm({ watchPoints, latePoints, milestoneWeight, disabled, saved, invalid }: { watchPoints: number; latePoints: number; milestoneWeight: number; disabled: boolean; saved: SavedLabels; invalid: string }) {
   const t = useTranslations("RiskRadar");
-  const [state, formAction, pending] = useActionState<RadarFormState, FormData>(saveHealthThresholdsAction, {});
   return (
-    <form action={formAction}>
-      <div className="form-row">
-        <label>
-          {t("health.watchPoints")}
-          <input type="number" name="watchPoints" min={1} max={100} defaultValue={watchPoints} required disabled={disabled} />
-        </label>
-        <label>
-          {t("health.latePoints")}
-          <input type="number" name="latePoints" min={1} max={100} defaultValue={latePoints} required disabled={disabled} />
-        </label>
-        <label>
-          {t("health.milestoneWeight")}
-          <input type="number" name="milestoneWeight" min={1} max={10} defaultValue={milestoneWeight} required disabled={disabled} />
-        </label>
-      </div>
-      <button type="submit" disabled={pending || disabled}>
-        {t("settings.save")}
-      </button>
-      {state.error ? <p role="alert">{state.error}</p> : null}
-      {state.success ? <p role="status">{t("health.saved")}</p> : null}
-    </form>
+    <AutoSettingForm action={saveHealthThresholdsAction} labels={saved} ariaLabel={t("health.title")} invalid={{ watchPoints: invalid, latePoints: invalid, milestoneWeight: invalid }}>
+      {(
+        [
+          ["watchPoints", watchPoints, 100],
+          ["latePoints", latePoints, 100],
+          ["milestoneWeight", milestoneWeight, 10],
+        ] as const
+      ).map(([name, value, max]) => (
+        <div key={name} className="setting-line-control">
+          <label>
+            {t(`health.${name}`)}
+            <input type="number" name={name} className="field-short setting-days" min={1} max={max} defaultValue={value} required disabled={disabled} />
+          </label>
+          <SettingStatus name={name} />
+        </div>
+      ))}
+    </AutoSettingForm>
   );
 }

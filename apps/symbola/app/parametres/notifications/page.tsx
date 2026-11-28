@@ -1,5 +1,9 @@
 // Lot 53 (HUB-15, UX-16, ARC-09 ; D1, D2, D4 ; ADR 0095) — « Notifications » des Paramètres : les
 // réglages de la personne connectée (chaque membre a les siens).
+// Lot 74h (D7, G8 ; page 30) : au patron d'un écran de réglage. L'en-tête commun (« Pour vous seule ») ;
+// chaque réglage s'enregistre seul ; « Notifications push sur cet appareil » devient « Ce téléphone ».
+import { SettingsHeader } from "@/app/ui/settings-header";
+import { savedIndicatorLabels, settingsScopeLine } from "@/lib/settings/settings-header-texts";
 import { getFormatter, getLocale, getTranslations } from "next-intl/server";
 import { NOTIFICATION_CHANNELS, NOTIFICATION_TYPES, type NotificationChannel } from "@symbola/contracts";
 import { starterNotifications } from "@symbola/starter-templates";
@@ -26,20 +30,22 @@ export default async function NotificationSettingsPage() {
     immediate: starter.types[type]?.immediate ?? false,
     channels: Object.fromEntries(NOTIFICATION_CHANNELS.map((channel) => [channel, preferences.find((preference) => preference.type === type && preference.channel === channel)?.enabled ?? false])) as Record<NotificationChannel, boolean>,
   }));
+  const tPattern = await getTranslations("SettingsPattern");
+  const [saved, scope] = await Promise.all([savedIndicatorLabels(), settingsScopeLine({ scope: "personal", editors: "self", saving: "auto", isOwner: auth.user.role === "owner" })]);
+  const thisPhone = tPattern("notifications.thisPhone");
   return (
-    <main>
-      <h1>{tMenu("rubrics.notifications.label")}</h1>
+    <main className="stack">
+      <SettingsHeader title={tMenu("rubrics.notifications.label")} hint={tPattern("headers.notifications")} scope={scope} />
       <ScreenHelp title={tHelp("notificationSettings.title")} body={tHelp("notificationSettings.body")} />
-      <p>{t("settings.intro")}</p>
       <section className="card" aria-labelledby="notification-types-title">
         <h2 id="notification-types-title">{t("settings.typesTitle")}</h2>
-        <PreferencesForm rows={rows} />
+        <PreferencesForm rows={rows} saved={saved} />
       </section>
       <section className="card">
-        <ScheduleForm settings={settings} />
+        <ScheduleForm settings={settings} saved={saved} />
       </section>
       <section className="card" aria-labelledby="push-title">
-        <h2 id="push-title">{t("push.title")}</h2>
+        <h2 id="push-title">{thisPhone}</h2>
         <PushDevice publicKey={pushPublicKey()} />
         <h3>{t("push.devicesTitle")}</h3>
         {devices.length === 0 ? (

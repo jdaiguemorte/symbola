@@ -64,9 +64,15 @@ export const SERVER_ONLY_NAMESPACES = [
   // Lot 74f : la page « Aide », sa recherche et ses réponses, rendues côté serveur ; le champ de recherche
   // reçoit ses libellés en propriétés. Les articles, les mots voisins et l'index ne quittent pas le serveur.
   "HelpHome",
+  // Lot 72f : la liste des évènements, rendue côté serveur ; son menu « ⋯ » et son panneau des filtres reçoivent
+  // leurs textes en propriétés.
+  "EventsList",
   // Lot 73d : la fenêtre de création et la fiche d'un prestataire reçoivent leurs textes de l'écran.
   "VendorCreate",
   "VendorSheet",
+  // Lot 74h : le patron d'un écran de réglage (en-tête, « ✓ Enregistré », barre d'enregistrement) ; ses
+  // composants client reçoivent leurs mots en propriétés.
+  "SettingsPattern",
 ] as const;
 
 // Lot 74f (consigne du 28/11 sur le poids des pages) : dans « Tutorials », le panneau client ne lit que les

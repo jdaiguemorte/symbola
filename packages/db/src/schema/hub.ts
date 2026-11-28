@@ -1708,6 +1708,10 @@ export const automations = hubSchema.table(
     enabled: boolean("enabled").notNull(),
     days: integer("days"),
     resumedAt: timestamp("resumed_at", { withTimezone: true }),
+    // Lot 74h (HUB-28, GC-02 ; G10, A6) : quand et par qui l'automatisme a été coupé ; nuls quand il est en
+    // marche, ou coupé avant ce lot (L74-D6 : « Coupé », sans date ni nom).
+    pausedAt: timestamp("paused_at", { withTimezone: true }),
+    pausedBy: uuid("paused_by"),
     // Lot 53 (GC-02) : jour (Paris) du dernier passage du radar, une fois par matin.
     lastRunOn: date("last_run_on"),
     // Lot 66a (HUB-28 ; D1) : heure d'envoi propre à l'automatisme, heure locale de l'évènement, au

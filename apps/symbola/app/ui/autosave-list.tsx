@@ -7,21 +7,30 @@
 // action serveur, rien de nouveau n'est écrit côté serveur pour annuler. Les actions de ligne
 // (monter, masquer, archiver) passent par la même barre.
 // L'enregistrement d'une fiche (une seule ligne, version et conflits) reste « autosave-form.tsx ».
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type FocusEvent, type FormEvent, type KeyboardEvent, type ReactNode } from "react";
+//
+// Lot 74h (D7, G8 ; page 30 des maquettes du lot 68) : avec `rowStatus` (les mots de « ✓ Enregistré »,
+// `savedIndicatorLabels()`), « ✓ Enregistré » s'écrit sur la ligne enregistrée (`status` rendu par
+// useAutosaveRow, à poser dans un SavedIndicator) au lieu de la barre ; la barre ne paraît plus que pour une
+// erreur ou « Annuler la dernière modification ». Sans `rowStatus`, rien ne change (écrans des vagues 74i et
+// 74j pas encore basculés).
+import { createContext, useCallback, useContext, useEffect, useId, useMemo, useRef, useState, type FocusEvent, type FormEvent, type KeyboardEvent, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
+import type { SavedLabels, SavedStatus } from "./saved-indicator";
 
 export type AutosaveResult = { error?: string } | void;
 export type AutosaveChange = { apply: () => Promise<AutosaveResult>; revert?: () => Promise<AutosaveResult> };
 
-type ListContext = { run: (change: AutosaveChange) => Promise<boolean>; refuse: (message: string) => void };
+type RowState = { row: string; status: SavedStatus; stamp: number };
+type ListContext = { run: (change: AutosaveChange, row?: string) => Promise<boolean>; refuse: (message: string) => void; rowState: RowState | null; rowLabels: SavedLabels | null };
 
 const Context = createContext<ListContext | null>(null);
 
 type BarState = { status: "idle" | "saving" | "saved" | "undone" } | { status: "error"; message: string };
 
-export function AutosaveList({ children, hint }: { children: ReactNode; hint?: string }) {
+export function AutosaveList({ children, hint, rowStatus }: { children: ReactNode; hint?: string; rowStatus?: SavedLabels }) {
   const t = useTranslations("SettingsLists");
   const [state, setState] = useState<BarState>({ status: "idle" });
+  const [rowState, setRowState] = useState<RowState | null>(null);
   const [canUndo, setCanUndo] = useState(false);
   const last = useRef<(() => Promise<AutosaveResult>) | null>(null);
 
@@ -45,8 +54,10 @@ export function AutosaveList({ children, hint }: { children: ReactNode; hint?: s
   );
 
   const run = useCallback(
-    async (change: AutosaveChange): Promise<boolean> => {
+    async (change: AutosaveChange, row?: string): Promise<boolean> => {
+      if (row) setRowState((current) => ({ row, status: "saving", stamp: (current?.stamp ?? 0) + 1 }));
       const saved = await settle(change.apply, "saved");
+      if (row) setRowState((current) => (saved ? { row, status: "saved", stamp: (current?.stamp ?? 0) + 1 } : null));
       if (saved) {
         last.current = change.revert ?? null;
         setCanUndo(change.revert !== undefined);
@@ -67,12 +78,14 @@ export function AutosaveList({ children, hint }: { children: ReactNode; hint?: s
   // Un champ que le navigateur refuse (obligatoire, hors bornes) : la barre le dit, rien ne part.
   const refuse = useCallback((message: string) => setState({ status: "error", message }), []);
 
-  const context = useMemo(() => ({ run, refuse }), [run, refuse]);
+  const context = useMemo(() => ({ run, refuse, rowState, rowLabels: rowStatus ?? null }), [run, refuse, rowState, rowStatus]);
+  // Avec « ✓ Enregistré » sur la ligne, la barre ne sert plus qu'à une erreur ou à l'annulation.
+  const showBar = !rowStatus || state.status === "error" || canUndo;
   const message = state.status === "saving" ? t("saving") : state.status === "saved" ? t("saved") : state.status === "undone" ? t("undone") : (hint ?? t("hint"));
 
   return (
     <Context.Provider value={context}>
-      <div className="edit-bar edit-bar-auto" data-status={state.status}>
+      <div className="edit-bar edit-bar-auto" data-status={state.status} hidden={!showBar}>
         {state.status === "error" ? (
           <p role="alert">{t("error", { message: state.message })}</p>
         ) : (
@@ -135,7 +148,8 @@ const same = (a: Snapshot, b: Snapshot) => a.length === b.length && a.every(([na
 // l'un d'eux a changé et qu'on le quitte. Les propriétés rendues se posent sur l'élément de la ligne.
 // « revert » dit à « save » qu'il renvoie les valeurs d'avant (« Annuler la dernière modification »).
 export function useAutosaveRow<E extends HTMLElement = HTMLDivElement>(save: (data: FormData, context: { revert: boolean }) => Promise<AutosaveResult>, values?: Record<string, string>) {
-  const { run, refuse } = useAutosaveList();
+  const { run, refuse, rowState } = useAutosaveList();
+  const rowId = useId();
   const ref = useRef<E>(null);
   const saved = useRef<Snapshot>([]);
   const saveRef = useRef(save);
@@ -180,7 +194,8 @@ export function useAutosaveRow<E extends HTMLElement = HTMLDivElement>(save: (da
       return;
     }
     saved.current = now;
-    const done = await run({
+    const done = await run(
+      {
       apply: () => saveRef.current(formDataOf(root, now), { revert: false }),
       revert: async () => {
         const result = await saveRef.current(formDataOf(ref.current ?? root, before), { revert: true });
@@ -190,9 +205,11 @@ export function useAutosaveRow<E extends HTMLElement = HTMLDivElement>(save: (da
         }
         return result;
       },
-    });
+      },
+      rowId,
+    );
     if (!done) saved.current = before;
-  }, [run, refuse]);
+  }, [run, refuse, rowId]);
 
   // Pour une action de ligne (rétablir la valeur de départ) : les valeurs de la ligne, telles qu'à l'écran.
   const read = useCallback((): Record<string, string> => Object.fromEntries(snapshotOf(ref.current)), []);
@@ -201,6 +218,11 @@ export function useAutosaveRow<E extends HTMLElement = HTMLDivElement>(save: (da
     ref,
     flush,
     read,
+    // Lot 74h : l'état de « ✓ Enregistré » pour cette ligne (avec `rowStatus` sur la liste) ; `rowId` à
+    // passer à `run` pour une action de ligne (monter, supprimer), qui s'annonce alors sur la ligne.
+    rowId,
+    status: (rowState?.row === rowId ? rowState.status : "idle") as SavedStatus,
+    stamp: rowState?.row === rowId ? rowState.stamp : 0,
     rowProps: {
       onBlur: (event: FocusEvent<E>) => {
         if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) void flush();

@@ -34,8 +34,9 @@ test("PRD-EVT-04 — modèle de rétroplanning appliqué, recalcul des échéanc
 
   // Modèles : le modèle de départ se charge, un modèle se compose à la main.
   await page.goto("/events");
-  // Lot 20 (décision 1) : par « Réglages », puis la rubrique.
-  await page.getByRole("link", { name: /^Réglages/ }).click();
+  // Lot 20 (décision 1) : par les réglages, puis la rubrique. Lot 72f (G14) : au menu « ⋯ », section « Réglages ».
+  await page.getByRole("button", { name: /^Autres actions/ }).click();
+  await page.getByRole("menuitem", { name: "Paramètres des évènements" }).click();
   // Lot 63c (ADR 0107) : les réglages s'ouvrent dans le panneau ; ses autres rubriques sont sur la page complète.
   await page.getByRole("link", { name: "Ouvrir tous les réglages" }).click();
   // Lot 74g : une rubrique d'un autre groupe s'ouvre depuis l'accueil des Paramètres.

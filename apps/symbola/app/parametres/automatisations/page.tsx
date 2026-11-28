@@ -2,14 +2,20 @@
 // son interrupteur, son délai s'il en a un et son journal (quand, sur quoi, résultat). Un automatisme
 // d'un module fermé est « indisponible » (ARC-06). La purge RGPD et le contrôle des pièces sont
 // « toujours actifs », avec leur raison.
+// Lot 74h (D7, G8, G10 ; page 30) : au patron d'un écran de réglage. L'en-tête commun ; chaque automatisme a
+// son état en mots (« En marche », « Coupé », point plein ou vide, sans vert), son interrupteur (titulaire
+// seulement, enregistré seul), son heure et son journal ; coupé, il dit depuis quand et par qui (0246), et
+// le radar dit ce que cela change. Un membre lit la liste et les états, sans aucune commande.
 import Link from "next/link";
 import { getFormatter, getTranslations } from "next-intl/server";
 import { ALWAYS_ON_AUTOMATIONS, SEND_TIME_AUTOMATIONS, type AutomationKey } from "@symbola/contracts";
 import { appDatabase } from "@symbola/db/client";
-import { getDefaultSendTime, isModuleEnabled, listAutomationGates, listAutomationRuns } from "@/modules/hub/service";
+import { getDefaultSendTime, isModuleEnabled, listAutomationGates, listAutomationRuns, teamMemberFirstName } from "@/modules/hub/service";
+import { SettingsHeader } from "@/app/ui/settings-header";
+import { savedIndicatorLabels, settingsScopeLine } from "@/lib/settings/settings-header-texts";
+import { AutomationRunningSwitch } from "./running-switch";
 import { requirePlanner } from "@/lib/guards";
 import { ScreenHelp } from "@/app/screen-help";
-import { toggleAutomationAction } from "./actions";
 import { AutomationDaysForm } from "./days-form";
 import { AutomationSendTimeForm, DefaultSendTimeForm } from "./send-time-form";
 
@@ -43,53 +49,63 @@ export default async function AutomationsPage() {
   for (const name of new Set(Object.values(AUTOMATION_MODULES))) modules.set(name, await isModuleEnabled(db, organizationId, name));
   const runs = new Map(await Promise.all(gates.map(async (gate) => [gate.key, await listAutomationRuns(organizationId, gate.key)] as const)));
   const when = (iso: string) => format.dateTime(new Date(iso), { dateStyle: "medium", timeStyle: "short", timeZone: "Europe/Paris" });
+  const day = (date: Date) => format.dateTime(date, { day: "numeric", month: "long", timeZone: "Europe/Paris" });
+  const [tPattern, saved, scope] = await Promise.all([getTranslations("SettingsPattern"), savedIndicatorLabels(), settingsScopeLine({ scope: "agency", editors: "owner", saving: "auto", isOwner })]);
+  // « Coupé le 20 nov. par Camille. » : la date et la personne de la coupure (0246) ; sans elles, « Coupé. »
+  const pausedWords = async (gate: (typeof gates)[number]) => {
+    if (!gate.pausedAt) return tPattern("automations.paused");
+    const name = await teamMemberFirstName(db, organizationId, gate.pausedBy);
+    return name ? tPattern("automations.pausedBy", { date: day(gate.pausedAt), name }) : tPattern("automations.pausedOn", { date: day(gate.pausedAt) });
+  };
+  const paused = new Map(await Promise.all(gates.filter((gate) => !gate.enabled).map(async (gate) => [gate.key, await pausedWords(gate)] as const)));
   return (
-    <main>
-      <h1>{tMenu("rubrics.automations.label")}</h1>
+    <main className="stack">
+      <SettingsHeader title={tMenu("rubrics.automations.label")} hint={tPattern("headers.automations")} scope={scope} />
       <ScreenHelp title={tHelp("automations.title")} body={tHelp("automations.body")} />
-      <p>{t("intro")}</p>
-      <p className="notice" role="note">
-        {t("noCatchUp")}
-      </p>
-      {isOwner ? null : <p role="status">{t("ownerOnly")}</p>}
       {/* Lot 66a (D1 ; M17) : l'heure d'envoi par défaut, reprise par chaque automatisme sans la sienne. */}
-      <section className="card stack" aria-labelledby="default-send-time-title">
-        <h2 id="default-send-time-title">{t("defaultTimeTitle")}</h2>
-        <p className="field-hint">{t("defaultTimeHint")}</p>
-        <DefaultSendTimeForm time={defaultSendTime} disabled={!isOwner} />
+      <section className="card" aria-labelledby="default-send-time-title">
+        <div className="setting-line">
+          <div className="setting-line-text">
+            <h2 id="default-send-time-title">{t("defaultTimeTitle")}</h2>
+            <p>{t("defaultTimeHint")}</p>
+          </div>
+          <DefaultSendTimeForm time={defaultSendTime} disabled={!isOwner} saved={saved} />
+        </div>
       </section>
       <ul className="setting-list">
         {gates.map((gate) => {
           const title = t(`keys.${gate.key}.title`);
           const available = modules.get(AUTOMATION_MODULES[gate.key]) ?? false;
           const journal = runs.get(gate.key) ?? [];
+          const running = gate.enabled && available;
           return (
-            <li key={gate.key} className="setting-row" data-enabled={gate.enabled ? "true" : "false"}>
+            <li key={gate.key} className="setting-row" data-enabled={gate.enabled ? "true" : "false"} id={`automatisme-${gate.key}`}>
               <div className="setting-row-text">
                 <div className="setting-row-head">
                   <h2>{title}</h2>
-                  <span className={gate.enabled && available ? "badge badge-sauge" : available ? "badge" : "badge badge-wrap"}>{available ? (gate.enabled ? t("on") : t("off")) : t("unavailable")}</span>
+                  {available ? (
+                    <span className="setting-state" data-on={gate.enabled ? "true" : "false"}>
+                      {gate.enabled ? tPattern("automations.on") : tPattern("automations.off")}
+                    </span>
+                  ) : (
+                    <span className="badge badge-wrap">{tPattern("automations.unavailable")}</span>
+                  )}
                 </div>
                 <p>{t(`keys.${gate.key}.description`)}</p>
-                {gate.resumedAt ? <p className="field-hint">{t("resumedAt", { date: when(gate.resumedAt.toISOString()) })}</p> : null}
+                {available && !gate.enabled ? (
+                  <p>
+                    {paused.get(gate.key)}
+                    {gate.key === "risk_radar" ? <> {tPattern("automations.radarConsequence")}</> : null}
+                  </p>
+                ) : null}
+                {running && gate.resumedAt ? <p className="field-hint">{t("resumedAt", { date: when(gate.resumedAt.toISOString()) })}</p> : null}
               </div>
               <div className="setting-row-controls">
-                {isOwner && available ? (
-                  <form action={toggleAutomationAction}>
-                    <input type="hidden" name="key" value={gate.key} />
-                    <input type="hidden" name="enabled" value={gate.enabled ? "false" : "true"} />
-                    <button type="submit" className={gate.enabled ? "button-secondary" : undefined} aria-label={t(gate.enabled ? "turnOffLabel" : "turnOnLabel", { title })}>
-                      {t(gate.enabled ? "turnOff" : "turnOn")}
-                    </button>
-                  </form>
-                ) : null}
-                {gate.days !== null ? <AutomationDaysForm automationKey={gate.key} days={gate.days} disabled={!isOwner || !available} /> : null}
-                {gate.key === "day_reminder" ? (
-                  <Link href="/parametres/automatisations/rappel-jour-j" className="button-link button-secondary">
-                    {t("dayReminderLink")}
-                  </Link>
-                ) : null}
-                {sendsAtTime(gate.key) ? <AutomationSendTimeForm automationKey={gate.key} title={title} time={gate.sendTime} defaultTime={defaultSendTime} disabled={!isOwner || !available} /> : null}
+                {isOwner && available ? <AutomationRunningSwitch automationKey={gate.key} label={tPattern("automations.toggle", { title })} enabled={gate.enabled} saved={saved} /> : null}
+                {gate.days !== null ? <AutomationDaysForm automationKey={gate.key} title={title} days={gate.days} disabled={!isOwner || !available} saved={saved} /> : null}
+                {sendsAtTime(gate.key) ? <AutomationSendTimeForm automationKey={gate.key} title={title} time={gate.sendTime} defaultTime={defaultSendTime} disabled={!isOwner || !available} saved={saved} /> : null}
+                {gate.key === "day_reminder" ? <Link href="/parametres/automatisations/rappel-jour-j">{t("dayReminderLink")}</Link> : null}
+                {gate.key === "risk_radar" ? <Link href="/parametres/radar">{tPattern("automations.rulesLink")}</Link> : null}
               </div>
               <details className="setting-row-foot">
                 <summary>{t("journal")}</summary>

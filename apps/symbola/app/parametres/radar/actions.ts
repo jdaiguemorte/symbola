@@ -4,7 +4,7 @@
 // réglages de l'organisation, par la Propriétaire. Toute entrée est validée par le module (Zod).
 import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
-import { AutomationInputError, setRiskRule } from "@/modules/hub/service";
+import { AutomationInputError, setAutomationEnabled, setRiskRule } from "@/modules/hub/service";
 import { PlanningInputError, setPlanningHealthThresholds } from "@/modules/events/service";
 import { requireOwner } from "@/lib/guards";
 
@@ -37,4 +37,15 @@ export async function saveHealthThresholdsAction(_prev: RadarFormState, formData
   }
   revalidatePath("/parametres/radar");
   return { success: true };
+}
+
+// Lot 74h (G10, A6) : « Remettre le radar en marche », en tête de ses règles quand il est coupé. La
+// titulaire seule ; la date et l'auteur de la coupure s'effacent (0246).
+export async function resumeRiskRadarAction(): Promise<void> {
+  const auth = await requireOwner();
+  if (!auth) return;
+  await setAutomationEnabled(auth.user.organizationId, "risk_radar", true, new Date(), auth.user.id);
+  revalidatePath("/parametres/radar");
+  revalidatePath("/parametres/automatisations");
+  revalidatePath("/");
 }
