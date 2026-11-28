@@ -76,7 +76,6 @@
     "trialNoInvite": "During the trial, no link is sent: links are only created on a real event.",
     "trialStepQuote": "Compose a fictional quote, have the fictional client sign it on the trial signing page, then issue its invoices (DEMO series, watermarked).",
     "tabClients": "Clients",
-    "columnClients": "Clients",
     "clientContactTitle": "Client's contact details",
     "programPdfFileCouple": "schedule-client",
     "taskColumnEvent": "Event"

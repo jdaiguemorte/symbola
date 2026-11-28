@@ -61,6 +61,9 @@ export const SERVER_ONLY_NAMESPACES = [
   // Lot 74g : les 38 rubriques et « Vos données », lus côté serveur ; l'accueil des Paramètres reçoit ses
   // textes en propriétés, sa recherche les siens (« SettingsSearch »).
   "SettingsMenu",
+  // Lot 72f : la liste des évènements, rendue côté serveur ; son menu « ⋯ » et son panneau des filtres reçoivent
+  // leurs textes en propriétés.
+  "EventsList",
   // Lot 73d : la fenêtre de création et la fiche d'un prestataire reçoivent leurs textes de l'écran.
   "VendorCreate",
   "VendorSheet",

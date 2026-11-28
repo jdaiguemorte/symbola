@@ -78,12 +78,12 @@
             "en": "Your events, by date"
           },
           "body": {
-            "fr": "Les prochains d'abord, avec leur statut et leurs tâches faites. Ouvrez une ligne pour voir sa fiche.",
-            "en": "The next ones first, with their status and the tasks done. Open a row to see its page."
+            "fr": "Les prochains d'abord, avec la date, le statut et les tâches faites. Un en-tête trie la liste, un nom ouvre la fiche.",
+            "en": "The next ones first, with the date, the status and the tasks done. A header sorts the list, a name opens the event."
           },
           "touch": {
-            "fr": "Les prochains d'abord, avec leur statut. Touchez une ligne pour ouvrir sa fiche.",
-            "en": "The next ones first, with their status. Tap a row to open its page."
+            "fr": "Les prochains d'abord, avec leur statut. Touchez un nom pour ouvrir la fiche.",
+            "en": "The next ones first, with their status. Tap a name to open the event."
           }
         },
         {
@@ -93,8 +93,8 @@
             "en": "Find an event"
           },
           "body": {
-            "fr": "Cherchez un nom, un lieu ou un client ; « À venir », « Terminés » et « Archivés » séparent les périodes. Les filtres posés restent quand vous changez de vue.",
-            "en": "Search for a name, a venue or a client; “Upcoming”, “Finished” and “Archived” separate the periods. The filters you set stay when you switch views."
+            "fr": "Période, nom, statut, « Venu par », origine, année : la liste se filtre au choix et garde vos filtres d'une vue à l'autre.",
+            "en": "Period, name, status, “Came through”, origin, year: the list filters as you choose and keeps your filters from one view to another."
           },
           "touch": {
             "fr": "Touchez « Terminés » pour les mariages passés, « Filtres » pour chercher par statut ou par origine.",
@@ -108,12 +108,12 @@
             "en": "List, columns or calendar"
           },
           "body": {
-            "fr": "Passez d'une vue à l'autre selon ce que vous cherchez ; deux évènements le même jour y sont signalés.",
-            "en": "Switch from one view to another depending on what you are looking for; two events on the same day are flagged."
+            "fr": "Passez de la liste aux demandes par étape ou au calendrier des mois à venir ; sous le calendrier, la charge des mois qui ont un évènement.",
+            "en": "Switch from the list to enquiries by stage or to the calendar of the coming months; under the calendar, the load of the months that have an event."
           },
           "touch": {
-            "fr": "Touchez une vue pour passer de la liste au calendrier ; deux évènements le même jour y sont signalés.",
-            "en": "Tap a view to switch from the list to the calendar; two events on the same day are flagged."
+            "fr": "Touchez une vue pour passer de la liste aux demandes par étape ou au calendrier des mois à venir.",
+            "en": "Tap a view to switch from the list to enquiries by stage or to the calendar of the coming months."
           }
         }
       ]
