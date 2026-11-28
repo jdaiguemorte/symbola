@@ -20,7 +20,7 @@
     @apply m-0 grid gap-1 border-0 p-0;
   }
   .new-event-template-tasks {
-    @apply m-0 mt-1 grid gap-1 pl-5;
+    @apply m-0 mt-1 grid gap-1 pl-6;
   }
   .past-due-step {
     @apply flex flex-col gap-3;

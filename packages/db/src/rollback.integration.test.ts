@@ -263,6 +263,9 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
     expect(await hasColumn("events", "event_tasks", "due_date_known")).toBe(false);
     await migrateAll();
     expect(await hasColumn("events", "event_tasks", "due_date_known")).toBe(true);
+    // Rien ne reste pour les tests suivants (le lot 70a rejoue l'étape de données de 0211 sur les tâches).
+    await target`delete from events.event_tasks where id = ${task!.id}`;
+    await target`delete from events.events where id = ${event!.id}`;
   });
 
   it("lot 74a (HUB-09 ; B3, B5, L74-D4) — 0244 s'annule et se rejoue sur une base vide ; « mariages en cours » n'accepte que oui ou non, le drapeau de TVA est faux d'office", async () => {
