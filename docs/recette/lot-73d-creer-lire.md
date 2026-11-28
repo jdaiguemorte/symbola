@@ -86,6 +86,6 @@ des serveurs, l'une ou l'autre version sortait devant (p95 médians de 200 à 80
 
 ## Ce qui reste
 
-- Le signalement des doublons à la création réemploie la ressemblance des noms de l'import ; il passera à la
-  fonction du 71d (PR #218) une fois fusionnée.
+- Le signalement d'un nom proche repose sur la règle des doublons du 71d (`findCarnetVendor`, fusionnée le 28/11),
+  complétée par une ressemblance plus large pour signaler sans rapprocher.
 - Rejeu de SC-04 et SC-05 au 73g ; captures du centre d'aide au 73g.

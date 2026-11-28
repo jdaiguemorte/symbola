@@ -95,6 +95,10 @@ describe("PRE-01 — Un nom proche d'une fiche du carnet (lot 73d, critère 4)",
     expect(similarVendor("Les Calèches du Lac", book)).toEqual({ id: "a", name: "Calèches du Marais", city: "Niort" });
   });
 
+  it("la règle des doublons du 71d d'abord : un nom contenu dans une fiche est signalé", () => {
+    expect(similarVendor("Haddad Maison traiteur", book)?.id).toBe("b");
+  });
+
   it("le même nom, aux accents et à la casse près, est signalé", () => {
     expect(similarVendor("maison HADDAD", book)?.id).toBe("b");
   });
