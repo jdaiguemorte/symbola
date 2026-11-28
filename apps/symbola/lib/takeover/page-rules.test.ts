@@ -103,8 +103,8 @@ describe("HUB-14 — L'état de chaque ligne, en mots et par une forme (UX-08)",
 });
 
 describe("HUB-14 — Ce que chaque ligne ouvre et dit de son import", () => {
-  it("chaque ligne ouvre l'import de sa sorte ; les PDF des prestataires retenus et du programme restent sur la fiche (71e)", () => {
-    expect(TAKEOVER_STEP_KINDS.map((kind) => takeoverImportEntityType(kind))).toEqual(["vendors", "event_sheets", "budget_lines", null, "tasks", null]);
+  it("chaque ligne ouvre l'import de sa sorte, les PDF des prestataires retenus et du programme compris (71e)", () => {
+    expect(TAKEOVER_STEP_KINDS.map((kind) => takeoverImportEntityType(kind))).toEqual(["vendors", "event_sheets", "budget_lines", "event_vendors", "tasks", "program"]);
   });
 
   it("le nombre d'une ligne faite se dit avec le nom de ce que l'import a écrit", () => {
@@ -114,6 +114,11 @@ describe("HUB-14 — Ce que chaque ligne ouvre et dit de son import", () => {
     expect(importFigureKey("event_sheets")).toBe("events");
     expect(importFigureKey("events")).toBe("events");
     expect(importFigureKey("contacts")).toBe("rows");
+    // Lot 71e : les prestataires retenus, les moments du programme (les nombres du bilan).
+    expect(importFigureKey("event_vendors")).toBe("retainedVendors");
+    expect(importFigureKey("program")).toBe("moments");
+    expect(importFigureCount({ created: 0, updated: 0, figures: { kind: "event_vendors", vendors: 12 } })).toBe(12);
+    expect(importFigureCount({ created: 0, updated: 0, figures: { kind: "program", moments: 9 } })).toBe(9);
   });
 });
 

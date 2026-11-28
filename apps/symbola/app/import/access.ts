@@ -17,6 +17,18 @@ export async function availableImportEntityTypes(organizationId: string): Promis
   return IMPORT_FILE_ENTITY_TYPES.filter((type) => enabled.get(IMPORT_ENTITY_MODULE[type]));
 }
 
+// Lot 71e (HUB-14) : les PDF des prestataires retenus et du programme, toujours pour un mariage (une ligne
+// de reprise, ou la fiche d'où l'import est lancé) ; jamais dans le choix général de l'écran.
+export async function availablePdfImportEntityTypes(organizationId: string): Promise<("event_vendors" | "program")[]> {
+  const db = appDatabase();
+  if (!(await isModuleEnabled(db, organizationId, "events"))) return [];
+  return (await isModuleEnabled(db, organizationId, "vendors")) ? ["event_vendors", "program"] : ["program"];
+}
+
+export function parsePdfEntityType(value: string): "event_vendors" | "program" | null {
+  return value === "event_vendors" || value === "program" ? value : null;
+}
+
 const idSchema = z.uuid();
 
 export function isValidId(value: string): boolean {

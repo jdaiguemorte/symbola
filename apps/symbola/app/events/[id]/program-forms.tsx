@@ -14,6 +14,7 @@ import {
   type ProgramPublishState,
 } from "./program-actions";
 import { RecipientsGuard } from "../../recipients-guard";
+import { ConfirmDialog } from "@/app/ui/confirm-dialog";
 
 export function ApplyProgramTemplateForm({ eventId, templates }: { eventId: string; templates: ProgramTemplate[] }) {
   const t = useTranslations("Events");
@@ -44,19 +45,51 @@ export function ApplyProgramTemplateForm({ eventId, templates }: { eventId: stri
 }
 
 // Lot 37b (CHR-07, D8) : diffuser le programme fige la version suivante ; le bouton dit laquelle.
-export function ProgramPublishForm({ eventId, nextNumber, canPublish }: { eventId: string; nextNumber: number; canPublish: boolean }) {
+// Lot 71e (R13 ; maquette 11) : un programme repris incomplet passe d'abord par une fenêtre courte (pas de
+// danger) qui dit les heures de fin manquantes, par journée ; « Compléter d'abord » est la voie sûre,
+// « Diffuser quand même » reste possible. Textes venus du serveur (NFR-02).
+export type ProgramIncomplete = { title: string; body: string; list: string[]; completeFirst: string; publishAnyway: string };
+
+export function ProgramPublishForm({ eventId, nextNumber, canPublish, incomplete = null }: { eventId: string; nextNumber: number; canPublish: boolean; incomplete?: ProgramIncomplete | null }) {
   const t = useTranslations("Events");
   const initialState: ProgramPublishState = {};
   const [state, formAction, pending] = useActionState(publishProgramAction, initialState);
+  const label = t("programPublish", { number: nextNumber });
   return (
-    <form action={formAction}>
-      <input type="hidden" name="eventId" value={eventId} />
-      <button type="submit" className="button-secondary" disabled={pending || !canPublish}>
-        {t("programPublish", { number: nextNumber })}
-      </button>
+    <>
+      {incomplete ? (
+        <ConfirmDialog
+          trigger={label}
+          triggerLabel={label}
+          triggerClassName="button-secondary"
+          triggerDisabled={pending || !canPublish}
+          title={incomplete.title}
+          body={incomplete.body}
+          confirmLabel={incomplete.publishAnyway}
+          confirmClassName="button-secondary"
+          keepLabel={incomplete.completeFirst}
+          tone="primary"
+          action={formAction}
+          fields={{ eventId }}
+          pending={pending}
+        >
+          <ul>
+            {incomplete.list.map((line) => (
+              <li key={line}>{line}</li>
+            ))}
+          </ul>
+        </ConfirmDialog>
+      ) : (
+        <form action={formAction}>
+          <input type="hidden" name="eventId" value={eventId} />
+          <button type="submit" className="button-secondary" disabled={pending || !canPublish}>
+            {label}
+          </button>
+        </form>
+      )}
       {state.error ? <p role="alert">{state.error}</p> : null}
       {state.published ? <p role="status">{t("programPublished", { number: state.published })}</p> : null}
-    </form>
+    </>
   );
 }
 

@@ -27,6 +27,7 @@ export function ConfirmDialog({
   action,
   fields,
   tone = "danger",
+  confirmClassName,
   level = 2,
   pending = false,
   triggerDisabled = false,
@@ -49,6 +50,9 @@ export function ConfirmDialog({
   action: (formData: FormData) => void | Promise<void>;
   fields: Record<string, string>;
   tone?: "danger" | "primary";
+  // Lot 71e : une confirmation sans danger dont l'action est la voie la moins sûre (« Diffuser quand même »),
+  // en bouton secondaire.
+  confirmClassName?: string;
   level?: DangerLevel;
   // L'action part (useActionState) : le bouton de danger attend sa réponse.
   pending?: boolean;
@@ -106,7 +110,7 @@ export function ConfirmDialog({
             <button type="button" autoFocus onClick={close}>
               {keepLabel}
             </button>
-            <button type="submit" className={tone === "danger" ? "button-danger confirm-dialog-confirm" : undefined} disabled={(needsAcknowledgement && !acknowledged) || pending}>
+            <button type="submit" className={tone === "danger" ? "button-danger confirm-dialog-confirm" : confirmClassName} disabled={(needsAcknowledgement && !acknowledged) || pending}>
               {confirmLabel}
             </button>
           </div>

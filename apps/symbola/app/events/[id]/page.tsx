@@ -16,6 +16,9 @@ import { appDatabase } from "@symbola/db/client";
 import { clientTermForEvent, getEvent, getEventProgram, getEventProgramPublication, listProgramRecipients, proposeProgramShift, getEventStatusDates, closingDue, eventNames, getTaskRecalculation, previewTaskRecalculation, getActiveEventsTrial, listEventActivity, getEventProspectRequest, listEventDecisions, listEventDocuments, listEventDayContacts, listDayDocumentChoices, listEventLinks, listLinkProfiles, listEventTasks, periodRange, listEventVendorSlots, listVendorCandidates, listVendorFollowUps, listEventPlaces, listTaskTemplates, countTemplatePastDue, listLossReasons, listProgramTemplates, listProspectSources, summarizeVendorSlots, type EventVendorSlot, getEventIdentityState, getDayOfLeadDays, canPostpone, getEventBusy, listEventTeam, listDayHelpers } from "@/modules/events/service";
 import { getEventBudget, getUnallocatedTotals, listBudgetLines } from "@/modules/budget/service";
 import { getEventSignedOn } from "@/modules/events/service";
+import { missingEndItems, programAwaitsEnds } from "@/modules/events/service";
+import { clockLabel } from "@/lib/import/pdf-import-rules";
+import { ProgramGaps, type ProgramGapRow } from "./program-gaps";
 import { taskListViewer } from "@/lib/event-visibility";
 import { loadEventChecklist, slotPlannedAmounts } from "@/lib/takeover/checklist";
 import { completeSlots } from "@/lib/takeover/checklist-rules";
@@ -101,7 +104,6 @@ import { getDayReport, listKeyMoments } from "@/modules/events/service";
 import { getGuestEventSummary, getGuestModuleState } from "@/modules/guests/service";
 import { AddKeyMomentForm, EditKeyMomentForm } from "./key-moments";
 import { ProgramImportForm } from "./program-import-form";
-import { VendorsImportForm } from "./vendors-import-form";
 import { DayReminderCard } from "./day-reminder-card";
 import { dayReportSections, reportHandovers } from "./bilan/day-report-view";
 import { dayReportWords } from "./bilan/report-words";
@@ -142,6 +144,7 @@ export default async function EventDetailPage({
   const { id } = await params;
   const query = await searchParams;
   const t = await getTranslations("Events");
+  const tImportPdf = await getTranslations("ImportPdf");
   const tTrash = await getTranslations("Trash");
   const tHelp = await getTranslations("Help");
 
@@ -309,6 +312,32 @@ export default async function EventDetailPage({
   const shiftedItem = tab === "programme" && query.decalage && isValidId(query.decalage) ? program.items.find((item) => item.id === query.decalage) : undefined;
   const shiftPlan = shiftedItem && query.depuis && /^([01]\d|2[0-3]):[0-5]\d$/.test(query.depuis) ? proposeProgramShift(program.items, shiftedItem.id, query.depuis, shiftedItem.startTime) : null;
   const shiftProposal: ShiftProposalView | null = shiftPlan ? { ...shiftPlan, duration: durationText(Math.abs(shiftPlan.minutes), spanWords) } : null;
+  // Lot 71e (CHR-06, R12, R13) : les fins manquantes d'un programme repris, « à compléter ».
+  const awaitEnds = tab === "programme" && !event.isDemo && (await programAwaitsEnds(organizationId, id));
+  const tGapsAll = awaitEnds ? await getTranslations("ProgramGaps") : null;
+  const programGapRows: ProgramGapRow[] =
+    awaitEnds
+      ? missingEndItems(program.items).map((item) => {
+          const moment = (program.moments ?? []).find((entry) => entry.id === item.keyMomentId);
+          return { id: item.id, label: item.label, startTime: item.startTime, day: moment ? { name: moment.name, date: moment.date } : null };
+        })
+      : [];
+  const tGaps = programGapRows.length > 0 ? await getTranslations("ProgramGaps") : null;
+  const programIncomplete =
+    tGaps && programGapRows.length > 0
+      ? {
+          title: tGaps("dialogTitle"),
+          body: tGaps("dialogBody", { count: programGapRows.length }),
+          list: [...new Map(programGapRows.map((row) => [row.day?.name ?? "", row.day?.name ?? ""])).keys()].map((day) =>
+            `${day ? `${day} : ` : ""}${programGapRows
+              .filter((row) => (row.day?.name ?? "") === day)
+              .map((row) => `${row.label} (${clockLabel(row.startTime, locale === "en" ? "en" : "fr")})`)
+              .join(", ")}`,
+          ),
+          completeFirst: tGaps("completeFirst"),
+          publishAnyway: tGaps("publishAnyway"),
+        }
+      : null;
   // Lot 37b (CHR-07, DAT-14 ; D8) : la diffusion du programme — dernière version, ce qui a changé
   // depuis, et les versions diffusées avec leur auteur (adresse de l'équipe).
   // Le client approuve une version diffusée (D10) : l'onglet Mariés propose la décision seulement alors.
@@ -1143,8 +1172,15 @@ export default async function EventDetailPage({
               </p>
             ) : null}
             <progress aria-labelledby="vendor-progress-label" value={slotCompletion.complete} max={Math.max(slotCompletion.total, 1)} />
-            {/* Lot 67e (HUB-14, PRE-02 ; R07) : reprendre d'un PDF les prestataires retenus de l'évènement. */}
-            {vendorsAvailable ? <VendorsImportForm eventId={event.id} open={query.reprendre === "1"} takeoverId={query.reprise && isValidId(query.reprise) ? query.reprise : null} /> : null}
+            {/* Lot 67e (HUB-14, PRE-02 ; R07), lot 71e : reprendre d'un PDF les prestataires retenus, par
+                l'assistant commun des imports (journal, bilan, retrait d'ensemble). */}
+            {vendorsAvailable && !event.isDemo ? (
+              <p>
+                <Link className="button-link" href={`/import?type=event_vendors&evenement=${event.id}#import-form`}>
+                  {tImportPdf("fromEvent.vendors")}
+                </Link>
+              </p>
+            ) : null}
             {vendorSlots.length === 0 ? <p>{t("noVendorSlots")}</p> : null}
             {vendorSlots.length > 0 ? (
               <BudgetVendorsTable
@@ -1392,16 +1428,23 @@ export default async function EventDetailPage({
         <section className="card" aria-labelledby="program-title">
           <div className="section-head">
             <h2 id="program-title">{t("programTitle")}</h2>
-            {/* Lot 63b (HUB-14) : importer depuis l'écran (tableur ou PDF de l'ancien logiciel). */}
+            {/* Lot 63b (HUB-14) : importer depuis l'écran (un tableur) ; lot 71e : un PDF de logiciel de
+                planning, par l'assistant commun des imports. */}
             <Link className="button-link" href={`${tabHref("programme")}&importer=1#importer-programme`} scroll={false}>
               {t("importHere")}
             </Link>
+            {!event.isDemo ? (
+              <Link className="button-link" href={`/import?type=program&evenement=${event.id}#import-form`}>
+                {tImportPdf("fromEvent.program")}
+              </Link>
+            ) : null}
             <SettingsLink href="/events/modeles-programme" back="event" label={t("programTemplatesSettings")} />
           </div>
           <ProgramShiftProposal eventId={event.id} proposal={shiftProposal} />
+          <ProgramGaps eventId={event.id} rows={programGapRows} published={Boolean(publication?.latest)} />
           {/* Lot 65g (CHR-08 ; recette staging du 22/11/2026) : « Importer » ouvre l'import en tête de la
               carte, au-dessus de la diffusion, au lieu de le déplier plus bas. */}
-          {query.importer === "1" ? <ProgramImportForm eventId={event.id} open takeoverId={query.reprise && isValidId(query.reprise) ? query.reprise : null} /> : null}
+          {query.importer === "1" ? <ProgramImportForm eventId={event.id} open /> : null}
           {/* Lot 62c (UX-13) : en tête de la carte, la diffusion à gauche, les PDF et l'agenda à droite. */}
           <div className="program-head">
           {/* Lot 37b (CHR-07, DAT-14 ; D8, D10) : clients et prestataires lisent la dernière version diffusée. */}
@@ -1439,7 +1482,7 @@ export default async function EventDetailPage({
                   <p className="muted">{program.items.length === 0 ? t("programPublishEmpty") : t("programNoChanges")}</p>
                 )
               ) : null}
-              <ProgramPublishForm eventId={event.id} nextNumber={(publication.latest?.number ?? 0) + 1} canPublish={publication.canPublish} />
+              <ProgramPublishForm eventId={event.id} nextNumber={(publication.latest?.number ?? 0) + 1} canPublish={publication.canPublish} incomplete={programIncomplete} />
               {publication.versions.length > 0 ? (
                 <details className="program-versions">
                   <summary>{t("programVersionsTitle", { count: publication.versions.length })}</summary>
@@ -1523,7 +1566,14 @@ export default async function EventDetailPage({
             ))}
           </datalist>
           {/* Lot 62c (UX-13, UX-05 ; D1) : une ligne par séquence, « Modifier » ouvre la ligne en place, un seul « Enregistrer le programme ». */}
-          <ProgramEditor eventId={event.id} title={t("programTitle")} groups={programGroups} vendorSlots={vendorSlots} moments={momentChoices} />
+          <ProgramEditor
+            eventId={event.id}
+            title={t("programTitle")}
+            groups={programGroups}
+            vendorSlots={vendorSlots}
+            moments={momentChoices}
+            awaitEnds={tGapsAll ? { endMissing: tGapsAll("endMissing"), point: tGapsAll("pointWord"), marker: tGapsAll("markerWord") } : null}
+          />
           <section aria-labelledby="places-title" className="places">
             <h3 id="places-title">{t("placesTitle")}</h3>
             <p className="muted">{t("placesHint")}</p>

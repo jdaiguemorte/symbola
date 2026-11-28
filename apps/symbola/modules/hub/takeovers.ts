@@ -16,7 +16,7 @@ import {
   type TakeoverView,
 } from "@symbola/contracts";
 import type { AppDatabase } from "@symbola/db/client";
-import { importItems, imports, takeovers, takeoverSteps } from "@symbola/db/schema/hub";
+import { importItems, imports, takeovers, takeoverSteps, type ImportLeftovers } from "@symbola/db/schema/hub";
 import { withOrganization } from "@symbola/db/with-organization";
 import { ANONYMIZED } from "@symbola/privacy";
 import { canViewEvent, getEvent } from "@/modules/events/service";
@@ -364,6 +364,11 @@ export async function clearExpiredImportLeftovers(db: AppDatabase, organizationI
       .returning({ id: imports.id });
     return cleared.length;
   });
+}
+
+// Lot 71e : l'annuaire d'un import appliqué, encore gardé (null : aucun, effacé, ou import inconnu).
+export async function getImportLeftovers(db: AppDatabase, organizationId: string, importId: string): Promise<ImportLeftovers | null> {
+  return withOrganization(db, organizationId, async (tx) => (await tx.select({ leftovers: imports.leftovers }).from(imports).where(and(eq(imports.id, importId), eq(imports.status, "applied"))))[0]?.leftovers ?? null);
 }
 
 // La planner a ajouté l'annuaire au carnet, ou l'a écarté (lot 71e) : il est effacé aussitôt.

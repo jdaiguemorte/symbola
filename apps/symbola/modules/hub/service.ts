@@ -333,6 +333,7 @@ export {
   createTakeover,
   deleteTakeover,
   discardImportLeftovers,
+  getImportLeftovers,
   eraseEventImports,
   getEventTakeover,
   getImportTakeoverId,
@@ -373,6 +374,20 @@ export type Metier = "wedding_planner" | "event_agency" | "autre";
 
 // Registre des modules et état par défaut de chacun (socle des lots 46 et 49, ADR 0079).
 import { moduleEnabledByDefault, type ModuleKey } from "./module-registry";
+// Lot 71e (HUB-14) : les PDF des prestataires retenus et du programme, au journal commun.
+export {
+  eventHasAppliedPdfImport,
+  getPdfImportDraft,
+  isPdfImportEntityType,
+  PDF_IMPORT_ENTITY_TYPES,
+  savePdfImportDecisions,
+  startPdfImport,
+  type ImportPdfDecisions,
+  type PdfImportDocument,
+  type PdfImportDraft,
+  type PdfImportEntityType,
+  type PdfImportRejection,
+} from "./pdf-imports";
 export { isModuleKey, MODULE_ENABLED_BY_DEFAULT, MODULE_KEYS, moduleEnabledByDefault, type ModuleKey } from "./module-registry";
 
 const INVITATION_DURATION_MS = 7 * 24 * 60 * 60 * 1000; // 7 jours (PRD PRD-HUB-03, proposé)

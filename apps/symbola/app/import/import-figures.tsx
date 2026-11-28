@@ -9,6 +9,8 @@ import { formatAmount, formatCalendarDate, type Locale } from "@symbola/i18n";
 export async function ImportFiguresList({ figures, done }: { figures: ImportFigures; done: boolean }) {
   const t = await getTranslations("ImportFigures");
   const locale = (await getLocale()) as Locale;
+  // Lot 71e : les prestataires retenus et le programme ont leur propre liste (pdf-bilan.tsx, écran pdf).
+  if (figures.kind === "event_vendors" || figures.kind === "program") return null;
   if (figures.kind === "rows") {
     return (
       <ul className="import-figures">

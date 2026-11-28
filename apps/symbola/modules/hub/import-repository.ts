@@ -3,7 +3,7 @@
 // métier : chaque requête passe par withOrganization (RLS forcée).
 import { and, asc, desc, eq, inArray, isNotNull, lt, ne } from "drizzle-orm";
 import type { AppDatabase } from "@symbola/db/client";
-import { importItems, imports, type ImportColumnChoice, type ImportMatching, type ImportResult } from "@symbola/db/schema/hub";
+import { importItems, imports, type ImportColumnChoice, type ImportLeftovers, type ImportMatching, type ImportResult } from "@symbola/db/schema/hub";
 import { withOrganization } from "@symbola/db/with-organization";
 
 export type ImportRow = typeof imports.$inferSelect;
@@ -135,12 +135,13 @@ export type NewImportItem = Omit<typeof importItems.$inferInsert, "id" | "organi
 // l'annulation). Ne vaut que pour un import encore « en cours ».
 export async function markImportApplied(
   db: AppDatabase,
-  input: { organizationId: string; importId: string; items: NewImportItem[]; result: ImportResult; now: Date },
+  input: { organizationId: string; importId: string; items: NewImportItem[]; result: ImportResult; now: Date; leftovers?: ImportLeftovers | null },
 ): Promise<boolean> {
   return withOrganization(db, input.organizationId, async (tx) => {
     const updated = await tx
       .update(imports)
-      .set({ status: "applied", appliedAt: input.now, result: input.result, rows: null, sourceLineNumbers: null, updatedAt: input.now })
+      // Lot 71e (R14, I4) : ce que le fichier contenait sans être repris (l'annuaire d'un programme).
+      .set({ status: "applied", appliedAt: input.now, result: input.result, rows: null, sourceLineNumbers: null, updatedAt: input.now, ...(input.leftovers ? { leftovers: input.leftovers } : {}) })
       .where(and(eq(imports.id, input.importId), eq(imports.status, "draft")))
       .returning({ id: imports.id });
     if (updated.length === 0) return false;

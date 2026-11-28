@@ -623,6 +623,21 @@ export type ImportMatching = {
   // trancher (`proposed`), tranché (`same` : la fiche du carnet ; `create` : créer une fiche), ou
   // absents du carnet (`absent`). `name` : le nom écrit dans le fichier ; `vendorId` : la fiche du carnet.
   vendorLinks?: { name: string; vendorId: string | null; decision: "found" | "proposed" | "same" | "create" | "absent" }[];
+  // Lot 71e (HUB-14 ; spécification du lot 71, § 5.5) : les choix de la planner sur un PDF de prestataires
+  // retenus ou de programme, gardés le temps du brouillon.
+  pdf?: ImportPdfDecisions;
+};
+
+// Lot 71e — « C'est bien ce mariage, continuer » (le fichier nomme un autre couple, R10) ; pour chaque
+// prestataire du fichier (rang à partir de 1) : la fiche du carnet (identifiant ou « new »), le poste
+// (identifiant ou « new »), ne pas le reprendre ; pour chaque intervenant de l'en-tête d'un programme
+// (rang à partir de 0) : le poste choisi (null : en texte) ; « reviewed » : « Continuer » à « Postes »
+// ou à « Interlocuteurs ». Les identifiants sont revérifiés contre l'organisation à chaque lecture.
+export type ImportPdfDecisions = {
+  coupleConfirmed?: boolean;
+  vendorRows?: { line: number; vendor?: string; slot?: string; skip?: boolean; reviewed?: boolean }[];
+  speakerSlots?: { index: number; slotId: string | null }[];
+  reviewed?: boolean;
 };
 
 export const importStatusEnum = hubSchema.enum("import_status", ["draft", "applied", "undone", "cancelled"]);
@@ -691,6 +706,8 @@ export type ImportResult = {
   // Lot 71d : « Ce que vous avez choisi » (choix de « Doublons »), sans valeur personnelle autre que les
   // intitulés de postes et les noms de prestataires du fichier, déjà dans le budget.
   choices?: { splits: string[]; removedSlots: string[]; sameVendors: { name: string; vendorName: string }[]; createdVendors: string[] };
+  // Lot 71e (R10) : le fichier nommait un autre couple, et la planner a répondu « C'est bien ce mariage ».
+  coupleConfirmed?: true;
 };
 
 // IMP-05 — un élément écrit par un import confirmé : de quoi l'annuler

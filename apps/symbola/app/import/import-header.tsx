@@ -13,19 +13,34 @@ import { cancelImportAction } from "./actions";
 import { requirePlanner } from "@/lib/guards";
 import { takeoverBackLink } from "@/lib/takeover/flow";
 
-export async function ImportHeader({ wizard, current, abandon }: { wizard: ImportWizard; current: ImportStepKey; abandon: boolean }) {
+// Lot 71e : les PDF des prestataires retenus et du programme nomment leurs étapes à leur façon (« Postes »,
+// « Interlocuteurs ») et les ouvrent toutes sur le même écran.
+export async function ImportHeader({
+  wizard,
+  current,
+  abandon,
+  stepLabel,
+  stepHref,
+}: {
+  wizard: Pick<ImportWizard, "importId" | "fileName" | "steps">;
+  current: ImportStepKey;
+  abandon: boolean;
+  stepLabel?: (key: ImportStepKey) => string;
+  stepHref?: (key: ImportStepKey) => string;
+}) {
   const t = await getTranslations("Import");
   const tTakeover = await getTranslations("Takeover");
-  const here = importStepHref(wizard.importId, current);
+  const hrefOf = stepHref ?? ((key: ImportStepKey) => importStepHref(wizard.importId, key));
+  const here = hrefOf(current);
   // Lot 71b (HUB-14 ; P-12) : ouvert depuis une reprise, l'import le dit en tête et y ramène.
   const auth = await requirePlanner();
   const back = await takeoverBackLink(auth.user.organizationId, wizard.importId);
   const steps = wizard.steps.map((step) => ({
     key: step.key,
-    label: t(`wizardStep.${step.key}`),
+    label: stepLabel ? stepLabel(step.key) : t(`wizardStep.${step.key}`),
     state: step.key === current ? ("current" as const) : step.done ? ("done" as const) : ("todo" as const),
     // L'étape « Fichier » ne se rouvre pas : on recommence un import.
-    href: step.done && step.key !== "file" ? importStepHref(wizard.importId, step.key) : null,
+    href: step.done && step.key !== "file" ? hrefOf(step.key) : null,
     // Lot 67a (HUB-14 ; R04) : des rapprochements sans décision se lisent dans la frise.
     summary:
       step.done && step.summary
@@ -56,7 +71,7 @@ export async function ImportHeader({ wizard, current, abandon }: { wizard: Impor
         />
       </div>
       <p className="stepper-compact" aria-hidden="true">
-        {t("stepOf", { current: Math.max(1, wizard.steps.findIndex((step) => step.key === current) + 1), total: wizard.steps.length, label: t(`wizardStep.${current}`) })}
+        {t("stepOf", { current: Math.max(1, wizard.steps.findIndex((step) => step.key === current) + 1), total: wizard.steps.length, label: stepLabel ? stepLabel(current) : t(`wizardStep.${current}`) })}
       </p>
       {/* Sans JavaScript, l'adresse « ?abandon=1 » garde la confirmation dans la page. */}
       {abandon ? (

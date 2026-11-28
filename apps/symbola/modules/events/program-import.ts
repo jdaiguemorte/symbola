@@ -10,56 +10,13 @@ import { events, eventVendorCandidates, eventVendorSlots, keyMoments, programIte
 import { withOrganization } from "@symbola/db/with-organization";
 import { parseEnv } from "@symbola/env";
 import { scanBuffer } from "@symbola/files";
-import { DEFAULT_PDF_LIMITS, looksLikePdf, parseProgramExport, readImportFile, readPdfText, textSimilarity } from "@symbola/import-engine";
-import { planningSoftwareProfile, starterProgramImportColumns, starterVendorTypeSynonymGroups } from "@symbola/starter-templates";
-import type { ProgramImportPreview, ProgramImportResult, ProgramImportRow, ProgramImportSpeaker } from "@symbola/contracts";
+import { looksLikePdf, readImportFile } from "@symbola/import-engine";
+import { starterProgramImportColumns } from "@symbola/starter-templates";
+import type { ProgramImportPreview, ProgramImportResult, ProgramImportRow } from "@symbola/contracts";
 import { getImportLimits } from "@/modules/hub/service";
 import { DAY_UUID } from "./day-of";
 import { ensureMainKeyMoment } from "./main-moment";
-import { dayMomentName, foldText, mapProgramColumns, programRowsFromExport, proposeSpeakerSlot, readProgramRows, speakerKind, type ProgramSlotOption } from "./program-import-rules";
-
-// Lot 63b (CHR-08) — le PDF de programme de l'ancien logiciel : les séquences et les intervenants de
-// son en-tête, chacun rapproché d'un poste prestataire de l'évènement (proposé, ou choisi par la
-// planner dans l'écran de contrôle : « speakerSlots », poste ou null pour le garder en texte). Une
-// fiche du carnet au nom proche est signalée quand aucun poste ne convient (`catalogVendors`, lue
-// par l'appelant dans le module Prestataires).
-async function previewProgramPdf(input: {
-  bytes: Uint8Array;
-  maxBytes: number;
-  eventDate: string | null;
-  slots: ProgramSlotOption[];
-  speakerSlots: Record<number, string | null>;
-  catalogVendors: { id: string; name: string; city: string | null }[];
-}): Promise<{ status: "rejected"; reason: string } | { status: "preview"; preview: ProgramImportPreview }> {
-  const profile = planningSoftwareProfile();
-  const read = await readPdfText(input.bytes, { ...DEFAULT_PDF_LIMITS, maxBytes: input.maxBytes, maxPages: profile.programExport.maxPages });
-  if (!read.ok) return { status: "rejected", reason: read.reason === "too_large" ? "too_large" : read.reason === "too_many_pages" ? "too_many_pages" : "not_program_pdf" };
-  const parsed = parseProgramExport(read.pages, profile.programExport, { weekdays: profile.eventSheet.weekdays, months: profile.eventSheet.months });
-  if (!parsed.ok) return { status: "rejected", reason: "not_program_pdf" };
-  const program = parsed.program;
-  const slotIds = new Set(input.slots.map((slot) => slot.id));
-  const synonyms = starterVendorTypeSynonymGroups();
-  const speakers: ProgramImportSpeaker[] = program.speakers.map((speaker, index) => {
-    const kind = speakerKind(speaker, profile.programExport);
-    const proposedSlotId = kind === "vendor" ? proposeSpeakerSlot(speaker, input.slots, synonyms) : null;
-    const chosen = Object.hasOwn(input.speakerSlots, index) && kind === "vendor";
-    const choice = chosen ? input.speakerSlots[index]! : proposedSlotId;
-    const slotId = choice && slotIds.has(choice) ? choice : null;
-    const names = [speaker.company, speaker.contact].filter((name): name is string => Boolean(name));
-    const catalogVendor =
-      kind === "vendor" && !slotId
-        ? (input.catalogVendors.find((vendor) => names.some((name) => textSimilarity(vendor.name, name) >= 0.85)) ?? null)
-        : null;
-    return { index, ...speaker, kind, proposedSlotId, slotId, chosen, catalogVendor };
-  });
-  const speakerSlots = new Map(speakers.map((speaker) => [speaker.index, speaker.slotId] as const));
-  const slotLabels = new Map(input.slots.map((slot) => [slot.id, slot.label] as const));
-  const { rows, problems } = programRowsFromExport(program, { eventDate: input.eventDate }, speakerSlots, slotLabels);
-  return {
-    status: "preview",
-    preview: { rows, problems, newMoments: [], unknownColumns: [], neutralizedCells: parsed.neutralized, source: "program_pdf", speakers, slots: input.slots },
-  };
-}
+import { dayMomentName, foldText, mapProgramColumns, readProgramRows, type ProgramSlotOption } from "./program-import-rules";
 
 export async function importProgram(input: {
   organizationId: string;
@@ -71,10 +28,6 @@ export async function importProgram(input: {
   // Lot 67d (EVT-04) : noms de la veille et du lendemain ; absents, le nom du jour J (comme avant).
   eveMomentName?: string;
   nextDayMomentName?: string;
-  // Lot 63b, PDF de l'ancien logiciel : poste choisi pour chaque intervenant de l'en-tête (null : en
-  // texte), et fiches du carnet pour signaler un prestataire qui n'est pas encore sur l'évènement.
-  speakerSlots?: Record<number, string | null>;
-  catalogVendors?: { id: string; name: string; city: string | null }[];
 }): Promise<ProgramImportResult | null> {
   if (!DAY_UUID.test(input.eventId)) return null;
   const db = appDatabase();
@@ -102,24 +55,10 @@ export async function importProgram(input: {
   const scan = await scanBuffer(Buffer.from(input.bytes), { host: env.CLAMAV_HOST, port: env.CLAMAV_PORT });
   if (scan.infected) return { status: "rejected", reason: "infected" };
   let preview: ProgramImportPreview;
-  if (looksLikePdf(input.bytes)) {
-    const pdf = await previewProgramPdf({
-      bytes: input.bytes,
-      maxBytes: limits.maxBytes,
-      eventDate: context.eventDate,
-      slots: context.slots,
-      speakerSlots: input.speakerSlots ?? {},
-      catalogVendors: input.catalogVendors ?? [],
-    });
-    if (pdf.status === "rejected") return pdf;
-    // Les jours du programme sans temps fort (veille, lendemain) en reçoivent un, comme pour un
-    // tableur qui ne donne que des dates.
-    const newMoments = [...new Set(pdf.preview.rows.map((row) => row.momentDate).filter((date): date is string => date !== null))]
-      .filter((date) => date !== context.eventDate && !context.moments.some((moment) => moment.date === date))
-      .sort()
-      .map((date) => ({ name: dayMomentName(date, context.eventDate, dayNames), date }));
-    preview = { ...pdf.preview, newMoments };
-  } else {
+  // Lot 71e (HUB-14) : un PDF de programme passe par l'assistant commun des imports (journal, bilan,
+  // retrait) ; ici, seuls les tableurs.
+  if (looksLikePdf(input.bytes)) return { status: "rejected", reason: "pdf_wizard" };
+  {
     const read = readImportFile(input.bytes, { maxBytes: limits.maxBytes, maxRows: limits.maxRows });
     if (!read.ok) return { status: "rejected", reason: read.reason };
     const mapped = mapProgramColumns(read.table.headers, starterProgramImportColumns());

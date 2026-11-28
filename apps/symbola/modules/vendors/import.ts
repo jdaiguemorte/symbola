@@ -40,11 +40,45 @@ export async function listVendorImportCandidates(organizationId: string): Promis
   );
 }
 
+// Lot 71e (R14 ; maquette 11) — l'annuaire d'un programme repris, comparé au carnet : nom, contact et
+// téléphone de chaque fiche.
+export async function listVendorDirectoryCandidates(organizationId: string): Promise<{ id: string; name: string; contactName: string | null; phone: string | null }[]> {
+  return inTransaction(organizationId, (tx) =>
+    tx
+      .select({ id: vendors.id, name: vendors.name, contactName: vendors.contactName, phone: vendors.phone })
+      .from(vendors)
+      .where(and(eq(vendors.isDemo, false), isNull(vendors.archivedAt))),
+  );
+}
+
+// « Ajouter les N téléphones » : complète le téléphone d'une fiche qui n'en a pas ; une fiche qui en a
+// déjà un n'est pas touchée. Rend le nombre de fiches complétées.
+export async function addVendorPhones(organizationId: string, updates: readonly { vendorId: string; phone: string }[]): Promise<number> {
+  return inTransaction(organizationId, async (tx) => {
+    let added = 0;
+    for (const update of updates) {
+      const phone = update.phone.trim();
+      if (!phone) continue;
+      const changed = await tx
+        .update(vendors)
+        .set({ phone, updatedAt: new Date() })
+        .where(and(eq(vendors.id, update.vendorId), isNull(vendors.phone), eq(vendors.isDemo, false)))
+        .returning({ id: vendors.id });
+      added += changed.length;
+    }
+    return added;
+  });
+}
+
 // Lot 71d (HUB-14, PRE-01 ; maquette 08) — « Ce n'est pas la même : créer une fiche » : une fiche du
 // carnet par prestataire nommé dans un budget, sous le nom du fichier, avec son métier quand l'orchestrateur
 // en a trouvé un du carnet (sinon « à classer »). Journalisée comme une fiche importée : le retrait de
 // l'import la retire, sauf si elle a été retouchée ou retenue ailleurs depuis.
-export async function importNamedVendors(organizationId: string, list: readonly { name: string; typeId: string | null }[]): Promise<{ items: ImportedItem[]; idByName: Map<string, string> }> {
+// Lot 71e (PRE-01) : les coordonnées lues dans un PDF de prestataires retenus ou dans l'annuaire d'un
+// programme (contact, e-mail, téléphone) vont sur la fiche créée.
+export type NamedVendorDetails = { contactName?: string | null; email?: string | null; phone?: string | null };
+
+export async function importNamedVendors(organizationId: string, list: readonly ({ name: string; typeId: string | null } & NamedVendorDetails)[]): Promise<{ items: ImportedItem[]; idByName: Map<string, string> }> {
   return inTransaction(organizationId, async (tx) => {
     const items: ImportedItem[] = [];
     const idByName = new Map<string, string>();
@@ -52,7 +86,11 @@ export async function importNamedVendors(organizationId: string, list: readonly 
     for (const entry of list) {
       const name = entry.name.trim();
       if (!name || idByName.has(name)) continue;
-      const [created] = await tx.insert(vendors).values({ organizationId, name }).returning({ id: vendors.id });
+      const details = { contactName: entry.contactName?.trim() || null, email: entry.email?.trim() || null, phone: entry.phone?.trim() || null };
+      const [created] = await tx
+        .insert(vendors)
+        .values({ organizationId, name, ...Object.fromEntries(Object.entries(details).filter(([, value]) => value !== null)) })
+        .returning({ id: vendors.id });
       if (!created) throw new Error("création de la fiche échouée");
       // Un métier qui n'est pas de l'organisation n'est pas posé (la fiche reste « à classer »).
       if (entry.typeId && typeIds.has(entry.typeId)) await writeTypeLinks(tx, organizationId, created.id, [entry.typeId]);

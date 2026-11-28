@@ -35,6 +35,8 @@ export async function VendorSpaceContent({ access, preview = false, banner, pres
   const tHelp = await getTranslations("Help");
   const tEvents = await getTranslations("Events");
   const tAnswer = await getTranslations("VendorAnswer");
+  // Lot 71e (R13) : une fin attendue d'un programme repris.
+  const tGaps = await getTranslations("ProgramGaps");
   const locale = (await getLocale()) as Locale;
 
   // Dégradation propre (CLAUDE.md § 2.2) : module désactivé = « indisponible ».
@@ -174,7 +176,7 @@ export async function VendorSpaceContent({ access, preview = false, banner, pres
                 {program.ownItems.map((item) => (
                   <li key={item.id}>
                     <strong>
-                      {item.endTime ? `${item.startTime} – ${item.endTime}` : item.startTime} — {item.label}
+                      {item.endTime ? `${item.startTime} – ${item.endTime}` : item.endPending ? `${item.startTime} · ${tGaps("endPending")}` : item.startTime} — {item.label}
                     </strong>
                     {item.location ? ` — ${item.location}` : ""}
                     {item.responsible ? ` — ${tEvents("programResponsibleLine", { name: item.responsible })}` : ""}
@@ -186,7 +188,7 @@ export async function VendorSpaceContent({ access, preview = false, banner, pres
             <ul aria-labelledby="vendor-outline-title">
               {program.outline.map((line) => (
                 <li key={line.id}>
-                  {line.endTime ? `${line.startTime} – ${line.endTime}` : line.startTime} — {line.label}
+                  {line.endTime ? `${line.startTime} – ${line.endTime}` : line.endPending ? `${line.startTime} · ${tGaps("endPending")}` : line.startTime} — {line.label}
                   {line.own ? ` (${t("outlineYours")})` : ""}
                 </li>
               ))}

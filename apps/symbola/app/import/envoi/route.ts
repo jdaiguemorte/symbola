@@ -7,10 +7,10 @@
 import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
 import { appDatabase } from "@symbola/db/client";
-import { getImportColumns, getImportDraft, startEventSheetsImport, startImport, type ImportRejectionReason } from "@/modules/hub/service";
+import { getImportColumns, getImportDraft, startEventSheetsImport, startImport, startPdfImport, type ImportRejectionReason, type PdfImportRejection } from "@/modules/hub/service";
 import { saveColumnsIfNothingToDecide } from "@/lib/import/columns";
 import { receiveUpload, uploadResponse } from "@/lib/uploads/receive";
-import { availableImportEntityTypes, parseEntityType } from "../access";
+import { availableImportEntityTypes, availablePdfImportEntityTypes, parseEntityType, parsePdfEntityType } from "../access";
 import { getEvent } from "@/modules/events/service";
 import { isValidId } from "@/app/events/module-access";
 import { parseStepKind } from "@/app/reprise/access";
@@ -25,6 +25,16 @@ const REJECTION_MESSAGES: Record<ImportRejectionReason, string> = {
   unsupported_format: "rejectedUnsupported",
   malformed: "rejectedMalformed",
   infected: "rejectedInfected",
+};
+
+const PDF_REJECTION_MESSAGES: Record<PdfImportRejection, string> = {
+  empty: "rejected.empty",
+  too_large: "rejected.tooLarge",
+  infected: "rejected.infected",
+  too_many_pages: "rejected.tooManyPages",
+  not_pdf: "rejected.notPdf",
+  not_event_vendors_pdf: "rejected.notEventVendorsPdf",
+  not_program_pdf: "rejected.notProgramPdf",
 };
 
 const HINT_MESSAGES = {
@@ -42,8 +52,11 @@ export async function POST(request: Request): Promise<Response> {
   const t = await getTranslations("Import");
   const organizationId = user.organizationId;
 
-  const entityType = parseEntityType(String(formData.get("entityType") ?? ""));
-  if (!entityType || !(await availableImportEntityTypes(organizationId)).includes(entityType)) {
+  const requested = String(formData.get("entityType") ?? "");
+  // Lot 71e (HUB-14, SEC-21) : un PDF de prestataires retenus ou de programme, pour un mariage seulement.
+  const pdfType = parsePdfEntityType(requested);
+  const entityType = pdfType ?? parseEntityType(requested);
+  if (!entityType || !(pdfType ? (await availablePdfImportEntityTypes(organizationId)).includes(pdfType) : (await availableImportEntityTypes(organizationId)).includes(entityType))) {
     return uploadResponse({ error: t("missingEntityType") });
   }
   const db = appDatabase();
@@ -75,6 +88,23 @@ export async function POST(request: Request): Promise<Response> {
   }
   const file = formData.get("file");
   if (!(file instanceof File) || file.size === 0) return uploadResponse({ error: t("missingFile") });
+
+  if (pdfType) {
+    const targetId = String(formData.get("targetEventId") ?? "");
+    const eventId = takeover ? takeover.targetEventId : isValidId(targetId) ? targetId : null;
+    const event = eventId ? await getEvent(organizationId, eventId).catch(() => null) : null;
+    // Un mariage d'une autre organisation, ou un essai : la même réponse qu'un import inexistant (SEC-13).
+    if (!event || event.isDemo) return uploadResponse({ error: t("importNotFound") });
+    const started = await startPdfImport(db, { organizationId, userId: user.id, entityType: pdfType, fileName: file.name, bytes: new Uint8Array(await file.arrayBuffer()), targetEventId: event.id });
+    if (started.status === "rejected") {
+      // Journalisé sans le nom du fichier ni son contenu (SEC-20).
+      console.warn("import refusé", { organizationId, reason: started.reason });
+      return uploadResponse({ error: (await getTranslations("ImportPdf"))(PDF_REJECTION_MESSAGES[started.reason]) });
+    }
+    if (takeover) await takeover.attach(started.importId);
+    revalidatePath("/import");
+    return uploadResponse({ redirect: `/import/${started.importId}/pdf` });
+  }
 
   // Lot 65g (HUB-14, BUD-04) : l'évènement d'où l'import est lancé, s'il est bien de l'organisation.
   const targetId = String(formData.get("targetEventId") ?? "");

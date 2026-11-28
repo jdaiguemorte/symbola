@@ -408,3 +408,14 @@ liste d'opposition par planner (RGP-17 « Sans objet »). Les relances restent p
 la planner (envoi automatique seulement en réglage), chacune porte « Vous ne souhaitez plus de
 nouvelles ? Répondez simplement. », et la planner a un geste « Ne plus relancer »
 (`docs/QUESTIONS.md`, Q39 ; ADR 0090).
+
+## Pour information : l'annuaire d'un programme repris (lot 71, 28 novembre 2026)
+
+Sans question ouverte ; à confirmer si vous le souhaitez. Le PDF du programme du jour J d'un ancien
+logiciel porte un annuaire des intervenants (nom, rôle, téléphone), qui peut nommer des proches du
+couple (témoins, famille). **Décision de Julien (27/11/2026, I4)** : l'annuaire est gardé à part, avec
+l'import, **90 jours au plus**, pour être proposé au carnet depuis le bilan ; il est effacé plus tôt
+quand la planner l'ajoute au carnet ou retire l'import, et n'est jamais exporté. « Ajouter au carnet »
+n'ajoute que les professionnels (le téléphone d'une fiche existante, ou une fiche créée) : les mariés et
+l'agence sont écartés ; les fiches ajoutées suivent ensuite la conservation du carnet. Les PDF eux-mêmes
+ne sont jamais gardés : seul ce qui a été lu attend la confirmation, dans le brouillon de l'import.

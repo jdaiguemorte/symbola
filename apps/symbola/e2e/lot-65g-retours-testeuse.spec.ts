@@ -91,7 +91,7 @@ test("CHR-08 — Lot 65g : « Importer » ouvre l'import du programme en tête d
   await page.goto(`/events/${setup.eventId}?onglet=programme`);
   await page.getByRole("link", { name: "Importer", exact: true }).click();
   await expect(page).toHaveURL(/importer=1/);
-  const file = page.getByLabel("Fichier CSV, XLSX ou PDF");
+  const file = page.getByLabel("Fichier CSV ou XLSX");
   await expect(file).toBeVisible();
   await expect(file).toHaveCount(1);
   const importTop = (await page.locator("#importer-programme").boundingBox())!.y;

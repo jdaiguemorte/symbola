@@ -32,7 +32,6 @@ import {
   getTakeover,
   listImportSummaries,
   listTakeovers,
-  markTakeoverStepImported,
   previewTakeover,
   saveImportMatching,
   setImportTargetEvent,
@@ -178,15 +177,12 @@ async function ensureTakeover(actor: TakeoverActor, takeoverId: string | null, e
   return createTakeover(db(), { organizationId: actor.organizationId, userId: actor.userId, eventId, viewer: actor.viewer });
 }
 
-// L'import qu'ouvre une ligne. Les PDF des prestataires retenus et du programme s'ouvrent sur la fiche
-// du mariage (provisoire, paquet 71e) ; ils reviennent à la page une fois écrits.
+// L'import qu'ouvre une ligne. Lot 71e : les PDF des prestataires retenus et du programme passent par
+// l'assistant commun, une fois le mariage connu.
 export function takeoverImportHref(kind: TakeoverStepKind, takeover: { id: string; eventId: string | null }): string {
   const entityType = takeoverImportEntityType(kind);
-  if (entityType) return `/import?type=${entityType}&reprise=${takeover.id}#import-form`;
-  if (!takeover.eventId) return `/reprise/${takeover.id}`;
-  return kind === "event_vendors"
-    ? `/events/${takeover.eventId}?onglet=budget&reprendre=1&reprise=${takeover.id}#reprendre-prestataires`
-    : `/events/${takeover.eventId}?onglet=programme&importer=1&reprise=${takeover.id}#importer-programme`;
+  if (!entityType || ((kind === "event_vendors" || kind === "program") && !takeover.eventId)) return `/reprise/${takeover.id}`;
+  return `/import?type=${entityType}&reprise=${takeover.id}#import-form`;
 }
 
 export type TakeoverStepIntent = "drop" | "noFile" | "dropAgain" | "dropAnyway";
@@ -250,10 +246,11 @@ export async function takeoverForUpload(
   const view = await getTakeover(db(), actor.organizationId, takeoverId, actor.viewer);
   const entityType = takeoverImportEntityType(kind) as ImportEntityType | null;
   if (!view || !entityType) return null;
-  if ((entityType === "budget_lines" || entityType === "tasks") && !view.eventId) return null;
+  const forEvent = entityType === "budget_lines" || entityType === "tasks" || entityType === "event_vendors" || entityType === "program";
+  if (forEvent && !view.eventId) return null;
   return {
     entityType,
-    targetEventId: entityType === "budget_lines" || entityType === "tasks" ? view.eventId : null,
+    targetEventId: forEvent ? view.eventId : null,
     attach: async (importId) => {
       await attachImportToTakeoverStep(db(), { organizationId: actor.organizationId, userId: actor.userId, takeoverId: view.id, kind, importId, viewer: actor.viewer });
       // Critère 4 : un budget qui nomme ses prestataires couvre leur ligne dès son dépôt.
@@ -287,19 +284,6 @@ export async function importEventNames(organizationId: string, imports: readonly
     if (name) names.set(entry.id, name);
   }
   return names;
-}
-
-// Provisoire jusqu'au paquet 71e : un PDF de prestataires retenus ou de programme, ouvert depuis la
-// page de reprise et écrit sur la fiche du mariage, coche sa ligne. Une reprise d'une autre
-// organisation, hors de vue, ou d'un autre mariage : rien ne change (SEC-13).
-export async function markTakeoverPdfStepDone(actor: TakeoverActor, input: { takeoverId: string; kind: "event_vendors" | "program"; eventId: string }): Promise<boolean> {
-  try {
-    await markTakeoverStepImported(db(), { organizationId: actor.organizationId, userId: actor.userId, takeoverId: input.takeoverId, kind: input.kind, eventId: input.eventId, viewer: actor.viewer });
-    return true;
-  } catch (error) {
-    if (error instanceof TakeoverNotFoundError) return false;
-    throw error;
-  }
 }
 
 // Lot 71c (HUB-14, C-52 ; spécification du lot 71, § 5.3, critère 1) — « Un mariage qui n'est pas encore

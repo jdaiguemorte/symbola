@@ -170,6 +170,11 @@ export type ProgramImportRow = {
   marker?: boolean;
   hiddenFromClients?: boolean;
   endsNextDay?: boolean;
+  // Lot 71e (C-63, R12 ; D5) : le fichier donnait une fin à minuit, laissée vide ; la forme du moment
+  // (« span » : un début et une fin, la fin pouvant rester à saisir ; « marker » : repère sans durée, une
+  // ligne sans interlocuteur ni fin ; « point » : ponctuel, dit par la planner).
+  midnightEnd?: boolean;
+  timing?: "span" | "point" | "marker";
 };
 // Lot 63b : un intervenant de l'en-tête du PDF et le poste de l'évènement qui lui est proposé (ou
 // choisi par la planner) ; à défaut, une fiche du carnet au nom proche, pour information.

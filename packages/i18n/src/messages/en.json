@@ -1338,7 +1338,7 @@
     },
     "programImport": {
       "title": "Import a schedule",
-      "body": "A schedule kept in a spreadsheet (CSV or XLSX) imports into the event schedule: columns day or key moment, start, end, sequence, location, responsible, note. The review screen shows the sequences read and the issues row by row; nothing is written before \"Import\". Missing key moments are created; a cell starting with =, +, - or @ stays text."
+      "body": "A schedule kept in a spreadsheet (CSV or XLSX) is imported here: day or key moment, start, end, item, place, person in charge, note columns; nothing is written before \"Import\". A schedule PDF from planning software is imported with \"Import a schedule (PDF)\": no end time is ever guessed. While an end is missing, \"To complete\" says so at the top of the tab: enter the end time, or say the moment is a point in time. Sharing an incomplete schedule first opens a window that says so; recipients read \"end time to come\". A cell starting with =, +, - or @ stays as text."
     },
     "settlement": {
       "title": "Pay the deposit",
@@ -1568,49 +1568,6 @@
     "link": "Help",
     "tutorialsCount": "Tutorials done: {completed} of {total}",
     "tutorialsLink": "Tutorials"
-  },
-  "EventVendorsImport": {
-    "title": "Take over the selected vendors (PDF)",
-    "hint": "The “Export des Prestataires” PDF from your previous software, for this event. Each vendor is found in your directory, or created, then selected on the budget line of their trade. Nothing is written before you agree; amounts do not change.",
-    "fileLabel": "PDF file",
-    "preview": "Read the file",
-    "refresh": "Read again with these choices",
-    "reading": "Reading the file…",
-    "previewTitle": "{count, plural, =0 {No vendor read} one {# vendor read} other {# vendors read}}",
-    "header": "File for: {clients} — {date}.",
-    "headerNoClients": "clients not stated",
-    "headerNoDate": "date not stated",
-    "headerDifferent": "The date in this file is not this event's date. Check that it is the right file.",
-    "headerConfirm": "This is the file for this event",
-    "plannerSkipped": "Row not taken over, it is you: {names}.",
-    "columnFile": "In the file",
-    "columnVendor": "Directory entry",
-    "columnSlot": "Budget line",
-    "columnSkip": "Do not take over",
-    "chooseVendor": "Directory entry for {name}",
-    "chooseSlot": "Budget line for {name}",
-    "vendorNew": "Create the entry (trade to classify)",
-    "vendorNewTyped": "Create the entry ({type})",
-    "vendorFound": "Found in the directory",
-    "slotNew": "New line “{type}”",
-    "alreadyRetained": "Already selected",
-    "skipLine": "Do not take over {name}",
-    "applyHint": "A vendor already selected on a line stays: the takeover adds, it does not replace. To go back, use « Unselect » in the line's window.",
-    "apply": "{count, plural, =0 {Nothing to take over} one {Take over # vendor} other {Take over # vendors}}",
-    "applied": "{retained, plural, =0 {No vendor selected} one {# vendor selected} other {# vendors selected}}, {createdVendors, plural, =0 {no entry created} one {# entry created} other {# entries created}}, {createdSlots, plural, =0 {no line created} one {# line created} other {# lines created}}.",
-    "appliedAlready": "{count, plural, one {# was already selected.} other {# were already selected.}}",
-    "unauthenticated": "Your session has expired. Sign in again.",
-    "moduleUnavailable": "This takeover needs the Events and Vendors modules.",
-    "fileMissing": "Choose the PDF file.",
-    "eventNotFound": "Event not found.",
-    "rejected": {
-      "empty": "The file is empty.",
-      "too_large": "The file is too large.",
-      "infected": "The file was rejected by the antivirus.",
-      "too_many_pages": "The file has too many pages.",
-      "not_event_vendors_pdf": "This file is not an event's “Export des Prestataires” PDF. For the whole directory, go to Vendors, “Import”.",
-      "header_unconfirmed": "The file's date is not this event's date: tick the confirmation to continue."
-    }
   },
   "Events": {
     "title": "Events",
@@ -2260,25 +2217,14 @@
     "programKeyMomentDefault": "Event day",
     "programMomentInvalid": "This key moment does not belong to the event.",
     "keyMomentHasItems": "{count, plural, one {This key moment holds # schedule sequence: move or delete it to remove the key moment.} other {This key moment holds # schedule sequences: move or delete them to remove the key moment.}}",
-    "programImportTitle": "Import a schedule (spreadsheet or PDF)",
-    "programImportHint": "A spreadsheet (recognised columns: day or key moment, date, start, end, sequence, place, person in charge, note) or the “programme” PDF of your previous software. Nothing is saved before you agree; missing key moments are created.",
-    "programImportFileLabel": "CSV, XLSX or PDF file",
+    "programImportTitle": "Import a schedule (spreadsheet)",
+    "programImportHint": "A spreadsheet (recognised columns: day or key moment, date, start, end, sequence, place, person in charge, note). Nothing is saved before you agree; missing key moments are created. A planning software's “programme” PDF is imported with “Import a schedule (PDF)”.",
+    "programImportFileLabel": "CSV or XLSX file",
     "programImportFile": "Choose a CSV, XLSX or PDF file.",
     "programImportTooLarge": "This file is over 1 MB: a spreadsheet schedule weighs a few KB, a PDF programme a few hundred.",
     "programImportPreview": "Preview before importing",
     "programImportReading": "Reading the file… Nothing is saved yet.",
     "programImportPreviewTitle": "{count, plural, =0 {No sequence read} one {# sequence read} other {# sequences read}}",
-    "programImportFromPdf": "Programme read from the PDF of your previous software: each sequence keeps its day, times and description (as an internal note).",
-    "programImportSpeakersTitle": "{count, plural, one {Person from the file: # to link} other {People from the file: # to link}}",
-    "programImportSpeakersIntro": "On the left, the person as written in the file; on the right, the matching vendor of the event. Their sequences will be linked to them; “Keep as text” leaves their name as written. You are not linked yourself.",
-    "programImportSpeakersTable": "Table of people and their vendor",
-    "programImportSpeakerFile": "In the file",
-    "programImportSpeakerEvent": "Vendor of the event",
-    "programImportSpeakerChoose": "Vendor of the event for “{role}”",
-    "programImportSpeakerNone": "Keep as text",
-    "programImportSpeakerProposed": "Suggested",
-    "programImportSpeakerCatalog": "In your vendor book: {vendor}. Add them to the event's vendors to link their sequences.",
-    "programImportSpeakersRefresh": "Update the preview",
     "programImportHiddenNotice": "{count, plural, one {# sequence is “Hidden from the couple” in the file: it is imported hidden from them (left out of their space and of the programme shared with them), visible to the team and to the vendors concerned.} other {# sequences are “Hidden from the couple” in the file: they are imported hidden from them (left out of their space and of the programme shared with them), visible to the team and to the vendors concerned.}}",
     "programImportNeutralized": "{count, plural, one {# cell starting with =, +, - or @ was kept as text.} other {# cells starting with =, +, - or @ were kept as text.}}",
     "programImportUnknownColumns": "Ignored columns: {columns}.",
@@ -2294,8 +2240,6 @@
       "untimed": "no time in the file (“00:00”): add it as a task if needed"
     },
     "programImportLine": "Row",
-    "programImportParticipants": "People",
-    "programImportParticipantText": "as text",
     "programImportMarker": "Marker",
     "programImportHidden": "Hidden from the couple",
     "programImportNextDay": "Ends the next day",
@@ -2312,7 +2256,8 @@
       "unsupported_format": "Unread format: save the file as .xlsx or .csv.",
       "malformed": "The file could not be read.",
       "not_program_pdf": "This PDF is not a programme from your previous software (no Title, Description, Contact table found).",
-      "too_many_pages": "This PDF has too many pages for a programme."
+      "too_many_pages": "This PDF has too many pages for a programme.",
+      "pdf_wizard": "A schedule PDF is imported with \"Import a schedule (PDF)\", at the top of the tab."
     },
     "eventNotesConfidentialElsewhere": "The notes are confidential: edit them just below.",
     "eventNotesConfidentialTitle": "Notes and confidentiality",
@@ -3396,7 +3341,9 @@
       "payment_methods": "Payment methods",
       "vendors": "Vendor book entries (one row per vendor)",
       "event_sheets": "Event sheets (PDF, one sheet per event)",
-      "contacts": "Contacts (one row per person: clients, prospects…)"
+      "contacts": "Contacts (one row per person: clients, prospects…)",
+      "event_vendors": "Booked vendors (PDF)",
+      "program": "Day-of schedule (PDF)"
     },
     "fileLabel": "File (CSV, Excel .xlsx or JSON)",
     "fileHint": "Maximum size: {maxSize}. Encoding, separator and header row are detected automatically.",
@@ -4129,7 +4076,9 @@
           "pastDueTasks": "Choose what happens to these tasks."
         }
       }
-    }
+    },
+    "pdfFileLabel": "The PDF from your planning software, for this wedding",
+    "pdfFileHint": "A single PDF file, {maxSize} at most. Nothing is written before you agree."
   },
   "Privacy": {
     "title": "Personal data",
@@ -14150,6 +14099,8 @@
       "budgetLines": "{count, plural, =0 {no line} one {# line} other {# lines}}",
       "tasks": "{count, plural, =0 {no task} one {# task} other {# tasks}}",
       "events": "{count, plural, =0 {no event} one {# event} other {# events}}",
+      "retainedVendors": "{count, plural, =0 {no booked vendor} one {# booked vendor} other {# booked vendors}}",
+      "moments": "{count, plural, =0 {no moment} one {# moment} other {# moments}}",
       "rows": "{count, plural, =0 {no line} one {# line} other {# lines}}"
     },
     "action": {
@@ -14592,6 +14543,199 @@
     "nextTitle": "What next",
     "nextTakeover": "The “Budget” line of the takeover of “{event}” is ticked.",
     "backToTakeover": "Back to the takeover"
+  },
+  "ImportPdf": {
+    "step": {
+      "event_vendors": {
+        "file": "File",
+        "questions": "Questions",
+        "matches": "Budget items",
+        "confirm": "Check"
+      },
+      "program": {
+        "file": "File",
+        "questions": "Questions",
+        "matches": "Contacts",
+        "confirm": "Check"
+      }
+    },
+    "intro": {
+      "event_vendors": "{file} · {count, plural, one {# line} other {# lines}} · nothing is written before you agree",
+      "program": "{file} · {count, plural, one {# moment} other {# moments}} · nothing is written before you agree"
+    },
+    "blocked": {
+      "couple": "Answer first: is this file really this wedding's?",
+      "contracts": "Answer the contracts question first.",
+      "nothing": "Nothing to import: every line is unticked or already there."
+    },
+    "toVerify": "To check",
+    "and": " and ",
+    "notProvided": "not provided",
+    "save": "Save and continue",
+    "verifyTitle": "Check: what will be written",
+    "couple": {
+      "title": "Is this file really {names}'s?",
+      "sameDate": "It names another couple. Same date: you may have exported the wrong wedding.",
+      "otherCouple": "It names another couple.",
+      "what": "What is compared",
+      "inFile": "In the file",
+      "onEvent": "On the event",
+      "married": "Couple",
+      "date": "Date",
+      "otherFile": "Choose another file",
+      "continue": "It is this wedding, continue",
+      "kept": "\"Continue\" keeps your answer in the summary."
+    },
+    "vendors": {
+      "contractsQuestion": "Are their contracts signed?",
+      "contracts": {
+        "all": "All",
+        "none": "None",
+        "per_line": "Line by line"
+      },
+      "noReminder": "No reminder is created, whatever the answer.",
+      "rowsTitle": "{count, plural, one {# booked vendor} other {# booked vendors}}",
+      "toVerifyCount": "{count, plural, one {# line to check, highlighted.} other {# lines to check, highlighted.}}",
+      "col": {
+        "file": "In your file",
+        "fiche": "Vendor book record",
+        "slot": "Budget item",
+        "contract": "Contract",
+        "keep": "Import"
+      },
+      "found": "Found in the book",
+      "newFiche": "New record",
+      "sameFiche": "The \"{name}\" record in the book",
+      "newSlot": "New item \"{label}\"",
+      "verify": {
+        "no_slot": "No item close to \"{type}\"",
+        "split": "Placed from the line's detail",
+        "similar": "Only a similar name",
+        "possible_vendor": "A record in the book looks like it"
+      },
+      "alreadyRetained": "Already booked on this item: nothing changes.",
+      "signed": "Signed",
+      "unsigned": "Not signed",
+      "keepLabel": "Import \"{name}\"",
+      "agencyLine": "Line not imported: \"{name}\", your business.",
+      "figure": {
+        "vendors": "{count, plural, =0 {No booked vendor} one {# booked vendor} other {# booked vendors}}",
+        "carnet": "{found} found in the book · {created, plural, =0 {no record created} one {# record created} other {# records created}}",
+        "contracts": "{signed, plural, =0 {no contract signed} one {# contract signed} other {# contracts signed}} · {unsigned} not signed",
+        "contractsPending": "Contracts: answer the question above.",
+        "newSlots": "{count, plural, =0 {No new item} one {# new item} other {# new items}}"
+      },
+      "notTaken": "Not imported: no amounts, your file gives none.",
+      "import": "{count, plural, =0 {Nothing to import} one {Import the vendor} other {Import the # vendors}}",
+      "saveAnswer": "Save the answer"
+    },
+    "program": {
+      "marker": "{start} · marker",
+      "nextDay": "{start} – {end} the next day",
+      "speakersTitle": "{count, plural, =0 {No contact to link} one {# contact to link to a budget item} other {# contacts to link to a budget item}}",
+      "speakersHint": "Each contact in the file's header is linked to the matching budget item of this wedding; without one, the name stays as text.",
+      "asText": "No item: keep the name as text",
+      "figure": {
+        "days": "{count, plural, one {# day} other {# days}}",
+        "moments": "{count, plural, one {# moment} other {# moments}}{markers, plural, =0 {} one {, including # marker} other {, including # markers}}",
+        "endsMissing": "{count, plural, =0 {Every end time is given} one {# end time not provided} other {# end times not provided}}",
+        "hidden": "{count, plural, one {# moment hidden from the couple} other {# moments hidden from the couple}}"
+      },
+      "directoryNotTaken": "Not imported: the directory ({count, plural, one {# contact and their phone number} other {# contacts and their phone numbers}}). The summary will offer to add them to the book.",
+      "day": {
+        "eve": "Day before",
+        "main": "Big day",
+        "nextDay": "Day after",
+        "other": "{date}"
+      },
+      "dayCount": "{count, plural, one {# moment} other {# moments}}",
+      "endMissing": "End not provided",
+      "hidden": "Hidden from the couple",
+      "midnight": "Your file gave \"{start} - 00:00\": a midnight end, left empty.",
+      "problems": "{count, plural, one {# line of the file is not imported: it has no time or no title.} other {# lines of the file are not imported: they have no time or no title.}}",
+      "noSlots": "This wedding has no budget item yet: contacts stay as text.",
+      "import": "{count, plural, =0 {Nothing to import} one {Import the moment} other {Import the # moments}}"
+    },
+    "bilan": {
+      "title": {
+        "event_vendors": "{count, plural, =0 {No booked vendor} one {# booked vendor} other {# booked vendors}} for \"{event}\"",
+        "program": "Schedule imported into \"{event}\""
+      },
+      "summaryTitle": "Import summary",
+      "importedBy": "{file} · imported on {date} by {author}",
+      "someone": "someone in the team",
+      "vendors": {
+        "found": "Found in the book: {count}",
+        "created": "Records created: {count}",
+        "signed": "Contracts signed: {count}",
+        "unsigned": "Not signed: {count}",
+        "unknown": "Contracts not provided: {count}",
+        "newSlots": "New items: {count}",
+        "noAmounts": "Not imported: no amounts, your file gives none. Enter them in the budget.",
+        "noAmountsUnallocated": "Not imported: no amounts, your file gives none. {amount} remain to allocate on the event."
+      },
+      "program": {
+        "days": "Days: {count}",
+        "moments": "Moments: {count}{markers, plural, =0 {} one {, including # marker} other {, including # markers}}",
+        "endsMissing": "End times not provided: {count}"
+      },
+      "coupleConfirmed": "The file named another couple; you answered \"It is this wedding\".",
+      "notTakenTitle": "What was not imported",
+      "directory": {
+        "title": "The schedule's directory: {count, plural, one {# contact and their phone number} other {# contacts and their phone numbers}}",
+        "fate": {
+          "add_phone": "In the book · add {phone}",
+          "up_to_date": "In the book · already up to date",
+          "create": "Not in the book · a record would be created"
+        },
+        "set": "{count, plural, one {Set aside: # contact (the couple, already on the event, or your business).} other {Set aside: # contacts (the couple, already on the event, and your business).}}",
+        "addPhones": "{count, plural, one {Add the phone number} other {Add the # phone numbers}}",
+        "addAll": "Add them to the book: {phones, plural, =0 {no phone number} one {# phone number} other {# phone numbers}}, {created, plural, one {# record created} other {# records created}}",
+        "nothing": "Nothing to add: the book is already up to date.",
+        "gone": "The directory is no longer kept (added, set aside, or past 90 days).",
+        "done": "The directory is in the book; it is no longer kept with the import.",
+        "added": "{phones, plural, =0 {No phone number added} one {# phone number added} other {# phone numbers added}} · {created, plural, =0 {no record created} one {# record created} other {# records created}}."
+      },
+      "nextTitle": "What next",
+      "completeProgram": "Complete the schedule",
+      "seeBudget": "See the budget",
+      "backToTakeover": "Back to the takeover"
+    },
+    "fromEvent": {
+      "vendors": "Import booked vendors (PDF)",
+      "program": "Import a schedule (PDF)"
+    },
+    "rejected": {
+      "tooManyPages": "This PDF has too many pages for an export from this software.",
+      "notPdf": "This file is not a PDF.",
+      "notEventVendorsPdf": "This PDF is not a wedding's \"Vendors\" export. Drop your software's booked vendors export.",
+      "notProgramPdf": "This PDF is not a wedding's \"Schedule\" export. Drop your software's day-of schedule export.",
+      "empty": "The file is empty: no data rows were found.",
+      "tooLarge": "The file is too large.",
+      "infected": "The file was blocked by the antivirus. It was not kept."
+    }
+  },
+  "ProgramGaps": {
+    "endPending": "end time to come",
+    "title": "{count, plural, one {To complete: # end time not provided.} other {To complete: # end times not provided.}}",
+    "body": "Your file did not give them. Enter them, or say a moment is a point in time.",
+    "notShared": "The schedule is not shared yet.",
+    "goFirst": "Go to the first",
+    "endMissing": "end not provided",
+    "endLabel": "End time",
+    "endFor": "End time of \"{label}\"",
+    "saveEnd": "Save",
+    "point": "Point in time",
+    "pointFor": "\"{label}\" is a point in time",
+    "dialogTitle": "The schedule isn't complete",
+    "dialogBody": "{count, plural, one {# end time is not provided.} other {# end times are not provided.}} The couple and the vendors would see these moments without an end, marked \"end time to come\".",
+    "completeFirst": "Complete first",
+    "publishAnyway": "Share anyway",
+    "pointWord": "point in time",
+    "markerWord": "marker",
+    "colMoment": "Moment",
+    "colDay": "Day",
+    "tableLabel": "Moments without an end time"
   },
   "EventOverview": {
     "suite": {

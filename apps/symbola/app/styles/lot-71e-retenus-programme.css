@@ -1,0 +1,124 @@
+/* Lot 71e (HUB-14 ; maquettes 10 et 11) — l'écran d'un PDF de prestataires retenus ou de programme.
+   Importée par globals.css, comme les feuilles des lots 71b à 71d (contrôle UX-13 des classes). Jetons de
+   DESIGN.md (ADR 0057) ; « À vérifier » reprend le fond d'attention du lot 62. */
+/* L'aperçu prend toute la largeur (maquette 10) : aucun choix tronqué. */
+/* Le formulaire porte plusieurs cartes : il n'en est pas une lui-même, et n'est pas borné à 48 rem. */
+.app-main > main.pdf-import > form {
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+}
+.pdf-import table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.pdf-import th,
+.pdf-import td {
+  text-align: left;
+  vertical-align: top;
+  padding: 0.5rem;
+  border-bottom: 1px solid var(--color-line);
+}
+.pdf-import .pdf-name {
+  display: block;
+  font-weight: 600;
+}
+.pdf-import .pdf-row-verify {
+  background: var(--color-attention-soft);
+}
+.pdf-import .pdf-verify {
+  margin: 0.25rem 0 0;
+}
+.pdf-import .pdf-missing {
+  display: block;
+  color: var(--color-attention);
+  font-size: 0.875rem;
+}
+.pdf-import .pdf-moments,
+.pdf-import .pdf-speakers {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.pdf-import .pdf-moments li,
+.pdf-import .pdf-speakers li {
+  display: grid;
+  grid-template-columns: 11rem 1fr;
+  gap: 0.75rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--color-line);
+}
+.pdf-import .pdf-speakers label {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.5rem;
+  grid-column: 1 / -1;
+}
+.pdf-import .pdf-time {
+  font-variant-numeric: tabular-nums;
+}
+.pdf-import .pdf-figures li {
+  font-variant-numeric: tabular-nums;
+}
+
+/* 375 px : une carte par prestataire, les lignes à vérifier d'abord (maquette 10). */
+@media (max-width: 640px) {
+  .pdf-import .pdf-vendors thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+  .pdf-import .pdf-vendors tbody {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .pdf-import .pdf-vendors tr {
+    display: block;
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-md);
+    padding: 0.5rem;
+  }
+  .pdf-import .pdf-vendors tr.pdf-row-verify {
+    order: -1;
+    border-color: var(--color-attention);
+  }
+  .pdf-import .pdf-vendors th,
+  .pdf-import .pdf-vendors td {
+    display: block;
+    border: 0;
+    padding: 0.125rem 0;
+  }
+  .pdf-import .pdf-vendors select {
+    max-width: 100%;
+  }
+  .pdf-import .pdf-moments li {
+    grid-template-columns: 1fr;
+    gap: 0.125rem;
+  }
+}
+
+/* Les heures et la note d'un moment, la journée, la question des contrats, le tableau du couple, et le
+   bloc « À compléter » de l'onglet du programme. */
+.pdf-import .pdf-day,
+.pdf-import .pdf-question,
+.pdf-import .pdf-couple {
+  margin-top: 0.75rem;
+}
+.pdf-import .pdf-couple-table th[scope="row"] {
+  font-weight: 600;
+}
+.pdf-import .pdf-midnight {
+  display: block;
+}
+.pdf-import .pdf-figures {
+  margin: 0;
+}
+.program-gaps .data-table {
+  margin-top: 0.5rem;
+}

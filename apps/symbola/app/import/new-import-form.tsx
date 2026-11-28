@@ -31,6 +31,8 @@ export function NewImportForm({
   // Lot 14c (IMP-08) : des fiches événement PDF, plusieurs à la fois.
   const [entityType, setEntityType] = useState<ImportEntityType | "">(defaultEntityType ?? (entityTypes.length === 1 ? entityTypes[0]! : ""));
   const sheets = entityType === "event_sheets";
+  // Lot 71e : un PDF de prestataires retenus ou de programme, un seul fichier.
+  const pdf = entityType === "event_vendors" || entityType === "program";
   // Lot 63b (HUB-14, UX-15) : la fenêtre de chargement s'ouvre au clic, avant la réponse.
   const [loading, setLoading] = useState<{ fileName: string | null } | null>(null);
   // Une erreur rendue par la route ferme la fenêtre : le message s'affiche sous le formulaire.
@@ -84,7 +86,15 @@ export function NewImportForm({
             ))}
           </fieldset>
         )}
-        {sheets ? (
+        {pdf ? (
+          <>
+            <label>
+              {t("pdfFileLabel")}
+              <input key="pdf" type="file" name="file" accept=".pdf,application/pdf" required aria-describedby="import-file-hint" />
+            </label>
+            <p id="import-file-hint">{t("pdfFileHint", { maxSize: maxSizeLabel })}</p>
+          </>
+        ) : sheets ? (
           <>
             <label>
               {t("sheetsLabel")}

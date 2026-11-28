@@ -4,7 +4,8 @@
 // seulement, lot 36b), Doublons, Vérifier et confirmer. Une étape sans rien à décider est faite d'office et
 // franchie, avec son résumé ; un brouillon reprend là où il s'était arrêté.
 import { appDatabase } from "@symbola/db/client";
-import { getImportDraft, type ImportDraft, type ImportEntityType } from "@/modules/hub/service";
+import { getImportDraft, isPdfImportEntityType, type ImportDraft, type ImportEntityType } from "@/modules/hub/service";
+import { getProgramImportView, getVendorsImportView, type ProgramImportView, type VendorsImportView } from "./pdf-imports";
 import { countImportRowFilterColumns, getImportMatchesView, type MatchesView } from "./matching";
 import { getImportQuestions, hasQuestions, type ImportQuestionsView } from "./questions";
 import { pendingBudgetDoublons } from "./budget-doublons";
@@ -159,10 +160,37 @@ export function undecidedMatchCount(rows: Pick<MatchesView["rows"][number], "err
   return rows.filter((row) => row.errors.length === 0 && !row.ignored && row.match?.status === "proposed").length;
 }
 
+// Lot 71e (HUB-14 ; maquettes 10 et 11) — les étapes d'un PDF de prestataires retenus (Fichier, Questions,
+// Postes, Vérifier) ou de programme (Fichier, Interlocuteurs, Vérifier). « Fichier » est fait quand le
+// couple concorde ou que la planner l'a confirmé ; « Questions » quand les contrats ont leur réponse ;
+// « Postes » et « Interlocuteurs » quand rien n'est plus à vérifier, ou après « Continuer ».
+export function pdfImportWizardSteps(view: Pick<VendorsImportView, "kind" | "coupleStop" | "contractsPending" | "toVerify" | "figures" | "draft"> | Pick<ProgramImportView, "kind" | "coupleStop" | "speakers" | "figures" | "draft">): ImportWizardStep[] {
+  const fileDone = !view.coupleStop;
+  const steps: ImportWizardStep[] = [{ key: "file", done: fileDone, summary: null }];
+  let previous = fileDone;
+  if (view.kind === "event_vendors") {
+    const questionsDone = previous && !view.contractsPending;
+    steps.push({ key: "questions", done: questionsDone, summary: null });
+    previous = questionsDone;
+    steps.push({ key: "matches", done: previous && (view.toVerify === 0 || view.draft.decisions.reviewed === true), summary: null });
+  } else {
+    const unplaced = view.speakers.filter((speaker) => speaker.kind === "vendor" && speaker.slotId === null).length;
+    steps.push({ key: "matches", done: previous && (unplaced === 0 || view.draft.decisions.reviewed === true), summary: null });
+  }
+  steps.push({ key: "confirm", done: false, summary: null });
+  return steps;
+}
+
 export async function getImportWizard(organizationId: string, importId: string, now: Date = new Date()): Promise<ImportWizard | null> {
   const db = appDatabase();
   const draft: ImportDraft | null = await getImportDraft(db, organizationId, importId);
   if (!draft) return null;
+  if (isPdfImportEntityType(draft.entityType)) {
+    const view = draft.entityType === "event_vendors" ? await getVendorsImportView(organizationId, importId, now) : await getProgramImportView(organizationId, importId, now);
+    if (!view) return null;
+    const steps = pdfImportWizardSteps(view);
+    return { importId: draft.id, fileName: draft.fileName, entityType: draft.entityType, steps, next: nextImportStep(steps), draft, matches: null, questions: null };
+  }
   const readJob = draft.jobs.find((job) => job.kind === "read_sheets");
   const readingDone = !readJob || readJob.status === "done";
   const undecided = draft.mapping?.some((choice) => choice.target === "none") ?? true;

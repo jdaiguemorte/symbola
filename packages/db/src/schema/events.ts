@@ -681,6 +681,8 @@ export type ProgramVersionItemRow = {
   location: string | null;
   responsible: string | null;
   participants: { vendorSlotId: string | null; label: string }[];
+  // Lot 71e (R13) : une fin attendue d'un programme repris (« heure de fin à venir »).
+  endPending?: boolean;
 };
 
 export const programVersions = eventsSchema.table("program_versions", {

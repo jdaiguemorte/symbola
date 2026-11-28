@@ -352,6 +352,8 @@ export type {
   ImportUndoOutcome,
 } from "./import/apply";
 export { sameImportValue } from "./import/compare";
+// Lot 71e (HUB-14, UX-17 ; R10) : le fichier désigne-t-il le couple de la fiche ?
+export { personFromFullName, sameCouple, type CoupleCheck, type CouplePerson } from "./import/couple";
 // Lot 71a (HUB-14 ; ADR 0119) : les réponses de l'étape « Questions » et la reprise d'un mariage.
 export {
   CONTRACTS_ANSWERS,
@@ -369,7 +371,13 @@ export {
 } from "./import/questions";
 export {
   budgetImportFigures,
+  eventVendorsImportFigures,
   importFigures,
+  programImportFigures,
+  type EventVendorsImportFigures,
+  type ImportFigureProgramItem,
+  type ImportFigureRetainedVendor,
+  type ProgramImportFigures,
   type BudgetImportFigures,
   type ImportFigureBudgetLine,
   type ImportFigurePayment,

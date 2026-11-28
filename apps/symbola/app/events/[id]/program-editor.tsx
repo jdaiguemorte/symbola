@@ -198,7 +198,11 @@ export function ProgramEditor({
   groups,
   vendorSlots,
   moments,
+  awaitEnds = null,
 }: {
+  // Lot 71e (D5, R12) : un programme repris ne déduit aucune fin : un moment sans fin la dit « non
+  // renseignée », « ponctuel » ou « repère » (textes venus du serveur, NFR-02) ; null : règle du lot 30b.
+  awaitEnds?: { endMissing: string; point: string; marker: string } | null;
   eventId: string;
   // Nom de la liste quand l'évènement n'a qu'un temps fort (« Programme du jour J »).
   title: string;
@@ -391,10 +395,18 @@ export function ProgramEditor({
                       {span ? clock(span.start) : row.draft.startTime}
                     </span>
                     <span role="cell" className="program-end">
-                      {span && !span.openEnded ? clock(span.end) : ""}
+                      {awaitEnds && row.item && !row.item.endTime
+                        ? (row.item.timing ?? "span") === "point"
+                          ? awaitEnds.point
+                          : row.item.timing === "marker"
+                            ? awaitEnds.marker
+                            : awaitEnds.endMissing
+                        : span && !span.openEnded
+                          ? clock(span.end)
+                          : ""}
                     </span>
                     <span role="cell" className="program-duration">
-                      {span && !span.openEnded ? durationText(span.end - span.start, words) : ""}
+                      {awaitEnds && row.item && !row.item.endTime ? "" : span && !span.openEnded ? durationText(span.end - span.start, words) : ""}
                     </span>
                     <span role="cell" className="program-main">
                       <strong>{label}</strong>

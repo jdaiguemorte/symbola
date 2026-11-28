@@ -41,6 +41,8 @@ function itemsOf(row: VersionRow): PublishedProgramItem[] {
       participants: (item.participants ?? []).map((participant) => ({ vendorSlotId: participant.vendorSlotId ?? null, label: participant.label })),
       // Lot 63b (Q44) : une version d'avant 0201 n'a que des séquences visibles.
       hiddenFromClients: item.hiddenFromClients === true,
+      // Lot 71e (R13) : une fin attendue d'un programme repris.
+      ...(item.endPending === true ? { endPending: true as const } : {}),
     })),
   );
 }

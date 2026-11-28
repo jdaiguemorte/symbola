@@ -1338,7 +1338,7 @@
     },
     "programImport": {
       "title": "Importer un chrono",
-      "body": "Un chrono tenu dans un tableur (CSV ou XLSX) s'importe dans le programme : colonnes jour ou temps fort, début, fin, séquence, lieu, responsable, note. L'écran de contrôle montre les séquences lues et les écarts ligne par ligne ; rien n'est écrit avant « Importer ». Les temps forts manquants sont créés ; une cellule qui commence par =, +, - ou @ reste du texte."
+      "body": "Un chrono tenu dans un tableur (CSV ou XLSX) s'importe ici : colonnes jour ou temps fort, début, fin, séquence, lieu, responsable, note ; rien n'est écrit avant « Importer ». Le PDF de programme d'un logiciel de planning se reprend par « Reprendre un programme (PDF) » : aucune heure de fin n'est déduite. Tant qu'une fin manque, « À compléter » le dit en tête de l'onglet : saisissez l'heure de fin, ou dites que le moment est ponctuel. Diffuser un programme incomplet passe d'abord par une fenêtre qui le dit ; les destinataires lisent « heure de fin à venir ». Une cellule qui commence par =, +, - ou @ reste du texte."
     },
     "settlement": {
       "title": "Régler l'acompte",
@@ -1568,49 +1568,6 @@
     "link": "Aide",
     "tutorialsCount": "Tutoriels faits : {completed} sur {total}",
     "tutorialsLink": "Tutoriels"
-  },
-  "EventVendorsImport": {
-    "title": "Reprendre les prestataires retenus (PDF)",
-    "hint": "Le PDF « Export des Prestataires » de votre ancien logiciel, pour cet évènement. Chaque prestataire est retrouvé dans votre carnet, ou sa fiche est créée, puis retenu sur la ligne du budget de son métier. Rien n'est écrit avant votre accord ; les montants ne changent pas.",
-    "fileLabel": "Fichier PDF",
-    "preview": "Lire le fichier",
-    "refresh": "Relire avec ces choix",
-    "reading": "Lecture du fichier…",
-    "previewTitle": "{count, plural, =0 {Aucun prestataire lu} one {# prestataire lu} other {# prestataires lus}}",
-    "header": "Fichier de : {clients} — {date}.",
-    "headerNoClients": "clients non indiqués",
-    "headerNoDate": "date non indiquée",
-    "headerDifferent": "La date de ce fichier n'est pas celle de cet évènement. Vérifiez que c'est le bon fichier.",
-    "headerConfirm": "C'est bien le fichier de cet évènement",
-    "plannerSkipped": "Ligne non reprise, c'est vous : {names}.",
-    "columnFile": "Dans le fichier",
-    "columnVendor": "Fiche du carnet",
-    "columnSlot": "Ligne du budget",
-    "columnSkip": "Ne pas reprendre",
-    "chooseVendor": "Fiche du carnet pour {name}",
-    "chooseSlot": "Ligne du budget pour {name}",
-    "vendorNew": "Créer la fiche (métier à classer)",
-    "vendorNewTyped": "Créer la fiche ({type})",
-    "vendorFound": "Trouvée dans le carnet",
-    "slotNew": "Nouvelle ligne « {type} »",
-    "alreadyRetained": "Déjà retenu",
-    "skipLine": "Ne pas reprendre {name}",
-    "applyHint": "Un prestataire déjà retenu sur une ligne le reste : la reprise ajoute, elle ne remplace pas. Pour revenir en arrière, « Ne plus retenir » dans la fenêtre du poste.",
-    "apply": "{count, plural, =0 {Rien à reprendre} one {Reprendre # prestataire} other {Reprendre # prestataires}}",
-    "applied": "{retained, plural, =0 {Aucun prestataire retenu} one {# prestataire retenu} other {# prestataires retenus}}, {createdVendors, plural, =0 {aucune fiche créée} one {# fiche créée} other {# fiches créées}}, {createdSlots, plural, =0 {aucune ligne créée} one {# ligne créée} other {# lignes créées}}.",
-    "appliedAlready": "{count, plural, one {# était déjà retenu.} other {# étaient déjà retenus.}}",
-    "unauthenticated": "Votre session a expiré. Reconnectez-vous.",
-    "moduleUnavailable": "Cette reprise demande les modules Évènements et Prestataires.",
-    "fileMissing": "Choisissez le fichier PDF.",
-    "eventNotFound": "Évènement introuvable.",
-    "rejected": {
-      "empty": "Le fichier est vide.",
-      "too_large": "Le fichier est trop lourd.",
-      "infected": "Le fichier a été refusé par l'antivirus.",
-      "too_many_pages": "Le fichier a trop de pages.",
-      "not_event_vendors_pdf": "Ce fichier n'est pas le PDF « Export des Prestataires » d'un évènement. Pour le carnet entier, passez par Prestataires, « Importer ».",
-      "header_unconfirmed": "La date du fichier n'est pas celle de cet évènement : cochez la confirmation pour continuer."
-    }
   },
   "Events": {
     "title": "Évènements",
@@ -2260,25 +2217,14 @@
     "programKeyMomentDefault": "Jour de l'évènement",
     "programMomentInvalid": "Ce temps fort n'est pas un temps fort de l'évènement.",
     "keyMomentHasItems": "{count, plural, one {Ce temps fort porte # séquence du programme : déplacez-la ou supprimez-la pour le retirer.} other {Ce temps fort porte # séquences du programme : déplacez-les ou supprimez-les pour le retirer.}}",
-    "programImportTitle": "Importer un chrono (tableur ou PDF)",
-    "programImportHint": "Un tableur (colonnes reconnues : jour ou temps fort, date, début, fin, séquence, lieu, responsable, note) ou le PDF « programme » de votre ancien logiciel. Rien n'est écrit avant votre accord ; les temps forts manquants sont créés.",
-    "programImportFileLabel": "Fichier CSV, XLSX ou PDF",
+    "programImportTitle": "Importer un chrono (tableur)",
+    "programImportHint": "Un tableur (colonnes reconnues : jour ou temps fort, date, début, fin, séquence, lieu, responsable, note). Rien n'est écrit avant votre accord ; les temps forts manquants sont créés. Le PDF « programme » d'un logiciel de planning se reprend par « Reprendre un programme (PDF) ».",
+    "programImportFileLabel": "Fichier CSV ou XLSX",
     "programImportFile": "Choisissez un fichier CSV, XLSX ou PDF.",
     "programImportTooLarge": "Ce fichier dépasse 1 Mo : un chrono en tableur pèse quelques Ko, un programme en PDF quelques centaines.",
     "programImportPreview": "Voir avant d'importer",
     "programImportReading": "Lecture du fichier… Rien n'est encore enregistré.",
     "programImportPreviewTitle": "{count, plural, =0 {Aucune séquence lue} one {# séquence lue} other {# séquences lues}}",
-    "programImportFromPdf": "Programme lu depuis le PDF de votre ancien logiciel : chaque séquence garde son jour, ses heures et sa description (en note interne).",
-    "programImportSpeakersTitle": "{count, plural, one {Intervenant du fichier : # à rattacher} other {Intervenants du fichier : # à rattacher}}",
-    "programImportSpeakersIntro": "À gauche, l'intervenant tel qu'il est dans le fichier ; à droite, le prestataire de l'évènement qui lui correspond. Ses séquences lui seront rattachées ; « Garder en texte » laisse son nom tel quel. Vous-même n'êtes pas rattachée.",
-    "programImportSpeakersTable": "Tableau des intervenants et de leur prestataire",
-    "programImportSpeakerFile": "Dans le fichier",
-    "programImportSpeakerEvent": "Prestataire de l'évènement",
-    "programImportSpeakerChoose": "Prestataire de l'évènement pour « {role} »",
-    "programImportSpeakerNone": "Garder en texte",
-    "programImportSpeakerProposed": "Proposé",
-    "programImportSpeakerCatalog": "Dans votre carnet : {vendor}. Ajoutez-le aux prestataires de l'évènement pour lui rattacher ses séquences.",
-    "programImportSpeakersRefresh": "Mettre à jour l'aperçu",
     "programImportHiddenNotice": "{count, plural, one {# séquence est « Cachée des mariés » dans le fichier : elle s'importe cachée d'eux (absente de leur espace et du programme qui leur est diffusé), visible de l'équipe et des prestataires concernés.} other {# séquences sont « Cachées des mariés » dans le fichier : elles s'importent cachées d'eux (absentes de leur espace et du programme qui leur est diffusé), visibles de l'équipe et des prestataires concernés.}}",
     "programImportNeutralized": "{count, plural, one {# cellule commençant par =, +, - ou @ a été gardée en texte.} other {# cellules commençant par =, +, - ou @ ont été gardées en texte.}}",
     "programImportUnknownColumns": "Colonnes ignorées : {columns}.",
@@ -2294,8 +2240,6 @@
       "untimed": "sans heure dans le fichier (« 00:00 ») : ajoutez-la comme tâche si besoin"
     },
     "programImportLine": "Ligne",
-    "programImportParticipants": "Interlocuteurs",
-    "programImportParticipantText": "en texte",
     "programImportMarker": "Repère",
     "programImportHidden": "Caché des mariés",
     "programImportNextDay": "Finit le lendemain",
@@ -2312,7 +2256,8 @@
       "unsupported_format": "Format non lu : enregistrez le fichier en .xlsx ou .csv.",
       "malformed": "Le fichier n'a pas pu être lu.",
       "not_program_pdf": "Ce PDF n'est pas un programme de votre ancien logiciel (tableau Titre, Description, Interlocuteur introuvable).",
-      "too_many_pages": "Ce PDF a trop de pages pour un programme."
+      "too_many_pages": "Ce PDF a trop de pages pour un programme.",
+      "pdf_wizard": "Un PDF de programme se reprend par « Reprendre un programme (PDF) », en tête de l'onglet."
     },
     "eventNotesConfidentialElsewhere": "Les notes sont confidentielles : elles se modifient juste en dessous.",
     "eventNotesConfidentialTitle": "Notes et confidentialité",
@@ -3396,7 +3341,9 @@
       "payment_methods": "Modes de paiement",
       "vendors": "Prestataires du carnet (une ligne par prestataire)",
       "event_sheets": "Fiches évènement (PDF, une fiche par évènement)",
-      "contacts": "Contacts (une ligne par personne : clients, prospects…)"
+      "contacts": "Contacts (une ligne par personne : clients, prospects…)",
+      "event_vendors": "Prestataires retenus (PDF)",
+      "program": "Programme du jour J (PDF)"
     },
     "fileLabel": "Fichier (CSV, Excel .xlsx ou JSON)",
     "fileHint": "Taille maximale : {maxSize}. L'encodage, le séparateur et la ligne d'en-tête sont reconnus automatiquement.",
@@ -4129,7 +4076,9 @@
           "pastDueTasks": "Choisissez ce que deviennent ces tâches."
         }
       }
-    }
+    },
+    "pdfFileLabel": "Le PDF de votre logiciel de planning, pour ce mariage",
+    "pdfFileHint": "Un seul fichier PDF, {maxSize} au plus. Rien n'est écrit avant votre accord."
   },
   "Privacy": {
     "title": "Données personnelles",
@@ -14150,6 +14099,8 @@
       "budgetLines": "{count, plural, =0 {aucune ligne} one {# ligne} other {# lignes}}",
       "tasks": "{count, plural, =0 {aucune tâche} one {# tâche} other {# tâches}}",
       "events": "{count, plural, =0 {aucun évènement} one {# évènement} other {# évènements}}",
+      "retainedVendors": "{count, plural, =0 {aucun prestataire retenu} one {# prestataire retenu} other {# prestataires retenus}}",
+      "moments": "{count, plural, =0 {aucun moment} one {# moment} other {# moments}}",
       "rows": "{count, plural, =0 {aucune ligne} one {# ligne} other {# lignes}}"
     },
     "action": {
@@ -14592,6 +14543,199 @@
     "nextTitle": "Et maintenant",
     "nextTakeover": "La ligne « Budget » de la reprise de « {event} » est cochée.",
     "backToTakeover": "Retour à la reprise"
+  },
+  "ImportPdf": {
+    "step": {
+      "event_vendors": {
+        "file": "Fichier",
+        "questions": "Questions",
+        "matches": "Postes",
+        "confirm": "Vérifier"
+      },
+      "program": {
+        "file": "Fichier",
+        "questions": "Questions",
+        "matches": "Interlocuteurs",
+        "confirm": "Vérifier"
+      }
+    },
+    "intro": {
+      "event_vendors": "{file} · {count, plural, one {# ligne} other {# lignes}} · rien n'est écrit avant votre accord",
+      "program": "{file} · {count, plural, one {# moment} other {# moments}} · rien n'est écrit avant votre accord"
+    },
+    "blocked": {
+      "couple": "Répondez d'abord : ce fichier est-il bien celui de ce mariage ?",
+      "contracts": "Répondez d'abord à la question des contrats.",
+      "nothing": "Rien à importer : toutes les lignes sont décochées ou déjà là."
+    },
+    "toVerify": "À vérifier",
+    "and": " et ",
+    "notProvided": "non renseigné",
+    "save": "Enregistrer et continuer",
+    "verifyTitle": "Vérifier : ce qui va être écrit",
+    "couple": {
+      "title": "Ce fichier est-il bien celui de {names} ?",
+      "sameDate": "Il nomme un autre couple. Même date : vous avez peut-être exporté le mauvais mariage.",
+      "otherCouple": "Il nomme un autre couple.",
+      "what": "Ce qui est comparé",
+      "inFile": "Dans le fichier",
+      "onEvent": "Sur la fiche",
+      "married": "Mariés",
+      "date": "Date",
+      "otherFile": "Choisir un autre fichier",
+      "continue": "C'est bien ce mariage, continuer",
+      "kept": "« Continuer » garde la trace de votre réponse dans le bilan."
+    },
+    "vendors": {
+      "contractsQuestion": "Leurs contrats sont-ils signés ?",
+      "contracts": {
+        "all": "Tous",
+        "none": "Aucun",
+        "per_line": "Ligne par ligne"
+      },
+      "noReminder": "Aucune relance n'est créée, quelle que soit la réponse.",
+      "rowsTitle": "{count, plural, one {# prestataire retenu} other {# prestataires retenus}}",
+      "toVerifyCount": "{count, plural, one {# ligne à vérifier, en couleur.} other {# lignes à vérifier, en couleur.}}",
+      "col": {
+        "file": "Dans votre fichier",
+        "fiche": "Fiche du carnet",
+        "slot": "Poste du budget",
+        "contract": "Contrat",
+        "keep": "Reprendre"
+      },
+      "found": "Trouvée dans le carnet",
+      "newFiche": "Nouvelle fiche",
+      "sameFiche": "La fiche « {name} » du carnet",
+      "newSlot": "Nouveau poste « {label} »",
+      "verify": {
+        "no_slot": "Aucun poste proche de « {type} »",
+        "split": "Rangé d'après le détail",
+        "similar": "Nom seulement proche",
+        "possible_vendor": "Une fiche du carnet lui ressemble"
+      },
+      "alreadyRetained": "Déjà retenu sur ce poste : rien ne change.",
+      "signed": "Signé",
+      "unsigned": "Non signé",
+      "keepLabel": "Reprendre « {name} »",
+      "agencyLine": "Ligne non reprise : « {name} », votre agence.",
+      "figure": {
+        "vendors": "{count, plural, =0 {Aucun prestataire retenu} one {# prestataire retenu} other {# prestataires retenus}}",
+        "carnet": "{found} trouvés dans le carnet · {created, plural, =0 {aucune fiche créée} one {# fiche créée} other {# fiches créées}}",
+        "contracts": "{signed, plural, =0 {aucun contrat signé} one {# contrat signé} other {# contrats signés}} · {unsigned} non signés",
+        "contractsPending": "Contrats : répondez à la question ci-dessus.",
+        "newSlots": "{count, plural, =0 {Aucun nouveau poste} one {# nouveau poste} other {# nouveaux postes}}"
+      },
+      "notTaken": "Non repris : aucun montant, votre fichier n'en donne pas.",
+      "import": "{count, plural, =0 {Rien à importer} one {Importer le prestataire} other {Importer les # prestataires}}",
+      "saveAnswer": "Enregistrer la réponse"
+    },
+    "program": {
+      "marker": "{start} · repère",
+      "nextDay": "{start} – {end} le lendemain",
+      "speakersTitle": "{count, plural, =0 {Aucun intervenant à rattacher} one {# intervenant à rattacher à un poste} other {# intervenants à rattacher à un poste}}",
+      "speakersHint": "Chaque intervenant de l'en-tête du fichier est rattaché au poste de ce mariage qui lui correspond ; sans poste, son nom reste écrit en texte.",
+      "asText": "Aucun poste : garder le nom en texte",
+      "figure": {
+        "days": "{count, plural, one {# journée} other {# journées}}",
+        "moments": "{count, plural, one {# moment} other {# moments}}{markers, plural, =0 {} one {, dont # repère} other {, dont # repères}}",
+        "endsMissing": "{count, plural, =0 {Toutes les heures de fin sont données} one {# heure de fin non renseignée} other {# heures de fin non renseignées}}",
+        "hidden": "{count, plural, one {# moment caché des mariés} other {# moments cachés des mariés}}"
+      },
+      "directoryNotTaken": "Non repris : l'annuaire ({count, plural, one {# intervenant et son téléphone} other {# intervenants et leurs téléphones}}). Le bilan vous proposera de les ajouter au carnet.",
+      "day": {
+        "eve": "Veille",
+        "main": "Jour J",
+        "nextDay": "Lendemain",
+        "other": "{date}"
+      },
+      "dayCount": "{count, plural, one {# moment} other {# moments}}",
+      "endMissing": "Fin non renseignée",
+      "hidden": "Caché des mariés",
+      "midnight": "Votre fichier donnait « {start} - 00:00 » : une fin à minuit, laissée vide.",
+      "problems": "{count, plural, one {# ligne du fichier n'est pas reprise : elle n'a pas d'heure ou pas de titre.} other {# lignes du fichier ne sont pas reprises : elles n'ont pas d'heure ou pas de titre.}}",
+      "noSlots": "Ce mariage n'a pas encore de poste : les interlocuteurs restent en texte.",
+      "import": "{count, plural, =0 {Rien à importer} one {Importer le moment} other {Importer les # moments}}"
+    },
+    "bilan": {
+      "title": {
+        "event_vendors": "{count, plural, =0 {Aucun prestataire retenu} one {# prestataire retenu} other {# prestataires retenus}} sur « {event} »",
+        "program": "Programme repris dans « {event} »"
+      },
+      "summaryTitle": "Bilan de l'import",
+      "importedBy": "{file} · importé le {date} par {author}",
+      "someone": "une personne de l'équipe",
+      "vendors": {
+        "found": "Trouvés dans le carnet : {count}",
+        "created": "Fiches créées : {count}",
+        "signed": "Contrats signés : {count}",
+        "unsigned": "Non signés : {count}",
+        "unknown": "Contrats non renseignés : {count}",
+        "newSlots": "Nouveaux postes : {count}",
+        "noAmounts": "Non repris : aucun montant, votre fichier n'en donne pas. Saisissez-les dans le budget.",
+        "noAmountsUnallocated": "Non repris : aucun montant, votre fichier n'en donne pas. {amount} restent à répartir sur la fiche."
+      },
+      "program": {
+        "days": "Journées : {count}",
+        "moments": "Moments : {count}{markers, plural, =0 {} one {, dont # repère} other {, dont # repères}}",
+        "endsMissing": "Fins non renseignées : {count}"
+      },
+      "coupleConfirmed": "Le fichier nommait un autre couple ; vous avez répondu « C'est bien ce mariage ».",
+      "notTakenTitle": "Ce qui n'a pas été repris",
+      "directory": {
+        "title": "L'annuaire du programme : {count, plural, one {# intervenant et son téléphone} other {# intervenants et leurs téléphones}}",
+        "fate": {
+          "add_phone": "Dans le carnet · ajouter le {phone}",
+          "up_to_date": "Dans le carnet · déjà à jour",
+          "create": "Absent du carnet · une fiche serait créée"
+        },
+        "set": "{count, plural, one {Écarté : # intervenant (les mariés, déjà sur la fiche, ou votre agence).} other {Écartés : # intervenants (les mariés, déjà sur la fiche, et votre agence).}}",
+        "addPhones": "{count, plural, one {Ajouter le téléphone} other {Ajouter les # téléphones}}",
+        "addAll": "Les ajouter au carnet : {phones, plural, =0 {aucun téléphone} one {# téléphone} other {# téléphones}}, {created, plural, one {# fiche créée} other {# fiches créées}}",
+        "nothing": "Rien à ajouter : le carnet est déjà à jour.",
+        "gone": "L'annuaire n'est plus gardé (ajouté, écarté, ou passé 90 jours).",
+        "done": "L'annuaire est dans le carnet ; il n'est plus gardé avec l'import.",
+        "added": "{phones, plural, =0 {Aucun téléphone ajouté} one {# téléphone ajouté} other {# téléphones ajoutés}} · {created, plural, =0 {aucune fiche créée} one {# fiche créée} other {# fiches créées}}."
+      },
+      "nextTitle": "Et maintenant",
+      "completeProgram": "Compléter le programme",
+      "seeBudget": "Voir le budget",
+      "backToTakeover": "Retour à la reprise"
+    },
+    "fromEvent": {
+      "vendors": "Reprendre les prestataires retenus (PDF)",
+      "program": "Reprendre un programme (PDF)"
+    },
+    "rejected": {
+      "tooManyPages": "Ce PDF a trop de pages pour un export de ce logiciel.",
+      "notPdf": "Ce fichier n'est pas un PDF.",
+      "notEventVendorsPdf": "Ce PDF n'est pas l'export « Prestataires » d'un mariage. Déposez l'export des prestataires retenus de votre logiciel.",
+      "notProgramPdf": "Ce PDF n'est pas l'export « Programme » d'un mariage. Déposez l'export du programme du jour J de votre logiciel.",
+      "empty": "Le fichier est vide : aucune ligne de données n'a été trouvée.",
+      "tooLarge": "Le fichier est trop gros.",
+      "infected": "Le fichier a été bloqué par l'antivirus. Il n'a pas été conservé."
+    }
+  },
+  "ProgramGaps": {
+    "endPending": "heure de fin à venir",
+    "title": "{count, plural, one {À compléter : # heure de fin non renseignée.} other {À compléter : # heures de fin non renseignées.}}",
+    "body": "Votre fichier ne les donnait pas. Saisissez-les, ou indiquez qu'un moment est ponctuel.",
+    "notShared": "Le programme n'est pas encore partagé.",
+    "goFirst": "Aller à la première",
+    "endMissing": "fin non renseignée",
+    "endLabel": "Heure de fin",
+    "endFor": "Heure de fin de « {label} »",
+    "saveEnd": "Enregistrer",
+    "point": "Ponctuel",
+    "pointFor": "« {label} » est ponctuel",
+    "dialogTitle": "Le programme n'est pas complet",
+    "dialogBody": "{count, plural, one {# heure de fin est non renseignée.} other {# heures de fin sont non renseignées.}} Les mariés et les prestataires verraient ces moments sans fin, marqués « heure de fin à venir ».",
+    "completeFirst": "Compléter d'abord",
+    "publishAnyway": "Diffuser quand même",
+    "pointWord": "ponctuel",
+    "markerWord": "repère",
+    "colMoment": "Moment",
+    "colDay": "Journée",
+    "tableLabel": "Les moments sans heure de fin"
   },
   "EventOverview": {
     "suite": {
