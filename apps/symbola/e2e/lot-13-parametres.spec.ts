@@ -37,18 +37,14 @@ test("L13-HUB-16 — Paramètres en rubriques, lignes du budget modifiées dans 
   ]);
   await login(page, email, password);
 
-  // Le menu latéral range les rubriques en groupes ; chacune a son adresse.
+  // Lot 74g (G1, G2) : « Paramètres » ouvre l'accueil, les rubriques rangées en groupes ; chacune a son adresse.
   await clickMenuLink(page, "Paramètres");
-  const sections = page.getByRole("navigation", { name: "Rubriques des paramètres" });
-  for (const group of ["Mon entreprise", "Évènements", "Ventes", "Prestataires et données"]) {
-    await expect(sections.getByText(group, { exact: true })).toBeVisible();
+  for (const group of ["Votre entreprise", "Vous", "Évènements", "Budget et prestataires", "Devis et factures"]) {
+    await expect(page.getByRole("heading", { level: 2, name: group, exact: true })).toBeVisible();
   }
-  // Lot 62b (D2) : seul le groupe de la rubrique ouverte est déplié ; un autre s'ouvre d'un clic.
-  await expect(sections.getByRole("link", { name: "Lignes du budget", exact: true })).toBeHidden();
-  await sections.getByRole("button", { name: "Évènements", exact: true }).click();
-  await sections.getByRole("link", { name: "Lignes du budget", exact: true }).click();
+  await openSettingsTab(page, "Budget : postes de départ et répartition");
   await expect(page).toHaveURL(/\/events\/parametres$/);
-  await expect(sections.getByRole("link", { name: "Lignes du budget", exact: true })).toHaveAttribute("aria-current", "page");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Budget : postes de départ et répartition");
 
   // Tableau aligné ; « Modifier » ouvre le panneau latéral, la liste reste visible.
   const table = page.getByRole("region", { name: "Lignes du budget par défaut" });

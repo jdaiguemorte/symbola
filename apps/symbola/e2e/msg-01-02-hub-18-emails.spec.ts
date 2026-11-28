@@ -71,8 +71,8 @@ test("MSG-01 / HUB-18 — Paramètres › Modèles d'e-mails : variable inconnue
   test.setTimeout(180_000);
   const setup = await atelier();
   await signIn(page, setup.email, /\/$/);
-  await openSettingsTab(page, "Modèles d'e-mails");
-  await expect(page.getByRole("heading", { name: "Modèles d'e-mails", level: 1 })).toBeVisible();
+  await openSettingsTab(page, "E-mails automatiques : ce que Symbola envoie");
+  await expect(page.getByRole("heading", { name: "E-mails automatiques : ce que Symbola envoie", level: 1 })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Liens personnels" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Devis et contrats" })).toBeVisible();
   await expectNoAxeViolation(page);

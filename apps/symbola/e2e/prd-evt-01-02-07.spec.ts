@@ -6,7 +6,7 @@ import AxeBuilder from "./axe";
 import { createAppConnection } from "@symbola/db/client";
 import { createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
-import { changeEventStatus, clickMenuLink, eventCommand, feedback, openEventTab, readyOrganization, signIn as signInByLink, openEventInfo, saveEventInfo, eventInfoWindow } from "./helpers";
+import { changeEventStatus, clickMenuLink, eventCommand, eventInfoWindow, feedback, openEventInfo, openEventTab, openSettingsRubric, readyOrganization, saveEventInfo, signIn as signInByLink } from "./helpers";
 import { createEventByForm } from "./new-event";
 
 async function loginAndSetupMfa(page: Page, email: string, _password: string) {
@@ -49,7 +49,8 @@ test("PRD-EVT-07 — la planner paramètre ses sources et motifs de perte, puis 
   await page.goto("/events/parametres");
   await expect(page).toHaveURL(/\/events\/parametres$/);
   // Lot 13 (L13-HUB-16) : sources et motifs ont leur rubrique.
-  await page.getByRole("navigation", { name: "Rubriques des paramètres" }).getByRole("link", { name: "Sources et motifs", exact: true }).click();
+  // Lot 74g : une rubrique d'un autre groupe s'ouvre depuis l'accueil des Paramètres.
+  await openSettingsRubric(page, "Sources et motifs");
   await expect(page).toHaveURL(/\/events\/parametres\/sources$/);
   await page.getByLabel("Nouvelle source").fill("Instagram");
   await page.getByRole("button", { name: "Ajouter la source" }).click();

@@ -88,7 +88,7 @@ test("SC-03 / HUB-15 / UX-16 / GC-02 / CHR-05 / CHR-10 / HUB-24 / HUB-28 — not
 
   // HUB-15 : une sorte se coupe sur un canal.
   await page.goto("/parametres/notifications");
-  await expect(page.getByRole("heading", { level: 1, name: "Notifications" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "Vos notifications" })).toBeVisible();
   await page.getByRole("checkbox", { name: "Devis signé — E-mail" }).uncheck();
   await page.getByRole("button", { name: "Enregistrer" }).first().click();
   await expect(page.getByText("Réglages enregistrés.")).toBeVisible();

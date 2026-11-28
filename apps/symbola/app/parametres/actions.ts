@@ -83,7 +83,9 @@ export async function saveCompanySheetAction(_prevState: CompanySheetFormState, 
   // questionnaire qu'on peut interrompre et reprendre par morceaux.
   await completeOnboarding(db, organizationId);
 
-  revalidatePath("/parametres");
+  // Lot 74g : « Entreprise et TVA » est devenu deux rubriques.
+  revalidatePath("/parametres/entreprise");
+  revalidatePath("/parametres/mentions");
   revalidatePath("/devis/parametres/documents");
   return { success: true };
 }
@@ -108,7 +110,9 @@ export async function changeVatRegimeAction(
   await changeVatRegime(db, { organizationId, userId, newRegime, effectiveDate });
   await completeOnboarding(db, organizationId);
 
-  revalidatePath("/parametres");
+  // Lot 74g : « Entreprise et TVA » est devenu deux rubriques.
+  revalidatePath("/parametres/entreprise");
+  revalidatePath("/parametres/mentions");
   return { success: true };
 }
 
@@ -163,7 +167,9 @@ export async function saveProfessionalMentionsAction(_prev: ProfessionalMentions
     if (error instanceof InvalidProfessionalMentionError) return { error: t(PROFESSIONAL_ERROR_KEYS[error.field]) };
     throw error;
   }
-  revalidatePath("/parametres");
+  // Lot 74g : « Entreprise et TVA » est devenu deux rubriques.
+  revalidatePath("/parametres/entreprise");
+  revalidatePath("/parametres/mentions");
   return { success: true };
 }
 
@@ -185,6 +191,8 @@ export async function saveVatOnDebitsAction(_prev: VatOnDebitsFormState, formDat
     if (error instanceof RangeError) return { error: t("missingEffectiveDate") };
     throw error;
   }
-  revalidatePath("/parametres");
+  // Lot 74g : « Entreprise et TVA » est devenu deux rubriques.
+  revalidatePath("/parametres/entreprise");
+  revalidatePath("/parametres/mentions");
   return { success: true };
 }

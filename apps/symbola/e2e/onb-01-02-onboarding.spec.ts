@@ -56,7 +56,7 @@ test("ONB-01-02 — chaque étape sauvegardée survit à une interruption", asyn
   }
 
   await loginAndSetupMfa(page, email, password);
-  await page.goto("/parametres");
+  await page.goto("/parametres/entreprise");
 
   // Étape 1, puis « interruption » (on quitte la page).
   await page.getByLabel("SIREN").fill("123456789");
@@ -66,7 +66,7 @@ test("ONB-01-02 — chaque étape sauvegardée survit à une interruption", asyn
   await expect(page.getByText("Fiche entreprise enregistrée.")).toBeVisible();
 
   // Reprend plus tard : le SIREN déjà saisi est toujours là.
-  await page.goto("/parametres");
+  await page.goto("/parametres/entreprise");
   await expect(page.getByLabel("SIREN")).toHaveValue("123456789");
 
   await page.getByLabel("Date d'effet").fill("2027-01-01");

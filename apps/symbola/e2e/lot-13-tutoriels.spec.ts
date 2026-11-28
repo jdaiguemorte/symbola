@@ -32,8 +32,9 @@ test("AIDE-10 — parcours des tutoriels, un seul en cours à la fois", async ({
   }
   await login(page, email, password);
 
-  // Une page à part, au menu, avec le parcours en étapes.
-  await clickMenuLink(page, "Tutoriels");
+  // Une page à part, avec le parcours en étapes. Lot 74g (G11) : elle s'ouvre depuis « Aide ».
+  await clickMenuLink(page, "Aide");
+  await page.getByRole("link", { name: "Voir le parcours des tutoriels" }).click();
   await expect(page).toHaveURL(/\/tutoriels$/);
   await expect(page.getByRole("heading", { name: "Tutoriels faits : 0 sur 11" })).toBeVisible();
   const activity = page.getByRole("region", { name: "Préparer votre activité" });

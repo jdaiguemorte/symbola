@@ -62,9 +62,8 @@ test("UX-13 — Les champs d'une rangée sont alignés ; un libellé ajusté res
   await page.goto("/devis/parametres");
   await expect(page.getByRole("heading", { name: "Clients professionnels" })).toBeVisible();
   expect(await gridDefects(page)).toEqual([]);
-  // « Mentions et logo » : l'onglet de Paramètres › Entreprise et TVA.
-  await page.goto("/parametres");
-  await page.getByRole("tab", { name: "Mentions et logo" }).or(page.getByRole("link", { name: "Mentions et logo", exact: true })).first().click();
+  // « Mentions et logo des documents » : une rubrique de « Votre entreprise » (lot 74g).
+  await page.goto("/parametres/mentions");
   await expect(page.getByRole("heading", { name: "Informations du professionnel" })).toBeVisible();
   expect(await gridDefects(page)).toEqual([]);
 });

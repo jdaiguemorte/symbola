@@ -55,6 +55,9 @@ export const SERVER_ONLY_NAMESPACES = [
   "ImportDoublons",
   "ImportBilan",
   "ImportWithdraw",
+  // Lot 74g : les 38 rubriques et « Vos données », lus côté serveur ; l'accueil des Paramètres reçoit ses
+  // textes en propriétés, sa recherche les siens (« SettingsSearch »).
+  "SettingsMenu",
 ] as const;
 
 const SERVER_ONLY = new Set<string>(SERVER_ONLY_NAMESPACES);

@@ -21,12 +21,14 @@ export default async function ProgramTemplatesPage({ searchParams }: { searchPar
   const organizationId = auth.user.organizationId;
 
   const t = await getTranslations("Events");
+
+  const tMenu = await getTranslations("SettingsMenu");
   const tHelp = await getTranslations("Help");
   const tCommon = await getTranslations("Common");
   if (!(await isEventsModuleEnabled(organizationId))) {
     return (
       <ScreenMain>
-        <h1>{t("title")}</h1>
+        <h1>{tMenu("rubrics.program.label")}</h1>
         <p>{t("moduleUnavailable")}</p>
       </ScreenMain>
     );
@@ -37,7 +39,7 @@ export default async function ProgramTemplatesPage({ searchParams }: { searchPar
   return (
     <ScreenMain>
       <PageHeader
-        title={t("programTemplatesTitle")}
+        title={tMenu("rubrics.program.label")}
         actions={
           <Link href={`${PATH}?nouveau=1`} scroll={false} className="button-link button-link-primary">
             <Plus aria-hidden="true" />

@@ -17,13 +17,14 @@ export default async function MessageTemplatesPage({ searchParams }: { searchPar
   const auth = await requirePlanner();
   const organizationId = auth.user.organizationId;
   const t = await getTranslations("MessageTemplates");
+  const tMenu = await getTranslations("SettingsMenu");
   const tHelp = await getTranslations("Help");
   const locale = (await getLocale()) === "en" ? "en" : "fr";
 
   if (!(await isEventsModuleEnabled(organizationId))) {
     return (
       <main>
-        <PageHeader title={t("title")} />
+        <PageHeader title={tMenu("rubrics.messageTemplates.label")} />
         <p>{t("unavailable")}</p>
       </main>
     );
@@ -35,7 +36,7 @@ export default async function MessageTemplatesPage({ searchParams }: { searchPar
 
   return (
     <main>
-      <PageHeader title={t("title")} subtitle={t("subtitle")} />
+      <PageHeader title={tMenu("rubrics.messageTemplates.label")} subtitle={t("subtitle")} />
       <ScreenHelp title={tHelp("messageTemplates.title")} body={tHelp("messageTemplates.body")} />
       {added !== undefined && /^\d+$/.test(added) ? <p role="status">{t("startersAdded", { count: Number(added) })}</p> : null}
       {/* Lot 39c (UX-08) : l'écran vide enseigne. */}

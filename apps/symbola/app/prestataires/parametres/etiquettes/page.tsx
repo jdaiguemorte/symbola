@@ -23,12 +23,13 @@ const BASE = "/prestataires/parametres/etiquettes";
 export default async function VendorTagsPage({ searchParams }: { searchParams: Promise<{ etiquette?: string; groupe?: string }> }) {
   const { organizationId, enabled } = await vendorSettingsAccess();
   const t = await getTranslations("VendorBook");
+  const tMenu = await getTranslations("SettingsMenu");
   const tHelp = await getTranslations("Help");
   const tCommon = await getTranslations("Common");
   if (!enabled) {
     return (
       <main>
-        <h1>{t("settingsTitle")}</h1>
+        <h1>{tMenu("rubrics.vendorTags.label")}</h1>
         <p>{t("moduleUnavailable")}</p>
       </main>
     );
@@ -55,7 +56,7 @@ export default async function VendorTagsPage({ searchParams }: { searchParams: P
 
   return (
     <main>
-      <h1>{t("settingsTagsTitle")}</h1>
+      <h1>{tMenu("rubrics.vendorTags.label")}</h1>
       <ScreenHelp title={tHelp("vendorTags.title")} body={tHelp("vendorTags.body")} />
       <p>{t("settingsTagsIntro")}</p>
 

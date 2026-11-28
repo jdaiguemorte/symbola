@@ -15,13 +15,14 @@ export default async function RiskRadarSettingsPage() {
   const organizationId = auth.user.organizationId;
   const isOwner = auth.user.role === "owner";
   const t = await getTranslations("RiskRadar");
+  const tMenu = await getTranslations("SettingsMenu");
   const tHelp = await getTranslations("Help");
   const radar = await loadRiskRadar(organizationId);
   const eventsOpen = await isModuleEnabled(appDatabase(), organizationId, "events");
   const health = eventsOpen ? await getPlanningHealthThresholds(organizationId) : null;
   return (
     <main>
-      <h1>{t("settings.title")}</h1>
+      <h1>{tMenu("rubrics.riskRadar.label")}</h1>
       <ScreenHelp title={tHelp("riskRadar.title")} body={tHelp("riskRadar.body")} />
       <p>{t("settings.intro")}</p>
       {isOwner ? null : <p role="status">{t("settings.ownerOnly")}</p>}

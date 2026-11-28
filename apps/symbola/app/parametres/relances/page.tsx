@@ -17,6 +17,8 @@ export default async function FollowUpSettingsPage() {
 
   const t = await getTranslations("Settings");
 
+  const tMenu = await getTranslations("SettingsMenu");
+
   const tHelp = await getTranslations("Help");
   const db = appDatabase();
   const delays = await getFollowUpDelays(db, auth.user.organizationId);
@@ -27,7 +29,7 @@ export default async function FollowUpSettingsPage() {
   const [prospectSettings, messageTemplates] = eventsOn ? await Promise.all([getProspectFollowUpSettings(auth.user.organizationId), listMessageTemplates(auth.user.organizationId)]) : [null, []];
   return (
     <main>
-      <h1>{t("followUpTitle")}</h1>
+      <h1>{tMenu("rubrics.followUp.label")}</h1>
       <ScreenHelp title={tHelp("followUps.title")} body={tHelp("followUps.body")} />
       <p>{t("followUpIntro")}</p>
       {/* Lot 61 : deux rubriques parlent de relances ; chacune renvoie à l'autre. */}

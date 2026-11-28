@@ -184,7 +184,7 @@ test("UX-13 — Une ligne de formulaire range ses champs à gauche", async ({ pa
 
   // Types de repas : « Ajouter ». Lot 62b : un formulaire en ligne (« form-inline ») ; « Renommer »
   // est devenu une action de la ligne du tableau.
-  await page.goto("/events/parametres/repas");
+  await page.goto("/events/parametres/regimes#repas");
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   await openDetails(page);
   for (const form of await page.locator("main form.form-inline").all()) await expectRowFromTheLeft(form);
