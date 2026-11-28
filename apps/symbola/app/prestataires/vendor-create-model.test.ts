@@ -2,7 +2,8 @@
 import { describe, expect, it } from "vitest";
 import { fieldErrors } from "@/lib/forms/field-validation";
 import { chosenTypeIds, UNCLASSIFIED_TRADE, vendorCreateFieldsSchema } from "@/lib/forms/vendor-create-fields";
-import { LEGACY_RUBRIC_FIELDS, similarVendor, tradeGroups, VENDOR_CREATE_FIELDS, VENDOR_DETAIL_FIELDS } from "./vendor-create-model";
+import { LEGACY_RUBRIC_FIELDS, tradeGroups, VENDOR_CREATE_FIELDS, VENDOR_DETAIL_FIELDS } from "./vendor-create-model";
+import { similarVendor } from "./vendor-create-similar";
 
 const TRAITEUR = "11111111-1111-4111-8111-111111111111";
 const CALECHE = "22222222-2222-4222-8222-222222222222";

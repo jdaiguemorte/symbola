@@ -49,6 +49,7 @@ import { removeVendorFileAction } from "../actions";
 import { isVendorsModuleEnabled } from "../module-access";
 import { RatingStars } from "../rating-stars";
 import { VendorCreateDialog } from "../vendor-create-dialog";
+import { vendorCreateLabels } from "../vendor-create-labels";
 import { VendorMap } from "../vendor-map";
 import { removeVendorDocumentAction, verifyVendorBankAction, verifyVendorDocumentAction } from "./records-actions";
 import { VendorBankForm, VendorDocumentUploadForm, VendorDocumentValidityForm, VendorNoteForm } from "./vendor-records";
@@ -146,12 +147,17 @@ export default async function VendorPage({ params, searchParams }: { params: Pro
     headerRating !== null ? ratingText(headerRating) : null,
   ].filter((part): part is string => part !== null);
 
+  // Les textes des boutons de la fiche, formés ici (NFR-02 : « VendorSheet » ne part pas au navigateur).
+  const reachText = tSheet(reach === "link" ? "documents.requestViaLink" : "documents.requestWaiting");
+  const requestLabels = { title: tSheet("documents.requestTitle", { name: vendor.name }), kind: tSheet("documents.requestKind"), reach: reachText, submit: tSheet("documents.requestSubmit"), close: tSheet("close"), done: tSheet("documents.requestDoneShort") };
+  const menuLabels = { label: tSheet("menu.label", { vendor: vendor.name }), edit: tSheet("menu.edit"), searchAround: tSheet("menu.searchAround", { vendor: vendor.name }), archive: tSheet("menu.archive"), archiveHint: tSheet("menu.archiveHint") };
+
   const missing = (field: "contactField" | "phoneField" | "emailField") => (
     <span className="vendor-sheet-missing">
       {tSheet("contact.missing", { field: tSheet(`contact.${field}`) })}{" "}
       <Link href={editHref} scroll={false}>
         {tSheet("missing.add")}
-        <span className="sr-only"> — {tSheet(`contact.${field}`)}</span>
+        <span className="sr-only"> : {tSheet(`contact.${field}`)}</span>
       </Link>
     </span>
   );
@@ -166,7 +172,7 @@ export default async function VendorPage({ params, searchParams }: { params: Pro
               {" · "}
               <Link href={editHref} scroll={false}>
                 {tSheet("missing.add")}
-                <span className="sr-only"> — {tSheet(`characteristics.${fact.key}` as Parameters<typeof tSheet>[0])}</span>
+                <span className="sr-only"> : {tSheet(`characteristics.${fact.key}` as Parameters<typeof tSheet>[0])}</span>
               </Link>
             </>
           ) : null}
@@ -219,7 +225,7 @@ export default async function VendorPage({ params, searchParams }: { params: Pro
         <div className="page-actions vendor-sheet-actions">
           {/* Lot 73c (critère 1) : la même fenêtre que le carnet ; sans le module Évènements, rien (ARC-06). */}
           {!vendor.archived && eventsEnabled ? <AddToEventButton vendorId={vendor.id} vendorName={vendor.name} primary /> : null}
-          <SheetMenu vendorId={vendor.id} vendorName={vendor.name} searchAroundHref={searchAroundHref} archived={vendor.archived} />
+          <SheetMenu vendorId={vendor.id} searchAroundHref={searchAroundHref} archived={vendor.archived} labels={menuLabels} />
         </div>
       </header>
       {placement === "placed" ? <p role="status">{t("geocodingPlaced")}</p> : null}
@@ -262,7 +268,7 @@ export default async function VendorPage({ params, searchParams }: { params: Pro
                     tSheet("alerts.beforeAnEvent", { document: alert.label, date: day(alert.validUntil) })
                   )}
                 </span>
-                {vendor.archived ? null : <RequestDocumentButton vendorId={vendor.id} vendorName={vendor.name} kinds={documentKinds} initialKindId={alert.kindId} reach={reach} label={tSheet("alerts.ask")} />}
+                {vendor.archived ? null : <RequestDocumentButton vendorId={vendor.id} kinds={documentKinds} initialKindId={alert.kindId} reach={reach} label={tSheet("alerts.ask")} labels={requestLabels} />}
               </li>
             ),
           )}
@@ -400,11 +406,11 @@ export default async function VendorPage({ params, searchParams }: { params: Pro
             )}
             {vendor.archived ? null : (
               <div className="row-wrap vendor-sheet-document-gestures">
-                {usualKinds.length > 0 ? <RequestUsualButton vendorId={vendor.id} reach={reach} label={tSheet("documents.requestUsual", { documents: usualNames })} /> : null}
-                <RequestDocumentButton vendorId={vendor.id} vendorName={vendor.name} kinds={documentKinds} reach={reach} label={documents.length === 0 && usualKinds.length === 0 ? tSheet("documents.requestOne") : tSheet("documents.ask")} />
+                {usualKinds.length > 0 ? <RequestUsualButton vendorId={vendor.id} detail={reachText} label={tSheet("documents.requestUsual", { documents: usualNames })} /> : null}
+                <RequestDocumentButton vendorId={vendor.id} kinds={documentKinds} reach={reach} labels={requestLabels} label={documents.length === 0 && usualKinds.length === 0 ? tSheet("documents.requestOne") : tSheet("documents.ask")} />
               </div>
             )}
-            <p className="field-hint">{tSheet(reach === "link" ? "documents.requestViaLink" : "documents.requestWaiting")}</p>
+            <p className="field-hint">{reachText}</p>
             <details className="vendor-sheet-add">
               <summary>{tSheet("documents.add")}</summary>
               <VendorDocumentUploadForm vendorId={vendor.id} kinds={documentKinds} />
@@ -418,7 +424,7 @@ export default async function VendorPage({ params, searchParams }: { params: Pro
               <h2 id="details-title">{tSheet("characteristics.title")}</h2>
               <Link href={`${vendorHref}?modifier=1`} scroll={false}>
                 {tSheet("edit")}
-                <span className="sr-only"> — {tSheet("characteristics.title")}</span>
+                <span className="sr-only"> : {tSheet("characteristics.title")}</span>
               </Link>
             </div>
             <dl className="vendor-summary">
@@ -432,7 +438,7 @@ export default async function VendorPage({ params, searchParams }: { params: Pro
                       {tSheet("missing.trades")} ·{" "}
                       <Link href={`${vendorHref}?modifier=1`} scroll={false}>
                         {tSheet("missing.add")}
-                        <span className="sr-only"> — {tSheet("characteristics.trades")}</span>
+                        <span className="sr-only"> : {tSheet("characteristics.trades")}</span>
                       </Link>
                     </span>
                   )}
@@ -581,7 +587,7 @@ export default async function VendorPage({ params, searchParams }: { params: Pro
           </section>
         </div>
       </div>
-      {editing ? <VendorCreateDialog key={vendor.id} options={{ types, families, tags, tagGroups, slot: null }} vendor={vendor} detailsOpen={query.details === "1"} closeHref={vendorHref} /> : null}
+      {editing ? <VendorCreateDialog key={vendor.id} options={{ labels: await vendorCreateLabels(), types, families, tags, tagGroups, slot: null }} vendor={vendor} detailsOpen={query.details === "1"} closeHref={vendorHref} /> : null}
     </main>
   );
 }

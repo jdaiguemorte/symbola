@@ -7,6 +7,11 @@
   .vendor-create {
     @apply w-[min(36rem,calc(100vw-2rem))];
   }
+  /* Une fenêtre montée fermée (« Demander au prestataire ») ne s'affiche pas : la règle « .window » donne
+     sa mise en page à la fenêtre, sans passer devant le « non ouvert » du navigateur. */
+  .vendor-sheet dialog.window:not([open]) {
+    @apply hidden;
+  }
   .vendor-create-for {
     @apply m-0 -mt-2;
   }
@@ -120,6 +125,13 @@
   }
   .vendor-sheet-columns .card {
     @apply m-0;
+  }
+  /* Une valeur par rang dans la colonne de droite : le libellé, puis la valeur. */
+  .vendor-sheet-side .vendor-summary {
+    @apply grid-cols-1;
+  }
+  .vendor-sheet-side .vendor-summary > div {
+    @apply grid-cols-[minmax(0,10rem)_minmax(0,1fr)] items-baseline gap-x-3;
   }
   @media (min-width: 1024px) {
     .vendor-sheet-columns {

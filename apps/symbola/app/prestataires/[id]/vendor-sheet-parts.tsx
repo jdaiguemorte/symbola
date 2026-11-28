@@ -18,12 +18,15 @@ import { TaskPopover, usePopover } from "@/app/ui/task-popover";
 import { archiveVendorAction } from "../actions";
 import { requestUsualDocumentsAction, requestVendorDocumentAction, undoUsualDocumentsAction, type RecordFormState } from "./records-actions";
 
-export function SheetMenu({ vendorId, vendorName, searchAroundHref, archived }: { vendorId: string; vendorName: string; searchAroundHref: string | null; archived: boolean }) {
-  const t = useTranslations("VendorSheet");
+// Les textes viennent de la page (espace « VendorSheet » réservé au serveur, NFR-02), déjà formés.
+export type SheetMenuLabels = { label: string; edit: string; searchAround: string; archive: string; archiveHint: string };
+export type RequestDocumentLabels = { title: string; kind: string; reach: string; submit: string; close: string; done: string };
+
+export function SheetMenu({ vendorId, searchAroundHref, archived, labels }: { vendorId: string; searchAroundHref: string | null; archived: boolean; labels: SheetMenuLabels }) {
   const menu = usePopover();
   const button = useRef<HTMLButtonElement>(null);
   const [pending, startTransition] = useTransition();
-  const label = t("menu.label", { vendor: vendorName });
+  const label = labels.label;
   return (
     <>
       <button ref={button} type="button" className="task-menu-button" aria-haspopup="menu" aria-label={label} onClick={() => menu.open(button.current)}>
@@ -32,11 +35,11 @@ export function SheetMenu({ vendorId, vendorName, searchAroundHref, archived }: 
       <TaskPopover handle={menu} label={label} className="task-menu">
         <div role="menu" aria-label={label}>
           <Link role="menuitem" href={`/prestataires/${vendorId}?modifier=1`} scroll={false} data-autofocus onClick={() => menu.close()}>
-            <span>{t("menu.edit")}</span>
+            <span>{labels.edit}</span>
           </Link>
           {searchAroundHref ? (
             <Link role="menuitem" href={searchAroundHref} onClick={() => menu.close()}>
-              <span>{t("menu.searchAround", { vendor: vendorName })}</span>
+              <span>{labels.searchAround}</span>
             </Link>
           ) : null}
           {archived ? null : (
@@ -56,8 +59,8 @@ export function SheetMenu({ vendorId, vendorName, searchAroundHref, archived }: 
                   })
                 }
               >
-                <span>{t("menu.archive")}</span>
-                <span className="task-menu-hint">{t("menu.archiveHint")}</span>
+                <span>{labels.archive}</span>
+                <span className="task-menu-hint">{labels.archiveHint}</span>
               </button>
             </>
           )}
@@ -71,22 +74,21 @@ export function SheetMenu({ vendorId, vendorName, searchAroundHref, archived }: 
 // devient, dit avant l'envoi.
 export function RequestDocumentButton({
   vendorId,
-  vendorName,
   kinds,
   initialKindId = null,
   reach,
   label,
+  labels,
   className = "button-secondary",
 }: {
   vendorId: string;
-  vendorName: string;
   kinds: VendorDocumentKind[];
   initialKindId?: string | null;
   reach: "link" | "waiting";
   label: string;
+  labels: RequestDocumentLabels;
   className?: string;
 }) {
-  const t = useTranslations("VendorSheet");
   const tCommon = useTranslations("Common");
   const router = useRouter();
   const feedback = useFeedback();
@@ -98,9 +100,9 @@ export function RequestDocumentButton({
     if (handled.current === state || !state.success) return;
     handled.current = state;
     dialog.current?.close();
-    feedback?.show({ title: state.notice ?? t("documents.requestDoneShort") });
+    feedback?.show({ title: state.notice ?? labels.done });
     router.refresh();
-  }, [state, feedback, router, t]);
+  }, [state, feedback, router, labels.done]);
   return (
     <>
       <button type="button" className={className} aria-haspopup="dialog" onClick={() => dialog.current?.showModal()}>
@@ -108,15 +110,15 @@ export function RequestDocumentButton({
       </button>
       <dialog ref={dialog} className="window window-short" aria-labelledby={ids.title} aria-describedby={ids.reach}>
         <div className="window-head">
-          <h2 id={ids.title}>{t("documents.requestTitle", { name: vendorName })}</h2>
+          <h2 id={ids.title}>{labels.title}</h2>
           <button type="button" className="button-ghost window-close" onClick={() => dialog.current?.close()}>
-            {t("close")}
+            {labels.close}
           </button>
         </div>
         <form action={action} className="stack">
           <input type="hidden" name="vendorId" value={vendorId} />
           <label>
-            {t("documents.requestKind")}
+            {labels.kind}
             <select name="kindId" defaultValue={initialKindId ?? kinds[0]?.id}>
               {kinds.map((kind) => (
                 <option key={kind.id} value={kind.id}>
@@ -127,7 +129,7 @@ export function RequestDocumentButton({
           </label>
           {/* La fenêtre dit vrai (§ 7 de la spécification) : sans lien, rien ne le prévient. */}
           <p id={ids.reach} className={reach === "link" ? "field-hint" : "notice"}>
-            {t(reach === "link" ? "documents.requestViaLink" : "documents.requestWaiting")}
+            {labels.reach}
           </p>
           {state.error ? <p role="alert">{state.error}</p> : null}
           <div className="window-actions">
@@ -135,7 +137,7 @@ export function RequestDocumentButton({
               {tCommon("cancel")}
             </button>
             <button type="submit" className="button-primary" disabled={pending}>
-              {t("documents.requestSubmit")}
+              {labels.submit}
             </button>
           </div>
         </form>
@@ -145,8 +147,7 @@ export function RequestDocumentButton({
 }
 
 // P4, critère 10 : « Demander l'assurance et le Kbis », d'un geste ; le message de retour et son « Annuler ».
-export function RequestUsualButton({ vendorId, label, reach }: { vendorId: string; label: string; reach: "link" | "waiting" }) {
-  const t = useTranslations("VendorSheet");
+export function RequestUsualButton({ vendorId, label, detail }: { vendorId: string; label: string; detail: string }) {
   const tFeedback = useTranslations("Feedback");
   const router = useRouter();
   const feedback = useFeedback();
@@ -169,7 +170,7 @@ export function RequestUsualButton({ vendorId, label, reach }: { vendorId: strin
             router.refresh();
             feedback?.show({
               title: result.message,
-              detail: t(reach === "link" ? "documents.requestViaLink" : "documents.requestWaiting"),
+              detail,
               action: {
                 kind: "undo",
                 label: tFeedback("undo"),

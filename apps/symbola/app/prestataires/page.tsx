@@ -56,6 +56,7 @@ import { latestBookImport } from "./book-import";
 import { BookBoard, SelectToggle, type BookRowData, type BookRowLabels } from "./book-board";
 import { BookHeaderMenu, FiltersPanel } from "./book-controls";
 import { VendorCreateDialog } from "./vendor-create-dialog";
+import { vendorCreateLabels } from "./vendor-create-labels";
 
 // Types « à classer » (sans famille) et fiches sans type, sur la carte.
 const UNCLASSIFIED_COLOR = "#78716c";
@@ -616,7 +617,7 @@ export default async function VendorBookPage({ searchParams }: { searchParams: P
           </section>
         </>
       )}
-      {query.nouveau === "1" ? <VendorCreateDialog options={{ types, families, tags, tagGroups, slot: null }} closeHref={`/prestataires${queryString(query, { nouveau: null })}`} /> : null}
+      {query.nouveau === "1" ? <VendorCreateDialog options={{ labels: await vendorCreateLabels(), types, families, tags, tagGroups, slot: null }} closeHref={`/prestataires${queryString(query, { nouveau: null })}`} /> : null}
     </main>
   );
 }

@@ -16,7 +16,7 @@
 //   poste déjà pourvu, « Remplacer {nom} » ou « Retenir aussi » (P12), sur place.
 // - « Modifier » : la même fenêtre, complète (plusieurs métiers et le principal), « Plus de détails » ouvert.
 import Link from "next/link";
-import { useActionState, useEffect, useId, useRef, useState, useTransition } from "react";
+import { useEffect, useId, useRef, useState, useTransition, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { VENDOR_SOCIAL_NETWORKS } from "@symbola/contracts";
@@ -31,7 +31,8 @@ import { vendorCreateFieldsSchema } from "@/lib/forms/vendor-create-fields";
 import type { Vendor, VendorType } from "@/modules/vendors/service";
 import { addToEventAction, undoAdditionAction } from "./add-to-event-actions";
 import { saveVendorRecordAction, similarVendorAction, type VendorCreateOptions, type VendorCreateState } from "./vendor-create-actions";
-import { tradeGroups, type SimilarVendor } from "./vendor-create-model";
+import { fillLabel, tradeGroups, type VendorCreateLabels } from "./vendor-create-model";
+import type { SimilarVendor } from "./vendor-create-similar";
 import { FieldInput, TagChips, TradesPicker } from "./vendor-form-fields";
 import { tagSectionsFor } from "./vendor-trades";
 
@@ -59,17 +60,21 @@ export function VendorCreateDialog({
   // Depuis un poste : la fiche est créée et ajoutée.
   onAdded?: () => void;
 }) {
-  const t = useTranslations("VendorCreate");
+  // Les textes viennent de l'écran qui ouvre la fenêtre (espace réservé au serveur, NFR-02).
+  const t = (key: keyof VendorCreateLabels, values?: Record<string, string>) => fillLabel(options.labels[key], values);
   const tBook = useTranslations("VendorBook");
   const tAdd = useTranslations("VendorAddition");
   const tCommon = useTranslations("Common");
   const router = useRouter();
   const feedback = useFeedback();
   const dialog = useRef<HTMLDialogElement>(null);
-  const ids = { title: useId(), slot: useId(), similar: useId(), siretHint: useId(), mode: useId() };
+  const ids = { title: useId(), slot: useId(), similar: useId(), siretHint: useId(), pricesHint: useId(), noteHint: useId() };
   const editing = vendor !== null;
   const slot = editing ? null : options.slot;
-  const [state, action, submitting] = useActionState<VendorCreateState, FormData>(saveVendorRecordAction, {});
+  // L'envoi se suit dans sa propre suite (et non par un effet) : depuis un poste, la ligne du budget se
+  // redessine quand la fiche y est ajoutée, et la fenêtre avec elle ; le message de retour part quand même.
+  const [state, setState] = useState<VendorCreateState>({});
+  const [submitting, startSubmit] = useTransition();
   const validation = useFieldValidation(vendorCreateFieldsSchema({ fromSlot: slot !== null, edit: editing }), state.fieldErrors, {
     nameRequired: t("errors.nameRequired"),
     nameTooLong: t("errors.nameTooLong"),
@@ -110,21 +115,28 @@ export function VendorCreateDialog({
     };
   }, [name, vendor?.id]);
 
-  // La suite d'un envoi réussi : la modification ferme la fenêtre ; depuis un poste, le message de retour.
-  const handled = useRef<VendorCreateState | null>(null);
-  useEffect(() => {
-    if (handled.current === state) return;
-    handled.current = state;
-    if (state.saved) {
-      feedback?.show({ title: t("saved"), ...(state.saved.notice ? { detail: state.saved.notice } : {}) });
+  const handle = (result: VendorCreateState) => {
+    if (result.saved) {
+      feedback?.show({ title: t("saved"), ...(result.saved.notice ? { detail: result.saved.notice } : {}) });
       close();
       router.refresh();
-    } else if (state.added) {
-      showAdded(state.added);
-    } else if (state.pending) {
-      setAsking(state.pending);
+    } else if (result.added) {
+      showAdded(result.added);
+    } else if (result.pending) {
+      setAsking(result.pending);
     }
-  }, [state]);
+  };
+
+  const submit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!validation.onSubmit(event)) return;
+    const data = new FormData(event.currentTarget);
+    startSubmit(async () => {
+      const result = await saveVendorRecordAction({}, data);
+      setState(result);
+      handle(result);
+    });
+  };
 
   const showAdded = (added: { title: string; detail: string; undoId: string; eventId: string }) => {
     feedback?.show({
@@ -189,6 +201,10 @@ export function VendorCreateDialog({
       }}
     >
       <div className="window-head">
+        {/* ADR 0107 : sur téléphone, la fenêtre prend l'écran et dit « Retour ». */}
+        <button type="button" className="button-ghost window-back" onClick={close}>
+          ‹ {tBook("windowBack")}
+        </button>
         <h2 id={ids.title}>{title}</h2>
         <button type="button" className="button-ghost window-close" onClick={close}>
           {t("close")}
@@ -199,7 +215,7 @@ export function VendorCreateDialog({
           {slot.eventLabel ? t("forSlot", { slot: slot.slotLabel, event: slot.eventLabel }) : t("forSlotNoEvent", { slot: slot.slotLabel })}
         </p>
       ) : null}
-      <form action={action} noValidate onSubmit={validation.onSubmit} onInput={validation.onInput} className="vendor-create-form">
+      <form noValidate onSubmit={submit} onInput={validation.onInput} className="vendor-create-form">
         {vendor ? <input type="hidden" name="vendorId" value={vendor.id} /> : null}
         {slot ? (
           <>
@@ -367,19 +383,25 @@ export function VendorCreateDialog({
               </label>
               <label>
                 {tBook("indicativePrices")}
-                <textarea name="indicativePrices" rows={2} defaultValue={vendor?.indicativePrices ?? ""} />
-                <span className="field-hint">{tBook("indicativePricesHint")}</span>
+                <textarea name="indicativePrices" rows={2} defaultValue={vendor?.indicativePrices ?? ""} aria-describedby={ids.pricesHint} />
               </label>
+              <p id={ids.pricesHint} className="field-hint">
+                {tBook("indicativePricesHint")}
+              </p>
               {/* Lot 48a (DAT-08) : une note confidentielle se change dans sa section, jamais ici. */}
               {vendor?.internalNoteConfidential ? (
                 <p className="field-hint">{tBook("internalNoteConfidentialElsewhere")}</p>
               ) : (
-                <label>
-                  {tBook("internalNote")}
-                  <textarea name="internalNote" rows={3} defaultValue={vendor?.internalNote ?? ""} />
-                  <span className="field-hint">{tBook("internalNoteHint")}</span>
+                <>
+                  <label>
+                    {tBook("internalNote")}
+                    <textarea name="internalNote" rows={3} defaultValue={vendor?.internalNote ?? ""} aria-describedby={ids.noteHint} />
+                  </label>
                   <FreeTextNotice />
-                </label>
+                  <p id={ids.noteHint} className="field-hint">
+                    {tBook("internalNoteHint")}
+                  </p>
+                </>
               )}
             </div>
           </details>
@@ -395,7 +417,7 @@ export function VendorCreateDialog({
                   <input type="radio" name="mode" value={mode} {...(index === 0 ? validation.fieldProps("mode") : {})} />
                   <span>
                     <strong>{t(mode)}</strong>
-                    <span className="meta">{t(`${mode}Hint`)}</span>
+                    <span className="meta">{t(mode === "compare" ? "compareHint" : "retainHint")}</span>
                   </span>
                 </label>
               ))}

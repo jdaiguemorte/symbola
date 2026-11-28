@@ -42,7 +42,9 @@ import { isBudgetModuleEnabled } from "@/app/budget/module-access";
 import { isEventsModuleEnabled, isValidId } from "@/app/events/module-access";
 import { isVendorsModuleEnabled } from "./module-access";
 import { additionFeedback } from "./add-to-event-model";
-import { similarVendor, type SimilarVendor } from "./vendor-create-model";
+import { similarVendor, type SimilarVendor } from "./vendor-create-similar";
+import { vendorCreateLabels } from "./vendor-create-labels";
+import type { VendorCreateLabels } from "./vendor-create-model";
 import { readVendorInput } from "./vendor-input";
 
 async function access(options: { slot: boolean }): Promise<AdditionAccess | null> {
@@ -173,6 +175,7 @@ export async function saveVendorRecordAction(_previous: VendorCreateState, formD
 // Ce que la fenêtre propose : les métiers, familles et étiquettes du carnet ; depuis un poste, le poste, le
 // mariage et le métier proposé d'après le poste (73a, P7).
 export type VendorCreateOptions = {
+  labels: VendorCreateLabels;
   types: VendorType[];
   families: VendorFamily[];
   tags: VendorTag[];
@@ -189,7 +192,8 @@ export async function loadVendorCreateOptionsAction(input: unknown): Promise<Loa
   const allowed = await access({ slot: fromSlot });
   if (!allowed) return { ok: false, error: t("unauthorized") };
   if (!parsed.success) return { ok: false, error: t("notFound") };
-  const [types, families, tags, tagGroups, slot] = await Promise.all([
+  const [labels, types, families, tags, tagGroups, slot] = await Promise.all([
+    vendorCreateLabels(),
     listVendorTypes(allowed.organizationId),
     listVendorFamilies(allowed.organizationId),
     listVendorTags(allowed.organizationId),
@@ -197,7 +201,7 @@ export async function loadVendorCreateOptionsAction(input: unknown): Promise<Loa
     fromSlot ? slotCreationContext(allowed, { eventId: parsed.data.eventId!, slotId: parsed.data.slotId!, today: parisToday(new Date()) }) : Promise.resolve(null),
   ]);
   if (fromSlot && !slot) return { ok: false, error: t("notFound") };
-  return { ok: true, options: { types, families, tags, tagGroups, slot } };
+  return { ok: true, options: { labels, types, families, tags, tagGroups, slot } };
 }
 
 // Critère 4 : une fiche du carnet au nom proche, signalée sous le champ (son nom et sa ville, jamais plus).
