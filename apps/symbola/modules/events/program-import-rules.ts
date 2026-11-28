@@ -198,6 +198,9 @@ export function programRowsFromExport(
       marker: row.marker,
       hiddenFromClients: row.hiddenFromClients,
       endsNextDay: row.endsNextDay,
+      // Lot 71e (C-63, D5) : aucune fin déduite ; une ligne sans interlocuteur ni fin est un repère.
+      ...(row.midnightEnd ? { midnightEnd: true } : {}),
+      timing: row.marker && row.endTime === null ? "marker" : "span",
     });
   }
   return { rows, problems };

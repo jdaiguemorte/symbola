@@ -13,6 +13,7 @@ import { countRequestsToReview, findNewRequestRows } from "./prospects-repositor
 import type { AgencyOverview, ListAgencyOverviewInput, ListTasksInput, Pipeline, TaskList, TaskListItem, TaskRecurrenceValue } from "@symbola/contracts";
 export { canPostpone, canSetStatus, closingDue, displayStep, eventPhase, FINISHED_STATUSES, FIRM_STATUSES, IN_PROGRESS_STATUSES, isInProgress, MANUAL_STATUSES, TENTATIVE_STATUSES, TIMELINE_PHASES } from "./lifecycle";
 import type { EventStatus as LifecycleStatus } from "@symbola/contracts";
+import type { ImportedItem as ImportJournalItem, ProgramImportRow } from "@symbola/contracts";
 import { listTeam } from "@symbola/auth";
 import { includingDeleted, SYSTEM_ACTOR, withActor } from "@symbola/db/actor";
 import { appDatabase } from "@symbola/db/client";
@@ -266,6 +267,7 @@ import {
 import { buildDayReport, saveDayReport } from "./day-report";
 import { insertLeadIfNone, deleteEventTeamMember, deleteMemberFromAllTeams, findEventLeads, findEventTeam, findTeamEventIds, findTeamRole, seesAllEvents, upsertEventTeamMember, type EventViewer } from "./team";
 import { importProgram } from "./program-import";
+import { previewImportedProgram, writeImportedProgram, type ImportedProgramPreview } from "./program-pdf-import";
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 import {
@@ -4046,6 +4048,27 @@ export async function importEventProgram(input: {
   if (!result) throw new EventNotFoundError();
   return result;
 }
+
+// Lot 71e (CHR-08, HUB-14) — le programme repris d'un PDF par l'assistant commun : l'aperçu (postes des
+// intervenants, journées nommées comme au lot 67d), puis l'écriture, rendue au journal des imports.
+async function importDayNames(organizationId: string) {
+  const dayOf = starterDayOfSettings(await getOrganizationLanguage(appDatabase(), organizationId));
+  return { main: dayOf.mainMomentName, eve: dayOf.eveMomentName, nextDay: dayOf.nextDayMomentName };
+}
+
+export async function previewEventProgramDocument(input: Omit<Parameters<typeof previewImportedProgram>[0], "dayNames">): Promise<ImportedProgramPreview> {
+  const preview = await previewImportedProgram({ ...input, dayNames: await importDayNames(input.organizationId) });
+  if (!preview) throw new EventNotFoundError();
+  return preview;
+}
+
+export async function writeEventProgramDocument(input: { organizationId: string; eventId: string; rows: readonly ProgramImportRow[] }): Promise<{ items: ImportJournalItem[]; moments: number; count: number }> {
+  const written = await writeImportedProgram({ ...input, dayNames: await importDayNames(input.organizationId) });
+  if (!written) throw new EventNotFoundError();
+  return written;
+}
+
+export type { ImportedProgramPreview } from "./program-pdf-import";
 
 // JRJ-08 : l'état partagé du jour J (pointages, première heure retenue, décalages, incidents, listes),
 // avec le nom affiché (l'adresse du compte) des membres cités.

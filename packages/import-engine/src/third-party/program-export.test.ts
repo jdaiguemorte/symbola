@@ -61,6 +61,8 @@ describe("CHR-08 — Programme du jour J depuis le PDF de l'ancien logiciel (lec
     // Juste avant et juste après minuit : de vraies heures.
     expect(parseProgramTime("23:59 - 00:01", profile.noTime)).toEqual({ startTime: "23:59", endTime: "00:01", endsNextDay: true });
     expect(parseProgramTime("00:30", profile.noTime)).toEqual({ startTime: "00:30", endTime: null, endsNextDay: false });
+    // Lot 71e (C-63) : une fin à minuit est laissée vide, et l'aperçu le dit.
+    expect(parseProgramTime("11:00 - 00:00", profile.noTime)).toEqual({ startTime: "11:00", endTime: null, endsNextDay: false, midnightEnd: true });
     expect(parseProgramTime("24:00", profile.noTime)).toBeNull();
   });
 

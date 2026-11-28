@@ -83,15 +83,15 @@ export function takeoverPageState(steps: readonly Pick<TakeoverRowStep, "state">
   return steps.length === TAKEOVER_STEP_KINDS.length && steps.every((step) => isStepSettled(step.state)) ? "done" : "open";
 }
 
-// La sorte d'import qu'ouvre chaque ligne. Les PDF des prestataires retenus et du programme passent
-// encore par leur envoi sur la fiche du mariage, jusqu'au paquet 71e : null.
+// La sorte d'import qu'ouvre chaque ligne. Lot 71e : les PDF des prestataires retenus et du programme
+// passent eux aussi par l'assistant commun.
 const IMPORT_ENTITY: Record<TakeoverStepKind, string | null> = {
   vendor_book: "vendors",
   event: "event_sheets",
   budget: "budget_lines",
-  event_vendors: null,
+  event_vendors: "event_vendors",
   tasks: "tasks",
-  program: null,
+  program: "program",
 };
 
 export function takeoverImportEntityType(kind: TakeoverStepKind): string | null {
@@ -104,7 +104,7 @@ export function takeoverKindOfEntity(entityType: string): TakeoverStepKind | nul
 }
 
 // Le nom de ce qu'un import a écrit, pour le nombre d'une ligne faite (« 7 fiches », « 14 lignes »).
-const FIGURE_KEYS: Record<string, string> = { vendors: "vendors", budget_lines: "budgetLines", tasks: "tasks", event_sheets: "events", events: "events" };
+const FIGURE_KEYS: Record<string, string> = { vendors: "vendors", budget_lines: "budgetLines", tasks: "tasks", event_sheets: "events", events: "events", event_vendors: "retainedVendors", program: "moments" };
 
 export function importFigureKey(entityType: string): string {
   return FIGURE_KEYS[entityType] ?? "rows";
@@ -117,6 +117,9 @@ export function importFigureCount(result: { created: number; updated: number; fi
   const figures = result.figures;
   if (figures?.kind === "budget" && typeof figures.lines === "number") return figures.lines;
   if (figures?.kind === "rows" && typeof figures.rows === "number") return figures.rows;
+  // Lot 71e : les prestataires retenus, les moments du programme (les nombres du bilan).
+  if (figures?.kind === "event_vendors" && typeof figures.vendors === "number") return figures.vendors;
+  if (figures?.kind === "program" && typeof figures.moments === "number") return figures.moments;
   return result.created + result.updated;
 }
 

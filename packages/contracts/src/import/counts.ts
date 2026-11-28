@@ -44,13 +44,51 @@ export type BudgetImportFigures = {
   vendorsOutsideCarnet: number;
 };
 
-// Les sortes de fichier qui n'ont pas encore leurs nombres propres (paquet 71e : programme, prestataires
-// retenus) comptent leurs lignes.
+// Les sortes de fichier qui n'ont pas de nombres propres comptent leurs lignes.
 export type RowsImportFigures = { kind: "rows"; rows: number };
 
-export type ImportFigures = BudgetImportFigures | RowsImportFigures;
+// Lot 71e (HUB-14, PRE-01, PRE-02 ; maquette 10) — un prestataire retenu que l'import écrit : son poste
+// (un poste du mariage, ou un poste créé, par sa clé), sa fiche du carnet (trouvée ou créée) et son
+// contrat, tel que la planner l'a dit (I1) ; « unknown » : non renseigné.
+export type ImportFigureRetainedVendor = { slotKey: string; newSlot: boolean; vendorKey: string; inCarnet: boolean; contract: "signed" | "unsigned" | "unknown" };
 
-export type ImportFiguresPlan = { kind: "budget"; lines: readonly ImportFigureBudgetLine[] } | { kind: "rows"; rows: number };
+export type EventVendorsImportFigures = {
+  kind: "event_vendors";
+  vendors: number;
+  // Trouvés dans le carnet + fiches créées = prestataires retenus.
+  foundInCarnet: number;
+  createdFiches: number;
+  // Signés + non signés + non renseignés = prestataires retenus.
+  signed: number;
+  unsigned: number;
+  unknownContracts: number;
+  newSlots: number;
+};
+
+// Lot 71e (CHR-06, CHR-08 ; maquette 11, D5) — un moment du programme que l'import écrit : sa journée
+// (date), sa forme (« span » : un début et une fin, la fin pouvant manquer ; « point » : ponctuel ;
+// « marker » : repère), une fin que le fichier ne donne pas, et s'il est caché des mariés.
+export type ImportFigureProgramItem = { day: string | null; timing: "span" | "point" | "marker"; endMissing: boolean; hiddenFromClients: boolean };
+
+export type ProgramImportFigures = {
+  kind: "program";
+  days: number;
+  moments: number;
+  markers: number;
+  // Fins non renseignées : les moments à durée sans heure de fin (jamais déduite).
+  endsMissing: number;
+  hiddenFromClients: number;
+  // L'annuaire non repris : le nombre d'intervenants (noms et téléphones, gardés à part, I4).
+  directory: number;
+};
+
+export type ImportFigures = BudgetImportFigures | RowsImportFigures | EventVendorsImportFigures | ProgramImportFigures;
+
+export type ImportFiguresPlan =
+  | { kind: "budget"; lines: readonly ImportFigureBudgetLine[] }
+  | { kind: "rows"; rows: number }
+  | { kind: "event_vendors"; vendors: readonly ImportFigureRetainedVendor[] }
+  | { kind: "program"; items: readonly ImportFigureProgramItem[]; directory: number };
 
 function cents(value: number | null): number {
   if (value === null) return 0;
@@ -124,8 +162,36 @@ export function budgetImportFigures(lines: readonly ImportFigureBudgetLine[], to
   };
 }
 
+export function eventVendorsImportFigures(vendors: readonly ImportFigureRetainedVendor[]): EventVendorsImportFigures {
+  const newSlots = new Set(vendors.filter((vendor) => vendor.newSlot).map((vendor) => vendor.slotKey));
+  return {
+    kind: "event_vendors",
+    vendors: vendors.length,
+    foundInCarnet: vendors.filter((vendor) => vendor.inCarnet).length,
+    createdFiches: vendors.filter((vendor) => !vendor.inCarnet).length,
+    signed: vendors.filter((vendor) => vendor.contract === "signed").length,
+    unsigned: vendors.filter((vendor) => vendor.contract === "unsigned").length,
+    unknownContracts: vendors.filter((vendor) => vendor.contract === "unknown").length,
+    newSlots: newSlots.size,
+  };
+}
+
+export function programImportFigures(items: readonly ImportFigureProgramItem[], directory: number): ProgramImportFigures {
+  return {
+    kind: "program",
+    days: new Set(items.map((item) => item.day ?? "")).size,
+    moments: items.length,
+    markers: items.filter((item) => item.timing === "marker").length,
+    endsMissing: items.filter((item) => item.timing === "span" && item.endMissing).length,
+    hiddenFromClients: items.filter((item) => item.hiddenFromClients).length,
+    directory,
+  };
+}
+
 // `today` : la date du jour à Paris (AAAA-MM-JJ), pour les échéances en retard.
 export function importFigures(plan: ImportFiguresPlan, today: string): ImportFigures {
   if (plan.kind === "rows") return { kind: "rows", rows: plan.rows };
+  if (plan.kind === "event_vendors") return eventVendorsImportFigures(plan.vendors);
+  if (plan.kind === "program") return programImportFigures(plan.items, plan.directory);
   return budgetImportFigures(plan.lines, today);
 }

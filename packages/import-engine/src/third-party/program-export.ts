@@ -28,6 +28,9 @@ export type ProgramExportRow = {
   startTime: string | null;
   endTime: string | null;
   endsNextDay: boolean;
+  // Lot 71e (C-63, D5) : le fichier donnait une fin à 00:00 (« 11:00 - 00:00 »), laissée vide : l'aperçu
+  // le dit. Absent : rien de tel.
+  midnightEnd?: true;
   title: string;
   description: string | null;
   contacts: ProgramExportContact[];
@@ -112,7 +115,7 @@ function clock(hours: string, minutes: string): string | null {
 
 // Heure d'une séquence : « 13:00 » ou « 12:15 - 13:30 ». Une fin à 00:00 pile est absente ; 00:00 seul
 // n'est pas une heure ; une fin plus tôt que le début est le lendemain (« 19:00 - 02:00 »).
-export function parseProgramTime(text: string, noTime: string): { startTime: string | null; endTime: string | null; endsNextDay: boolean } | null {
+export function parseProgramTime(text: string, noTime: string): { startTime: string | null; endTime: string | null; endsNextDay: boolean; midnightEnd?: true } | null {
   const match = TIME.exec(text.trim());
   if (!match) return null;
   const start = clock(match[1] as string, match[2] as string);
@@ -120,7 +123,7 @@ export function parseProgramTime(text: string, noTime: string): { startTime: str
   const end = match[3] !== undefined ? clock(match[3], match[4] as string) : null;
   if (match[3] !== undefined && !end) return null;
   if (!end) return { startTime: start === noTime ? null : start, endTime: null, endsNextDay: false };
-  if (end === noTime) return { startTime: start, endTime: null, endsNextDay: false };
+  if (end === noTime) return { startTime: start, endTime: null, endsNextDay: false, midnightEnd: true };
   return { startTime: start, endTime: end, endsNextDay: end < start };
 }
 

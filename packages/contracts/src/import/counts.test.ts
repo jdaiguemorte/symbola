@@ -106,3 +106,31 @@ describe("HUB-14 — Une seule fonction de compte (lot 71d, importFigures)", () 
     expect(importFigures({ kind: "rows", rows: 17 }, TODAY)).toEqual({ kind: "rows", rows: 17 });
   });
 });
+
+// Lot 71e (HUB-14, PRE-01, CHR-08 ; spécification du lot 71, § 5.5, critères 4 et 5 ; maquettes 10 et 11).
+describe("HUB-14 — Les nombres des prestataires retenus et du programme (importFigures, lot 71e)", () => {
+  const vendor = (index: number, inCarnet: boolean, contract: "signed" | "unsigned" | "unknown", newSlot = false) => ({ slotKey: newSlot ? `new-${index % 2}` : `slot-${index}`, newSlot, vendorKey: `v${index}`, inCarnet, contract });
+
+  it("le bilan redit 8 + 4 = 12 et 10 + 2 = 12, et compte les nouveaux postes une fois", () => {
+    const vendors = [
+      ...Array.from({ length: 8 }, (_, index) => vendor(index, true, index < 7 ? "signed" : "unsigned")),
+      ...Array.from({ length: 4 }, (_, index) => vendor(8 + index, false, index < 3 ? "signed" : "unsigned", index < 2)),
+    ];
+    const figures = importFigures({ kind: "event_vendors", vendors }, "2026-11-28");
+    expect(figures).toEqual({ kind: "event_vendors", vendors: 12, foundInCarnet: 8, createdFiches: 4, signed: 10, unsigned: 2, unknownContracts: 0, newSlots: 2 });
+    if (figures.kind !== "event_vendors") throw new Error(figures.kind);
+    expect(figures.foundInCarnet + figures.createdFiches).toBe(figures.vendors);
+    expect(figures.signed + figures.unsigned + figures.unknownContracts).toBe(figures.vendors);
+  });
+
+  it("le programme compte ses journées, ses moments, ses repères et ses fins non renseignées ; un ponctuel n'a pas de fin à attendre", () => {
+    const items = [
+      { day: "2027-06-11", timing: "span" as const, endMissing: true, hiddenFromClients: false },
+      { day: "2027-06-11", timing: "span" as const, endMissing: false, hiddenFromClients: false },
+      { day: "2027-06-12", timing: "marker" as const, endMissing: true, hiddenFromClients: false },
+      { day: "2027-06-12", timing: "point" as const, endMissing: true, hiddenFromClients: true },
+      { day: "2027-06-13", timing: "span" as const, endMissing: true, hiddenFromClients: false },
+    ];
+    expect(importFigures({ kind: "program", items, directory: 8 }, "2026-11-28")).toEqual({ kind: "program", days: 3, moments: 5, markers: 1, endsMissing: 2, hiddenFromClients: 1, directory: 8 });
+  });
+});

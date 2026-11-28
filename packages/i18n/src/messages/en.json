@@ -13858,6 +13858,8 @@
       "budgetLines": "{count, plural, =0 {no line} one {# line} other {# lines}}",
       "tasks": "{count, plural, =0 {no task} one {# task} other {# tasks}}",
       "events": "{count, plural, =0 {no event} one {# event} other {# events}}",
+      "retainedVendors": "{count, plural, =0 {no booked vendor} one {# booked vendor} other {# booked vendors}}",
+      "moments": "{count, plural, =0 {no moment} one {# moment} other {# moments}}",
       "rows": "{count, plural, =0 {no line} one {# line} other {# lines}}"
     },
     "action": {

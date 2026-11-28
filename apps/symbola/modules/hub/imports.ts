@@ -18,7 +18,7 @@ import {
 } from "@symbola/contracts";
 import { z } from "zod";
 import { appDatabase, type AppDatabase } from "@symbola/db/client";
-import type { ImportColumnChoice, ImportMatch, ImportMatching, ImportResult, ImportVendorTypeTarget } from "@symbola/db/schema/hub";
+import type { ImportColumnChoice, ImportLeftovers, ImportMatch, ImportMatching, ImportResult, ImportVendorTypeTarget } from "@symbola/db/schema/hub";
 import { parseEnv } from "@symbola/env";
 import { createStorageClient, scanBuffer, sealFile, uploadPrivateObject } from "@symbola/files";
 import {
@@ -833,7 +833,7 @@ export type RecordedItem = NewImportItem;
 
 export async function recordAppliedImport(
   db: AppDatabase,
-  input: { organizationId: string; importId: string; items: RecordedItem[]; result: ImportResult; now?: Date },
+  input: { organizationId: string; importId: string; items: RecordedItem[]; result: ImportResult; now?: Date; leftovers?: ImportLeftovers | null },
 ): Promise<boolean> {
   return markImportApplied(db, { ...input, now: input.now ?? new Date() });
 }

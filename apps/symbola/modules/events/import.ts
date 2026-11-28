@@ -39,6 +39,8 @@ import {
   eventPlaces,
   eventTypes,
   programItems,
+  programItemParticipants,
+  keyMoments,
   prospectSources,
 } from "@symbola/db/schema/events";
 import { withOrganization } from "@symbola/db/with-organization";
@@ -715,8 +717,25 @@ async function listItemState(tx: Tx, kind: string, id: string): Promise<Values |
   return row ? { label: row.label } : null;
 }
 
+// Lot 71e (CHR-08, HUB-14) : un moment et une journée (temps fort) du programme repris d'un PDF.
+async function programItemState(tx: Tx, id: string): Promise<Values | null> {
+  const [item] = await tx.select().from(programItems).where(eq(programItems.id, id));
+  if (!item || item.deletedAt) return null;
+  return { keyMomentId: item.keyMomentId, startTime: item.startTime?.slice(0, 5) ?? null, endTime: item.endTime?.slice(0, 5) ?? null, label: item.label, timing: item.timing, hiddenFromClients: item.hiddenFromClients };
+}
+
+async function keyMomentState(tx: Tx, id: string): Promise<Values | null> {
+  const [moment] = await tx.select().from(keyMoments).where(eq(keyMoments.id, id));
+  if (!moment || moment.deletedAt) return null;
+  return { name: moment.name, date: moment.date };
+}
+
 async function stateOf(tx: Tx, kind: string, id: string): Promise<Values | null> {
   switch (kind) {
+    case "program_item":
+      return programItemState(tx, id);
+    case "key_moment":
+      return keyMomentState(tx, id);
     case "event":
       return eventState(tx, id);
     case "task":
@@ -751,6 +770,11 @@ async function eventHasHandWork(tx: Tx, eventId: string, written: Values | null)
 }
 
 async function isListItemInUse(tx: Tx, kind: string, id: string): Promise<boolean> {
+  // Lot 71e : une journée du programme qui porte encore un moment (ajouté à la main depuis) reste.
+  if (kind === "key_moment") {
+    const [used] = await tx.select({ id: programItems.id }).from(programItems).where(eq(programItems.keyMomentId, id)).limit(1);
+    return Boolean(used);
+  }
   if (kind === "prospect_source") {
     const [used] = await tx.select({ id: events.id }).from(events).where(eq(events.prospectSourceId, id)).limit(1);
     return Boolean(used);
@@ -776,6 +800,13 @@ async function deleteElement(tx: Tx, kind: string, id: string): Promise<void> {
       return;
     case "event_vendor_slot":
       await tx.delete(eventVendorSlots).where(eq(eventVendorSlots.id, id));
+      return;
+    case "program_item":
+      await tx.delete(programItemParticipants).where(eq(programItemParticipants.programItemId, id));
+      await tx.delete(programItems).where(eq(programItems.id, id));
+      return;
+    case "key_moment":
+      await tx.delete(keyMoments).where(eq(keyMoments.id, id));
       return;
     case "event_vendor_candidate":
       await tx.delete(eventVendorCandidateNotes).where(eq(eventVendorCandidateNotes.candidateId, id));
