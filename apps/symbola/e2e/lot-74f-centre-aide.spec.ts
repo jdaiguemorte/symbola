@@ -75,6 +75,8 @@ test.describe("HUB-12, UX-10 — Le centre d'aide et sa recherche (lot 74f, maqu
     await expect(field).toBeFocused();
     await page.keyboard.type("import");
     await page.keyboard.press("Enter");
+    // La même réponse que la phrase d'avant : attendre la nouvelle page avant d'écrire à nouveau.
+    await expect(page).toHaveURL(/\/aide\?q=import$/);
     await expect(page.getByRole("article").getByRole("heading", { level: 2 })).toHaveText("Reprendre et importer");
 
     // La recherche part aussi à la frappe, après trois lettres.
