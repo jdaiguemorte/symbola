@@ -131,7 +131,8 @@ export function InfoWindow(props: InfoWindowProps) {
     <dialog
       ref={dialog}
       className="window window-long info-window"
-      aria-labelledby={titleId}
+      // Le titre visible se raccourcit sur téléphone ; le nom de la fenêtre reste entier.
+      aria-label={t("title", { names: props.names })}
       onCancel={(cancel) => {
         // Échap : la même règle que « Fermer » (M1).
         cancel.preventDefault();
@@ -211,6 +212,8 @@ export function InfoWindow(props: InfoWindowProps) {
                   <span className="info-window-label">{t("eventDate")}</span> {props.dateWords}
                 </p>
                 <p className="meta">{t("dateLocked")}</p>
+                {/* CRM-04 : les autres évènements du même jour restent dits, la date en lecture. */}
+                <SameDayNotice date={props.initial.eventDate ?? ""} excludeEventId={props.eventId} />
                 {props.postponeHref ? (
                   <button type="button" className="button-secondary" onClick={() => requestClose(props.postponeHref!)}>
                     {t("postpone")}

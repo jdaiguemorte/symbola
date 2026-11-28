@@ -224,7 +224,7 @@ test.describe("EVT-03 — « Modifier les informations » (lot 72e, critères 4 
     const window = infoWindow(page);
     await expect(window).toBeVisible();
     const close = async () => {
-      if (isPhone(page)) await window.getByRole("button", { name: /Léa & Maxime/ }).click();
+      if (isPhone(page)) await window.getByRole("button", { name: "Léa & Maxime", exact: true }).click();
       else await window.getByRole("button", { name: "Fermer", exact: true }).click();
     };
     await close();
@@ -268,7 +268,7 @@ test.describe("EVT-03 — « Modifier les informations » (lot 72e, critères 4 
     if (isPhone(page)) {
       const box = (await window.boundingBox())!;
       expect(box.width).toBeGreaterThanOrEqual(370);
-      await expect(window.getByRole("button", { name: /← Léa & Maxime/ })).toBeVisible();
+      await expect(window.getByRole("button", { name: "Léa & Maxime", exact: true })).toBeVisible();
       await expect(window.getByRole("button", { name: "Enregistrer", exact: true })).toBeInViewport();
     }
     await expectNoAxeViolation(page, ".info-window");

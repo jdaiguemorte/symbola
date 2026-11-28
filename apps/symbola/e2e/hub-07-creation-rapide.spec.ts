@@ -157,7 +157,8 @@ test("HUB-07 / UX-03 / CRM-04 — créer un prospect, une tâche, une dépense e
   // Lot 72e : la date d'une demande se change dans la fenêtre « Modifier les informations ».
   const info = await openEventInfo(page, "Date et lieux");
   await expect(info.getByRole("status").filter({ hasText: "vous avez déjà" })).toContainText("Inès & Sacha (option)");
-  await info.getByRole("button", { name: "Fermer", exact: true }).click();
+  // Sans changement, Échap ferme la fenêtre (le même geste que « Fermer », masqué sur téléphone).
+  await page.keyboard.press("Escape");
   await expect(eventInfoWindow(page)).toHaveCount(0);
 
   // ARC-06 : sans le module Devis, l'entrée « Devis » disparaît.
