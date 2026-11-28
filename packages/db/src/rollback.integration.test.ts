@@ -268,6 +268,8 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
     // Rien ne reste pour les tests suivants (le lot 70a rejoue l'étape de données de 0211 sur les tâches).
     await target`delete from events.event_tasks where id = ${task!.id}`;
     await target`delete from events.events where id = ${event!.id}`;
+  });
+
   it("lot 74h (HUB-28, GC-02 ; G10) — 0246 s'annule et se rejoue sur une base vide ; l'automatisme coupé le reste, sans date ni auteur", async () => {
     await migrateAll();
     const [organization] = await target<{ id: string }[]>`insert into hub.organizations (name) values ('Atelier 0246') returning id`;
