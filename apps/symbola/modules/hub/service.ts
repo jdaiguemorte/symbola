@@ -11,7 +11,7 @@ import frMessages from "@symbola/i18n/messages/fr.json";
 import enMessages from "@symbola/i18n/messages/en.json";
 import { sendSymbolaEmail } from "./emails";
 import { parseEnv } from "@symbola/env";
-import { COMPLIANCE_CHECK_KEYS, requiredMentionRuleSchema, starterFollowUpDelays, starterLinkPrivacyNotice, starterRequiredMentions, type RequiredMentionRule } from "@symbola/starter-templates";
+import { COMPLIANCE_CHECK_KEYS, isOnboardingVolume, requiredMentionRuleSchema, starterFollowUpDelays, starterLinkPrivacyNotice, starterRequiredMentions, type RequiredMentionRule } from "@symbola/starter-templates";
 import { getLinkPrivacyNotice } from "./privacy-requests";
 import {
   findInvitationByTokenHash,
@@ -1056,12 +1056,24 @@ export type CompanySheetInput = {
   metierPrecision: string | null;
   address: SellerAddressInput;
   details: DocumentDetailsInput;
+  // Lot 74h (G15, L74-D5) : « Mariages par an », sorti de l'assistant, se change dans la fiche. Absent : gardé.
+  annualEventVolume?: string | null;
 };
+
+export class InvalidAnnualEventVolumeError extends Error {
+  constructor() {
+    super("volume annuel inconnu");
+    this.name = "InvalidAnnualEventVolumeError";
+  }
+}
 
 export async function saveCompanySheet(db: AppDatabase, organizationId: string, input: CompanySheetInput): Promise<void> {
   const address = cleanSellerAddress(input.address);
   const { siret, ...details } = cleanDocumentDetails(input.details);
+  // Une des valeurs de l'assistant (onboarding.json), ou rien.
+  if (input.annualEventVolume && !isOnboardingVolume(input.annualEventVolume)) throw new InvalidAnnualEventVolumeError();
   await upsertOrganizationProfileFields(db, organizationId, {
+    ...(input.annualEventVolume === undefined ? {} : { annualEventVolume: input.annualEventVolume }),
     siren: input.siren,
     legalForm: input.legalForm,
     metier: input.metier,
@@ -1703,3 +1715,12 @@ export {
 export { FEATURE_FLAG_KEYS, isFeatureEnabled, isFeatureFlagKey, listFeatureFlags, setFeatureFlagForOrganization, setFeatureFlagOpenToAll, UnknownFeatureFlagError, type FeatureFlagKey, type FeatureFlagView } from "./feature-flags";
 export { getStorageQuota, isUploadBlocked, recordStorageMeasure, refreshStorageQuota, storageMeasureIsStale, type StorageQuotaView } from "./storage-quota";
 export type { ElementProvenance } from "./import-repository";
+
+// Lot 74h (G10, A6) — le prénom d'une personne de l'équipe de cette organisation (« Coupé le 20 nov. par
+// Camille ») ; null pour un identifiant inconnu de l'organisation (membre retiré, autre organisation) ou
+// une personne sans prénom : l'écran dit alors « Coupé le … », sans nom.
+export async function teamMemberFirstName(db: AppDatabase, organizationId: string, userId: string | null): Promise<string | null> {
+  if (!userId) return null;
+  const member = (await listTeam(db, organizationId)).find((candidate) => candidate.id === userId);
+  return member?.firstName?.trim() || null;
+}

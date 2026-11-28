@@ -25,6 +25,7 @@
 @import "./styles/lot-73c-rattacher.css";
 @import "./styles/lot-71f-fiche-reprise.css";
 @import "./styles/lot-71d-doublons-bilan.css";
+@import "./styles/lot-74h-patron.css";
 @source "../../../packages/ui/src";
 
 @theme {

@@ -1,25 +1,22 @@
 "use client";
 
 // Lot 53 (HUB-28 ; D5) — le délai d'un automatisme (jours avant l'échéance du rappel au payeur).
-import { useActionState } from "react";
+// Lot 74h (D7, G8) : réglage isolé, enregistré à la sortie du champ, « ✓ Enregistré » à côté.
 import { useTranslations } from "next-intl";
-import { saveAutomationDaysAction, type AutomationFormState } from "./actions";
+import { AutoSettingForm, SettingStatus } from "@/app/ui/auto-setting-form";
+import type { SavedLabels } from "@/app/ui/saved-indicator";
+import { saveAutomationDaysAction } from "./actions";
 
-export function AutomationDaysForm({ automationKey, days, disabled }: { automationKey: string; days: number; disabled: boolean }) {
+export function AutomationDaysForm({ automationKey, title, days, disabled, saved }: { automationKey: string; title: string; days: number; disabled: boolean; saved: SavedLabels }) {
   const t = useTranslations("Automations");
-  const [state, formAction, pending] = useActionState<AutomationFormState, FormData>(saveAutomationDaysAction, {});
   return (
-    <form action={formAction} className="form-inline">
+    <AutoSettingForm action={saveAutomationDaysAction} labels={saved} ariaLabel={`${title} — ${t("days")}`} className="setting-line-control">
       <input type="hidden" name="key" value={automationKey} />
       <label>
         {t("days")}
-        <input type="number" name="days" className="field-short" min={1} max={60} defaultValue={days} required disabled={disabled} />
+        <input type="number" name="days" className="field-days" min={1} max={60} defaultValue={days} required disabled={disabled} />
       </label>
-      <button type="submit" disabled={pending || disabled} className="button-secondary">
-        {t("saveDays")}
-      </button>
-      {state.error ? <p role="alert">{state.error}</p> : null}
-      {state.success ? <p role="status">{t("saved")}</p> : null}
-    </form>
+      <SettingStatus name="days" />
+    </AutoSettingForm>
   );
 }

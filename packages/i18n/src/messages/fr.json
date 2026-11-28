@@ -14511,5 +14511,101 @@
     "nextTitle": "Et maintenant",
     "nextTakeover": "La ligne « Budget » de la reprise de « {event} » est cochée.",
     "backToTakeover": "Retour à la reprise"
+  },
+  "SettingsPattern": {
+    "scope": {
+      "agency": "Pour toute l'agence",
+      "personal": "Pour vous seule"
+    },
+    "editors": {
+      "owner": "Seule la titulaire la change",
+      "ownerSelf": "Vous seule, la titulaire, la changez",
+      "team": "Toute l'équipe la change"
+    },
+    "saving": {
+      "auto": "chaque changement s'enregistre seul",
+      "bar": "« {button} » en bas, toujours visible",
+      "mixed": "chaque réglage s'enregistre seul"
+    },
+    "saved": {
+      "saved": "Enregistré",
+      "saving": "Enregistrement…",
+      "failed": "Pas enregistré : vérifiez votre connexion, puis recommencez."
+    },
+    "bar": {
+      "region": "Enregistrement de la page",
+      "nothing": "Rien à enregistrer",
+      "nothingToSave": "Rien à enregistrer : aucune modification.",
+      "changedOne": "1 modification à enregistrer : {fields}",
+      "changedOther": "{count} modifications à enregistrer : {fields}",
+      "saved": "Tout est enregistré · à {time}",
+      "saving": "Enregistrement…",
+      "reset": "Annuler les modifications",
+      "leaveTitle": "Quitter sans enregistrer ?",
+      "leaveBody": "Ces modifications ne sont pas enregistrées : {fields}.",
+      "stay": "Rester sur la page",
+      "leave": "Quitter sans enregistrer",
+      "saveAndLeave": "Enregistrer et quitter",
+      "required": "* obligatoire"
+    },
+    "headers": {
+      "companySheet": "Ce que vos devis, vos factures et vos clients voient de vous.",
+      "companyMentions": "Les mentions obligatoires et le logo imprimés sur vos devis et vos factures.",
+      "team": "Qui a accès à votre espace, avec quel rôle.",
+      "subscription": "Votre forfait et les modules ouverts pour votre agence.",
+      "profile": "Votre nom tel que l'équipe le voit, votre langue, votre signature et votre connexion.",
+      "notifications": "Ce qui vous est envoyé, par où et à quelle heure. Chaque personne de l'équipe a les siennes.",
+      "taskCategories": "Ce qui range vos tâches et dit ce qui approche, dans « Aujourd'hui », « Tâches » et le rétroplanning.",
+      "automations": "Ce que Symbola fait seul pour vous. Couper un automatisme arrête ses prochains envois ; à la remise en marche, rien n'est rattrapé.",
+      "riskRadar": "Ce que le radar cherche chaque matin dans les évènements à venir, et à partir de quand.",
+      "dayReminder": "La veille ou le matin même, un rappel à vous, et à qui vous cochez."
+    },
+    "company": {
+      "missing": "À compléter avant votre premier devis : {fields}.",
+      "activityTitle": "Activité",
+      "activityHint": "Vos réponses à l'assistant de démarrage ; elles règlent ce que Symbola vous propose.",
+      "annualVolume": "Mariages par an",
+      "annualVolumeUnset": "Non renseigné",
+      "vatLine": "{regime}. Un changement de régime est daté et vaut pour les prochains devis.",
+      "vatChange": "Changer de régime…",
+      "vatDialog": "Changer de régime de TVA",
+      "logoLine": "Le logo s'enregistre seul, dès qu'il est envoyé."
+    },
+    "tasks": {
+      "soonTitle": "Échéance proche",
+      "soonHint": "Une tâche à faire dans ce nombre de jours, ou moins, se lit « Bientôt ».",
+      "soonLabel": "Jours avant « Bientôt »",
+      "soonUnit": "jours",
+      "soonInvalid": "Entre 1 et 30 jours.",
+      "categoriesTitle": "Catégories",
+      "categoriesHint": "Le nom est toujours écrit à côté de la couleur ; une tâche peut rester sans catégorie.",
+      "rowMenu": "Autres actions pour « {label} »",
+      "removeHint": "Ses tâches restent, sans catégorie"
+    },
+    "automations": {
+      "on": "En marche",
+      "off": "Coupé",
+      "toggle": "{title} : en marche",
+      "pausedBy": "Coupé le {date} par {name}.",
+      "pausedOn": "Coupé le {date}.",
+      "paused": "Coupé.",
+      "radarConsequence": "Tant qu'il est coupé, aucune alerte n'arrive dans « À traiter en premier ».",
+      "rulesLink": "Règles et seuils",
+      "unavailable": "Indisponible : le module n'est pas ouvert."
+    },
+    "radar": {
+      "pausedSince": "À vérifier : le radar est coupé depuis le {date}. Ses règles sont gardées, mais rien n'est cherché.",
+      "pausedNoDate": "À vérifier : le radar est coupé. Ses règles sont gardées, mais rien n'est cherché.",
+      "resume": "Remettre le radar en marche",
+      "ruleEnabled": "{label} : active",
+      "thresholdInvalid": "Entre 0 et 365 jours.",
+      "healthInvalid": "Une valeur entre les bornes indiquées."
+    },
+    "team": {
+      "invite": "Inviter une personne"
+    },
+    "notifications": {
+      "thisPhone": "Ce téléphone"
+    }
   }
 }

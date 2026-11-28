@@ -12,6 +12,8 @@ import { isEventsModuleEnabled } from "../events/module-access";
 import { isAppointmentsModuleEnabled } from "@/modules/appointments/service";
 import { SignOutEverywhereForm } from "../sign-out-everywhere-form";
 import { LanguageForm } from "./language-form";
+import { SettingsHeader } from "@/app/ui/settings-header";
+import { savedIndicatorLabels, settingsScopeLine } from "@/lib/settings/settings-header-texts";
 import { NamesForm } from "./names-form";
 import { getUserNames } from "@symbola/auth";
 import { appDatabase } from "@symbola/db/client";
@@ -45,13 +47,18 @@ export default async function ProfilePage() {
   const tCalendar = await getTranslations("Calendar");
   const locale = (await getLocale()) as Locale;
 
+  // Lot 74h (D7, G8 ; page 30) : au patron d'un écran de réglage. L'en-tête commun (« Pour vous seule ») ;
+  // le prénom, le nom et la langue s'enregistrent seuls ; la signature, le calendrier et les sessions sont
+  // des lignes à part, avec leur lien.
+  const tPattern = await getTranslations("SettingsPattern");
+  const [saved, scope] = await Promise.all([savedIndicatorLabels(), settingsScopeLine({ scope: "personal", editors: "self", saving: "auto", isOwner: auth.user.role === "owner" })]);
   return (
-    <main>
-      <h1>{tMenu("rubrics.profile.label")}</h1>
+    <main className="stack">
+      <SettingsHeader title={tMenu("rubrics.profile.label")} hint={tPattern("headers.profile")} scope={scope} />
       <ScreenHelp title={tHelp("profile.title")} body={tHelp("profile.body")} />
       {/* Lot 70a (CHR-02 ; A1) : le nom sous lequel l'équipe voit la personne, pour une personne de l'équipe. */}
       {auth.user.role !== "admin" ? <NamesForm {...await getUserNames(appDatabase(), auth.user.id)} /> : null}
-      <LanguageForm currentLanguage={auth.user.language ?? "fr"} />
+      <LanguageForm currentLanguage={auth.user.language ?? "fr"} saved={saved} />
       {/* Lot 66c (HUB-18 ; D5) : la signature des e-mails, pour une personne de l'équipe qui envoie. */}
       {auth.user.role === "owner" || auth.user.role === "member" ? (
         <section aria-labelledby="profile-signature-title">

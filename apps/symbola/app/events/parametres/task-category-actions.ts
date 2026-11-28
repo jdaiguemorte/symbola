@@ -6,6 +6,7 @@
 import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
 import {
+  setTaskSoonDays,
   createTaskCategory,
   moveTaskCategory,
   removeTaskCategory,
@@ -96,4 +97,18 @@ export async function removeTaskCategoryAction(_prev: TaskCategoryFormState, for
   } catch (error) {
     return { error: await known(error) };
   }
+}
+
+// Lot 74h (G9, M10 ; § 6.8) : le seuil de « Bientôt » (1 à 30 jours, 7 au départ), pour toute l'agence ;
+// relu par « Aujourd'hui », « Tâches » et le rétroplanning. Réglage isolé : il s'enregistre seul.
+export async function saveTaskSoonDaysAction(_prev: TaskCategoryFormState, formData: FormData): Promise<TaskCategoryFormState> {
+  const t = await getTranslations("SettingsPattern");
+  const organizationId = await organizationOrNull();
+  if (!organizationId) return { error: t("saved.failed") };
+  const raw = String(formData.get("soonDays") ?? "").trim();
+  const days = /^\d{1,2}$/.test(raw) ? Number(raw) : Number.NaN;
+  if (!Number.isInteger(days) || days < 1 || days > 30) return { error: t("tasks.soonInvalid") };
+  await setTaskSoonDays(organizationId, days);
+  refresh();
+  return { success: "saved" };
 }

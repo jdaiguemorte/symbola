@@ -1,16 +1,17 @@
 "use client";
 
-import { useActionState } from "react";
+// La langue de l'interface, pour la personne connectée.
+// Lot 74h (D7, G8 ; page 30) : réglage isolé, enregistré au changement de la liste, « ✓ Enregistré » à côté ;
+// plus de bouton « Enregistrer ».
 import { useTranslations } from "next-intl";
-import { setLanguageAction, type ProfileFormState } from "./actions";
+import { AutoSettingForm, SettingStatus } from "@/app/ui/auto-setting-form";
+import type { SavedLabels } from "@/app/ui/saved-indicator";
+import { setLanguageAction } from "./actions";
 
-export function LanguageForm({ currentLanguage }: { currentLanguage: "fr" | "en" }) {
+export function LanguageForm({ currentLanguage, saved }: { currentLanguage: "fr" | "en"; saved: SavedLabels }) {
   const t = useTranslations("Profile");
-  const initialState: ProfileFormState = {};
-  const [state, formAction, pending] = useActionState(setLanguageAction, initialState);
-
   return (
-    <form action={formAction}>
+    <AutoSettingForm action={setLanguageAction} labels={saved} ariaLabel={t("language")} className="setting-line-control">
       <label>
         {t("language")}
         <select name="language" defaultValue={currentLanguage}>
@@ -18,10 +19,7 @@ export function LanguageForm({ currentLanguage }: { currentLanguage: "fr" | "en"
           <option value="en">{t("languageEn")}</option>
         </select>
       </label>
-      <button type="submit" disabled={pending}>
-        {t("submit")}
-      </button>
-      {state.success ? <p role="status">{t("success")}</p> : null}
-    </form>
+      <SettingStatus name="language" />
+    </AutoSettingForm>
   );
 }
