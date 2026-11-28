@@ -392,7 +392,7 @@ test.describe("UX-08, PAR-01 — Le carnet vide (lot 73b, critère 10)", () => {
     await expect(page.getByRole("region", { name: /^Carte/ })).toHaveCount(0);
     await expect(page.getByRole("navigation", { name: "Affichage" })).toHaveCount(0);
     const empty = page.getByRole("region", { name: "Votre carnet de prestataires" });
-    await expect(empty.getByRole("link", { name: "Nouveau prestataire" })).toHaveAttribute("href", "/prestataires/nouveau");
+    await expect(empty.getByRole("link", { name: "Nouveau prestataire" })).toHaveAttribute("href", "/prestataires?nouveau=1");
     await expect(empty.getByRole("link", { name: /^Reprendre votre carnet/ })).toHaveAttribute("href", "/reprise?ligne=vendor_book");
     await expect(empty).toContainText("Vous pourrez aussi en créer un depuis le budget d'un mariage");
     await expectNoAxeViolation(page);

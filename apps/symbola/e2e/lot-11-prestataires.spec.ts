@@ -155,17 +155,15 @@ test("L11-PRE-01 à L11-PRE-07 / L11-HUB-12 — créer ses fiches, filtrer autou
     { name: "Hôtel du Beffroi", city: "Lille", beds: "62" },
     { name: "Gîte des Prés", city: "Arras", beds: "20" },
   ]) {
-    // Lot 63e (ADR 0105, ADR 0107) : la fiche en rubriques, parcourues sans enregistrer, créée à la fin.
+    // Lot 73d : la fenêtre unique de création ; les champs du métier sont derrière « Plus de détails ».
     await page.goto("/prestataires/nouveau");
-    await page.getByLabel("Nom du prestataire").fill(vendor.name);
-    const rubrics = page.getByRole("navigation", { name: "Rubriques de la fiche" });
-    await rubrics.getByRole("button", { name: "Métiers et étiquettes" }).click();
-    await page.getByRole("checkbox", { name: "Hôtel / hébergement" }).check();
-    await page.getByLabel("Couchages").fill(vendor.beds);
-    await rubrics.getByRole("button", { name: "Coordonnées" }).click();
-    await page.getByLabel("Ville").fill(vendor.city);
-    await rubrics.getByRole("button", { name: "Tarifs et note" }).click();
-    await page.getByRole("button", { name: "Créer la fiche" }).click();
+    const dialog = page.getByRole("dialog", { name: "Nouveau prestataire" });
+    await dialog.getByRole("textbox", { name: /^Nom/ }).fill(vendor.name);
+    await dialog.getByRole("combobox", { name: /^Métier/ }).selectOption({ label: "Hôtel / hébergement" });
+    await dialog.getByLabel("Ville").fill(vendor.city);
+    await dialog.getByText(/^Plus de détails/).click();
+    await dialog.getByLabel("Couchages").fill(vendor.beds);
+    await dialog.getByRole("button", { name: "Créer la fiche" }).click();
     await expect(page.getByRole("heading", { level: 1, name: vendor.name })).toBeVisible();
     await expect(page.getByText("Adresse placée sur la carte.")).toBeVisible();
   }
