@@ -566,6 +566,8 @@ export type ImportWorkingSet = {
   matching: ImportMatching | null;
   // Lot 65g : l'évènement de toutes les lignes, pour un import lancé depuis un évènement.
   targetEventId: string | null;
+  // Lot 71d (HUB-14, R17) : la reprise de l'import ; les postes « à trouver » sans ligne y sont demandés.
+  takeoverId: string | null;
 };
 
 export async function getImportWorkingSet(
@@ -588,6 +590,7 @@ export async function getImportWorkingSet(
     mapping: row.mapping,
     matching: row.matching,
     targetEventId: row.targetEventId ?? null,
+    takeoverId: row.takeoverId ?? null,
   };
 }
 
@@ -676,6 +679,40 @@ export async function decideImportMatches(
     return { ...match, status: decision === "accept" ? "accepted" : decision === "later" ? "proposed" : "refused", ...(match.toVerify ? { reviewed: decision !== "later" } : {}) };
   });
   return updateDraftMatching(db, input.organizationId, input.importId, { ...set.matching, matches }, now);
+}
+
+// Lot 71d (HUB-14, R17 ; maquette 08) — les choix de « Doublons » d'un budget : garder ou retirer un poste
+// sans ligne, « C'est la même fiche » ou « créer une fiche » pour un doublon possible du carnet. Seuls les
+// postes et les noms que l'import a lui-même proposés se décident : un identifiant d'une autre
+// organisation, ou que l'import n'a pas proposé, n'est jamais écrit (SEC-13). false : rien d'écrit.
+export async function decideImportDoublons(
+  db: AppDatabase,
+  input: {
+    organizationId: string;
+    importId: string;
+    slots?: { slotId: string; decision: "keep" | "remove" }[];
+    vendors?: { name: string; decision: "same" | "create" }[];
+    now?: Date;
+  },
+): Promise<boolean> {
+  const now = input.now ?? new Date();
+  const set = await getImportWorkingSet(db, input.organizationId, input.importId, now);
+  if (!set?.matching) return false;
+  const unused = set.matching.unusedSlots ?? [];
+  const links = set.matching.vendorLinks ?? [];
+  const slots = input.slots ?? [];
+  const vendors = input.vendors ?? [];
+  if (slots.some((choice) => !unused.some((entry) => entry.slotId === choice.slotId))) return false;
+  const decidable = (name: string) => links.some((link) => link.name === name && link.vendorId !== null && (link.decision === "proposed" || link.decision === "same" || link.decision === "create"));
+  if (vendors.some((choice) => !decidable(choice.name))) return false;
+  const slotChoice = new Map(slots.map((choice) => [choice.slotId, choice.decision]));
+  const vendorChoice = new Map(vendors.map((choice) => [choice.name, choice.decision]));
+  const matching: ImportMatching = {
+    ...set.matching,
+    ...(set.matching.unusedSlots ? { unusedSlots: unused.map((entry) => ({ ...entry, decision: slotChoice.get(entry.slotId) ?? entry.decision })) } : {}),
+    ...(set.matching.vendorLinks ? { vendorLinks: links.map((link) => ({ ...link, decision: vendorChoice.get(link.name) ?? link.decision })) } : {}),
+  };
+  return updateDraftMatching(db, input.organizationId, input.importId, matching, now);
 }
 
 // Rapprochement ajouté à la main : l'orchestrateur a vérifié que l'élément
@@ -872,3 +909,7 @@ export async function listElementProvenance(organizationId: string, element: { m
   return findElementProvenance(appDatabase(), organizationId, element);
 }
 
+
+// Lot 71d (HUB-14 ; maquette 08, « Restent ») : les fichiers des imports appliqués qui ont créé ces
+// éléments, hors de l'import qu'on retire.
+export { findImportFilesOfElements as listImportFilesOfElements } from "./import-repository";

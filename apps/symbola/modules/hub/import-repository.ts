@@ -1,7 +1,7 @@
 // Accès aux imports (lot 5, ADR 0022) — jamais importé hors de modules/hub/.
 // Contrairement aux tables d'identité du hub, hub.imports porte des données
 // métier : chaque requête passe par withOrganization (RLS forcée).
-import { and, asc, desc, eq, inArray, isNotNull, lt } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, isNotNull, lt, ne } from "drizzle-orm";
 import type { AppDatabase } from "@symbola/db/client";
 import { importItems, imports, type ImportColumnChoice, type ImportMatching, type ImportResult } from "@symbola/db/schema/hub";
 import { withOrganization } from "@symbola/db/with-organization";
@@ -214,4 +214,31 @@ export async function findElementProvenance(db: AppDatabase, organizationId: str
       .orderBy(asc(imports.appliedAt), asc(importItems.position)),
   );
   return rows.flatMap((row) => (row.appliedAt ? [{ importId: row.importId, fileName: row.fileName, appliedAt: row.appliedAt, takeoverId: row.takeoverId, fields: row.fields ?? Object.keys(row.written ?? {}), written: row.written }] : []));
+}
+
+// Lot 71d (HUB-14 ; maquette 08, « Restent ») : les fichiers des imports appliqués qui ont créé ces
+// éléments (« elles viennent de l'import « prestataires.csv » »), hors de l'import qu'on retire.
+export async function findImportFilesOfElements(
+  db: AppDatabase,
+  organizationId: string,
+  input: { module: string; kind: string; elementIds: readonly string[]; exceptImportId: string },
+): Promise<string[]> {
+  if (input.elementIds.length === 0) return [];
+  return withOrganization(db, organizationId, async (tx) => {
+    const rows = await tx
+      .selectDistinct({ fileName: imports.fileName })
+      .from(importItems)
+      .innerJoin(imports, eq(imports.id, importItems.importId))
+      .where(
+        and(
+          eq(importItems.module, input.module),
+          eq(importItems.kind, input.kind),
+          eq(importItems.action, "created"),
+          inArray(importItems.elementId, [...input.elementIds]),
+          eq(imports.status, "applied"),
+          ne(imports.id, input.exceptImportId),
+        ),
+      );
+    return rows.map((row) => row.fileName).sort();
+  });
 }
