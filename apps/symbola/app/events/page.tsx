@@ -219,7 +219,7 @@ export default async function EventsListPage({ searchParams }: { searchParams: P
   const preserve: Record<string, string> = Object.fromEntries([...keep].filter(([key]) => ["tab", "tri", "sens"].includes(key)));
   const statusLabel = (value: EventPhase) => {
     const word = statusWord(value);
-    return word.namespace === "EventHeader" ? tHeader(word.key) : t(word.key);
+    return word.from === "frise" ? tHeader(word.key) : t(word.key);
   };
   const empty = counts.upcoming + counts.past === 0;
 

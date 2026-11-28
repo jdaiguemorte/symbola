@@ -40,22 +40,22 @@ export function matchesPhase(event: { phase: EventPhase }, phase: EventPhase | u
   return phase === undefined || event.phase === phase;
 }
 
-// Le statut se dit avec les mots de la frise (EventHeader.timeline) ; Reporté et Annulé, hors frise, avec
-// les leurs (Events).
-export function statusWord(phase: EventPhase): { namespace: "EventHeader" | "Events"; key: string } {
+// Le statut se dit avec les mots de la frise (espace « EventHeader », clés timeline.*, `frise`) ; Reporté et
+// Annulé, hors frise, avec les leurs (espace des évènements, `liste`).
+export function statusWord(phase: EventPhase): { from: "frise" | "liste"; key: string } {
   switch (phase) {
     case "option":
-      return { namespace: "EventHeader", key: "timeline.request" };
+      return { from: "frise", key: "timeline.request" };
     case "confirmed":
-      return { namespace: "EventHeader", key: "timeline.signed" };
+      return { from: "frise", key: "timeline.signed" };
     case "day_of":
-      return { namespace: "EventHeader", key: "timeline.day_of" };
+      return { from: "frise", key: "timeline.day_of" };
     case "closed":
-      return { namespace: "EventHeader", key: "timeline.closed" };
+      return { from: "frise", key: "timeline.closed" };
     case "postponed":
-      return { namespace: "Events", key: "statusPostponed" };
+      return { from: "liste", key: "statusPostponed" };
     case "cancelled":
-      return { namespace: "Events", key: "statusCancelled" };
+      return { from: "liste", key: "statusCancelled" };
   }
 }
 

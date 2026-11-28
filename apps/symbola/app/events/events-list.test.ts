@@ -72,12 +72,12 @@ describe("EVT-07, UX-01 — la colonne « Tâches faites » (C-14, E7)", () => {
 
 describe("EVT-05, EVT-07 — le statut dit avec les mots de la frise", () => {
   it("les quatre étapes, puis Reporté et Annulé", () => {
-    expect(statusWord("option")).toEqual({ namespace: "EventHeader", key: "timeline.request" });
-    expect(statusWord("confirmed")).toEqual({ namespace: "EventHeader", key: "timeline.signed" });
-    expect(statusWord("day_of")).toEqual({ namespace: "EventHeader", key: "timeline.day_of" });
-    expect(statusWord("closed")).toEqual({ namespace: "EventHeader", key: "timeline.closed" });
-    expect(statusWord("postponed")).toEqual({ namespace: "Events", key: "statusPostponed" });
-    expect(statusWord("cancelled")).toEqual({ namespace: "Events", key: "statusCancelled" });
+    expect(statusWord("option")).toEqual({ from: "frise", key: "timeline.request" });
+    expect(statusWord("confirmed")).toEqual({ from: "frise", key: "timeline.signed" });
+    expect(statusWord("day_of")).toEqual({ from: "frise", key: "timeline.day_of" });
+    expect(statusWord("closed")).toEqual({ from: "frise", key: "timeline.closed" });
+    expect(statusWord("postponed")).toEqual({ from: "liste", key: "statusPostponed" });
+    expect(statusWord("cancelled")).toEqual({ from: "liste", key: "statusCancelled" });
   });
 
   it("le filtre « Statut » suit la période ; un statut inconnu ou d'une autre période est ignoré", () => {
