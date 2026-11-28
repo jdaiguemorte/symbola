@@ -184,7 +184,7 @@ export type {
   GuestEventContext,
 } from "./events/service-contract";
 export type { DayHelper, DayHelperInput, EventTeamMember, EventTeamRole } from "./events/service-contract";
-export type { EventDisplayStep, EventTaskProgress, MarkContractSignedInput } from "./events/service-contract";
+export type { AgencyEventCounts, AgencyOverview, AgencyWhoCounts, EventDisplayStep, EventTaskProgress, ListAgencyOverviewInput, MarkContractSignedInput } from "./events/service-contract";
 export { EVENT_DISPLAY_STEPS, EVENT_ORIGINS_LIST } from "./events/service-contract";
 export type { EventOrigin } from "./events/service-contract";
 export * from "./hub/today";

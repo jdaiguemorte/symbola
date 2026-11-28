@@ -8,7 +8,7 @@
 // voient tout ; une Planner restreinte voit les tâches des évènements de son équipe et, hors évènement,
 // celles qui lui sont confiées, qu'elle a créées ou qui n'ont personne.
 import { and, asc, count, eq, gte, inArray, isNotNull, isNull, lte, ne, notInArray, or, sql, type SQL } from "drizzle-orm";
-import type { TaskListFilters, TaskListViewer } from "@symbola/contracts";
+import type { AgencyOverview, TaskListFilters, TaskListViewer } from "@symbola/contracts";
 import { appDatabase } from "@symbola/db/client";
 import { events, eventTasks, eventTeamMembers } from "@symbola/db/schema/events";
 import { withOrganization } from "@symbola/db/with-organization";
@@ -118,6 +118,67 @@ export async function findTaskList(input: { organizationId: string; today: strin
       todoByWho,
     };
   });
+}
+
+// Lot 72c (PAR-10, HUB-03, EVT-06 ; C-14, A7) — la vue « L'agence » : trois lectures groupées dans ce que la
+// personne voit (la règle de « Tâches », A20), hors évènements de démonstration et archivés : les tâches à faire
+// par personne (en retard, aujourd'hui, jusqu'au dernier jour de l'horizon), l'avancement de chaque évènement en
+// cours avec son plus ancien retard, et le nombre d'évènements suivis par chacun. Jamais une ligne par tâche.
+export async function findAgencyOverview(input: { organizationId: string; viewer: TaskListViewer; today: string; horizonEnd: string }): Promise<AgencyOverview> {
+  const visible = and(visibleTo(input.viewer), or(isNull(eventTasks.eventId), and(eq(events.isDemo, false), isNull(events.archivedAt))))!;
+  const { today, horizonEnd } = input;
+  return withOrganization(appDatabase(), input.organizationId, async (tx) => {
+    const [byWho, byEvent, oldest, followed] = await Promise.all([
+      tx
+        .select({
+          who: whoKey,
+          late: sql<number>`count(*) filter (where ${eventTasks.dueDate} < ${today}::date)::int`,
+          today: sql<number>`count(*) filter (where ${eventTasks.dueDate} = ${today}::date)::int`,
+          horizon: sql<number>`count(*) filter (where ${eventTasks.dueDate} <= ${horizonEnd}::date)::int`,
+        })
+        .from(eventTasks)
+        .leftJoin(events, eq(events.id, eventTasks.eventId))
+        .where(and(visible, isNull(eventTasks.doneAt)))
+        .groupBy(whoKey),
+      tx
+        .select({
+          eventId: sql<string>`${eventTasks.eventId}`,
+          done: sql<number>`count(*) filter (where ${eventTasks.doneAt} is not null)::int`,
+          total: sql<number>`count(*)::int`,
+          late: sql<number>`count(*) filter (where ${eventTasks.doneAt} is null and ${eventTasks.dueDate} < ${today}::date)::int`,
+        })
+        .from(eventTasks)
+        .innerJoin(events, eq(events.id, eventTasks.eventId))
+        .where(visible)
+        .groupBy(eventTasks.eventId),
+      // Le plus ancien retard de chaque évènement : une ligne par évènement (distinct on), pas par tâche.
+      tx
+        .selectDistinctOn([eventTasks.eventId], { eventId: sql<string>`${eventTasks.eventId}`, label: eventTasks.label, dueDate: eventTasks.dueDate })
+        .from(eventTasks)
+        .innerJoin(events, eq(events.id, eventTasks.eventId))
+        .where(and(visible, isNull(eventTasks.doneAt), sql`${eventTasks.dueDate} < ${today}::date`))
+        .orderBy(eventTasks.eventId, asc(eventTasks.dueDate), asc(eventTasks.position), asc(eventTasks.createdAt)),
+      tx
+        .select({ userId: eventTeamMembers.userId, events: sql<number>`count(distinct ${eventTeamMembers.eventId})::int` })
+        .from(eventTeamMembers)
+        .innerJoin(events, eq(events.id, eventTeamMembers.eventId))
+        .where(and(notInArray(events.status, [...CLOSED_STATUSES]), eq(events.isDemo, false), isNull(events.archivedAt), visibleEvents(input.viewer)))
+        .groupBy(eventTeamMembers.userId),
+    ]);
+    const oldestByEvent = new Map(oldest.map((row) => [row.eventId, { label: row.label, dueDate: row.dueDate }]));
+    return {
+      byWho: byWho.filter((row) => row.horizon > 0),
+      byEvent: byEvent.map((row) => ({ eventId: row.eventId, done: row.done, total: row.total, late: row.late, oldestLate: oldestByEvent.get(row.eventId) ?? null })),
+      followedBy: Object.fromEntries(followed.map((row) => [row.userId, row.events])),
+    };
+  });
+}
+
+// Les évènements que la personne voit (lot 52) : tous, ou ceux de son équipe.
+function visibleEvents(viewer: TaskListViewer): SQL {
+  if (viewer.role === "owner" || viewer.allPlannersSeeAll) return sql`true`;
+  assertId(viewer.userId);
+  return inArray(events.id, sql`(select ${eventTeamMembers.eventId} from ${eventTeamMembers} where ${eventTeamMembers.userId} = ${viewer.userId})`);
 }
 
 // Lot 70d (UX-08, C-55) : parmi des évènements donnés, ceux qui n'ont aucune tâche (une tâche à la corbeille
