@@ -51,7 +51,8 @@ async function applyChange(tx: Tx, organizationId: string, ids: string[], change
     case "shift":
       rows = await tx
         .update(eventTasks)
-        .set({ dueDate: sql`${eventTasks.dueDate} + ${change.days}::integer`, fixedAt: sql`coalesce(${eventTasks.fixedAt}, now())`, updatedAt: now })
+        // Lot 74b (B7) : redatée à la main, une tâche « à dater » redevient ordinaire.
+        .set({ dueDate: sql`${eventTasks.dueDate} + ${change.days}::integer`, fixedAt: sql`coalesce(${eventTasks.fixedAt}, now())`, dueDateKnown: true, updatedAt: now })
         .where(selected)
         .returning({ id: eventTasks.id });
       break;
@@ -59,7 +60,7 @@ async function applyChange(tx: Tx, organizationId: string, ids: string[], change
     case "setDate":
       rows = await tx
         .update(eventTasks)
-        .set({ dueDate: change.date, fixedAt: sql`coalesce(${eventTasks.fixedAt}, now())`, updatedAt: now })
+        .set({ dueDate: change.date, fixedAt: sql`coalesce(${eventTasks.fixedAt}, now())`, dueDateKnown: true, updatedAt: now })
         .where(selected)
         .returning({ id: eventTasks.id });
       break;
@@ -137,7 +138,7 @@ export async function changeTasksKeepingUndo(input: { organizationId: string; us
   const now = input.now ?? new Date();
   return withOrganization(appDatabase(), input.organizationId, async (tx) => {
     const before = await tx
-      .select({ id: eventTasks.id, dueDate: eventTasks.dueDate, fixedAt: eventTasks.fixedAt, responsible: eventTasks.responsible, vendorCandidateId: eventTasks.vendorCandidateId, assigneeUserId: eventTasks.assigneeUserId })
+      .select({ id: eventTasks.id, dueDate: eventTasks.dueDate, fixedAt: eventTasks.fixedAt, dueDateKnown: eventTasks.dueDateKnown, responsible: eventTasks.responsible, vendorCandidateId: eventTasks.vendorCandidateId, assigneeUserId: eventTasks.assigneeUserId })
       .from(eventTasks)
       .where(inArray(eventTasks.id, ids));
     if (before.length === 0) return { changed: 0, undoId: null };
@@ -173,7 +174,7 @@ export async function undoTasksChange(input: { organizationId: string; userId: s
     for (const task of payload.tasks) {
       const values =
         payload.kind === "date"
-          ? { dueDate: task.dueDate, fixedAt: task.fixedAt ? new Date(task.fixedAt) : null }
+          ? { dueDate: task.dueDate, fixedAt: task.fixedAt ? new Date(task.fixedAt) : null, dueDateKnown: task.dueDateKnown !== false }
           : { responsible: task.responsible, vendorCandidateId: task.vendorCandidateId, assigneeUserId: task.responsible === "planner" ? await stillAssignable(tx, input.organizationId, task.assigneeUserId) : null };
       const rows = await tx
         .update(eventTasks)

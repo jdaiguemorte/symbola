@@ -20,9 +20,11 @@ function dayNumber(value: string): number {
   return Math.round(time / DAY_MS);
 }
 
-export function taskDueState(task: { dueDate: string; done: boolean }, today: string, soonDays: number = DEFAULT_SOON_DAYS): TaskDueState | null {
+// Lot 74b (B7) : une tâche « à dater » (dueDateKnown faux) n'a pas d'échéance : jamais en retard.
+export function taskDueState(task: { dueDate: string; done: boolean; dueDateKnown?: boolean }, today: string, soonDays: number = DEFAULT_SOON_DAYS): TaskDueState | null {
   const days = dayNumber(task.dueDate) - dayNumber(today);
   if (task.done) return null;
+  if (task.dueDateKnown === false) return { kind: "undated" };
   if (days < 0) return { kind: "late", days: -days };
   if (days === 0) return { kind: "today" };
   if (days === 1) return { kind: "tomorrow" };
@@ -31,6 +33,6 @@ export function taskDueState(task: { dueDate: string; done: boolean }, today: st
 }
 
 // La même chose à un instant donné (horloge simulée des tests, tâche périodique).
-export function dueStateAt(task: { dueDate: string; done: boolean }, now: Date, soonDays: number = DEFAULT_SOON_DAYS): TaskDueState | null {
+export function dueStateAt(task: { dueDate: string; done: boolean; dueDateKnown?: boolean }, now: Date, soonDays: number = DEFAULT_SOON_DAYS): TaskDueState | null {
   return taskDueState(task, parisToday(now), soonDays);
 }
