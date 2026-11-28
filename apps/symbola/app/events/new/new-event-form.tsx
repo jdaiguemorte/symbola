@@ -36,6 +36,7 @@ export function NewEventForm({
   clientLabels,
   initialContact = null,
   initialDate = "",
+  initialStanding = null,
 }: {
   eventTypes: Pick<EventType, "id" | "label" | "audience">[];
   // Lot 16 (ADR 0045) : les libellés des clients suivent le type choisi.
@@ -43,6 +44,8 @@ export function NewEventForm({
   // Lot 36a (UX-02) : premier client déjà choisi (depuis la fiche d'un contact).
   initialContact?: ContactChoice | null;
   initialDate?: string;
+  // Lot 74a (R3) : réglé par la fin de l'assistant ; jamais choisi d'avance ailleurs (M13).
+  initialStanding?: EventStanding | null;
 }) {
   const t = useTranslations("Events");
   const tFeedback = useTranslations("Feedback");
@@ -88,7 +91,7 @@ export function NewEventForm({
         </legend>
         {EVENT_STANDINGS.map((standing, index) => (
           <label key={standing} className="standing-option">
-            <input type="radio" name="standing" value={standing} {...(index === 0 ? validation.fieldProps("standing") : {})} />
+            <input type="radio" name="standing" value={standing} defaultChecked={initialStanding === standing} {...(index === 0 ? validation.fieldProps("standing") : {})} />
             <span>
               <strong>{t(STANDING_KEYS[standing].title)}</strong>
               <span className="meta">{t(STANDING_KEYS[standing].hint)}</span>

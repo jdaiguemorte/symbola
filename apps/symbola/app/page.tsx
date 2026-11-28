@@ -7,7 +7,7 @@ import { formatDateTime, parisToday, type Locale } from "@symbola/i18n";
 import { TODAY_HORIZON_DAYS } from "@symbola/contracts";
 import { organizationMailQuota } from "@symbola/mail";
 import { appDatabase } from "@symbola/db/client";
-import { getOrganizationProfile, getSetupState, isModuleEnabled, recentEmailVariableProblems, SETUP_STEPS } from "@/modules/hub/service";
+import { getOrganizationProfile, getSetupState, isModuleEnabled, recentEmailVariableProblems } from "@/modules/hub/service";
 import { getTaskSoonDays, listAgencyOverview, listEventLeads, listEventTasks, listEvents, listOrganizationTasks, listStandaloneTasks } from "@/modules/events/service";
 import { buildTaskLines } from "@/lib/tasks/task-lines";
 import { taskMemberOptions } from "@/lib/tasks/members";
@@ -31,6 +31,8 @@ import { EmptyHome, FirstStepsView, MyEventsView, TodayCardView, TodayHeader } f
 import { UndoTaskNotice } from "./accueil/today-client";
 import { TodayScrollKeeper } from "./accueil/today-card-client";
 import { NamesPrompt } from "./accueil/names-prompt";
+import { SetupNotReadyLine } from "./accueil/setup-line";
+import { resumedThisSession } from "@/lib/onboarding/resume";
 import { loadOnboardingChecklist } from "@/lib/onboarding/checklist";
 import { firstStepsLine } from "@/lib/onboarding/first-steps";
 import { homeState, todayCard } from "@/lib/today/home";
@@ -94,7 +96,9 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   ]);
   const modules = { events: eventsEnabled, quotes, budget, guests, appointments, vendors };
   const resumeQuestionnaire = auth.user.role === "owner" && !setup.completed;
-  const tOnboarding = await getTranslations("Onboarding");
+  // Lot 74a (HUB-09, PAR-01 ; C-68 ; critères 1 et 2) : l'assistant d'abord. Pas encore commencé, la titulaire y
+  // est menée à chaque fois ; commencé, une fois par session (puis la ligne « pas tout à fait prêt »).
+  if (resumeQuestionnaire && (setup.step === 1 || !(await resumedThisSession()))) redirect(setup.step === 1 ? "/demarrage" : "/demarrage/reprendre");
   // Lot 72b (C-18) : le bandeau « fiche entreprise » quitte le haut de l'accueil ; l'étape est dans « Pour bien
   // démarrer ». Le profil dit aussi quelle voie l'état vide propose d'abord (R3, I5 du lot 71).
   const profile = await getOrganizationProfile(db, organizationId);
@@ -104,7 +108,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   const tRisk = await getTranslations("RiskRadar");
 
   // Lot 72b (C-18) : seules les alertes qui bloquent un envoi ou une obligation passent avant la liste (puis
-  // « Reprendre le questionnaire », le message de retour et « Une partie des urgences ne répond pas ») ; lot 72c :
+  // « Votre espace n'est pas tout à fait prêt » (lot 74a), le message de retour et « Une partie des urgences ne répond pas ») ; lot 72c :
   // dans les deux vues de la bascule.
   const blockingAlerts = (
     <>
@@ -122,11 +126,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
       {/* RGPD-04 : demandes dont l'échéance approche et purges annoncées, titulaire seulement. */}
       {auth.user.role === "owner" ? <PrivacyRequestsAlertBlock organizationId={organizationId} /> : null}
       {auth.user.role === "owner" ? <PrivacyPurgeAlertBlock organizationId={organizationId} /> : null}
-      {resumeQuestionnaire ? (
-        <p className="notice" role="status">
-          {tOnboarding("resume", { count: SETUP_STEPS - setup.step + 1 })} <Link href="/demarrage">{tOnboarding("resumeLink")}</Link>
-        </p>
-      ) : null}
+      {resumeQuestionnaire ? <SetupNotReadyLine organizationId={organizationId} step={setup.step} /> : null}
       {/* Lot 70a (A1) : le prénom, pour que l'équipe reconnaisse la personne. */}
       <NamesPrompt userId={auth.user.id} />
     </>

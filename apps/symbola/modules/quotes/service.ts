@@ -466,6 +466,16 @@ export class QuoteEmptyError extends Error {
 
 // DEV-01 — « Si le régime de TVA n'est pas renseigné, l'app le demande à
 // l'envoi. »
+// Lot 74a (HUB-09 ; B5, L74-D4 tranchée le 27/11/2026) : « Je ne sais pas encore » à la question de la TVA de
+// l'assistant ; aucun devis ne part tant que la planner n'a pas dit si ses devis portent la TVA. Le brouillon
+// se crée et s'enregistre.
+export class QuoteVatAnswerPendingError extends Error {
+  constructor() {
+    super("dire si les devis portent la TVA avant l'envoi");
+    this.name = "QuoteVatAnswerPendingError";
+  }
+}
+
 export class QuoteVatRegimeRequiredError extends Error {
   constructor() {
     super("régime de TVA à renseigner avant l'envoi");
@@ -1738,6 +1748,8 @@ export async function sendQuote(input: SendQuoteInput): Promise<QuoteDetail> {
   const vatRegime = profile.vatRegime;
   const aggregate = await findQuoteAggregate(input.organizationId, input.quoteId);
   if (!aggregate) throw new QuoteNotFoundError();
+  // Lot 74a (L74-D4) : la réponse sur la TVA d'abord (un devis d'essai, fictif, n'attend pas).
+  if (profile.vatAnswerPending && !aggregate.quote.isDemo) throw new QuoteVatAnswerPendingError();
   // Lot 31c (D18) : le devis d'un professionnel fige ses conditions de paiement et le taux choisi.
   const seller = await currentQuoteSeller(input.organizationId, aggregate.quote.clientKind, now);
   // Lot 31a (FAC-07, JUR-01, JUR-08 ; D4, D5) : mentions requises et acompte ou arrhes, nommés.

@@ -135,6 +135,9 @@ const LOT_70A = [
 // Lot 73a : nom court et « demandée d'habitude » des natures de pièces (0234, vendors), date de rétention
 // d'un prestataire rattaché et son déclencheur (0235, events) ; les plus récentes.
 const LOT_73A = ["0235_lot73a_events_candidate_retained_at", "0234_lot73a_vendors_document_kind_usage"];
+// Lot 74a : réponses « mariages en cours » et « TVA à dire » de l'assistant de démarrage (0244, hub) ; la plus
+// récente.
+const LOT_74A = ["0244_lot74a_hub_onboarding_answers"];
 // Lot 71a : reprise d'un mariage (0218, 0219, hub), origine et dates non renseignées (0220), contrat
 // déclaré (0221), forme des moments (0222, events), total à répartir (0223, budget) ; les plus récentes.
 const LOT_71A = [
@@ -242,6 +245,24 @@ afterAll(async () => {
 // Lot 47 : chaque test remonte la chaîne des annulations, qui s'allonge à chaque lot ; la limite par
 // défaut (5 s) ne suffit plus sur un poste chargé.
 describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)", { timeout: 60_000 }, () => {
+  it("lot 74a (HUB-09 ; B3, B5, L74-D4) — 0244 s'annule et se rejoue sur une base vide ; « mariages en cours » n'accepte que oui ou non, le drapeau de TVA est faux d'office", async () => {
+    await migrateAll();
+    const [organization] = await target<{ id: string }[]>`insert into hub.organizations (name) values ('Atelier 0244') returning id`;
+    const organizationId = organization!.id;
+    const [profile] = await target<{ has_ongoing_events: string | null; vat_answer_pending: boolean }[]>`insert into hub.organization_profiles (organization_id) values (${organizationId}) returning has_ongoing_events, vat_answer_pending`;
+    expect(profile).toEqual({ has_ongoing_events: null, vat_answer_pending: false });
+    await target`update hub.organization_profiles set has_ongoing_events = 'yes', vat_answer_pending = true where organization_id = ${organizationId}`;
+    await expect(target`update hub.organization_profiles set has_ongoing_events = 'maybe' where organization_id = ${organizationId}`).rejects.toThrow(/has_ongoing_events_check/);
+
+    await rollbackNewerThan(LOT_74A[0]!);
+    await rollback(LOT_74A[0]!);
+    for (const column of ["has_ongoing_events", "vat_answer_pending"]) expect(await hasColumn("hub", "organization_profiles", column)).toBe(false);
+    // La fiche reste, avec ses autres réponses.
+    expect(await target`select organization_id from hub.organization_profiles where organization_id = ${organizationId}`).toHaveLength(1);
+    await migrateAll();
+    expect(await hasColumn("hub", "organization_profiles", "has_ongoing_events")).toBe(true);
+  });
+
   it("lot 73a (PRE-05, PRE-02) — 0234 et 0235 s'annulent et se rejouent sur une base vide ; le déclencheur pose et efface la date de rétention", async () => {
     await migrateAll();
     const [organization] = await target<{ id: string }[]>`insert into hub.organizations (name) values ('Atelier 0234') returning id`;

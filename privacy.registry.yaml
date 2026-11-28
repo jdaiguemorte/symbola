@@ -23,6 +23,11 @@
 # L'état d'avant d'un ajout à un mariage (events.task_change_snapshots, pour « Annuler ») ne garde
 # que des identifiants et des statuts, aucun nom, et disparaît après une minute au plus.
 #
+# Assistant de démarrage (lot 74a, HUB-09 ; spécification du lot 74, § 4.4) : aucun champ nouveau.
+# hub.organization_profiles.has_ongoing_events (« Avez-vous déjà des mariages en cours ? ») et
+# vat_answer_pending (« Je ne sais pas encore » pour la TVA) sont des réponses de l'organisation, sans
+# personne ; exportées avec la fiche (HUB-13) et effacées avec elle.
+#
 # En-tête de la fiche d'un évènement (lot 72d, EVT-02 ; J9) : aucun champ nouveau de personne.
 # events.planning_health_settings.day_of_lead_days est un réglage de l'organisation (combien de jours
 # avant le jour J « Ouvrir le Jour J » devient l'action de l'en-tête), exporté avec ses réglages.
