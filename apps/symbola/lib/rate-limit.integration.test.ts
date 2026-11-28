@@ -21,6 +21,8 @@ vi.mock("next/navigation", () => ({
 vi.mock("next-intl/server", () => ({
   getTranslations: async () => (key: string, values?: Record<string, unknown>) => (values ? `${key} ${JSON.stringify(values)}` : key),
   getLocale: async () => "fr",
+  // Lot 74f : la recherche de l'aide lit les articles dans les messages (vides ici).
+  getMessages: async () => ({}),
 }));
 vi.mock("./identity", () => ({
   sendMagicLink: async (email: string) => {

@@ -47,7 +47,27 @@ export async function loadHelpArticles(viewer: HelpViewer): Promise<HelpArticle[
   return articlesFor(viewer, messages.Help ?? {});
 }
 
+// L'index d'un lecteur (public, rôle, modules) se construit une fois par jeu de messages et se garde : une
+// recherche ne refait que la lecture de la phrase et le classement (HUB-12, moins de 500 ms).
+const indexes = new WeakMap<object, Map<string, ReturnType<typeof indexArticles>>>();
+
+async function helpIndex(viewer: HelpViewer): Promise<ReturnType<typeof indexArticles>> {
+  const messages = (await getMessages()) as { Help?: Record<string, HelpMessage> };
+  let byViewer = indexes.get(messages);
+  if (!byViewer) {
+    byViewer = new Map();
+    indexes.set(messages, byViewer);
+  }
+  const key = JSON.stringify([viewer.audience, viewer.isOwner, Object.entries(viewer.modules).sort()]);
+  let index = byViewer.get(key);
+  if (!index) {
+    index = indexArticles(articlesFor(viewer, messages.Help ?? {}));
+    byViewer.set(key, index);
+  }
+  return index;
+}
+
 export async function searchHelpCenter(viewer: HelpViewer, query: string): Promise<HelpSearchResult> {
-  const [articles, lexicon] = await Promise.all([loadHelpArticles(viewer), helpLexicon()]);
-  return searchHelp(query, indexArticles(articles), lexicon);
+  const [index, lexicon] = await Promise.all([helpIndex(viewer), helpLexicon()]);
+  return searchHelp(query, index, lexicon);
 }

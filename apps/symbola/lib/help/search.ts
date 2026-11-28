@@ -149,12 +149,38 @@ function groupWords(group: readonly string[], written: string): { text: string; 
   return group.map((word) => ({ text: word, direct: word === written }));
 }
 
-type Field = { words: string[]; text: string };
+// Un champ indexé : ses mots distincts et son texte replié (pour les expressions de plusieurs mots).
+type Field = { words: string[]; unique: Set<string>; text: string };
 type IndexedArticle = { article: HelpArticle; title: Field; keywords: Field; body: Field; faq: Field };
 
 function field(text: string): Field {
   const words = tokens(text);
-  return { words, text: ` ${words.join(" ")} ` };
+  return { words, unique: new Set(words), text: ` ${words.join(" ")} ` };
+}
+
+// Le vocabulaire des articles, et pour chaque mot cherché les mots du vocabulaire qui lui répondent :
+// calculé une fois par mot et par index (et non pour chaque article), il rend la recherche linéaire.
+type Vocabulary = { words: string[]; matches: Map<string, Set<string>> };
+const vocabularies = new WeakMap<readonly IndexedArticle[], Vocabulary>();
+
+function vocabularyOf(indexed: readonly IndexedArticle[]): Vocabulary {
+  let vocabulary = vocabularies.get(indexed);
+  if (!vocabulary) {
+    const words = new Set<string>();
+    for (const entry of indexed) for (const name of ["title", "keywords", "body", "faq"] as const) for (const word of entry[name].unique) words.add(word);
+    vocabulary = { words: [...words], matches: new Map() };
+    vocabularies.set(indexed, vocabulary);
+  }
+  return vocabulary;
+}
+
+function matchingWords(vocabulary: Vocabulary, candidate: string): Set<string> {
+  let found = vocabulary.matches.get(candidate);
+  if (!found) {
+    found = new Set(vocabulary.words.filter((word) => wordsMatch(candidate, word)));
+    vocabulary.matches.set(candidate, found);
+  }
+  return found;
 }
 
 export function indexArticles(articles: readonly HelpArticle[]): IndexedArticle[] {
@@ -167,13 +193,16 @@ export function indexArticles(articles: readonly HelpArticle[]): IndexedArticle[
   }));
 }
 
-function fieldHas(target: Field, candidate: string): boolean {
+function fieldHas(target: Field, candidate: string, vocabulary: Vocabulary): boolean {
   if (candidate.includes(" ")) return target.text.includes(` ${candidate} `);
-  return target.words.some((word) => wordsMatch(candidate, word));
+  const matches = matchingWords(vocabulary, candidate);
+  if (matches.size === 0) return false;
+  for (const word of target.unique) if (matches.has(word)) return true;
+  return false;
 }
 
 // Le poids d'une idée dans un article : le meilleur endroit où l'un de ses mots est dit.
-function conceptScore(concept: Concept, indexed: IndexedArticle): number {
+function conceptScore(concept: Concept, indexed: IndexedArticle, vocabulary: Vocabulary): number {
   let best = 0;
   for (const word of concept.words) {
     const candidate = word.text;
@@ -181,7 +210,7 @@ function conceptScore(concept: Concept, indexed: IndexedArticle): number {
     const factor = word.direct ? 1 : SYNONYM_FACTOR;
     for (const name of ["title", "keywords", "body", "faq"] as const) {
       if (FIELD_WEIGHT[name] * factor <= best) break;
-      if (fieldHas(indexed[name], candidate)) {
+      if (fieldHas(indexed[name], candidate, vocabulary)) {
         best = FIELD_WEIGHT[name] * factor;
         break;
       }
@@ -192,12 +221,12 @@ function conceptScore(concept: Concept, indexed: IndexedArticle): number {
 
 // La part du titre que la phrase couvre : « Reprendre et importer » (tout) passe devant « Confirmer un
 // import » (moitié) pour « import ».
-function titleCoverage(concepts: Concept[], indexed: IndexedArticle, stop: Set<string>): number {
+function titleCoverage(concepts: Concept[], indexed: IndexedArticle, stop: Set<string>, vocabulary: Vocabulary): number {
   const words = indexed.title.words.filter((word) => !stop.has(word));
   if (words.length === 0) return 0;
   const candidates = concepts.flatMap((concept) => concept.words.map((word) => word.text));
   const inPhrase = new Set(candidates.filter((text) => text.includes(" ") && indexed.title.text.includes(` ${text} `)).flatMap((text) => text.split(" ")));
-  const covered = words.filter((word) => inPhrase.has(word) || candidates.some((text) => !text.includes(" ") && wordsMatch(text, word)));
+  const covered = words.filter((word) => inPhrase.has(word) || candidates.some((text) => !text.includes(" ") && matchingWords(vocabulary, text).has(word)));
   return covered.length / words.length;
 }
 
@@ -208,12 +237,13 @@ export function rankArticles(query: string, articles: readonly HelpArticle[] | r
   const stop = new Set(lexicon.stopWords.map((word) => foldSearchText(word)));
   // Une phrase de plusieurs idées : un article doit en couvrir au moins la moitié.
   const needed = Math.max(1, Math.ceil(concepts.length / 2));
+  const vocabulary = vocabularyOf(indexed);
   const hits: HelpSearchHit[] = [];
   for (const entry of indexed) {
-    const scores = concepts.map((concept) => conceptScore(concept, entry));
+    const scores = concepts.map((concept) => conceptScore(concept, entry, vocabulary));
     const covered = scores.filter((score) => score > 0).length;
     if (covered < needed) continue;
-    const score = covered * 10 + scores.reduce((sum, value) => sum + value, 0) + 4 * titleCoverage(concepts, entry, stop) + (entry.article.screenHref ? 1 : 0);
+    const score = covered * 10 + scores.reduce((sum, value) => sum + value, 0) + 4 * titleCoverage(concepts, entry, stop, vocabulary) + (entry.article.screenHref ? 1 : 0);
     hits.push({ article: entry.article, score, concepts: covered });
   }
   hits.sort((a, b) => b.score - a.score || a.article.title.localeCompare(b.article.title));
