@@ -4624,6 +4624,8 @@ export async function finishQuestionnaireOfLink(scope: LinkQuestionnaireScope, q
 
 // Lot 48a (DAT-08 ; D5, ADR 0093) : notes d'évènement confidentielles.
 export { readEventConfidentialNotes, saveEventNotes, EventNotesForbiddenError, type EventNotesViewer } from "./confidential-notes";
+// Lot 72e (EVT-03, EVT-05 ; C-26, D7, M1) : « Modifier les informations », toutes les rubriques en une écriture.
+export { saveEventDetails, EventDetailsConflictError, EventDetailsRefusedError } from "./event-details";
 
 // Lot 48a (PRE-05, PRE-10 ; D3) : fiche du carnet d'un lien de prestataire (pièces demandées, IBAN).
 export async function linkVendorRecordId(organizationId: string, linkId: string): Promise<string | null> {
