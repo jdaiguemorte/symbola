@@ -7,10 +7,13 @@ import { fileGrep, SOCLE_GREP } from "./e2e/socle";
 // Lot 76 (ADR 0124) : la CI en deux vitesses choisit les parcours par trois variables.
 // - E2E_SOCLE=1 : le socle (e2e/socle.ts) ;
 // - E2E_FICHIERS : en plus, des fichiers de parcours en entier (noms séparés par des espaces) ;
-// - E2E_SANS_MESURES=1 : la suite sans les mesures du temps de réponse (NFR-01, NFR-02), jouées
-//   dans leur propre job de CI, à place fixe et serveur chaud.
+// - E2E_MESURES=1 : les seuls tests de mesure du temps de réponse ; E2E_SANS_MESURES=1 : tout sauf
+//   eux. Un test de mesure se reconnaît à « NFR-01 » ou « NFR-02 » dans son titre ou celui de sa
+//   description (e2e/mesure.ts) ; la CI les joue dans leur propre job, à place fixe et serveur chaud,
+//   sur chaque PR comme sur main.
+const MEASURE_TESTS = /NFR-0[12]\b/;
 const extraFiles = (process.env.E2E_FICHIERS ?? "").split(/\s+/).filter(Boolean);
-const selection = [...(process.env.E2E_SOCLE === "1" ? SOCLE_GREP : []), ...fileGrep(extraFiles)];
+const selection = [...(process.env.E2E_SOCLE === "1" ? SOCLE_GREP : []), ...fileGrep(extraFiles), ...(process.env.E2E_MESURES === "1" ? [MEASURE_TESTS] : [])];
 
 // Lot 40c (NFR-18, NFR-19 ; décisions D17, D18 ; ADR 0078) : les parcours des scénarios du cahier des
 // charges tournent aussi sous Firefox et WebKit (moteur de Safari), à 360 et à 1 920 px ; SC-10 est
@@ -23,7 +26,7 @@ export default defineConfig({
   testDir: "./e2e",
   fullyParallel: true,
   ...(selection.length > 0 ? { grep: selection } : {}),
-  ...(process.env.E2E_SANS_MESURES === "1" ? { testIgnore: /nfr-01-02-mesures\.spec\.ts$/ } : {}),
+  ...(process.env.E2E_SANS_MESURES === "1" ? { grepInvert: MEASURE_TESTS } : {}),
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   // En CI, un parcours à la fois : sous charge (fournisseur d'identité sur le

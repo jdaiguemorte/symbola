@@ -128,7 +128,9 @@ jobs:
   # Lot 76 (ARC-20, SEC-36 ; ADR 0124) : une CI en deux vitesses. Ce job choisit les parcours de bout
   # en bout à jouer (tools/ci-pipeline/plan-parcours.mjs) :
   # - sur une pull request, la voie rapide : le socle (apps/symbola/e2e/socle.ts) et les fichiers de
-  #   parcours que la PR modifie ou ajoute, sous Chromium, en ordinateur et en 375 px ;
+  #   parcours que la PR modifie ou ajoute, sous Chromium, en ordinateur et en 375 px, et les mesures
+  #   du temps de réponse dans leur propre job (une PR qui alourdit les pages s'arrête avant la
+  #   fusion) ;
   # - sur main après chaque fusion, chaque nuit, à la demande (workflow_dispatch) ou sur une PR
   #   étiquetée « suite-complete » : la suite complète, sous Chromium en quatre parts, les scénarios
   #   sous Firefox et WebKit, et les mesures du temps de réponse dans leur propre job.
@@ -318,10 +320,12 @@ jobs:
         env:
           E2E_SOCLE: "1"
           E2E_FICHIERS: ${{ needs.plan-e2e.outputs.fichiers }}
+          # Les tests de mesure des fichiers modifiés tournent dans le job des mesures, serveur chaud.
+          E2E_SANS_MESURES: "1"
         run: pnpm --filter @symbola/app test:e2e ${{ matrix.projets }} --global-timeout=$(( (${{ matrix.limite }} - 2) * 60000 ))
 
-      # Suite complète : une part sous Chromium, ou les scénarios sous Firefox et WebKit. Les mesures
-      # n'y sont pas : elles ont leur job.
+      # Suite complète : une part sous Chromium, ou les scénarios sous Firefox et WebKit. Les tests de
+      # mesure n'y sont pas : ils ont leur job.
       - name: Parcours Playwright (${{ matrix.partie }})
         if: matrix.mode == 'part'
         timeout-minutes: ${{ matrix.limite }}
@@ -329,10 +333,13 @@ jobs:
           E2E_SANS_MESURES: "1"
         run: pnpm --filter @symbola/app test:e2e ${{ matrix.projets }} --global-timeout=$(( (${{ matrix.limite }} - 2) * 60000 ))
 
-      # Mesures du temps de réponse (NFR-01, NFR-02 ; ADR 0078, 0114, 0115) : à place fixe et serveur
-      # chaud. Le serveur est démarré une fois, réchauffé par le socle (ordinateur et 375 px), puis
-      # mesuré, sans redémarrer. Avant le lot 76, les mesures tombaient au milieu d'une moitié de la
-      # suite, après plus de 200 parcours : 229 ms pour NFR-02 sur main le 28/11/2026 (6c8f2b5c).
+      # Mesures du temps de réponse (NFR-01, NFR-02 ; ADR 0078, 0114, 0115), sur chaque PR comme sur
+      # main : tous les tests dont le titre porte « NFR-01 » ou « NFR-02 » (nfr-01-02-mesures et les
+      # mesures des paquets : lots 70d, 71f, 73b…), à place fixe et serveur chaud. Le serveur est
+      # démarré une fois, réchauffé par le socle (ordinateur et 375 px), puis mesuré sans redémarrer.
+      # Avant le lot 76, ces tests tombaient où la découpe de la suite les plaçait : 229 ms pour
+      # NFR-02 sur main le 28/11/2026 (6c8f2b5c), 412 à 450 ms en tête d'une part. Chaque mesure dit
+      # sa valeur ; le résumé du job reçoit le tableau des valeurs, seuils et marges.
       - name: Mesures — démarrer le serveur (gardé jusqu'à la fin du job)
         if: matrix.mode == 'mesures'
         working-directory: apps/symbola
@@ -354,7 +361,12 @@ jobs:
         timeout-minutes: ${{ matrix.limite }}
         env:
           E2E_SERVEUR_PARTAGE: "1"
-        run: pnpm --filter @symbola/app test:e2e ${{ matrix.projets }} nfr-01-02-mesures.spec.ts --global-timeout=$(( (${{ matrix.limite }} - 2) * 60000 ))
+          E2E_MESURES: "1"
+          E2E_MESURES_FICHIER: ${{ github.workspace }}/mesures.jsonl
+        run: pnpm --filter @symbola/app test:e2e ${{ matrix.projets }} --global-timeout=$(( (${{ matrix.limite }} - 2) * 60000 ))
+      - name: Mesures — tableau des valeurs, seuils et marges (résumé du job)
+        if: always() && matrix.mode == 'mesures'
+        run: node tools/ci-pipeline/tableau-mesures.mjs "$GITHUB_WORKSPACE/mesures.jsonl" | tee -a "$GITHUB_STEP_SUMMARY"
 
       - name: Journaux du serveur sans adresse e-mail ni téléphone (SEC-20)
         run: pnpm --filter @symbola/privacy check:logs "$GITHUB_WORKSPACE/apps/symbola/e2e-server.log"

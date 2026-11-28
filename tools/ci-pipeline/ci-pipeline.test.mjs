@@ -134,7 +134,8 @@ describe("NFR-18, NFR-19 — Scénarios sous trois navigateurs, de 360 à 1 920 
     expect(ciWorkflow).toMatch(/run: pnpm --filter @symbola\/app test:e2e \$\{\{ matrix\.projets \}\}/);
     // Lot 76 : les mesures du temps de réponse hors des parts, dans leur job (serveur chaud).
     expect(ciWorkflow).toMatch(/E2E_SANS_MESURES: "1"/);
-    expect(ciWorkflow).toMatch(/test:e2e \$\{\{ matrix\.projets \}\} nfr-01-02-mesures\.spec\.ts/);
+    expect(ciWorkflow).toMatch(/E2E_MESURES: "1"/);
+    expect(ciWorkflow).toMatch(/tableau-mesures\.mjs/);
     // Le banc d'essai déclare son adresse : sans elle, les cookies partent en « Secure » et WebKit
     // les refuse sur http://localhost (lib/cookie-security.ts).
     expect(ciWorkflow).toMatch(/\n      APP_PUBLIC_URL: http:\/\/localhost:3000\n/);

@@ -1,6 +1,8 @@
 // Lot 76 (ARC-20, SEC-36 ; ADR 0124) — la CI en deux vitesses : quels parcours de bout en bout jouer.
 // - Sur une pull request : la voie rapide, c'est-à-dire le socle (apps/symbola/e2e/socle.ts) et les
-//   fichiers de parcours que la PR modifie ou ajoute, sous Chromium en ordinateur et en 375 px.
+//   fichiers de parcours que la PR modifie ou ajoute, sous Chromium en ordinateur et en 375 px ; et,
+//   dans leur propre job, les mesures du temps de réponse (décision de Julien du 28/11/2026 : une PR
+//   qui alourdit les pages s'arrête avant la fusion).
 // - Sur main après une fusion, la nuit, à la demande (workflow_dispatch), ou sur une PR étiquetée
 //   « suite-complete » : la suite complète sous Chromium en quatre parts, les scénarios sous Firefox
 //   et WebKit, et les mesures du temps de réponse (NFR-01, NFR-02) dans leur propre job.
@@ -11,7 +13,6 @@ import { pathToFileURL } from "node:url";
 
 export const FULL_SUITE_LABEL = "suite-complete";
 const E2E_DIR = "apps/symbola/e2e/";
-const MEASURES_SPEC = "nfr-01-02-mesures.spec.ts";
 const CHROMIUM = "--project=desktop --project=mobile-375";
 const PARTS = 4;
 
@@ -24,6 +25,18 @@ export const FAST_LANE = {
   navigateurs: "chromium",
   projets: CHROMIUM,
   limite: 25,
+  limite_job: 40,
+};
+
+// Les tests de mesure (« NFR-01 » ou « NFR-02 » dans le titre) : serveur démarré une fois, réchauffé
+// par le socle, puis mesuré sans redémarrer. Joués sur chaque PR comme sur main.
+export const MEASURES = {
+  cle: "mesures",
+  partie: "mesures du temps de réponse (NFR-01, NFR-02), serveur chaud",
+  mode: "mesures",
+  navigateurs: "chromium",
+  projets: "--project=desktop",
+  limite: 20,
   limite_job: 40,
 };
 
@@ -46,15 +59,7 @@ export const FULL_SUITE = [
     limite: 40,
     limite_job: 55,
   },
-  {
-    cle: "mesures",
-    partie: "mesures du temps de réponse (NFR-01, NFR-02), serveur chaud",
-    mode: "mesures",
-    navigateurs: "chromium",
-    projets: "--project=desktop",
-    limite: 20,
-    limite_job: 40,
-  },
+  MEASURES,
 ];
 
 export function isFullSuite({ event, labels = [] }) {
@@ -67,15 +72,14 @@ export function planParcours({ event, labels = [], changedFiles = [] }) {
   const avertissements = [];
   const inE2e = changedFiles.filter((path) => path.startsWith(E2E_DIR) && !path.slice(E2E_DIR.length).includes("/"));
   const specs = inE2e.map((path) => path.slice(E2E_DIR.length)).filter((name) => name.endsWith(".spec.ts"));
-  const fichiers = specs.filter((name) => name !== MEASURES_SPEC).sort();
-  if (specs.includes(MEASURES_SPEC)) {
-    avertissements.push(`${MEASURES_SPEC} modifié : les mesures ne valent que serveur chaud, dans leur job de la suite complète (étiquette « ${FULL_SUITE_LABEL} » pour les jouer sur cette PR).`);
-  }
+  // Les tests de mesure des fichiers modifiés sont écartés de la voie rapide (serveur froid) : le job
+  // des mesures les joue tous.
+  const fichiers = specs.sort();
   const shared = inE2e.filter((path) => !path.endsWith(".spec.ts")).concat(changedFiles.filter((path) => path === "apps/symbola/playwright.config.ts"));
   if (shared.length > 0) {
     avertissements.push(`Outils communs des parcours modifiés (${shared.join(", ")}) : ils servent à toute la suite ; l'étiquette « ${FULL_SUITE_LABEL} » la joue sur cette PR.`);
   }
-  return { complete: false, matrix: [FAST_LANE], fichiers, avertissements };
+  return { complete: false, matrix: [FAST_LANE, MEASURES], fichiers, avertissements };
 }
 
 function changedFilesOfPullRequest() {
@@ -101,7 +105,7 @@ function main() {
     : [
         "### Parcours : voie rapide",
         "",
-        "Le socle (`apps/symbola/e2e/socle.ts`) et les fichiers de parcours modifiés par la PR, sous Chromium, en ordinateur et en 375 px. La suite complète tourne sur main après la fusion.",
+        "Le socle (`apps/symbola/e2e/socle.ts`) et les fichiers de parcours modifiés par la PR, sous Chromium, en ordinateur et en 375 px ; les mesures du temps de réponse dans leur job. La suite complète tourne sur main après la fusion.",
         "",
         plan.fichiers.length > 0 ? `Fichiers modifiés joués en entier : ${plan.fichiers.map((name) => `\`${name}\``).join(", ")}.` : "Aucun fichier de parcours modifié : le socle seul.",
         ...plan.avertissements.map((text) => `\n> ${text}`),

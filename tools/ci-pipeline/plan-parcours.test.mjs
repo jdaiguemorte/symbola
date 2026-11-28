@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { FAST_LANE, FULL_SUITE, planParcours } from "./plan-parcours.mjs";
+import { FAST_LANE, FULL_SUITE, MEASURES, planParcours } from "./plan-parcours.mjs";
 
 describe("ARC-20, SEC-36 — CI en deux vitesses : quels parcours jouer (lot 76, ADR 0124)", () => {
   it("sur main, la nuit et à la demande : la suite complète (Chromium en quatre parts, Firefox et WebKit, mesures à part)", () => {
@@ -23,22 +23,21 @@ describe("ARC-20, SEC-36 — CI en deux vitesses : quels parcours jouer (lot 76,
     expect(planParcours({ event: "pull_request", labels: ["documentation", "suite-complete"] }).complete).toBe(true);
   });
 
-  it("sur une PR : la voie rapide, avec les fichiers de parcours modifiés ou ajoutés", () => {
+  it("sur une PR : la voie rapide, avec les fichiers de parcours modifiés ou ajoutés, et les mesures dans leur job", () => {
     const plan = planParcours({
       event: "pull_request",
       labels: ["documentation"],
       changedFiles: ["apps/symbola/e2e/lot-72b-aujourdhui.spec.ts", "apps/symbola/app/page.tsx", "apps/symbola/e2e/dev-01-devis.spec.ts", "docs/lots/x.md"],
     });
     expect(plan.complete).toBe(false);
-    expect(plan.matrix).toEqual([FAST_LANE]);
+    expect(plan.matrix).toEqual([FAST_LANE, MEASURES]);
     expect(plan.fichiers).toEqual(["dev-01-devis.spec.ts", "lot-72b-aujourdhui.spec.ts"]);
     expect(plan.avertissements).toEqual([]);
   });
 
-  it("garde les mesures hors de la voie rapide (serveur froid), et le dit", () => {
-    const plan = planParcours({ event: "pull_request", changedFiles: ["apps/symbola/e2e/nfr-01-02-mesures.spec.ts"] });
-    expect(plan.fichiers).toEqual([]);
-    expect(plan.avertissements.join(" ")).toMatch(/suite-complete/);
+  it("joue les mesures sur chaque PR, même sans fichier de parcours modifié", () => {
+    const plan = planParcours({ event: "pull_request", changedFiles: ["apps/symbola/app/page.tsx"] });
+    expect(plan.matrix.map((entry) => entry.mode)).toEqual(["rapide", "mesures"]);
   });
 
   it("signale les outils communs des parcours modifiés (aides, configuration de Playwright)", () => {
@@ -51,5 +50,26 @@ describe("ARC-20, SEC-36 — CI en deux vitesses : quels parcours jouer (lot 76,
   it("la voie rapide tient dans sa limite : 25 min pour les parcours, 40 pour le job", () => {
     expect(FAST_LANE).toMatchObject({ mode: "rapide", projets: "--project=desktop --project=mobile-375", limite: 25, limite_job: 40 });
     for (const entry of FULL_SUITE) expect(entry.limite).toBeLessThan(entry.limite_job);
+  });
+});
+
+describe("NFR-01, NFR-02 — Le tableau des mesures et de leur marge (lot 76)", async () => {
+  const { measuresTable } = await import("./tableau-mesures.mjs");
+
+  it("donne la valeur, le seuil et la marge de chaque mesure, même réussie ; une reprise garde la dernière valeur", () => {
+    const text = [
+      { mesure: "NFR-02 — pages", valeur: 312, seuil: 300, unite: "ms" },
+      { mesure: "NFR-02 — pages", valeur: 229, seuil: 300, unite: "ms", detail: "séries : 240, 229, 218 ms" },
+      { mesure: "HUB-12 — recherche", valeur: 152, seuil: 500, unite: "ms" },
+    ].map((line) => JSON.stringify(line)).join("\n");
+    const table = measuresTable(text);
+    expect(table).toContain("| Mesure | Valeur | Seuil | Marge |");
+    expect(table).toContain("| ✅ NFR-02 — pages — séries : 240, 229, 218 ms (2 passages, le dernier) | 229 ms | 300 ms | 71 ms (24 %) |");
+    expect(table).toContain("| ✅ HUB-12 — recherche | 152 ms | 500 ms | 348 ms (70 %) |");
+  });
+
+  it("marque une mesure au-dessus du seuil, et dit quand aucune mesure n'a été relevée", () => {
+    expect(measuresTable(JSON.stringify({ mesure: "Lot 71f", valeur: 396, seuil: 300, unite: "ms" }))).toContain("| ❌ Lot 71f | 396 ms | 300 ms | -96 ms (-32 %) |");
+    expect(measuresTable("")).toMatch(/Aucune mesure relevée/);
   });
 });
