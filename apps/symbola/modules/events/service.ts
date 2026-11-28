@@ -44,6 +44,8 @@ import {
   StatusChangedMeanwhileError,
   applyProgramTemplateRows,
   applyTaskTemplateRows,
+  countTemplatePastDueRows,
+  type TemplatePastDueAnswer,
   deleteProgramItem,
   deleteProgramTemplate,
   deleteProgramTemplateItem,
@@ -1646,11 +1648,31 @@ export async function resolveTaskRecalculation(organizationId: string, eventId: 
   if (!(await resolveTaskRecalculationRow(organizationId, eventId, accept))) throw new EventNotFoundError();
 }
 
-export async function applyTaskTemplate(organizationId: string, eventId: string, templateId: string): Promise<EventTask[]> {
+// Lot 71c (CHR-01, CHR-02 ; I3) : « Partir d'un modèle » sur un mariage repris pose la question des
+// échéances passées ; sans réponse, rien n'est appliqué (TemplatePastDueUnansweredError).
+export class TemplatePastDueUnansweredError extends Error {
+  constructor() {
+    super("échéances passées du modèle sans réponse");
+    this.name = "TemplatePastDueUnansweredError";
+  }
+}
+
+export async function countTemplatePastDue(organizationId: string, eventId: string, now: Date = new Date()): Promise<Map<string, number>> {
+  return countTemplatePastDueRows(organizationId, eventId, parisToday(now));
+}
+
+export async function applyTaskTemplate(
+  organizationId: string,
+  eventId: string,
+  templateId: string,
+  options: { pastDue?: TemplatePastDueAnswer | null; now?: Date } = {},
+): Promise<EventTask[]> {
   // Lot 58 (PAR-09, étape 5) : un évènement archivé est en lecture seule.
   await assertEventWritableRow(organizationId, eventId);
-  const result = await applyTaskTemplateRows(organizationId, eventId, templateId);
+  const result = await applyTaskTemplateRows(organizationId, eventId, templateId, { answer: options.pastDue ?? null, today: parisToday(options.now ?? new Date()) });
   switch (result.status) {
+    case "past_due_unanswered":
+      throw new TemplatePastDueUnansweredError();
     case "applied":
       return result.tasks.map(toEventTask);
     case "event_not_found":
@@ -5150,3 +5172,4 @@ export { addEventClient, EventClientsFullError, InvalidProspectSourceError, setE
 // relance ; la correspondance calculée entre un poste et un métier.
 export { addVendorToEventSlot, listEventsForVendorAddition, listUpcomingRetainedEventsByVendor, undoVendorAddition, undoVendorReminder, VENDOR_UNDO_GRACE_SECONDS } from "./vendor-addition";
 export { matchSlotToVendorType, proposeSlotForVendorType, proposeVendorTypeForSlot, type SlotMatchCatalog, type SlotVendorMatch } from "./vendor-slot-match";
+export type { TemplatePastDueAnswer } from "./repository";

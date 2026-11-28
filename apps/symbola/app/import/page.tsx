@@ -4,6 +4,7 @@ import { getLocale, getTranslations } from "next-intl/server";
 import { appDatabase } from "@symbola/db/client";
 import { formatDateTime, formatFileSize, type Locale } from "@symbola/i18n";
 import { ScreenHelp } from "@/app/screen-help";
+import { ShowFeedbackOnMount } from "@/app/ui/feedback";
 import { getImportLimits, getTakeover, listImports, type ImportEntityType, type ImportLimits, type ImportSummary } from "@/modules/hub/service";
 import { requirePlanner } from "@/lib/guards";
 import { taskListViewer } from "@/lib/event-visibility";
@@ -28,7 +29,7 @@ const OTHER = "autre";
 const SCREEN_GROUPS: Record<string, readonly ImportEntityType[]> = { evenements: ["event_sheets", "events"] };
 const HOW: readonly string[] = ["contacts", "vendors", "event_sheets"];
 
-export default async function ImportPage({ searchParams }: { searchParams: Promise<{ type?: string; evenement?: string; reprise?: string }> }) {
+export default async function ImportPage({ searchParams }: { searchParams: Promise<{ type?: string; evenement?: string; reprise?: string; abandonne?: string }> }) {
   const auth = await requirePlanner();
   const organizationId = auth.user.organizationId;
 
@@ -92,6 +93,8 @@ export default async function ImportPage({ searchParams }: { searchParams: Promi
 
   return (
     <main>
+      {/* Lot 71c (C-59) : après « Abandonner cet import… », le message de retour du lot 70b. */}
+      {query.abandonne === "1" ? <ShowFeedbackOnMount input={{ title: t("abandonedFeedback") }} /> : null}
       {takeover ? (
         <p className="takeover-back">
           <Link href={`/reprise/${takeover.id}`}>‹ {takeoverNames ? tTakeover("backTo", { event: takeoverNames }) : tTakeover("backToNew")}</Link>

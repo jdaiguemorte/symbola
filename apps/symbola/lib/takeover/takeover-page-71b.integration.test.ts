@@ -13,7 +13,6 @@ import { withOrganization } from "@symbola/db/with-organization";
 import { readImportCorpusFile } from "@symbola/testing/import-corpus";
 import { createProspect, createProspectSource, listEventTasks, startExampleEvent } from "@/modules/events/service";
 import { getImportColumns, getTakeover, listImports, saveImportMapping, settleTakeoverStep, startImport } from "@/modules/hub/service";
-import { confirmImport } from "@/lib/import/apply";
 import { decideMatches, getImportMatchesView } from "@/lib/import/matching";
 import {
   abandonTakeoverImport,
@@ -24,6 +23,7 @@ import {
   takeoverForUpload,
   type TakeoverActor,
 } from "./flow";
+import { confirmWithAnswers } from "@/lib/test-fixtures/import-answers";
 
 const { sql, db } = createAppConnection();
 
@@ -155,7 +155,7 @@ describe("HUB-14 — La page de reprise et ses portes (lot 71b)", () => {
     const { takeoverId } = await enterTakeoverEvent(planner, { takeoverId: null, name: "Juliette & Romain", eventDate: "2027-03-20", clients: [] });
     const importId = await dropFile(planner, takeoverId, "tasks", "a-faire.csv");
     await saveProposedColumns(planner, importId, TASK_COLUMNS);
-    const done = await confirmImport({ organizationId: planner.organizationId, userId: planner.userId, importId, defaultProspectSourceId: null, locale: "fr" });
+    const done = await confirmWithAnswers({ organizationId: planner.organizationId, userId: planner.userId, importId, defaultProspectSourceId: null, locale: "fr" });
     expect(done.status).toBe("applied");
     const model = (await loadTakeoverPage(planner, takeoverId))!;
     const tasks = model.rows.find((row) => row.kind === "tasks")!;
@@ -170,7 +170,7 @@ describe("HUB-14 — La page de reprise et ses portes (lot 71b)", () => {
     const first = await enterTakeoverEvent(planner, { takeoverId: null, name: "Léa & Hugo", eventDate: "2027-06-12", clients: [] });
     const vendorImport = await dropFile(planner, first.takeoverId, "vendor_book", "prestataires.csv");
     await saveProposedColumns(planner, vendorImport);
-    expect((await confirmImport({ organizationId: planner.organizationId, userId: planner.userId, importId: vendorImport, defaultProspectSourceId: null, locale: "fr" })).status).toBe("applied");
+    expect((await confirmWithAnswers({ organizationId: planner.organizationId, userId: planner.userId, importId: vendorImport, defaultProspectSourceId: null, locale: "fr" })).status).toBe("applied");
     for (const kind of ["budget", "event_vendors", "tasks", "program"] as const) {
       await settleTakeoverStep(db, { organizationId: planner.organizationId, userId: planner.userId, takeoverId: first.takeoverId, kind, state: "no_file" });
     }

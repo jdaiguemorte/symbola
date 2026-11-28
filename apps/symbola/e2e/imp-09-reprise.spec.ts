@@ -9,7 +9,7 @@ import AxeBuilder from "./axe";
 import { createAppConnection } from "@symbola/db/client";
 import { createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
-import { openSettingsTab, readyOrganization, signIn as signInByLink } from "./helpers";
+import { answerSheetQuestions, openSettingsTab, readyOrganization, signIn as signInByLink } from "./helpers";
 
 async function loginAndSetupMfa(page: Page, email: string, _password: string) {
   // Lot 33 : lien magique et fournisseur d'identité (e2e/helpers.ts).
@@ -24,7 +24,8 @@ async function expectNoAxeViolation(page: Page) {
 // Lot 15 (IMP-10) : les fiches sont lues en tâche de fond. Lot 16 (IMP-11) :
 // à la fin, l'assistant passe de lui-même à l'étape suivante.
 async function waitForSheetsRead(page: Page) {
-  await expect.poll(() => page.url().endsWith("/confirmation"), { timeout: 30_000 }).toBe(true);
+  // Lot 71c (C-64) : puis l'étape « Questions » (« Où en est-il ? »).
+  await expect.poll(() => page.url().endsWith("/questions"), { timeout: 30_000 }).toBe(true);
 }
 
 test("IMP-09 — « Reprendre et importer » : trois boutons de même rang, la reprise d'un mariage renvoyée vers sa page, et une fiche d'exemple", async ({ page }) => {
@@ -76,6 +77,7 @@ test("IMP-09 — « Reprendre et importer » : trois boutons de même rang, la r
   await page.getByLabel("Fiches évènement (PDF, une ou plusieurs)").setInputFiles({ name: "fiche-evenement-exemple.pdf", mimeType: "application/pdf", buffer: await response.body() });
   await page.getByRole("button", { name: "Lire le fichier" }).click();
   await waitForSheetsRead(page);
+  await answerSheetQuestions(page);
   await expect(page.getByLabel(/Ligne 1 : Léa MARTIN & Hugo BERNARD/)).toBeVisible();
   await expectNoAxeViolation(page);
 });

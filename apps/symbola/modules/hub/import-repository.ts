@@ -1,7 +1,7 @@
 // Accès aux imports (lot 5, ADR 0022) — jamais importé hors de modules/hub/.
 // Contrairement aux tables d'identité du hub, hub.imports porte des données
 // métier : chaque requête passe par withOrganization (RLS forcée).
-import { and, asc, desc, eq, isNotNull, lt } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, isNotNull, lt } from "drizzle-orm";
 import type { AppDatabase } from "@symbola/db/client";
 import { importItems, imports, type ImportColumnChoice, type ImportMatching, type ImportResult } from "@symbola/db/schema/hub";
 import { withOrganization } from "@symbola/db/with-organization";
@@ -90,6 +90,26 @@ export async function updateDraftMatching(
 
 // IMP-04 : décisions sur les colonnes sans équivalent — les rapprochements
 // ne dépendent pas des champs libres, ils sont gardés.
+// Lot 71c (HUB-14, C-52) : le mariage visé par un budget ou une liste de tâches, choisi à l'étape
+// « Questions » (null : un mariage qui n'est pas encore dans Symbola). Les rapprochements gardent les
+// réponses ; l'appelant les recalcule pour ce mariage.
+export async function updateDraftTargetEvent(
+  db: AppDatabase,
+  organizationId: string,
+  importId: string,
+  targetEventId: string | null,
+  now: Date,
+): Promise<boolean> {
+  return withOrganization(db, organizationId, async (tx) => {
+    const updated = await tx
+      .update(imports)
+      .set({ targetEventId, updatedAt: now })
+      .where(and(eq(imports.id, importId), eq(imports.status, "draft"), inArray(imports.entityType, ["budget_lines", "tasks"])))
+      .returning({ id: imports.id });
+    return updated.length > 0;
+  });
+}
+
 export async function updateDraftMappingKeepingMatches(
   db: AppDatabase,
   organizationId: string,

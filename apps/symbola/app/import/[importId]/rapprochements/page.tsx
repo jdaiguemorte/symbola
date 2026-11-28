@@ -25,7 +25,7 @@ function names(clients: PersonName[]): string {
 // qui décrit le même événement, ou un événement de rattachement introuvable.
 function toCheck(row: MatchesRowView): boolean {
   // Lot 63b (HUB-14) : une proposition « À vérifier » y reste, même décidée, pour revoir son choix.
-  return row.match?.status === "proposed" || row.sameAsLine !== undefined || (row.event !== undefined && !row.event.candidate) || row.match?.toVerify === true || row.compare?.toVerify === true;
+  return row.match?.status === "proposed" || row.sameAsLine !== undefined || (row.event !== undefined && !row.event.candidate && !row.event.pendingNew) || row.match?.toVerify === true || row.compare?.toVerify === true;
 }
 
 const CHOICES = [
@@ -51,6 +51,8 @@ export default async function ImportMatchesPage({
   const { wizard } = await importStepContext(importId);
   const view = wizard.matches;
   if (!view) redirect(importStepHref(importId, wizard.next));
+  // Lot 71c : les doublons viennent après les questions (le mariage visé change les rapprochements).
+  if (wizard.steps.some((step) => step.key === "questions" && !step.done)) redirect(importStepHref(importId, "questions"));
   const query = await searchParams;
 
   const t = await getTranslations("Import");
@@ -274,7 +276,7 @@ export default async function ImportMatchesPage({
                       {/* Lot 67a (HUB-14, BUD-01 ; R03) : le poste repris de la ligne du dessus se vérifie ici. */}
                       {row.carried?.slotLabel !== undefined ? <span className="meta"> {t("rowCarriedSlot", { line: row.carried.slotLabel })}</span> : null}
                       {row.event ? (
-                        <span className="meta"> {row.event.candidate ? t("rowEvent", { event: eventTitle(row.event.candidate), score: row.event.score }) : t("rowEventNotFound")}</span>
+                        <span className="meta"> {row.event.candidate ? t("rowEvent", { event: eventTitle(row.event.candidate), score: row.event.score }) : row.event.pendingNew ? t("rowEventPendingNew") : t("rowEventNotFound")}</span>
                       ) : null}
                     </th>
                     <td>
@@ -282,7 +284,7 @@ export default async function ImportMatchesPage({
                         ? isContacts
                           ? t(row.match.reason === "email" ? "contactMatchEmail" : "contactMatchName", { element: row.match.label ?? "" })
                           : t("matchProposal", { element: row.match.event ? eventTitle(row.match.event) : (row.match.label ?? ""), score: row.match.score })
-                        : row.event && !row.event.candidate
+                        : row.event && !row.event.candidate && !row.event.pendingNew
                           ? t("rowWillBeRejected")
                           : isContacts && row.sameAsLine !== undefined
                             ? t("contactSameLine", { line: row.sameAsLine })
