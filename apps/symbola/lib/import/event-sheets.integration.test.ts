@@ -92,7 +92,7 @@ describe("IMP-08 — Importer ses événements depuis les fiches PDF", () => {
     const planner = await createPlanner();
     const importId = await startSheets(planner, [sheet("fiche-evenement-complete.pdf")]);
     const result = await confirmWithAnswers({ ...planner, importId, defaultProspectSourceId: planner.sourceId });
-    expect(result).toEqual({ status: "applied", result: { created: 1, updated: 0, unchanged: 0, rejected: 0 } });
+    expect(result).toEqual({ status: "applied", result: { created: 1, updated: 0, unchanged: 0, rejected: 0, figures: { kind: "rows", rows: 1 } } });
 
     const [summary] = await listEvents({ organizationId: planner.organizationId });
     const event = (await getEvent(planner.organizationId, summary!.id))!;
