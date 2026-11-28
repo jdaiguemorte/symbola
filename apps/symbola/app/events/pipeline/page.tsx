@@ -9,7 +9,7 @@ import { getEventsPipeline, listLossReasons, listProspectRequestsToReview } from
 import { requirePlanner } from "@/lib/guards";
 import { ScreenHelp } from "@/app/screen-help";
 import { isEventsModuleEnabled } from "../module-access";
-import { EventsHeader } from "../events-header";
+import { EventsHeader, keptQuery } from "../events-header";
 import { PipelineBoard, type BoardCard } from "./pipeline-board";
 import { acceptRequestAction, discardRequestAction } from "./actions";
 
@@ -19,7 +19,7 @@ function dateLabel(date: string, locale: Locale): string {
   return new Intl.DateTimeFormat(locale === "en" ? "en-GB" : "fr-FR", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" }).format(new Date(`${date}T12:00:00Z`));
 }
 
-export default async function PipelinePage() {
+export default async function PipelinePage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const auth = await requirePlanner();
   const organizationId = auth.user.organizationId;
   const t = await getTranslations("Pipeline");
@@ -55,7 +55,8 @@ export default async function PipelinePage() {
   return (
     <main className="pipeline-page">
       {/* Lot 63c (EVT-07, CRM-02, UX-13 ; M7) : le même en-tête que la liste et le calendrier. */}
-      <EventsHeader view="pipeline" />
+      {/* Lot 72f (critère 5) : les filtres de la liste suivent d'une vue à l'autre. */}
+      <EventsHeader view="pipeline" keep={keptQuery(await searchParams)} />
       <ScreenHelp title={tHelp("eventsPipeline.title")} body={tHelp("eventsPipeline.body")} />
       {auth.user.role === "owner" ? (
         <nav className="row-wrap" aria-label={t("viewsLabel")}>

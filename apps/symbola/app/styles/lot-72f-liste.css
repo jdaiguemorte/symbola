@@ -1,0 +1,193 @@
+/* Lot 72f — la liste des évènements (spécification du lot 72, § 5.6 ; page 17 des maquettes du lot 68). Mêmes
+   jetons que globals.css (DESIGN.md), aucun style en ligne (CSP). Chargé avant globals.css : les règles passent
+   par l'écran (.events-list-screen) ou par l'en-tête commun des vues (.events-views). */
+@layer components {
+  /* M8 : une option active d'une bascule est pleine, en encre, texte blanc (vues et période). */
+  .segmented.events-views a[aria-current="page"],
+  .events-list-screen .events-period .segmented a[aria-current="page"] {
+    @apply bg-ink text-on-primary;
+  }
+  .page-actions .segmented.events-views {
+    @apply m-0;
+  }
+
+  /* La barre de filtres : des filtres libellés, de même hauteur ; la période en bascule. */
+  .events-list-screen .events-filters {
+    @apply mb-4;
+  }
+  .events-list-screen .events-filters .filter-bar > .events-filter-search {
+    @apply w-48;
+  }
+  .events-list-screen .events-filters .filter-bar > label.ev-f-short select {
+    @apply w-24;
+  }
+  .events-list-screen .events-filters .filter-bar > label.ev-f-status select,
+  .events-list-screen .events-filters .filter-bar > label.ev-f-source select {
+    @apply w-36;
+  }
+  .events-period {
+    @apply flex flex-col gap-1 text-label font-medium text-ink;
+  }
+  .events-period .segmented {
+    @apply p-0;
+  }
+  .events-period .segmented a {
+    @apply min-h-[36px] px-2 whitespace-nowrap;
+  }
+  .events-filters-open {
+    @apply hidden;
+  }
+
+  /* Le tableau : le nom en titre-lien (souligné d'un trait line-strong, C-83), une cible par ligne. */
+  .events-list-summary {
+    @apply mt-0 mb-2 text-body-strong text-ink-muted;
+  }
+  .events-table tbody tr {
+    @apply relative;
+  }
+  .events-table tbody tr:hover {
+    @apply bg-ground;
+  }
+  .events-table tbody th > a:first-child {
+    @apply underline decoration-line-strong underline-offset-4;
+  }
+  .events-table tbody th > a:first-child::after {
+    content: "";
+    @apply absolute inset-0;
+  }
+  .events-table tbody th .takeover-mark {
+    @apply relative z-10;
+  }
+  .events-table thead th a {
+    @apply text-ink-muted no-underline;
+  }
+  .events-table thead th[aria-sort] a {
+    @apply text-ink;
+  }
+  .events-table small {
+    @apply block text-label text-ink-muted;
+  }
+  .events-table i {
+    @apply not-italic text-ink-muted;
+  }
+  .events-table td:nth-child(2),
+  .events-table .ev-status {
+    @apply whitespace-nowrap;
+  }
+  .events-table .ev-tasks {
+    @apply whitespace-nowrap tabular-nums;
+  }
+  .events-table .ev-tasks progress {
+    @apply my-0 mr-2 inline-block h-1.5 w-16 align-middle accent-ink;
+  }
+  .events-table .ev-tasks b {
+    @apply font-semibold text-critical;
+  }
+  /* Dans une agence, « Planner principal » prend la place du lieu sous 1 280 px. */
+  @media (max-width: 1279px) {
+    .events-table[data-agency] .ev-venue {
+      @apply hidden;
+    }
+  }
+
+  /* Téléphone : la liste avant tout (première ligne à 126 px au plus, critère 6). Le nom de l'écran est dans
+     la barre du haut, « Créer » aussi ; la période et « Filtres » sur une ligne ; une carte par évènement. */
+  @media (max-width: 639px) {
+    /* Le titre reste pour les lecteurs d'écran (un seul h1 par page) ; les commandes de l'en-tête sont dans la
+       barre du haut (« Créer ») et les Paramètres. */
+    .events-list-screen {
+      @apply relative;
+    }
+    .events-list-screen > .page-header {
+      @apply absolute top-0 right-0 m-0 block;
+    }
+    .events-list-screen > .page-header h1 {
+      @apply sr-only;
+    }
+    .events-list-screen > .page-header .meta,
+    .events-list-screen > .page-header .page-actions > :not(.events-header-menu) {
+      @apply hidden;
+    }
+    .events-list-screen > .page-header .task-menu-button {
+      @apply h-11 w-11;
+    }
+    .events-list-screen .events-filters {
+      @apply mb-1 flex items-center gap-2 pr-12;
+    }
+    .events-list-screen .events-filters > .book-filters-sheet {
+      @apply min-w-0 flex-1;
+    }
+    .events-list-screen .events-filters-open {
+      @apply flex min-h-11 flex-none items-center;
+    }
+    .events-list-screen .events-filters:not([data-open="true"]) .filter-bar > label {
+      @apply hidden;
+    }
+    .events-list-screen .events-filters:not([data-open="true"]) .events-period > span,
+    .events-list-screen .events-filters:not([data-open="true"]) .events-period a:last-child {
+      @apply hidden;
+    }
+    .events-list-screen .events-period .segmented {
+      @apply flex;
+    }
+    .events-list-screen .events-period .segmented a {
+      @apply min-h-11 flex-1 justify-center px-2;
+    }
+    .events-list-screen .events-filters .filter-bar > label,
+    .events-list-screen .events-filters .filter-bar > label select,
+    .events-list-screen .events-filters .filter-bar > label[class] select {
+      @apply w-full;
+    }
+    .events-list-screen .events-list-summary {
+      @apply sr-only;
+    }
+    .events-list-screen .events-list .list-table-wrap {
+      @apply overflow-visible rounded-none border-0 bg-transparent;
+    }
+    .events-list-screen .events-table {
+      @apply my-0 min-w-0;
+    }
+    .events-list-screen .events-table thead,
+    .events-list-screen .events-table .ev-venue,
+    .events-list-screen .events-table .ev-lead {
+      @apply hidden;
+    }
+    .events-list-screen .events-table,
+    .events-list-screen .events-table tbody,
+    .events-list-screen .events-table tr,
+    .events-list-screen .events-table tbody th,
+    .events-list-screen .events-table td {
+      @apply block;
+    }
+    .events-list-screen .events-table tbody tr {
+      @apply border-b border-line py-3;
+    }
+    .events-list-screen .events-table td,
+    .events-list-screen .events-table tbody th {
+      @apply h-auto border-0 px-0 py-0 whitespace-normal text-label text-ink-muted;
+    }
+    .events-list-screen .events-table tbody th {
+      @apply text-body;
+    }
+    .events-list-screen .events-table tbody th > a:first-child {
+      @apply inline-flex min-h-6 items-center;
+    }
+    .events-list-screen .events-table td:nth-child(2) small {
+      @apply inline;
+    }
+    .events-list-screen .events-table td:nth-child(2) small::before {
+      content: " · ";
+    }
+    .events-list-screen .events-table .ev-tasks {
+      @apply text-ink;
+    }
+    .events-list-screen .events-table .ev-tasks progress {
+      @apply hidden;
+    }
+  }
+  @media (max-width: 767px) {
+    body:has(.events-filters[data-open="true"]) .app-tabbar {
+      @apply hidden;
+    }
+  }
+}
