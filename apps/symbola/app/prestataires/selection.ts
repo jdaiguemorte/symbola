@@ -1,7 +1,8 @@
 // Lot 11 (L11-PRE-04 à L11-PRE-07, L11-PRE-11) — sélection courante du carnet,
 // commune à l'écran et à l'export : filtres de l'URL, centre du cercle
 // (une fiche du carnet ou une adresse géocodée), résultats triés.
-import { getEvent, listEventVendorSlots, eventNames } from "@/modules/events/service";
+import { ENGAGED_CANDIDATE_STATUSES } from "@symbola/contracts";
+import { getEvent, listEventVendorSlots, listVendorCandidates, eventNames } from "@/modules/events/service";
 import {
   findVendors,
   geocodeAddress,
@@ -29,8 +30,9 @@ export type BookSelection = {
   center: { latitude: number; longitude: number; label: string } | null;
   centerNotFound: boolean;
   results: VendorListItem[];
-  // Contexte « Ajouter au poste » (venu d'un poste de la fiche événement).
-  target: { eventId: string; slotId: string; slotLabel: string; eventLabel: string } | null;
+  // Contexte « Ajouter à ce poste… » (venu d'un poste du budget d'un mariage). Lot 73c : les fiches déjà
+  // sur ce poste (« Dans la comparaison », « Retenu »).
+  target: { eventId: string; slotId: string; slotLabel: string; eventLabel: string; onSlot: Map<string, "compared" | "retained"> } | null;
   // Lot 63b (HUB-14) : la liste filtrée sur un import (« Vérifier les N prestataires »).
   importFilter: ImportFilter | null;
 };
@@ -48,9 +50,11 @@ export async function loadBookSelection(organizationId: string, query: BookQuery
   const filters = parseBookFilters(query, types);
 
   let target: BookSelection["target"] = null;
-  let aroundText = filters.aroundText;
+  // Lot 73c (critère 8) : depuis un poste, plus aucun lieu posé d'office ; le carnet est filtré par le
+  // métier ou la famille du poste, dans l'adresse (une pastille qui s'enlève, posée par le budget).
+  const aroundText = filters.aroundText;
   if (filters.eventId && filters.slotId) {
-    const [event, slots] = await Promise.all([getEvent(organizationId, filters.eventId), listEventVendorSlots(organizationId, filters.eventId)]);
+    const [event, slots, candidates] = await Promise.all([getEvent(organizationId, filters.eventId), listEventVendorSlots(organizationId, filters.eventId), listVendorCandidates(organizationId, filters.eventId)]);
     const slot = slots.find((candidate) => candidate.id === filters.slotId);
     if (event && slot) {
       target = {
@@ -58,9 +62,12 @@ export async function loadBookSelection(organizationId: string, query: BookQuery
         slotId: slot.id,
         slotLabel: slot.label,
         eventLabel: eventNames(event.clients, event.name) || event.venueName || "",
+        onSlot: new Map(
+          candidates
+            .filter((candidate) => candidate.vendorSlotId === slot.id && candidate.vendorId !== null && candidate.status !== "dismissed")
+            .map((candidate) => [candidate.vendorId!, ENGAGED_CANDIDATE_STATUSES.includes(candidate.status) ? ("retained" as const) : ("compared" as const)]),
+        ),
       };
-      // Sans centre choisi : autour du lieu de l'événement.
-      if (!aroundText && (event.venueName || event.venueCity)) aroundText = [event.venueName, event.venueCity].filter(Boolean).join(" ");
     }
   }
 

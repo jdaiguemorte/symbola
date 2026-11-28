@@ -356,10 +356,12 @@ export {
   depositPaidFor,
   EVENT_STAGE_ANSWERS,
   eventStatusForStage,
+  IMPORT_QUESTION_KEYS,
   NAME_CASE_ANSWERS,
   PAST_DUE_TASKS_ANSWERS,
   takeoverContractFor,
   type ImportAnswers,
+  type ImportQuestionKey,
   type TakeoverContract,
 } from "./import/questions";
 export {

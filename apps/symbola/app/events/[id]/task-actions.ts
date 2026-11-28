@@ -4,13 +4,14 @@
 import { offerUndo } from "@/lib/undo";
 import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
-import { applyTaskTemplate, changeEventDate, EventDateRequiredError, EventNotFoundError, EventTaskNotFoundError, moveEventTask, releaseEventTask, removeEventTask, resolveTaskRecalculation, TaskAssigneeNotFoundError, TaskVendorInvalidError, TaskLabelRequiredError, TaskRecalculationPendingError, TaskTemplateNotFoundError, updateEventTask, PlanningInputError, setTaskMilestone } from "@/modules/events/service";
+import { PAST_DUE_TASKS_ANSWERS } from "@symbola/contracts";
+import { applyTaskTemplate, TemplatePastDueUnansweredError, changeEventDate, EventDateRequiredError, EventNotFoundError, EventTaskNotFoundError, moveEventTask, releaseEventTask, removeEventTask, resolveTaskRecalculation, TaskAssigneeNotFoundError, TaskVendorInvalidError, TaskLabelRequiredError, TaskRecalculationPendingError, TaskTemplateNotFoundError, updateEventTask, PlanningInputError, setTaskMilestone } from "@/modules/events/service";
 import { getPlannerAuthContext } from "@/lib/auth-context";
 import { isEventsModuleEnabled, isValidId } from "../module-access";
 
 
 // Lot 70b (UX-10) : `fieldErrors`, les erreurs de saisie traduites, sous les champs.
-export type TaskFormState = { error?: string; success?: boolean; recalculationProposed?: boolean; fieldErrors?: Record<string, string> };
+export type TaskFormState = { error?: string; success?: boolean; recalculationProposed?: boolean; fieldErrors?: Record<string, string>; pastDueError?: string };
 
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -75,9 +76,14 @@ export async function applyTaskTemplateAction(_prevState: TaskFormState, formDat
   if (!isValidId(eventId)) return { error: t("eventNotFound") };
   if (!isValidId(templateId)) return { error: t("taskTemplateNotFound") };
 
+  // Lot 71c (I3) : la réponse à la question des échéances passées d'un mariage repris.
+  const answer = PAST_DUE_TASKS_ANSWERS.find((value) => value === formData.get("pastDueTasks"));
+  const date = String(formData.get("pastDueDate") ?? "").trim();
+  const pastDue = answer ? (answer === "redate" && DATE_PATTERN.test(date) ? { answer, date } : { answer }) : null;
   try {
-    await applyTaskTemplate(access.organizationId, eventId, templateId);
+    await applyTaskTemplate(access.organizationId, eventId, templateId, { pastDue });
   } catch (error) {
+    if (error instanceof TemplatePastDueUnansweredError) return { pastDueError: t(answer === "redate" ? "templatePastDueDateMissing" : "templatePastDueMissing") };
     return { error: taskErrorMessage(error, t) };
   }
   revalidatePath(`/events/${eventId}`);

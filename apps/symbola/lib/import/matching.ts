@@ -366,6 +366,13 @@ function resolveEvent(row: ParsedImportRow, events: EventCandidate[], targetEven
   return { rowIndex: row.rowIndex, eventId: unique ? first.id : null, score: first?.score ?? 0 };
 }
 
+// Lot 71c (C-52) : « Un mariage qui n'est pas encore dans Symbola » répondu, et aucun mariage visé.
+export function pendingNewEvent(set: Pick<ImportWorkingSet, "entityType" | "targetEventId" | "matching">): boolean {
+  if (set.entityType !== "tasks" && set.entityType !== "budget_lines") return false;
+  const newEvent = set.matching?.answers?.newEvent;
+  return !set.targetEventId && typeof newEvent === "object" && newEvent !== null;
+}
+
 function rowLabel(entityType: ImportEntityType, values: Record<string, ImportValue>): string | null {
   return text(entityType === "budget_lines" ? values.slotLabel : values.label);
 }
@@ -405,10 +412,17 @@ export async function computeImportMatching(organizationId: string, set: ImportW
   } else if (set.entityType === "tasks" || set.entityType === "budget_lines") {
     const events = await listEventCandidates(organizationId);
     const itemsByEvent = new Map<string, LabelCandidate[]>();
+    // Lot 71c (C-52) : un mariage pas encore dans Symbola reçoit les postes de départ de l'agence ; les
+    // lignes du budget se rangent sous eux, comme pour un mariage qui existe (aucune tâche à rapprocher).
+    const pendingItems = pendingNewEvent(set) && set.entityType === "budget_lines" ? asCandidates(await listLabelCandidates(organizationId, "vendor_slots")) : null;
     for (const row of rows) {
       const resolution = resolveEvent(row, events, set.targetEventId);
       rowEvents.push(resolution);
       const label = rowLabel(set.entityType, row.values);
+      if (pendingItems && label) {
+        proposed(row.rowIndex, bestMatch(label, pendingItems, labelSimilarity));
+        continue;
+      }
       if (!resolution.eventId || !label) continue;
       let items = itemsByEvent.get(resolution.eventId);
       if (!items) {
@@ -438,8 +452,9 @@ export type MatchesRowView = {
   errors: RowError[];
   // Lot 67a (HUB-14, BUD-01) : champs repris de la ligne du dessus → ligne du fichier d'origine.
   carried?: Record<string, number>;
-  // Tâches et lignes de budget : événement reconnu, ou null (introuvable).
-  event?: { eventId: string | null; score: number; candidate: EventCandidate | null };
+  // Tâches et lignes de budget : événement reconnu, ou null (introuvable). Lot 71c (C-52) : `pendingNew`,
+  // le mariage « pas encore dans Symbola » de l'étape « Questions », créé à l'écriture.
+  event?: { eventId: string | null; score: number; candidate: EventCandidate | null; pendingNew?: true };
   match: (ImportMatch & { label: string | null; event: EventCandidate | null }) | null;
   // Éléments proposés pour un rapprochement ajouté à la main.
   options: { id: string; label: string | null; event: EventCandidate | null }[];
@@ -482,6 +497,8 @@ export async function getImportMatchesView(organizationId: string, importId: str
   const contactCandidates = isContactType ? await listContactImportCandidates(organizationId) : [];
   const contactsById = new Map(contactCandidates.map((candidate) => [candidate.id, candidate]));
   const labelCandidates = !isEventType && !hasEventReference && !isVendorType && !isContactType ? await listLabelCandidates(organizationId, set.entityType) : [];
+  const pending = pendingNewEvent({ ...set, matching });
+  const pendingItems = pending && set.entityType === "budget_lines" ? await listLabelCandidates(organizationId, "vendor_slots") : [];
   const itemsByEvent = new Map<string, LabelCandidate[]>();
   const itemsOf = async (eventId: string) => {
     let items = itemsByEvent.get(eventId);
@@ -511,6 +528,7 @@ export async function getImportMatchesView(organizationId: string, importId: str
     let options: MatchesRowView["options"] = [];
     if (row.errors.length === 0) {
       if (isEventType) options = events.map((event) => ({ id: event.id, label: null, event }));
+      else if (hasEventReference && pending) options = pendingItems.map((item) => ({ ...item, event: null }));
       else if (hasEventReference) options = resolution?.eventId ? (await itemsOf(resolution.eventId)).map((item) => ({ ...item, event: null })) : [];
       else if (isVendorType) options = closestVendors(row.values, vendorCandidates);
       else if (isContactType) options = closestContacts(row.values, contactCandidates);
@@ -531,11 +549,13 @@ export async function getImportMatchesView(organizationId: string, importId: str
       ...(row.carried ? { carried: row.carried } : {}),
       ...(hasEventReference
         ? {
-            event: {
-              eventId: resolution?.eventId ?? null,
-              score: resolution?.score ?? 0,
-              candidate: resolution?.eventId ? (eventsById.get(resolution.eventId) ?? null) : null,
-            },
+            event: pending
+              ? { eventId: null, score: 100, candidate: null, pendingNew: true as const }
+              : {
+                  eventId: resolution?.eventId ?? null,
+                  score: resolution?.score ?? 0,
+                  candidate: resolution?.eventId ? (eventsById.get(resolution.eventId) ?? null) : null,
+                },
           }
         : {}),
       match: match ? { ...match, label: option?.label ?? null, event: option?.event ?? null } : null,

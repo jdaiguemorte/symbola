@@ -6,8 +6,11 @@
 import { appDatabase } from "@symbola/db/client";
 import { getImportDraft, type ImportDraft, type ImportEntityType } from "@/modules/hub/service";
 import { countImportRowFilterColumns, getImportMatchesView, type MatchesView } from "./matching";
+import { getImportQuestions, hasQuestions, type ImportQuestionsView } from "./questions";
 
-export type ImportStepKey = "file" | "columns" | "types" | "rows" | "matches" | "confirm";
+// Lot 71c (HUB-14 ; maquette 07) : « Questions », entre les colonnes et les doublons, seulement s'il y a
+// une réponse à donner.
+export type ImportStepKey = "file" | "columns" | "types" | "rows" | "questions" | "matches" | "confirm";
 
 // Étape « Doublons » : une proposition « sûre » est acceptée par « Tout accepter ».
 export const SAFE_MATCH_SCORE = 90;
@@ -18,6 +21,7 @@ export const IMPORT_STEP_PATHS: Record<ImportStepKey, string> = {
   columns: "/colonnes",
   types: "/types",
   rows: "/lignes",
+  questions: "/questions",
   matches: "/rapprochements",
   confirm: "/confirmation",
 };
@@ -35,6 +39,8 @@ export type ImportWizard = {
   next: ImportStepKey;
   draft: ImportDraft;
   matches: MatchesView | null;
+  // Lot 71c : l'étape « Questions » (null : rien à demander, ou colonnes pas encore faites).
+  questions: ImportQuestionsView | null;
 };
 
 export function importStepHref(importId: string, step: ImportStepKey): string {
@@ -56,6 +62,8 @@ type StepInput = {
   rowFilterColumns?: number;
   // Rapprochements calculés (après les colonnes) : choix de types et lignes.
   matches: Pick<MatchesView, "rows" | "vendorTypes"> | null;
+  // Lot 71c : les questions posées et les réponses qui manquent (absent : aucune question).
+  questions?: { asked: number; missing: number } | null;
 };
 
 // Calcul pur des étapes (testé sans base).
@@ -111,6 +119,12 @@ export function importWizardSteps(input: StepInput): ImportWizardStep[] {
     previousDone = rowsDone;
   }
 
+  if (input.questions && input.questions.asked > 0) {
+    const questionsDone = previousDone && input.questions.missing === 0;
+    steps.push({ key: "questions", done: questionsDone, summary: { key: "questions", values: { asked: input.questions.asked, missing: input.questions.missing } } });
+    previousDone = questionsDone;
+  }
+
   const rows = input.matches?.rows.filter((row) => row.errors.length === 0) ?? [];
   // À vérifier : une proposition en attente, ou une fiche du même lot qui décrit le même événement.
   // Lot 63b (HUB-14) : une proposition « À vérifier » pas encore vue compte aussi.
@@ -135,7 +149,7 @@ export function undecidedMatchCount(rows: Pick<MatchesView["rows"][number], "err
   return rows.filter((row) => row.errors.length === 0 && !row.ignored && row.match?.status === "proposed").length;
 }
 
-export async function getImportWizard(organizationId: string, importId: string): Promise<ImportWizard | null> {
+export async function getImportWizard(organizationId: string, importId: string, now: Date = new Date()): Promise<ImportWizard | null> {
   const db = appDatabase();
   const draft: ImportDraft | null = await getImportDraft(db, organizationId, importId);
   if (!draft) return null;
@@ -144,6 +158,8 @@ export async function getImportWizard(organizationId: string, importId: string):
   const undecided = draft.mapping?.some((choice) => choice.target === "none") ?? true;
   // Les rapprochements (et les types du fichier) se calculent une fois les colonnes faites.
   const matches = readingDone && !undecided ? await getImportMatchesView(organizationId, importId) : null;
+  const questionsView = matches ? await getImportQuestions(organizationId, importId, { now }) : null;
+  const questions = questionsView && hasQuestions(questionsView) ? questionsView : null;
   const steps = importWizardSteps({
     entityType: draft.entityType,
     rowCount: draft.rowCount,
@@ -151,7 +167,8 @@ export async function getImportWizard(organizationId: string, importId: string):
     mapping: draft.mapping,
     reviewed: draft.matching?.reviewed ?? {},
     matches,
+    questions: questions ? { asked: Object.entries(questions.asked).filter(([key, value]) => value && key !== "prospectSource").length, missing: questions.missing.length } : null,
     ...(draft.entityType === "contacts" && matches ? { rowFilterColumns: await countImportRowFilterColumns(organizationId, importId) } : {}),
   });
-  return { importId: draft.id, fileName: draft.fileName, entityType: draft.entityType, steps, next: nextImportStep(steps), draft, matches };
+  return { importId: draft.id, fileName: draft.fileName, entityType: draft.entityType, steps, next: nextImportStep(steps), draft, matches, questions };
 }
