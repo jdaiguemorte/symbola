@@ -8,7 +8,7 @@ import { createUser } from "@symbola/auth";
 import { createAppConnection } from "@symbola/db/client";
 import { expect, test, type Page } from "@playwright/test";
 import { addEventVendorSlot, addVendorCandidate, createEventLink, createProspect, createProspectSource, updateVendorCandidate } from "../modules/events/service";
-import { feedback, readyOrganization, signIn } from "./helpers";
+import { feedback, readyOrganization, signIn, openEventInfo, openEventInfoRubric, saveEventInfo } from "./helpers";
 
 const PDF = Buffer.from("%PDF-1.4\n1 0 obj<<>>endobj\ntrailer<<>>\n%%EOF\n", "latin1");
 
@@ -53,22 +53,21 @@ test("EVT-03 / CHR-02 — fiche d'identité, lieu complet, tâche confiée au fl
   const { email, eventId, vendorUrl } = await atelier();
   await signIn(page, email, /\/$/);
 
-  // EVT-03 (D11) : invités, style et notes, dans « Modifier les informations ».
+  // EVT-03 (D11 ; lot 72e) : invités, style et notes, dans la fenêtre « Modifier les informations ».
   await page.goto(`/events/${eventId}`);
-  const identity = page.getByRole("region", { name: "Fiche d'identité" });
-  await expect(identity).toContainText("— estimés · — confirmés");
+  const identity = page.getByRole("region", { name: "Informations" });
+  await expect(identity.locator('[data-key="guests"]')).toContainText("non renseigné");
   await expect(identity).toContainText("Domaine des Tilleuls");
   await page.waitForLoadState("networkidle");
-  await page.getByRole("link", { name: "Modifier les informations" }).click();
-  const identityForm = page.getByRole("form", { name: "Fiche d'identité" });
-  await identityForm.getByLabel("Invités estimés").fill("120");
-  await identityForm.getByLabel("Invités confirmés").fill("98");
-  await identityForm.getByLabel("Style").fill("Bohème chic");
-  await identityForm.getByLabel("Notes").fill("Allergie aux fruits à coque");
-  await identityForm.getByRole("button", { name: "Enregistrer la fiche" }).click();
-  await expect(identityForm.getByRole("status")).toHaveText("Fiche enregistrée.");
+  const window = await openEventInfo(page, "Invités et budget");
+  await window.getByLabel("Invités prévus").fill("120");
+  await window.getByLabel("Invités confirmés").fill("98");
+  await openEventInfoRubric(page, "Style et notes");
+  await window.getByRole("textbox", { name: "Style", exact: true }).fill("Bohème chic");
+  await window.getByRole("textbox", { name: "Notes", exact: true }).fill("Allergie aux fruits à coque");
+  await saveEventInfo(page);
   await page.reload();
-  await expect(identity).toContainText("120 estimés · 98 confirmés");
+  await expect(identity).toContainText("120 prévus · 98 confirmés");
   await expect(identity).toContainText("Bohème chic");
   await expectNoAxeViolation(page);
 

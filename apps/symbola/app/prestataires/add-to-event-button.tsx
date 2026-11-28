@@ -6,12 +6,12 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { AddToEventDialog } from "./add-to-event-dialog";
 
-export function AddToEventButton({ vendorId, vendorName }: { vendorId: string; vendorName: string }) {
+export function AddToEventButton({ vendorId, vendorName, primary = false }: { vendorId: string; vendorName: string; primary?: boolean }) {
   const t = useTranslations("VendorBook");
   const [open, setOpen] = useState(false);
   return (
     <>
-      <button type="button" className="button-secondary" aria-haspopup="dialog" onClick={() => setOpen(true)}>
+      <button type="button" className={primary ? "button-primary" : "button-secondary"} aria-haspopup="dialog" onClick={() => setOpen(true)}>
         {t("addToEvent.button")}
       </button>
       {open ? <AddToEventDialog vendorIds={[vendorId]} names={[vendorName]} onClose={() => setOpen(false)} /> : null}

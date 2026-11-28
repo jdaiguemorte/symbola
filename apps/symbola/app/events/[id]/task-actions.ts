@@ -5,7 +5,7 @@ import { offerUndo } from "@/lib/undo";
 import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
 import { PAST_DUE_TASKS_ANSWERS } from "@symbola/contracts";
-import { applyTaskTemplate, TemplatePastDueUnansweredError, changeEventDate, EventDateRequiredError, EventNotFoundError, EventTaskNotFoundError, moveEventTask, releaseEventTask, removeEventTask, resolveTaskRecalculation, TaskAssigneeNotFoundError, TaskVendorInvalidError, TaskLabelRequiredError, TaskRecalculationPendingError, TaskTemplateNotFoundError, updateEventTask, PlanningInputError, setTaskMilestone } from "@/modules/events/service";
+import { applyTaskTemplate, TemplatePastDueUnansweredError,  EventDateRequiredError, EventNotFoundError, EventTaskNotFoundError, moveEventTask, releaseEventTask, removeEventTask, resolveTaskRecalculation, TaskAssigneeNotFoundError, TaskVendorInvalidError, TaskLabelRequiredError, TaskRecalculationPendingError, TaskTemplateNotFoundError, updateEventTask, PlanningInputError, setTaskMilestone } from "@/modules/events/service";
 import { getPlannerAuthContext } from "@/lib/auth-context";
 import { isEventsModuleEnabled, isValidId } from "../module-access";
 
@@ -35,25 +35,6 @@ function taskErrorMessage(error: unknown, t: Awaited<ReturnType<typeof getTransl
   if (error instanceof TaskAssigneeNotFoundError) return t("taskNotFound");
   if (error instanceof RangeError) return t("invalidDate");
   throw error;
-}
-
-export async function changeEventDateAction(_prevState: TaskFormState, formData: FormData): Promise<TaskFormState> {
-  const t = await getTranslations("Events");
-  const access = await authorize(t);
-  if ("error" in access) return { error: access.error };
-
-  const eventId = String(formData.get("eventId") ?? "");
-  if (!isValidId(eventId)) return { error: t("eventNotFound") };
-  const raw = String(formData.get("eventDate") ?? "").trim();
-  if (raw && !DATE_PATTERN.test(raw)) return { error: t("invalidDate") };
-
-  try {
-    const recalculation = await changeEventDate(access.organizationId, eventId, raw || null);
-    revalidatePath(`/events/${eventId}`);
-    return { success: true, recalculationProposed: recalculation.pending };
-  } catch (error) {
-    return { error: taskErrorMessage(error, t) };
-  }
 }
 
 export async function resolveRecalculationAction(formData: FormData): Promise<void> {

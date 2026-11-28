@@ -529,6 +529,21 @@ export async function findLinkVendorRow(
   });
 }
 
+// Lot 73d (PRE-05 ; spécification du lot 73, § 7) : la fiche du carnet a-t-elle un lien de prestataire
+// encore ouvert (non retiré) sur un de ses mariages ? « Demander au prestataire » le dit avant l'envoi.
+export async function hasOpenVendorLinkRow(organizationId: string, vendorId: string): Promise<boolean> {
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, async (tx) => {
+    const [row] = await tx
+      .select({ id: eventLinks.id })
+      .from(eventLinks)
+      .innerJoin(eventVendorCandidates, eq(eventVendorCandidates.id, eventLinks.vendorCandidateId))
+      .where(and(eq(eventLinks.audience, "vendor"), eq(eventVendorCandidates.vendorId, vendorId), isNull(eventLinks.revokedAt)))
+      .limit(1);
+    return Boolean(row);
+  });
+}
+
 // Lot 27a (CHR-04, décision D7) — rappels des tâches du client.
 
 export type ReminderCandidate = {

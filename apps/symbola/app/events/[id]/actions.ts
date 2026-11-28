@@ -13,7 +13,6 @@ import {
   listLossReasons,
   postponeEvent,
   reactivateEvent,
-  setEventTimeZone,
   setEventType,
   type EventStatus,
 } from "@/modules/events/service";
@@ -163,24 +162,6 @@ export async function confirmPostponementAction(_prevState: ChangeStatusFormStat
   }
   refresh(eventId);
   return result;
-}
-
-// ARC-17, D9 : fuseau de l'évènement.
-export async function setEventTimeZoneAction(_prevState: ChangeStatusFormState, formData: FormData): Promise<ChangeStatusFormState> {
-  const t = await getTranslations("Events");
-  const access = await plannerAccess(t);
-  if ("error" in access) return access;
-  const eventId = String(formData.get("eventId") ?? "");
-  if (!isValidId(eventId)) return { error: t("eventNotFound") };
-  try {
-    await setEventTimeZone(access.organizationId, eventId, String(formData.get("timeZone") ?? ""));
-  } catch (error) {
-    if (error instanceof RangeError) return { error: t("timeZoneInvalid") };
-    if (error instanceof EventNotFoundError) return { error: t("eventNotFound") };
-    throw error;
-  }
-  refresh(eventId);
-  return { success: true };
 }
 
 // Lot 72d (EVT-05 ; E2, J2) — « Le contrat est signé… » : une demande passe à « Signé, en préparation » à la

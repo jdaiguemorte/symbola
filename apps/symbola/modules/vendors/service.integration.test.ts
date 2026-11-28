@@ -245,7 +245,7 @@ describe("L11-PRE-09 — Historique avec la planner", () => {
     // budget le montre, c'est-à-dire le devis du prestataire retenu.
     const history = await getVendorHistory(organizationId, vendor.id);
     expect(history.entries).toEqual([
-      { eventId: event.id, eventNames: "Léa", eventDate: null, slotLabel: "Traiteur", outcome: "selected", quotedCents: 348000, finalCents: 348000 },
+      { eventId: event.id, eventNames: "Léa", eventDate: null, slotId: slot!.id, slotLabel: "Traiteur", status: "retained", outcome: "selected", quotedCents: 348000, finalCents: 348000 },
     ]);
     expect(history.averageFinalCents).toBe(348000);
   });

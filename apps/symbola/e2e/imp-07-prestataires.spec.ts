@@ -101,14 +101,14 @@ test("IMP-07 — reprendre ses prestataires depuis l'export Excel de l'outil act
 
   // La fiche existante est complétée : site, SIRET, champs importés, étiquettes.
   await page.goto(`/prestataires/${existingId}`);
-  await expect(page.getByRole("link", { name: "Site web" })).toHaveAttribute("href", "https://www.domaine-tilleuls.example.org");
+  // Lot 73d : le site s'écrit par son adresse dans « Caractéristiques ».
+  await expect(page.getByRole("region", { name: "Caractéristiques" }).getByRole("link", { name: "www.domaine-tilleuls.example.org" })).toHaveAttribute("href", "https://www.domaine-tilleuls.example.org");
   const imported = page.getByRole("region", { name: "Champs importés" });
   await expect(imported).toContainText("Code APE");
   await expect(imported).toContainText("5510Z");
-  // Lot 63e (ADR 0107) : la fiche se modifie en grande fenêtre, rubrique par rubrique.
+  // Lot 73d : la fiche se modifie dans la fenêtre unique, complète (« Plus de détails » ouvert).
   await page.goto(`/prestataires/${existingId}?modifier=1`);
   await expect(page.getByLabel("N° SIRET")).toHaveValue("12345678900011");
-  await page.getByRole("dialog").getByRole("button", { name: "Métiers et étiquettes", exact: true }).click();
   await expect(page.getByLabel("Hébergement sur place")).toBeChecked();
   await expectNoAxeViolation(page);
 
@@ -121,7 +121,7 @@ test("IMP-07 — reprendre ses prestataires depuis l'export Excel de l'outil act
   await expect(page.getByText(/éléments annulés ; aucun gardé car modifié ; aucun gardé car utilisé\./)).toBeVisible();
   await expectNoAxeViolation(page);
   await page.goto(`/prestataires/${existingId}`);
-  await expect(page.getByRole("link", { name: "Site web" })).toHaveCount(0);
+  await expect(page.getByRole("link", { name: "www.domaine-tilleuls.example.org" })).toHaveCount(0);
   await page.goto(`/prestataires/${existingId}?modifier=1&rubrique=contact`);
   await expect(page.getByLabel("Téléphone")).toHaveValue("05 00 00 00 00");
   await page.goto("/prestataires");

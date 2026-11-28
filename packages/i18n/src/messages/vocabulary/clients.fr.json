@@ -77,12 +77,6 @@
     "trialStepQuote": "Composez un devis fictif, faites-le signer par le client fictif sur la page de signature d'essai, puis émettez ses factures (série DEMO, en filigrane).",
     "tabClients": "Clients",
     "columnClients": "Clients",
-    "nextStep": {
-      "invite_clients": {
-        "title": "Prochaine étape : créer les liens des clients",
-        "action": "Créer les liens"
-      }
-    },
     "clientContactTitle": "Coordonnées des clients",
     "programPdfFileCouple": "programme-clients",
     "taskColumnEvent": "Évènement"
@@ -137,5 +131,30 @@
   "EventHeader": {
     "writeToClients": "Écrire au client",
     "messagesHint": "Les fils de discussion de cet évènement"
+  },
+  "EventOverview": {
+    "suite": {
+      "createTasksBody": "Le rétroplanning pose ses tâches datées depuis la date de l'évènement. Les échéances déjà passées vous sont montrées avant : rien n'est mis en retard sans vous.",
+      "createTasksNeedsDate": "Fixez d'abord la date de l'évènement : le rétroplanning se calcule depuis elle.",
+      "step": {
+        "invite_clients": {
+          "title": "Ouvrir l'espace des clients"
+        }
+      }
+    },
+    "progress": {
+      "title": "Où en est l'évènement",
+      "decisions": "Décisions des clients"
+    },
+    "info": {
+      "clients": "Clients"
+    }
+  },
+  "EventInfoWindow": {
+    "rubric": {
+      "clients": "Clients"
+    },
+    "dateLocked": "Le contrat est signé : changer la date, c'est reporter l'évènement.",
+    "wantedBudgetHint": "Ce que les clients ont dit vouloir dépenser ; l'enveloppe du budget se règle dans l'onglet Budget."
   }
 }

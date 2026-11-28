@@ -1,14 +1,14 @@
 "use client";
 
 // Lot 48a (PRE-05, PRE-10, SEC-27, DAT-08 ; ADR 0093) — formulaires de la fiche : IBAN (jamais
-// prérempli en clair), pièce déposée ou demandée, fin de validité, note interne et sa case
+// prérempli en clair), pièce déposée (la demande : vendor-sheet-parts, lot 73d), fin de validité, note interne et sa case
 // « confidentielle ».
 import { useActionState } from "react";
 import { useTranslations } from "next-intl";
 import type { VendorDocumentKind } from "@symbola/contracts";
 import { useUploadAction } from "@/app/ui/use-upload";
 import { FreeTextNotice } from "@/app/ui/free-text-notice";
-import { requestVendorDocumentAction, saveVendorNoteAction, setVendorBankAction, setVendorDocumentValidityAction, type RecordFormState } from "./records-actions";
+import { saveVendorNoteAction, setVendorBankAction, setVendorDocumentValidityAction, type RecordFormState } from "./records-actions";
 
 export function VendorBankForm({ vendorId, hasIban }: { vendorId: string; hasIban: boolean }) {
   const t = useTranslations("VendorRecords");
@@ -25,7 +25,7 @@ export function VendorBankForm({ vendorId, hasIban }: { vendorId: string; hasIba
         <input name="bic" autoComplete="off" spellCheck={false} />
       </label>
       <p className="muted">{t("ibanHint")}</p>
-      <button type="submit" disabled={pending}>
+      <button type="submit" className="button-secondary" disabled={pending}>
         {t("ibanSave")}
       </button>
       {state.error ? <p role="alert">{state.error}</p> : null}
@@ -57,36 +57,11 @@ export function VendorDocumentUploadForm({ vendorId, kinds }: { vendorId: string
         {t("validUntil")}
         <input type="date" name="validUntil" />
       </label>
-      <button type="submit" disabled={pending}>
+      <button type="submit" className="button-secondary" disabled={pending}>
         {t("documentAdd")}
       </button>
       {state.error ? <p role="alert">{state.error}</p> : null}
       {state.success ? <p role="status">{t("documentAdded")}</p> : null}
-    </form>
-  );
-}
-
-export function VendorDocumentRequestForm({ vendorId, kinds }: { vendorId: string; kinds: VendorDocumentKind[] }) {
-  const t = useTranslations("VendorRecords");
-  const [state, action, pending] = useActionState<RecordFormState, FormData>(requestVendorDocumentAction, {});
-  return (
-    <form action={action} className="vendor-filters">
-      <input type="hidden" name="vendorId" value={vendorId} />
-      <label>
-        {t("requestKind")}
-        <select name="kindId" defaultValue={kinds[0]?.id}>
-          {kinds.map((kind) => (
-            <option key={kind.id} value={kind.id}>
-              {kind.label}
-            </option>
-          ))}
-        </select>
-      </label>
-      <button type="submit" disabled={pending}>
-        {t("requestSubmit")}
-      </button>
-      {state.error ? <p role="alert">{state.error}</p> : null}
-      {state.success ? <p role="status">{t("requestSent")}</p> : null}
     </form>
   );
 }
@@ -102,7 +77,7 @@ export function VendorDocumentValidityForm({ vendorId, documentId, validUntil, l
         <span className="sr-only">{t("validUntilFor", { document: label })}</span>
         <input type="date" name="validUntil" defaultValue={validUntil ?? ""} />
       </label>
-      <button type="submit" disabled={pending}>
+      <button type="submit" className="button-secondary" disabled={pending}>
         {t("validUntilSave")}
       </button>
       {state.error ? <p role="alert">{state.error}</p> : null}
@@ -126,7 +101,7 @@ export function VendorNoteForm({ vendorId, note, confidential }: { vendorId: str
         {t("noteConfidential")}
       </label>
       <p className="muted">{t("noteConfidentialHint")}</p>
-      <button type="submit" disabled={pending}>
+      <button type="submit" className="button-secondary" disabled={pending}>
         {t("noteSave")}
       </button>
       {state.error ? <p role="alert">{state.error}</p> : null}

@@ -13,7 +13,7 @@ import { EventAppointments } from "./event-appointments";
 import { isFloorplansAvailable } from "@/app/plans-de-salle/access";
 import { ProspectExchanges } from "./prospect-exchanges";
 import { appDatabase } from "@symbola/db/client";
-import { clientTermForEvent, getEvent, getEventProgram, getEventProgramPublication, listProgramRecipients, proposeProgramShift, getEventStatusDates, closingDue, eventNames, getTaskRecalculation, previewTaskRecalculation, getActiveEventsTrial, listEventActivity, getEventProspectRequest, listEventDecisions, listEventDocuments, listEventDayContacts, listDayDocumentChoices, listEventLinks, listLinkProfiles, listEventTasks, periodRange, listEventVendorSlots, listVendorCandidates, listVendorFollowUps, listEventPlaces, listTaskTemplates, countTemplatePastDue, listLossReasons, listProgramTemplates, listProspectSources, summarizeVendorSlots, type EventVendorSlot, getEventIdentityState, getDayOfLeadDays, canPostpone } from "@/modules/events/service";
+import { clientTermForEvent, getEvent, getEventProgram, getEventProgramPublication, listProgramRecipients, proposeProgramShift, getEventStatusDates, closingDue, eventNames, getTaskRecalculation, previewTaskRecalculation, getActiveEventsTrial, listEventActivity, getEventProspectRequest, listEventDecisions, listEventDocuments, listEventDayContacts, listDayDocumentChoices, listEventLinks, listLinkProfiles, listEventTasks, periodRange, listEventVendorSlots, listVendorCandidates, listVendorFollowUps, listEventPlaces, listTaskTemplates, countTemplatePastDue, listLossReasons, listProgramTemplates, listProspectSources, summarizeVendorSlots, type EventVendorSlot, getEventIdentityState, getDayOfLeadDays, canPostpone, getEventBusy, listEventTeam, listDayHelpers } from "@/modules/events/service";
 import { getEventBudget, getUnallocatedTotals, listBudgetLines } from "@/modules/budget/service";
 import { getEventSignedOn } from "@/modules/events/service";
 import { missingEndItems, programAwaitsEnds } from "@/modules/events/service";
@@ -24,15 +24,12 @@ import { loadEventChecklist, slotPlannedAmounts } from "@/lib/takeover/checklist
 import { completeSlots } from "@/lib/takeover/checklist-rules";
 import { loadEventProvenance, type ProvenanceRow } from "@/lib/takeover/provenance";
 import { FileText } from "lucide-react";
-import { confirmEventBudgetAction } from "@/app/budget/[eventId]/actions";
 import { listEventQuotes, listQuoteInvoices, listQuoteTemplates } from "@/modules/quotes/service";
 import { createQuoteAction, startQuotesTrialAction } from "@/app/devis/actions";
 import { isQuotesModuleEnabled } from "@/app/devis/module-access";
 import { QUOTE_STATUS_LABEL_KEYS } from "@/app/devis/quote-display";
 import { requirePlanner } from "@/lib/guards";
 import { taskMemberOptions } from "@/lib/tasks/members";
-import { EventTeamCard } from "./team-card";
-import { EventBusyCard } from "./busy-card";
 import { ensureEventTypes } from "@/lib/events/event-types";
 import { isEventsModuleEnabled, isValidId } from "../module-access";
 import { StatusTimeline } from "./status-timeline";
@@ -40,14 +37,20 @@ import { EventCommands, EventMenuButton } from "./event-commands";
 import { EventTabs, type EventTab } from "./event-tabs";
 import { EventBack } from "./event-back";
 import { eventTimeline, headerAction } from "@/lib/events/event-header";
-import { TimeZoneForm } from "./lifecycle-forms";
 import { isDayOfOpen } from "@/app/jour-j/[eventId]/day-of-view";
 import { DocumentsTab } from "./documents-tab";
-import { NextStepBanner } from "./next-step-banner";
-import { nextStep } from "./next-step";
+import { eventSuite, suiteQuote } from "./next-step";
+import { EventSuite } from "./event-suite";
+import { EventActivity, EventInformation, EventProgress, type ActivityEntry } from "./overview";
+import { InfoWindow } from "./info-window";
+import { DETAILS_RUBRICS, dateEditable, type DetailsRubric } from "@/lib/events/event-details";
+import { informationRows } from "@/lib/events/overview-info";
+import { busyDate, busyHour } from "@/lib/events/busy-format";
+import { AddToCalendarDialog } from "./add-to-calendar-dialog";
+import { listQuotesAwaitingAnswer } from "@/modules/quotes/service";
 import { endTrialAction, removeExampleAction } from "../trial-actions";
 import { revokeLinkAction } from "./link-actions";
-import { ClientContactForm, EventIdentityForm, EventNotesForm, VenueForm, WantedBudgetForm } from "./client-contact-forms";
+import { ClientContactForm } from "./client-contact-forms";
 import { CreateLinkForm, CreateVendorLinkForm, EditLinkForm, RenewLinkForm, type LinkFormVendor } from "./link-forms";
 import { RequestDecisionForm } from "./decision-forms";
 import { EditDialog } from "@/app/ui/edit-dialog";
@@ -55,7 +58,7 @@ import { commitDecisionExpenseAction, replaceDecisionAction, retainDecisionChoic
 import { answerSentence } from "@/app/portail/client-decisions";
 import { choiceName, decisionLabel } from "@/app/portail/decision-label";
 import { clientFieldLabelsByAudience, requestAudience } from "@/lib/vocabulary";
-import { AddClientForm, EventSourceForm } from "./event-origin-forms";
+import { AddClientForm } from "./event-origin-forms";
 import { ProgramEditor } from "./program-editor";
 import { ProgramShiftProposal, type ShiftProposalView } from "./program-shift";
 import { durationText } from "@/lib/program-spans";
@@ -63,7 +66,7 @@ import { programSpanWords } from "@/lib/program-span-words";
 import { ApplyProgramTemplateForm, ProgramNotifyForm, ProgramPublishForm } from "./program-forms";
 import { CalendarAddressForm } from "../../calendar-address-form";
 import { resolveRecalculationAction } from "./task-actions";
-import { ApplyTaskTemplateForm, EventDateForm } from "./task-forms";
+import { ApplyTaskTemplateForm } from "./task-forms";
 import { TaskPanelLoader, panelFromQuery } from "@/app/ui/task-panel-loader";
 import { TaskLineBoard } from "@/app/ui/task-line-board";
 import { TaskFiltersForm } from "@/app/ui/task-filters-form";
@@ -94,10 +97,8 @@ import {
   VENDOR_STATUS_CLASSES,
   VENDOR_STATUS_LABEL_KEYS,
 } from "./vendor-slot-status";
-import { EventCockpit } from "./cockpit";
 import { UndoTaskNotice } from "@/app/accueil/today-client";
 import { deleteEventAction } from "./trash-actions";
-import { SidePanel } from "@/app/ui/side-panel";
 // Lot 49 (EVT-04 premier pas, INV-01 à INV-04) : temps forts sur la synthèse, onglet « Invités ».
 import { getDayReport, listKeyMoments } from "@/modules/events/service";
 import { getGuestEventSummary, getGuestModuleState } from "@/modules/guests/service";
@@ -125,7 +126,7 @@ const LINK_STATUS_KEYS = {
 const TABS = ["apercu", "budget", "taches", "programme", "devis", "maries", "documents", "invites"] as const;
 type Tab = (typeof TABS)[number];
 
-type SearchParams = { importer?: string; reprendre?: string; reprise?: string; cote?: string; groupe?: string; sansReponse?: string; suppression?: string; exemple?: string; onglet?: string; poste?: string; tache?: string; vue?: string; qui?: string; filtre?: string; visite?: string; decalage?: string; depuis?: string; fait?: string; evenement?: string; modifier?: string; periode?: string; categorie?: string; etat?: string; nouvelle?: string; copie?: string; provenance?: string; revoir?: string };
+type SearchParams = { importer?: string; reprendre?: string; reprise?: string; cote?: string; groupe?: string; sansReponse?: string; suppression?: string; exemple?: string; onglet?: string; poste?: string; tache?: string; vue?: string; qui?: string; filtre?: string; visite?: string; decalage?: string; depuis?: string; fait?: string; evenement?: string; modifier?: string; periode?: string; categorie?: string; etat?: string; nouvelle?: string; copie?: string; provenance?: string; revoir?: string; rubrique?: string; reporter?: string; fil?: string; tout?: string };
 
 // Lot 28a (PRE-02) : postes pourvus (un prestataire retenu) ou non requis.
 const SETTLED_SLOT_STATUSES = new Set<string>(["retained", "contract_signed", "paid_off", "not_required"]);
@@ -146,7 +147,6 @@ export default async function EventDetailPage({
   const tImportPdf = await getTranslations("ImportPdf");
   const tTrash = await getTranslations("Trash");
   const tHelp = await getTranslations("Help");
-  const tCommon = await getTranslations("Common");
 
   if (!(await isEventsModuleEnabled(organizationId))) {
     return (
@@ -299,7 +299,7 @@ export default async function EventDetailPage({
   const responsibleOptions = [...new Set(program.items.flatMap((item) => (item.responsible ? [item.responsible] : [])))].sort((a, b) => a.localeCompare(b, "fr"));
   // Lot 48a (DAT-08) : notes confidentielles, déchiffrées pour leur auteur et la titulaire seuls.
   const eventConfidentialNotes =
-    query.modifier === "infos" && event.notesConfidential
+    tab === "apercu" && event.notesConfidential
       ? await readEventConfidentialNotes(organizationId, id, { userId: auth.user.id, role: auth.user.role }).catch((error: unknown) => {
           if (error instanceof EventNotesForbiddenError) return null;
           throw error;
@@ -487,18 +487,6 @@ export default async function EventDetailPage({
     event.status === "cancelled" && quotesAvailable
       ? (await Promise.all(quotes.map((quote) => listQuoteInvoices(organizationId, quote.id)))).flat().filter((invoice) => !invoice.isDemo && invoice.creditedCents < invoice.amountCents)
       : [];
-  const step = nextStep({
-    status: event.status,
-    isDemo: event.isDemo,
-    quotesAvailable,
-    hasSentOrSignedQuote: quotes.some((quote) => quote.status !== "draft"),
-    taskCount: tasks.length,
-    templateCount: templates.length,
-    eventDate: event.eventDate,
-    programItemCount: program.items.length,
-    clientLinkCount: links.filter((link) => link.audience === "client" && link.status !== "revoked").length,
-    today,
-  });
   // Lot 32a (EVT-02, D5) : compte à rebours, aperçu du portail, « Annuler » après une tâche cochée.
   const clientPreviewLink = links.find((link) => link.audience === "client" && link.status === "active") ?? null;
   // Lot 32b (UX-03), lot 38b (D10) : « Écrire au client » mène au message depuis un modèle ; la
@@ -522,7 +510,6 @@ export default async function EventDetailPage({
   const slotBudget = budgetView ?? ((await isBudgetModuleEnabled(organizationId)) ? await listBudgetLines(organizationId, id) : null);
   const slotCompletion = slotBudget ? completeSlots(slotPlannedAmounts(vendorSlots, slotBudget.categories)) : { complete: progress.booked, total: progress.required };
   const unallocated = checklist && slotBudget ? await getUnallocatedTotals(organizationId, id) : null;
-  const notProvided = (value: string | null | undefined) => (value ? value : checklist ? tSheet("notProvided") : "—");
   const provenanceMark = (row: ProvenanceRow) => {
     const source = provenance[row];
     if (!source) return null;
@@ -540,30 +527,6 @@ export default async function EventDetailPage({
   const eventDocuments = await listEventDocuments(organizationId, id);
   const embeddedDocumentIds =
     tab === "documents" ? new Set((await listDayDocumentChoices(organizationId, id)).filter((choice) => choice.source === "event_document").map((choice) => choice.sourceId)) : new Set<string>();
-
-  // Lot 32a (UX-01, D5) : sur la synthèse, la prochaine action vient d'abord ; le bandeau de la
-  // prochaine étape passe juste dessous. Sur les autres onglets, il reste au-dessus des onglets.
-  const stepBanner =
-    step && !(step === "apply_retroplanning" && tab === "taches") ? (
-      <NextStepBanner storageKey={`symbola_prochaine_etape_${event.id}_${step}`} title={t(`nextStep.${step}.title`)} laterLabel={t("nextStepLater")}>
-        {step === "apply_retroplanning" ? (
-          <>
-            <p>{event.eventDate ? t("proposeRetroplanningBody") : t("taskTemplateNeedsDate")}</p>
-            {event.eventDate ? <ApplyTaskTemplateForm eventId={event.id} templates={templates} pastDue={templatePastDue} /> : null}
-          </>
-        ) : (
-          <>
-            <p>{t(`nextStep.${step}.body`)}</p>
-            <Link
-              href={tabHref(step === "send_quote" ? "devis" : step === "prepare_program" ? "programme" : "maries")}
-              className="button-link button-link-primary"
-            >
-              {t(`nextStep.${step}.action`)}
-            </Link>
-          </>
-        )}
-      </NextStepBanner>
-    ) : null;
 
   // Lot 72d (EVT-02, EVT-05 ; C-22, C-23, C-27 ; E1 à E4, J9 à J12 ; page 15) — l'en-tête de la fiche :
   // retour, nom, une ligne de faits, la frise en lecture, une action et le menu « ⋯ » ; puis les onglets.
@@ -622,6 +585,114 @@ export default async function EventDetailPage({
       : []),
   ];
 
+
+  // Lot 72e (EVT-02, EVT-03, UX-01 ; C-24, C-26, C-28, C-55 ; J13, J14 ; page 16) — la Synthèse : une seule
+  // suite selon l'état, puis « Où en est le mariage », « Temps forts », « Rendez-vous » à gauche ; le bilan
+  // du lendemain, « Informations » et le fil d'activité à droite ; « Modifier les informations » en une fenêtre.
+  const tOverview = await getTranslations("EventOverview");
+  const overviewHref = (extra: Record<string, string> = {}) => tabHref("apercu", extra);
+  const editHref = (rubric: DetailsRubric | null) => overviewHref({ modifier: "infos", ...(rubric ? { rubrique: rubric } : {}) });
+  const sentQuote = tab === "apercu" && quotesAvailable && event.status === "option" && quotes.some((quote) => quote.status === "sent") ? (await listQuotesAwaitingAnswer(organizationId, 0)).filter((entry) => entry.eventId === event.id) : [];
+  const quoteForSuite = suiteQuote(quotes.filter((quote) => !quote.isDemo || event.isDemo).map((quote) => ({ id: quote.id, number: quote.number, status: quote.status, sentAt: sentQuote.find((entry) => entry.quoteId === quote.id)?.sentAt.toISOString() ?? null })));
+  const suite = eventSuite({
+    status: event.status,
+    archived,
+    isDemo: event.isDemo,
+    quotesAvailable,
+    quote: quoteForSuite,
+    taskCount: tasks.length,
+    templateCount: templates.length,
+    eventDate: event.eventDate,
+    programItemCount: program.items.length,
+    clientLinkCount: links.filter((link) => link.audience === "client" && link.status !== "revoked").length,
+    budgetSimulationPending: suggestConfirmBudget,
+    takeoverOpen: checklist?.block.kind === "open",
+    closingDue: closingDue(event),
+    today,
+  });
+  const takeoverView = checklist
+    ? {
+        block: checklist.block,
+        hrefs: {
+          budget: tabHref("budget"),
+          tasksTakeover: `/reprise?evenement=${event.id}&ligne=tasks`,
+          tasksTemplate: tabHref("taches"),
+          program: tabHref("programme"),
+          clients: tabHref("maries"),
+          guests: editHref("guests"),
+        },
+        reviewHref: overviewHref({ revoir: "1" }),
+        review: query.revoir === "1",
+        unallocated,
+        retained: retainedVendors.length,
+        signed: retainedVendors.filter((vendor) => vendor.takeoverContract === "signed").length,
+      }
+    : null;
+  const [busy, eventTeam, orgTeam, dayHelpers] =
+    tab === "apercu" ? await Promise.all([getEventBusy(organizationId, id), listEventTeam(organizationId, id), listTeam(appDatabase(), organizationId), listDayHelpers(organizationId, id)]) : [null, [], [], []];
+  const busyLocale = locale === "en" ? "en" : "fr";
+  const tBusy = await getTranslations("Busy");
+  const busyWords =
+    busy && busy.startDate && busy.endDate
+      ? [
+          busy.startDate === busy.endDate
+            ? tBusy("rangeSameDay", { day: busyDate(busy.startDate, busyLocale), start: busyHour(busy.rule.startTime, busyLocale), end: busyHour(busy.rule.endTime, busyLocale) })
+            : tBusy("rangeSpan", { startDay: busyDate(busy.startDate, busyLocale), start: busyHour(busy.rule.startTime, busyLocale), endDay: busyDate(busy.endDate, busyLocale), end: busyHour(busy.rule.endTime, busyLocale) }),
+          busy.blocking ? (busy.teamUserIds.length === 0 ? tOverview("info.busyBlocksEveryone") : tOverview("info.busyBlocksTeam")) : tBusy("notBlocking"),
+        ].join(" · ")
+      : null;
+  const activeMembers = orgTeam.filter((member) => !member.disabledAt);
+  const memberName = (userId: string) => {
+    const member = orgTeam.find((candidate) => candidate.id === userId);
+    return member ? (member.firstName ?? member.email.split("@")[0] ?? "—") : t("taskCommentFormerMember");
+  };
+  const leadEntry = eventTeam.find((entry) => entry.role === "lead");
+  const teamNames = [
+    ...(leadEntry ? [tOverview("info.teamLead", { name: memberName(leadEntry.userId) })] : []),
+    ...eventTeam.filter((entry) => entry.role === "assistant").map((entry) => memberName(entry.userId)),
+  ];
+  const activeHelpers = dayHelpers.filter((helper) => helper.status === "active");
+  const clientsLabel = clientTerm.custom ? clientTerm.term.charAt(0).toLocaleUpperCase(locale) + clientTerm.term.slice(1) : t("tabClients");
+  const placeWords = places.map((place) => [[place.label, place.city].filter(Boolean).join(", ") + (place.startTime ? `, ${place.startTime.replace(":", " h ")}` : ""), place.contactName ? tOverview("info.placeContact", { name: place.contactName }) : null].filter(Boolean).join(" · "));
+  const notesView: { kind: "text"; text: string | null } | { kind: "hidden" } = event.notesConfidential ? (eventNotesReadable ? { kind: "text", text: eventConfidentialNotes } : { kind: "hidden" }) : { kind: "text", text: event.notes };
+  const guestParts = [
+    event.guestsEstimated !== null ? tOverview("info.guestsEstimated", { count: event.guestsEstimated }) : null,
+    guestSummary ? tOverview("info.guestsReplies", { answered: guestSummary.answered, present: guestSummary.confirmed }) : event.guestsConfirmed !== null ? tOverview("info.guestsConfirmed", { count: event.guestsConfirmed }) : null,
+  ].filter((part): part is string => Boolean(part));
+  const infoRows = informationRows({
+    clients: event.clients.map((client) => [client.firstName, client.lastName].filter(Boolean).join(" ")),
+    guests: { estimated: event.guestsEstimated, confirmed: event.guestsConfirmed, answered: guestSummary?.answered ?? null },
+    places: placeWords,
+    wantedBudgetCents: event.wantedBudgetCents,
+    style: event.style,
+    type: typeLabel,
+    source: sourceLabel ?? null,
+    busy: busyWords,
+    team: { members: teamNames, soloPlanner: activeMembers.length <= 1 && activeHelpers.length === 0 },
+    notes: notesView,
+  });
+  const contractsAwaited = vendorSlots.filter((slot) => slot.status === "retained").length;
+  const activityEntries: ActivityEntry[] = [
+    ...activity.map((entry) => ({
+      id: entry.id,
+      at: entry.createdAt,
+      text: t(entry.kind === "task_done" ? "activityTaskDone" : entry.kind === "decision_made" ? "activityDecisionMade" : entry.kind === "vendor_reminded" ? "activityVendorReminded" : entry.kind === "document_link_opened" ? "activityDocumentLinkOpened" : entry.kind === "stage_changed" ? "activityStageChanged" : "activityTaskUndone", {
+        actor: entry.actorName ?? t("activityFormerClient"),
+        task: entry.taskLabel || (entry.kind === "vendor_reminded" ? t("activityVendorRemoved") : tDecisions("programLabel")),
+      }),
+    })),
+    ...sentEmails.map((email) => ({
+      id: email.id,
+      at: email.sentAt ?? email.createdAt,
+      text: t("activityEmailSent", { actor: (email.sentByUserId ? senders.get(email.sentByUserId) : null) ?? t("activityFormerMember"), kind: tEmailKinds(`kinds.${email.kind}.title`) }),
+    })),
+  ];
+  const windowOpen = tab === "apercu" && query.modifier === "infos" && !archived;
+  const windowRubric: DetailsRubric = DETAILS_RUBRICS.includes(query.rubrique as DetailsRubric) ? (query.rubrique as DetailsRubric) : "dates";
+  const amountField = (cents: number | null) => (cents === null ? "" : locale === "en" ? (cents / 100).toFixed(2) : (cents / 100).toFixed(2).replace(".", ","));
+  const suiteExpanded = query.tout === "1";
+  const suitePanel = tab === "apercu" ? panelFromQuery(query, isValidId, id) : null;
+
   return (
     <main className="event-sheet">
       <EventCommands
@@ -636,6 +707,8 @@ export default async function EventDetailPage({
         canPostpone={!archived && canPostpone(event.status)}
         canCancel={!archived && event.status !== "cancelled" && event.status !== "closed"}
         reasons={reasons}
+        editInfo={archived ? null : { href: editHref(null), label: tOverview("info.edit"), hint: tOverview("info.editMenuHint") }}
+        openPostpone={query.reporter === "1" && !archived && canPostpone(event.status) ? { cleanHref: overviewHref() } : null}
       >
         <header id="event-header" className="object-header" data-tour="event-header">
           <EventBack names={clientNames} />
@@ -748,187 +821,40 @@ export default async function EventDetailPage({
         </section>
       ) : null}
 
-      {/* Lot 71f (C-24) : sur un mariage repris, le bandeau devient un point de « À compléter ». */}
-      {tab !== "apercu" && checklist?.block.kind !== "open" ? stepBanner : null}
-
       {tab === "apercu" ? (
         <>
-          {/* Lot 32a (EVT-02, UX-01, UX-06 ; D5) : prochaine action, santé, quatorze prochains jours. */}
-          <EventCockpit
+          <EventSuite
             organizationId={organizationId}
-            eventId={event.id}
+            userId={auth.user.id}
+            event={{ id: event.id, names: clientNames, status: event.status, eventDate: event.eventDate, guestsEstimated: event.guestsEstimated, wantedBudgetCents: event.wantedBudgetCents, venueName: event.venueName }}
+            suite={suite}
+            stateWords={statusWords}
+            since={prospectRequest ? parisToday(new Date(prospectRequest.receivedAt)) : (statusDates.option ?? null)}
             tasks={tasks}
+            templates={templates}
+            pastDue={templatePastDue}
+            takeover={takeoverView}
             quotesAvailable={quotesAvailable}
             today={today}
             locale={locale}
-            afterNextAction={stepBanner}
-            vendorProgress={slotCompletion}
-            takeover={
-              checklist
-                ? {
-                    block: checklist.block,
-                    hrefs: {
-                      budget: tabHref("budget"),
-                      tasksTakeover: `/reprise?evenement=${event.id}&ligne=tasks`,
-                      tasksTemplate: tabHref("taches"),
-                      program: tabHref("programme"),
-                      clients: tabHref("maries"),
-                      guests: tabHref("apercu", { modifier: "infos" }),
-                    },
-                    reviewHref: tabHref("apercu", { revoir: "1" }),
-                    review: query.revoir === "1",
-                    unallocated,
-                    retained: retainedVendors.length,
-                    signed: retainedVendors.filter((vendor) => vendor.takeoverContract === "signed").length,
-                  }
-                : null
-            }
+            expanded={suiteExpanded}
+            hrefs={{
+              tasks: tabHref("taches"),
+              program: tabHref("programme"),
+              links: tabHref("maries"),
+              newQuote: tabHref("devis"),
+              quote: (quoteId) => `/devis/${quoteId}`,
+              closing: `/events/${event.id}/cloture`,
+              editDate: editHref("dates"),
+              spreadsheet: `/reprise?evenement=${event.id}&ligne=tasks`,
+              showAll: overviewHref({ tout: "1" }),
+              showLess: overviewHref({ tout: "0" }),
+              taskPanel: (taskId) => overviewHref({ ...(suiteExpanded ? { tout: "1" } : {}), tache: taskId }),
+            }}
           />
-          {/* Lot 52 (EVT-06 ; D2, D3) : l'équipe de l'évènement et ses renforts du jour J. */}
-          <EventTeamCard organizationId={organizationId} eventId={event.id} />
-          {/* Lot 64 (HUB-29, RDV-02 ; maquette M3) : la plage occupée de l'évènement. */}
-          <EventBusyCard organizationId={organizationId} eventId={event.id} eventDate={event.eventDate} eventLabel={eventNames(event.clients)} readOnly={Boolean(event.archivedAt)} />
-          {/* Lot 34b (EVT-03, D10, D11) : fiche d'identité — invités, lieux, interlocuteurs, style, notes. */}
-          <section className="card" aria-labelledby="identity-title">
-            {/* Lot 39c (UX-13, relevé validé le 17/11) : « Modifier les informations » ouvre un panneau. */}
-            <div className="section-head">
-              <h2 id="identity-title">{t("identityTitle")}</h2>
-              <div className="row-wrap">
-                {/* Lot 71f (R7) : à la demande, le fichier de chaque valeur reprise. */}
-                {checklist ? (
-                  <Link className="button-link" href={showProvenance ? tabHref("apercu") : tabHref("apercu", { provenance: "1" })} scroll={false} aria-current={showProvenance ? "true" : undefined}>
-                    {showProvenance ? tSheet("provenanceHide") : tSheet("provenanceShow")}
-                  </Link>
-                ) : null}
-                <Link className="button-link" href={tabHref("apercu", { modifier: "infos" })} scroll={false}>
-                  {tToday("cockpit.editInfo")}
-                </Link>
-              </div>
-            </div>
-            <dl className="identity-facts">
-              <dt>{t("guestsLabel")}</dt>
-              {/* Lot 49 (EVT-03) : avec le module Invités, le nombre confirmé vient des réponses. */}
-              {/* Lot 71f : sur un mariage repris, un nombre absent se dit une fois « non renseigné ». */}
-              <dd className={checklist && event.guestsEstimated === null && event.guestsConfirmed === null && !guestSummary ? "muted" : undefined}>
-                {checklist && event.guestsEstimated === null && event.guestsConfirmed === null && !guestSummary
-                  ? tSheet("notProvided")
-                  : t("guestsSummary", { estimated: event.guestsEstimated === null ? "—" : String(event.guestsEstimated), confirmed: guestSummary ? String(guestSummary.confirmed) : event.guestsConfirmed === null ? "—" : String(event.guestsConfirmed) })}
-                {showProvenance ? provenanceMark("guests") : null}
-                {/* Lot 48a (PRE-06) : invités au-delà de la capacité du lieu de réception. */}
-                {venueChecks ? <VenueCapacityNotice finding={venueChecks.capacity} /> : null}
-              </dd>
-              <dt>{t("placesTitle")}</dt>
-              <dd>
-                {places.length === 0 ? t("noPlaces") : places.map((place) => (place.startTime ? `${place.label} (${place.startTime})` : place.label)).join(" · ")}{" "}
-                <Link href={tabHref("programme")}>{t("placesManage")}</Link>
-                {showProvenance ? provenanceMark("places") : null}
-              </dd>
-              <dt>{t("interlocutorsLabel")}</dt>
-              <dd>
-                {[
-                  ...event.clients.map((client) => [client.firstName, client.lastName].filter(Boolean).join(" ")),
-                  ...places.filter((place) => place.contactName).map((place) => t("interlocutorOfPlace", { name: place.contactName!, place: place.label })),
-                ].join(" · ") || notProvided(null)}
-                {showProvenance ? provenanceMark("clients") : null}
-              </dd>
-              {/* Lot 71f (C-64) : un mariage repris dit « Signé le : non renseigné » et sa source « non renseignée ». */}
-              {checklist && signedOn ? (
-                <>
-                  <dt>{tSheet("signedOn")}</dt>
-                  <dd className={signedOn.known ? undefined : "muted"}>{signedOn.known ? formatCalendarDate(signedOn.on, locale) : tSheet("notProvided")}</dd>
-                </>
-              ) : null}
-              {checklist ? (
-                <>
-                  <dt>{t("source")}</dt>
-                  <dd className={sourceLabel ? undefined : "muted"}>{sourceLabel ?? tSheet("sourceNotProvided")}</dd>
-                </>
-              ) : null}
-              <dt>{t("eventStyle")}</dt>
-              <dd className={checklist && !event.style ? "muted" : undefined}>
-                {notProvided(event.style)}
-                {showProvenance ? provenanceMark("style") : null}
-              </dd>
-              <dt>{t("eventNotes")}</dt>
-              <dd className={checklist && !event.notes ? "task-comment-body muted" : "task-comment-body"}>
-                {notProvided(event.notes)}
-                {showProvenance ? provenanceMark("notes") : null}
-              </dd>
-            </dl>
-          </section>
-          {/* Lot 49 (EVT-04 premier pas, D2) : temps forts de l'évènement ; le RSVP les reprend. */}
-          <section className="card stack" aria-labelledby="key-moments-title">
-            <h2 id="key-moments-title">{t("keyMomentsTitle")}</h2>
-            <p className="muted">{t("keyMomentsHelp")}</p>
-            {keyMoments.length === 0 ? <p>{t("keyMomentsEmpty")}</p> : null}
-            <ul className="plain-list stack">
-              {keyMoments.map((moment) => (
-                <li key={moment.id}>
-                  <strong>{moment.name}</strong> — {[formatCalendarDate(moment.date, locale), moment.startTime, moment.placeLabel].filter(Boolean).join(" · ")}
-                  <EditKeyMomentForm eventId={event.id} moment={moment} places={places} itemCount={program.items.filter((item) => item.keyMomentId === moment.id).length} />
-                </li>
-              ))}
-            </ul>
-            <AddKeyMomentForm eventId={event.id} places={places} defaultDate={event.eventDate} />
-          </section>
-          {/* Lot 51 (PAR-08, étape 7) : le bilan du lendemain, interne à l'organisation. */}
-          {dayReport?.ready ? (
-            <section className="card stack" aria-labelledby="day-report-title">
-              <div className="section-head">
-                <h2 id="day-report-title">{tReport("title")}</h2>
-                <a href={`/events/${event.id}/bilan`} download>
-                  {tReport("download")}
-                </a>
-              </div>
-              <p className="muted">{tReport("internal")}</p>
-              {reportSections.map((section) => (
-                <section key={section.title} aria-label={section.title}>
-                  <h3>{section.title}</h3>
-                  {section.lines.length === 0 ? (
-                    <p>{section.empty}</p>
-                  ) : (
-                    <ul>
-                      {section.lines.map((line, index) => (
-                        <li key={`${index}-${line}`}>{line}</li>
-                      ))}
-                    </ul>
-                  )}
-                </section>
-              ))}
-            </section>
-          ) : null}
-          {/* D5 : les formulaires de l'ancien aperçu, dans le panneau. */}
-          {query.modifier === "infos" ? (
-            <SidePanel title={tToday("cockpit.editInfo")} closeHref={tabHref("apercu")} closeLabel={tCommon("closePanel")}>
-              <EventDateForm eventId={event.id} eventDate={event.eventDate} />
-              <TimeZoneForm eventId={event.id} timeZone={event.timeZone} zones={Intl.supportedValuesOf("timeZone")} />
-              <WantedBudgetForm key={`wanted-${event.wantedBudgetCents ?? ""}`} eventId={event.id} wantedBudgetCents={event.wantedBudgetCents} />
-              <VenueForm eventId={event.id} venueName={event.venueName} venueCity={event.venueCity} />
-              {/* Sans clé liée aux valeurs : l'enregistrement garde son message de confirmation. */}
-              <EventIdentityForm eventId={event.id} identity={event} version={identityVersion} confidentialNotes={Boolean(event.notesConfidential)} />
-              {/* Lot 48a (DAT-08) : notes confidentielles, lues par leur auteur et la titulaire seuls. */}
-              {eventNotesReadable ? (
-                <EventNotesForm eventId={event.id} notes={event.notesConfidential ? eventConfidentialNotes : event.notes} confidential={Boolean(event.notesConfidential)} />
-              ) : (
-                <p className="muted">{t("eventNotesConfidentialHidden")}</p>
-              )}
-            </SidePanel>
-          ) : null}
-          {/* Lot 71f (C-56) : plus de « Champs importés » pour un mariage repris : chaque valeur est à sa place. */}
-          {checklist ? null : <ImportedFields fields={event.importedFields} />}
-          {suggestConfirmBudget ? (
-            <section aria-labelledby="confirm-budget-title">
-              <h2 id="confirm-budget-title">{t("confirmBudgetTitle")}</h2>
-              <p>{t("confirmBudgetBody")}</p>
-              <form action={confirmEventBudgetAction}>
-                <input type="hidden" name="eventId" value={event.id} />
-                <button type="submit">{t("confirmAsPlanned")}</button>
-              </form>
-            </section>
-          ) : null}
-          {/* Lot 46 (EVT-10, D8) : rendez-vous et comptes rendus, si le module Rendez-vous est ouvert. */}
-          <EventAppointments organizationId={organizationId} eventId={event.id} locale={locale} />
-          {prospectRequest ? (
+          {/* Lot 44 et 45 (CRM-01, CRM-05, CRM-06, POR-07) : tant que l'évènement est une demande, la demande reçue et
+              les échanges avec le prospect restent sous la suite ; ensuite, ils passent dans le fil d'activité. */}
+          {event.status === "option" && prospectRequest ? (
             <section className="card" aria-labelledby="prospect-request-title">
               <h2 id="prospect-request-title">{t("prospectRequestTitle")}</h2>
               <p className="meta">{t("prospectRequestReceived", { date: eventTime(prospectRequest.receivedAt) })}</p>
@@ -938,35 +864,217 @@ export default async function EventDetailPage({
               {prospectRequest.message ? <p className="pipeline-message">{prospectRequest.message}</p> : <p className="meta">{t("prospectRequestNoMessage")}</p>}
             </section>
           ) : null}
-          {/* Lot 45 (CRM-05, CRM-06, POR-07) : réponses, relances, questionnaires et historique. */}
-          <ProspectExchanges organizationId={organizationId} eventId={event.id} isOption={event.status === "option"} locale={locale === "en" ? "en" : "fr"} />
-          <section className="card" aria-labelledby="activity-title">
-            <h2 id="activity-title">{t("activityTitle")}</h2>
-            {activity.length === 0 && sentEmails.length === 0 ? <p>{t("noActivity")}</p> : null}
-            <ul aria-label={t("activityTitle")}>
-              {[
-                ...activity.map((entry) => ({
-                  id: entry.id,
-                  at: entry.createdAt,
-                  text: t(entry.kind === "task_done" ? "activityTaskDone" : entry.kind === "decision_made" ? "activityDecisionMade" : entry.kind === "vendor_reminded" ? "activityVendorReminded" : entry.kind === "document_link_opened" ? "activityDocumentLinkOpened" : entry.kind === "stage_changed" ? "activityStageChanged" : "activityTaskUndone", {
-                    actor: entry.actorName ?? t("activityFormerClient"),
-                    task: entry.taskLabel || (entry.kind === "vendor_reminded" ? t("activityVendorRemoved") : tDecisions("programLabel")),
-                  }),
-                })),
-                ...sentEmails.map((email) => ({
-                  id: email.id,
-                  at: email.sentAt ?? email.createdAt,
-                  text: t("activityEmailSent", { actor: (email.sentByUserId ? senders.get(email.sentByUserId) : null) ?? t("activityFormerMember"), kind: tEmailKinds(`kinds.${email.kind}.title`) }),
-                })),
-              ]
-                .sort((left, right) => right.at.localeCompare(left.at))
-                .map((entry) => (
-                  <li key={entry.id}>
-                    {eventTime(entry.at)} — {entry.text}
-                  </li>
-                ))}
-            </ul>
-          </section>
+          {event.status === "option" ? <ProspectExchanges organizationId={organizationId} eventId={event.id} isOption locale={locale === "en" ? "en" : "fr"} /> : null}
+          {/* Lot 71f (C-56) : plus de « Champs importés » pour un mariage repris : chaque valeur est à sa place. */}
+          {checklist ? null : <ImportedFields fields={event.importedFields} />}
+
+          <div className="overview-columns">
+            <div className="overview-column">
+              <EventProgress
+                organizationId={organizationId}
+                eventId={event.id}
+                tasks={tasks}
+                today={today}
+                locale={locale}
+                vendors={{ complete: slotCompletion.complete, total: slotCompletion.total, contractsAwaited }}
+                decisionsLabel={clientTerm.custom ? tOverview("progress.decisionsTerm", { term: clientTerm.term }) : tOverview("progress.decisions")}
+                takeover={takeoverView}
+              />
+              {/* Lot 49 (EVT-04 premier pas, D2) : temps forts de l'évènement ; le RSVP les reprend. « Gérer » ouvre
+                  les mêmes formulaires sur place. */}
+              <section className="card overview-block" aria-labelledby="key-moments-title">
+                <h2 id="key-moments-title">{t("keyMomentsTitle")}</h2>
+                {keyMoments.length === 0 ? <p>{t("keyMomentsEmpty")}</p> : null}
+                <ul className="plain-list overview-moments">
+                  {keyMoments.map((moment) => (
+                    <li key={moment.id}>
+                      <strong>{moment.name}</strong> <span className="meta">{[formatCalendarDate(moment.date, locale), moment.startTime, moment.placeLabel].filter(Boolean).join(" · ")}</span>
+                    </li>
+                  ))}
+                </ul>
+                {archived ? null : (
+                  <details className="overview-manage">
+                    <summary>{tOverview("keyMoments.manage")}</summary>
+                    <p className="muted">{t("keyMomentsHelp")}</p>
+                    <ul className="plain-list stack">
+                      {keyMoments.map((moment) => (
+                        <li key={moment.id}>
+                          <strong>{moment.name}</strong>
+                          <EditKeyMomentForm eventId={event.id} moment={moment} places={places} itemCount={program.items.filter((item) => item.keyMomentId === moment.id).length} />
+                        </li>
+                      ))}
+                    </ul>
+                    <AddKeyMomentForm eventId={event.id} places={places} defaultDate={event.eventDate} />
+                  </details>
+                )}
+              </section>
+              {/* Lot 46 (EVT-10, D8) : rendez-vous et comptes rendus, si le module Rendez-vous est ouvert. */}
+              <EventAppointments organizationId={organizationId} eventId={event.id} locale={locale} />
+            </div>
+            <div className="overview-column">
+              {/* Lot 51 (PAR-08, étape 7) : le bilan du lendemain, interne à l'organisation, en tête de colonne. */}
+              {dayReport?.ready ? (
+                <section className="card overview-block" aria-labelledby="day-report-title">
+                  <div className="section-head">
+                    <h2 id="day-report-title">{tReport("title")}</h2>
+                    <a href={`/events/${event.id}/bilan`} download className="button-link">
+                      {tReport("download")}
+                    </a>
+                  </div>
+                  <p className="muted">{tReport("internal")}</p>
+                  {reportSections.map((section) => (
+                    <section key={section.title} aria-label={section.title}>
+                      <h3>{section.title}</h3>
+                      {section.lines.length === 0 ? (
+                        <p>{section.empty}</p>
+                      ) : (
+                        <ul>
+                          {section.lines.map((line, index) => (
+                            <li key={`${index}-${line}`}>{line}</li>
+                          ))}
+                        </ul>
+                      )}
+                    </section>
+                  ))}
+                </section>
+              ) : null}
+              <EventInformation
+                rows={infoRows}
+                labels={{ clients: clientsLabel }}
+                editHref={editHref}
+                teamHref={`/events/${event.id}/equipe`}
+                readOnly={archived}
+                tools={
+                  // Lot 71f (R7) : à la demande, le fichier de chaque valeur reprise.
+                  checklist ? (
+                    <Link className="button-link" href={showProvenance ? overviewHref() : overviewHref({ provenance: "1" })} scroll={false} aria-current={showProvenance ? "true" : undefined}>
+                      {showProvenance ? tSheet("provenanceHide") : tSheet("provenanceShow")}
+                    </Link>
+                  ) : null
+                }
+                before={
+                  // Lot 71f (C-64) : un mariage repris dit « Signé le : non renseigné ».
+                  checklist && signedOn ? (
+                    <div className="overview-info-row" data-key="signedOn">
+                      <dt>{tSheet("signedOn")}</dt>
+                      <dd className={signedOn.known ? undefined : "muted"}>{signedOn.known ? formatCalendarDate(signedOn.on, locale) : tSheet("notProvided")}</dd>
+                    </div>
+                  ) : null
+                }
+                values={{
+                  clients: (
+                    <>
+                      {event.clients.map((client) => [client.firstName, client.lastName].filter(Boolean).join(" ")).join(" · ")}
+                      {showProvenance ? provenanceMark("clients") : null}
+                    </>
+                  ),
+                  guests: (
+                    <>
+                      {guestParts.join(" · ")}
+                      {showProvenance ? provenanceMark("guests") : null}
+                      {/* Lot 48a (PRE-06) : invités au-delà de la capacité du lieu de réception (« À vérifier : »). */}
+                      {venueChecks ? <VenueCapacityNotice finding={venueChecks.capacity} /> : null}
+                    </>
+                  ),
+                  places: (
+                    <>
+                      {placeWords.join(" · ")} <Link href={tabHref("programme")}>{tOverview("info.placesManage")}</Link>
+                      {showProvenance ? provenanceMark("places") : null}
+                    </>
+                  ),
+                  wantedBudget: event.wantedBudgetCents === null ? null : formatAmount(event.wantedBudgetCents, locale),
+                  style: (
+                    <>
+                      {event.style}
+                      {showProvenance ? provenanceMark("style") : null}
+                    </>
+                  ),
+                  type: typeLabel,
+                  source: sourceLabel,
+                  busy: (
+                    <>
+                      {busyWords}
+                      {busy && !busy.blocking ? (
+                        <>
+                          {" · "}
+                          <Link href="/events/parametres/plages-occupees">{tBusy("settingsLink")}</Link>
+                        </>
+                      ) : null}
+                      {busy?.startDate && !archived ? <AddToCalendarDialog eventId={event.id} /> : null}
+                    </>
+                  ),
+                  team: (
+                    <>
+                      {[...teamNames, ...(activeHelpers.length > 0 ? [tOverview("info.teamHelpers", { names: activeHelpers.map((helper) => helper.personName).join(", ") })] : [])].join(" · ")}{" "}
+                      <Link href={`/events/${event.id}/equipe`}>{tOverview("info.teamManage")}</Link>
+                    </>
+                  ),
+                  notes:
+                    notesView.kind === "hidden" ? (
+                      <span className="muted">{t("eventNotesConfidentialHidden")}</span>
+                    ) : (
+                      <>
+                        {notesView.text}
+                        {showProvenance ? provenanceMark("notes") : null}
+                      </>
+                    ),
+                }}
+              />
+              <EventActivity entries={activityEntries} time={eventTime} all={query.fil === "tout"} allHref={overviewHref({ fil: "tout" })} recentHref={overviewHref()} />
+            </div>
+          </div>
+          {/* Lot 72e (C-26, D7, M1) : « Modifier les informations », une fenêtre à rubriques et un seul « Enregistrer ». */}
+          {windowOpen ? (
+            <InfoWindow
+              eventId={event.id}
+              names={clientNames}
+              version={identityVersion}
+              initialRubric={windowRubric}
+              closeHref={overviewHref()}
+              postponeHref={canPostpone(event.status) ? overviewHref({ reporter: "1" }) : null}
+              initial={{
+                eventDate: event.eventDate ?? "",
+                timeZone: event.timeZone,
+                venueName: event.venueName ?? "",
+                venueCity: event.venueCity ?? "",
+                busyMode: busy?.source === "event" ? "event" : "type",
+                startDayOffset: String(busy?.rule.startDayOffset ?? 0),
+                startTime: busy?.rule.startTime ?? "",
+                endDayOffset: String(busy?.rule.endDayOffset ?? 0),
+                endTime: busy?.rule.endTime ?? "",
+                guestsEstimated: event.guestsEstimated === null ? "" : String(event.guestsEstimated),
+                guestsConfirmed: event.guestsConfirmed === null ? "" : String(event.guestsConfirmed),
+                wantedBudget: amountField(event.wantedBudgetCents),
+                style: event.style ?? "",
+                notes: notesView.kind === "text" ? (notesView.text ?? "") : "",
+                notesConfidential: event.notesConfidential ? "on" : "",
+                eventTypeId: event.eventTypeId ?? "",
+                prospectSourceId: event.prospectSourceId ?? "",
+              }}
+              dateEditable={dateEditable({ status: event.status, eventDate: event.eventDate, archived })}
+              dateWords={dateWords({ weekday: "short", day: "numeric", month: "long", year: "numeric" })}
+              busy={{ typeRule: busy?.rule ?? { startDayOffset: 0, startTime: "09:00", endDayOffset: 0, endTime: "23:59" }, eventDate: event.eventDate }}
+              clients={event.clients.map((client) => ({ name: [client.firstName, client.lastName].filter(Boolean).join(" "), email: client.email ?? null, phone: client.phone ?? null }))}
+              clientsTab={{ label: clientsLabel, href: tabHref("maries") }}
+              guestsFromReplies={guestSummary ? guestSummary.confirmed : null}
+              notes={{ readable: notesView.kind === "text" }}
+              types={eventTypes.map((type) => ({ id: type.id, label: type.label }))}
+              sources={sources.map((source) => ({ id: source.id, label: source.label }))}
+            />
+          ) : null}
+          {suitePanel ? (
+            <TaskPanelLoader
+              organizationId={organizationId}
+              userId={auth.user.id}
+              role={auth.user.role}
+              locale={locale}
+              today={today}
+              open={suitePanel}
+              closeHref={suiteExpanded ? overviewHref({ tout: "1" }) : overviewHref()}
+              backLabel={tOverview("suite.nextActions")}
+              screenHref={(params) => tabHref("taches", params)}
+            />
+          ) : null}
         </>
       ) : null}
 
@@ -1217,8 +1325,8 @@ export default async function EventDetailPage({
           <section className="card" aria-labelledby="tasks-title">
             <div className="section-head">
               <h2 id="tasks-title">{tLine("tabTitle")}</h2>
-              {/* L'action principale de l'onglet, sauf quand le bandeau « Prochaine étape » en propose déjà une. */}
-              <Link href={taskQuery({ nouvelle: "1" })} scroll={false} className={stepBanner ? "button-link" : "button-link button-link-primary"}>
+              {/* L'action principale de l'onglet (lot 72e : plus de bandeau « Prochaine étape » au-dessus). */}
+              <Link href={taskQuery({ nouvelle: "1" })} scroll={false} className="button-link button-link-primary">
                 {tLine("newTask")}
               </Link>
             </div>
@@ -1577,11 +1685,11 @@ export default async function EventDetailPage({
         </section>
       ) : null}
 
-      {/* Lot 70e (A14) : la source et un client de plus, que « Nouvel évènement » ne demande plus. */}
-      {tab === "maries" && !event.archivedAt ? (
+      {/* Lot 70e (A14) : un client de plus, que « Nouvel évènement » ne demande plus. Lot 72e (J14) : la source
+          (« Venu par ») passe dans « Modifier les informations », rubrique « Type et origine ». */}
+      {tab === "maries" && !event.archivedAt && event.clients.length < 2 ? (
         <section className="card" aria-labelledby="event-origin-title">
-          <h2 id="event-origin-title">{t("originTitle")}</h2>
-          <EventSourceForm eventId={event.id} sources={sources.map((candidate) => ({ id: candidate.id, label: candidate.label }))} current={event.prospectSourceId} />
+          <h2 id="event-origin-title">{tOverview("info.addClient")}</h2>
           {event.clients.length < 2 ? (
             <AddClientForm
               eventId={event.id}

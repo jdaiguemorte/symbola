@@ -156,7 +156,8 @@ test("SC-03 / HUB-08 / UX-01 / UX-06 / EVT-02 — lundi matin : les urgences, an
   await expect(page).toHaveURL(new RegExp(`/events/${setup.leaId}$`));
   // Lot 72d : le compte à rebours est dans la ligne de faits de l'en-tête (« dans 68 jours »).
   await expect(page.locator("#event-header").getByText("dans 68 jours")).toBeVisible();
-  const next = page.getByRole("region", { name: "Prochaine action" });
+  // Lot 72e (C-24, J13) : une seule suite, les lignes de l'accueil restreintes au mariage.
+  const next = page.locator("[data-suite]");
   await expect(next.getByRole("listitem").first()).toContainText("Faire signer le contrat du photographe");
   await expect(next.getByRole("listitem").first()).toContainText("En retard de 3 jours");
   // Sur un écran de 13 pouces (1 280 × 800), la prochaine action et les deux suivantes sans défiler.
@@ -164,11 +165,12 @@ test("SC-03 / HUB-08 / UX-01 / UX-06 / EVT-02 — lundi matin : les urgences, an
     await page.setViewportSize({ width: 1280, height: 800 });
     for (const index of [0, 1, 2]) await expect(next.getByRole("listitem").nth(index)).toBeInViewport();
   }
-  const health = page.getByRole("region", { name: "Santé de l'évènement" });
-  await expect(health).toContainText("0 sur 3 tâches faites");
-  await expect(health).toContainText("1 tâche en retard");
+  // Lot 72e (C-28) : « Où en est le mariage » remplace la santé ; les quatorze jours se fondent dans la suite.
+  const health = page.getByRole("region", { name: "Où en est le mariage" });
+  await expect(health).toContainText("0 sur 3");
+  await expect(health).toContainText("1 en retard");
   await expect(health).toContainText("1 en attente");
-  await expect(page.getByRole("region", { name: "Les 14 prochains jours" })).toContainText("Réserver la navette");
+  await expect(next).toContainText(/réserver la navette/i);
   await expectNoAxeViolation(page);
 
   // Étape 5 (lot 65d, M16) : « Noter une relance » — Camille a relancé le photographe au téléphone ; elle
@@ -188,7 +190,7 @@ test("SC-03 / HUB-08 / UX-01 / UX-06 / EVT-02 — lundi matin : les urgences, an
   // La page est rouverte plutôt que rechargée : juste après l'action serveur, Firefox refuse parfois
   // le rechargement (« NS_ERROR_NO_CONTENT », CI du 18/11/2026).
   await page.goto(page.url());
-  await expect(page.getByRole("region", { name: "Prochaine action" })).not.toContainText("Contrat de Studio Lumière (Photographe) à faire signer");
+  await expect(page.locator("[data-suite]")).not.toContainText("Contrat de Studio Lumière (Photographe) à faire signer");
   await expect(page.getByRole("list", { name: "Fil d'activité" })).toContainText("Relance de Studio Lumière notée.");
   await expectNoAxeViolation(page);
 });

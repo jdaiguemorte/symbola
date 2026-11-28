@@ -3,6 +3,7 @@
 // /v1/vendors si le module devient une app autonome (cahier des charges
 // § 5.5). Les montants restent des centimes entiers EUR (CLAUDE.md § 5).
 import type { FileDownload } from "../file-download";
+import type { VendorCandidateStatus } from "../events/service-contract";
 
 export type VendorFieldKind = "number" | "text" | "time" | "amount" | "choice" | "boolean";
 export type VendorFieldValue = string | number | boolean;
@@ -224,7 +225,11 @@ export type VendorHistoryEntry = {
   eventId: string;
   eventNames: string;
   eventDate: string | null;
+  // Lot 73d (critère 8) : le poste (le nom du mariage mène à lui) et le statut du prestataire sur ce poste
+  // (« Où en est-on »).
+  slotId: string;
   slotLabel: string;
+  status: VendorCandidateStatus;
   outcome: VendorHistoryOutcome;
   quotedCents: number | null;
   // Lot 73a (P9) : le montant du mariage — le réel du poste (somme de ses lignes de budget), une fois

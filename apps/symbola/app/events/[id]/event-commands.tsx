@@ -36,6 +36,11 @@ export type EventCommandsProps = {
   canPostpone: boolean;
   canCancel: boolean;
   reasons: LossReason[];
+  // Lot 72e (C-26) : « Modifier les informations », aussi depuis le menu ; et la fenêtre du report ouverte à
+  // l'arrivée (« Reporter l'évènement… » de la fenêtre des informations, qui se ferme d'abord), puis
+  // l'adresse rendue sans ce paramètre.
+  editInfo?: (Command & { hint: string }) | null;
+  openPostpone?: { cleanHref: string } | null;
 };
 
 const MenuContext = createContext<{ open: (anchor: HTMLElement | null) => void; label: string } | null>(null);
@@ -95,6 +100,13 @@ export function EventCommands({ children, ...props }: EventCommandsProps & { chi
     }
   }, [postponeState, cancelState, typeState, feedback, props.names, props.types, typeChoice, t, tEvents, router]);
 
+  const openPostpone = props.openPostpone;
+  useEffect(() => {
+    if (!openPostpone || !props.canPostpone) return;
+    if (!postponeRef.current?.open) postponeRef.current?.showModal();
+    router.replace(openPostpone.cleanHref, { scroll: false });
+  }, [openPostpone, props.canPostpone, router]);
+
   const open = (element: HTMLElement | null) => {
     anchor.current = element;
     menu.open(element);
@@ -138,6 +150,12 @@ export function EventCommands({ children, ...props }: EventCommandsProps & { chi
               <span>{props.dayOf.label}</span>
               <span className="task-menu-hint">{t("openDayOfHint")}</span>
             </a>
+          ) : null}
+          {props.editInfo ? (
+            <Link role="menuitem" href={props.editInfo.href} scroll={false} onClick={() => menu.close()}>
+              <span>{props.editInfo.label}</span>
+              <span className="task-menu-hint">{props.editInfo.hint}</span>
+            </Link>
           ) : null}
           {props.types ? (
             <button type="button" role="menuitem" aria-haspopup="dialog" onClick={() => choose(typeRef.current)}>
