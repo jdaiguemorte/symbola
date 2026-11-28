@@ -14221,8 +14221,9 @@
       "unknown": "Ce choix n'existe plus : choisissez-en un autre.",
       "forbidden": "Ces notes sont confidentielles : seuls leur auteur et la titulaire les changent.",
       "eventDate": "Le contrat est signé : reportez l'évènement pour changer sa date.",
-      "conflict": "Quelqu'un a enregistré ces informations depuis l'ouverture de la fenêtre. Fermez-la et rouvrez-la pour partir de la dernière version.",
+      "conflict": "Quelqu'un a enregistré ces informations depuis l'ouverture de la fenêtre : rien n'est écrasé. « Garder ma version » enregistre la vôtre à la place ; sinon, fermez la fenêtre et rouvrez-la pour partir de la dernière version.",
       "notFound": "Cet évènement n'existe pas ou n'est plus accessible."
-    }
+    },
+    "keepMine": "Garder ma version"
   }
 }

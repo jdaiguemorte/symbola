@@ -21,6 +21,8 @@ export type InfoWindowState = {
   error?: string;
   fieldErrors?: Partial<Record<DetailsField, string>>;
   rubric?: DetailsRubric | null;
+  // Lot 39b (UX-09, D8) : une modification faite entre-temps ; rien n'est écrasé sans « Garder ma version ».
+  conflict?: boolean;
 };
 
 const REFUSED: { [K in EventDetailsRefusedField]: [DetailsField, DetailsErrorCode] } = {
@@ -71,14 +73,14 @@ export async function saveEventInfoAction(_previous: InfoWindowState, formData: 
   if (!parsed.ok) return refused(parsed.errors);
 
   try {
-    const version = String(formData.get("version") ?? "");
+    const version = formData.get("force") === "1" ? "" : String(formData.get("version") ?? "");
     await saveEventDetails({ organizationId, eventId, actor, ...(version ? { version } : {}), values: parsed.values });
   } catch (error) {
     if (error instanceof EventDetailsRefusedError) {
       const [field, code] = REFUSED[error.field];
       return refused({ [field]: code });
     }
-    if (error instanceof EventDetailsConflictError) return { error: t("conflict"), at: Date.now() };
+    if (error instanceof EventDetailsConflictError) return { error: t("conflict"), conflict: true, at: Date.now() };
     if (error instanceof EventNotFoundError || error instanceof EventArchivedError) return { error: t("notFound"), at: Date.now() };
     if (error instanceof RangeError) return { error: t("tooLong"), at: Date.now() };
     throw error;

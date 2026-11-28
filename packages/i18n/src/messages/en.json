@@ -14221,8 +14221,9 @@
       "unknown": "This choice no longer exists: choose another one.",
       "forbidden": "These notes are confidential: only their author and the owner change them.",
       "eventDate": "The contract is signed: postpone the event to change its date.",
-      "conflict": "Someone saved these details since the window was opened. Close it and open it again to start from the latest version.",
+      "conflict": "Someone saved these details since the window was opened: nothing is overwritten. \"Keep my version\" saves yours instead; otherwise, close the window and open it again to start from the latest version.",
       "notFound": "This event does not exist or is no longer accessible."
-    }
+    },
+    "keepMine": "Keep my version"
   }
 }

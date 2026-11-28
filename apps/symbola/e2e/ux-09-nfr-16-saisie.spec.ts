@@ -11,7 +11,7 @@ import { createUser } from "@symbola/auth";
 import { createAppConnection } from "@symbola/db/client";
 import { createProspect, createProspectSource } from "../modules/events/service";
 import { getFormDraft } from "../modules/hub/service";
-import { readyOrganization, signIn } from "./helpers";
+import { readyOrganization, signIn, eventInfoWindow, saveEventInfo } from "./helpers";
 
 async function expectNoAxeViolation(page: Page) {
   const result = await new AxeBuilder({ page }).analyze();
@@ -64,36 +64,35 @@ test("UX-09 — SC-01 étape 7 : un prospect commencé se reprend ailleurs, à l
   await expect(page.getByText(/Brouillon du .+ retrouvé\./)).toHaveCount(0);
 });
 
-test("UX-09 — un conflit d'édition entre deux fenêtres est montré champ par champ, et rien n'est écrasé en silence", async ({ page }) => {
+test("UX-09 — un conflit d'édition entre deux fenêtres est annoncé, et rien n'est écrasé en silence", async ({ page }) => {
   test.setTimeout(150_000);
   const setup = await atelier();
   await signIn(page, setup.email, /\/$/);
   const other = await page.context().newPage();
-  // Les deux panneaux sont ouverts (et la version de la fiche lue) avant le premier enregistrement.
+  // Lot 72e : les deux fenêtres « Modifier les informations » sont ouvertes (et la version lue) avant le premier
+  // enregistrement.
   for (const view of [page, other]) {
-    await view.goto(`/events/${setup.eventId}`);
-    await view.getByRole("link", { name: "Modifier les informations" }).click();
-    await expect(view.getByRole("form", { name: "Fiche d'identité" })).toBeVisible();
+    await view.goto(`/events/${setup.eventId}?onglet=apercu&modifier=infos&rubrique=style`);
+    await expect(eventInfoWindow(view)).toBeVisible();
   }
-  const style = (view: Page) => view.getByRole("form", { name: "Fiche d'identité" }).locator('input[name="style"]');
+  const style = (view: Page) => eventInfoWindow(view).getByRole("textbox", { name: "Style", exact: true });
 
   await style(page).fill("Champêtre");
-  await style(page).press("Tab");
-  await expect(page.getByRole("form", { name: "Fiche d'identité" }).getByText("Fiche enregistrée.")).toBeVisible();
+  await saveEventInfo(page);
 
   await style(other).fill("Industriel");
-  await style(other).press("Tab");
-  const conflict = other.getByRole("region", { name: "Modifié pendant que vous écriviez" });
+  await eventInfoWindow(other).getByRole("button", { name: "Enregistrer", exact: true }).click();
+  const conflict = eventInfoWindow(other).getByRole("alert").filter({ hasText: "rien n'est écrasé" });
   await expect(conflict).toBeVisible();
-  await expect(conflict.getByText("Version enregistrée : « Champêtre »")).toBeVisible();
-  await expect(conflict.getByText("Votre version : « Industriel »")).toBeVisible();
+  await expect(style(other)).toHaveValue("Industriel");
+  await page.reload();
+  await expect(page.locator('.overview-info [data-key="style"]')).toContainText("Champêtre");
   await expectNoAxeViolation(other);
   await conflict.getByRole("button", { name: "Garder ma version" }).click();
-  await expect(other.getByRole("form", { name: "Fiche d'identité" }).getByText("Fiche enregistrée.")).toBeVisible();
+  await expect(eventInfoWindow(other)).toBeHidden();
 
-  // Le panneau est dans l'adresse : il se rouvre au rechargement.
   await page.reload();
-  await expect(style(page)).toHaveValue("Industriel");
+  await expect(page.locator('.overview-info [data-key="style"]')).toContainText("Industriel");
   await other.close();
 });
 

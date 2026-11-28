@@ -77,10 +77,11 @@ test("SC-03 / HUB-15 / UX-16 / GC-02 / CHR-05 / CHR-10 / HUB-24 / HUB-28 — not
 
   // CHR-05 : la santé s'explique, le jalon d'abord.
   await page.goto(`/events/${setup.eventId}`);
-  const health = page.getByRole("region", { name: "Santé de l'évènement" });
+  // Lot 72e (C-28) : « Où en est le mariage » ; l'explication du lot 53 dans « Pourquoi ces nombres ? ».
+  const health = page.getByRole("region", { name: "Où en est le mariage" });
+  await health.getByText("Pourquoi ces nombres ?").click();
   // Un jalon en retard pèse 3 points : « À surveiller » avec les seuils de départ (1 et 4).
   await expect(health).toContainText("À surveiller");
-  await health.getByText("Pourquoi ?").click();
   await expect(health.getByRole("link", { name: "Contrat traiteur signé — 3 jours de retard" })).toBeVisible();
   await expect(health).toContainText("Jalon");
   await expectNoAxeViolation(page);

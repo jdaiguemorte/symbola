@@ -156,7 +156,8 @@ export function InfoWindow(props: InfoWindowProps) {
         // refus garde toute la saisie (rien n'est perdu, seul le champ refusé est à corriger).
         onSubmit={(submit) => {
           submit.preventDefault();
-          const data = new FormData(submit.currentTarget);
+          // Le bouton qui envoie (« Garder ma version ») fait partie de l'envoi.
+          const data = new FormData(submit.currentTarget, (submit.nativeEvent as SubmitEvent).submitter);
           startTransition(() => action(data));
         }}
         onInput={onInput}
@@ -184,9 +185,14 @@ export function InfoWindow(props: InfoWindowProps) {
             </p>
           ) : null}
           {state.error ? (
-            <p className="field-error" role="alert">
-              {state.error}
-            </p>
+            <div className="field-error" role="alert">
+              <p>{state.error}</p>
+              {state.conflict ? (
+                <button type="submit" name="force" value="1" className="button-secondary" disabled={pending}>
+                  {t("keepMine")}
+                </button>
+              ) : null}
+            </div>
           ) : null}
 
           <section hidden={rubric !== "dates"} aria-label={t("rubric.dates")} className="stack">
